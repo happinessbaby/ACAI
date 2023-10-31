@@ -1,0 +1,28 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mOf course! I can help you with that. I'll ask you a series of interview questions for an associate position at Publix. Please provide your answers to the best of your ability. Let's begin!
+
+First question: Can you tell me about your previous experience in customer service?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCertainly! I can assist you with that. I will ask you a series of interview questions for an associate position at Publix. Please provide your answers to the best of your ability. Let's get started!
+
+First question: Why are you interested in working at Publix as an associate?[0m
+
+[1m> Finished chain.[0m

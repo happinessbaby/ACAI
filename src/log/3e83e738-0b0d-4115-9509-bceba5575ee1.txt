@@ -1,0 +1,48 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./static/3e83e738-0b0d-4115-9509-bceba5575ee1/609c4984-caac-4e12-8293-74074fa3fd19.txt\", \"job post link\":\"\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "get download link",
+    "action_input": "{\"file_path\": \"609c4984-caac-4e12-8293-74074fa3fd19_evaluation.docx\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./static/3e83e738-0b0d-4115-9509-bceba5575ee1/609c4984-caac-4e12-8293-74074fa3fd19.txt\", \"job post link\":\"\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "get download link",
+    "action_input": "{\"file_path\": \"609c4984-caac-4e12-8293-74074fa3fd19_evaluation.docx\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./static/3e83e738-0b0d-4115-9509-bceba5575ee1/609c4984-caac-4e12-8293-74074fa3fd19.txt\", \"job post link\":\"\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "get download link",
+    "action_input": "{\"file_path\": \"609c4984-caac-4e12-8293-74074fa3fd19_evaluation.docx\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./static/3e83e738-0b0d-4115-9509-bceba5575ee1/609c4984-caac-4e12-8293-74074fa3fd19.txt\", \"job post link\":\"\"}"
+}
+```[0m

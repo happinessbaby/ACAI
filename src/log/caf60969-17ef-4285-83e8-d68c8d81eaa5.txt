@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mmentioned that you would like to skip the interview. Is there a specific reason why you would like to skip?[0m
+
+[1m> Finished chain.[0m

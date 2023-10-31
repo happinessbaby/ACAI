@@ -1,0 +1,51 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/b4b59e31-37e2-4fa1-93b3-44789d547c12/21ef05d0-f293-4f1c-b6ec-0943fa8ef947.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

@@ -1,0 +1,27 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/c20b059e-7fab-479d-8726-f3f1de47fcc5/3d78cd0a-7065-4d5c-8216-77a21b9f1332.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/c20b059e-7fab-479d-8726-f3f1de47fcc5/3d78cd0a-7065-4d5c-8216-77a21b9f1332.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/c20b059e-7fab-479d-8726-f3f1de47fcc5/3d78cd0a-7065-4d5c-8216-77a21b9f1332.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

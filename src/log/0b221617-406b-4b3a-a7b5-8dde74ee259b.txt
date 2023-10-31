@@ -1,0 +1,21 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Hello! How can I assist you today?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_preparation_helper",
+    "action_input": {"interview topic": "interview"}
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I have created a study companion for you to review interview questions. If you have any study material, please upload it so that I can assist you further."
+}[0m
+
+[1m> Finished chain.[0m

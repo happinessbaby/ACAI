@@ -1,0 +1,42 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"\", \"job post link\": \"\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. To help you write a cover letter, I would need some information such as the job title, company name, your resume file, and the job post link. Could you please provide these details?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: To assist you with your cover letter, I will need some additional information. Could you please provide the job title, company name, and the job post link?[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "To assist you with your cover letter, I will need some additional information. Could you please provide the job title, company name, and the job post link?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure! I can definitely help you with the cover letter generator. To proceed, please provide the necessary information such as the job title, company name, your resume file, and the job post link.[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Sure! I can definitely help you with the cover letter generator. To proceed, please provide the necessary information such as the job title, company name, your resume file, and the job post link."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure! I can definitely help you with the cover letter generator tool. To proceed, please provide the necessary information such as the job title, company name, your resume file, and the job post link.[0m[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"\", \"job post link\": \"\"}"
+}[0m[32;1m[1;3m{
+    "action": "read_file",
+    "action_input": "{\"file_path\": \"./static/2ee334f8-9f3b-48d1-a0bb-5fbfa9af0ad2/22fd9440-a8c7-4639-95ca-9d333558ead2.txt\"}"
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m

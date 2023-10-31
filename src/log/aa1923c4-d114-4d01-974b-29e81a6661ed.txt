@@ -1,0 +1,19 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"-1\", \"resume file\":\"./static/aa1923c4-d114-4d01-974b-29e81a6661ed/c30e04cf-fd96-4d50-b98b-4ff00c533987.txt\", \"job post link\":\"./static/aa1923c4-d114-4d01-974b-29e81a6661ed/83230a35-5675-4ae6-85c4-f5a666ba5d69.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"-1\", \"resume file\":\"./static/aa1923c4-d114-4d01-974b-29e81a6661ed/c30e04cf-fd96-4d50-b98b-4ff00c533987.txt\", \"job post link\":\"./static/aa1923c4-d114-4d01-974b-29e81a6661ed/83230a35-5675-4ae6-85c4-f5a666ba5d69.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

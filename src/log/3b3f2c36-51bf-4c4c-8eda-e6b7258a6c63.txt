@@ -1,0 +1,32 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I have initiated the mock interview process. Please confirm if you wish to proceed."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `search_job_posting` with `{}`
+
+
+[0m[32;1m[1;3m
+Invoking: `interview_stopper` with ``
+
+
+[0m[32;1m[1;3mThank you for your time. This concludes the interview process. If you have any further questions or need any additional information, please feel free to reach out. Have a great day![0m
+
+[1m> Finished chain.[0m

@@ -1,0 +1,9 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"data analyst\", \"company\":\"southern company\", \"resume file\":\"./static/1afce967-ef57-4251-8b8e-d109fe9ec6ca/64e3db85-ee2e-483d-8985-4d25ce1df657.txt\", \"job post link\":\"./static/1afce967-ef57-4251-8b8e-d109fe9ec6ca/9e51e365-fb1a-4de8-8dab-5a6508a00e26.txt\"}"
+}
+```[0m

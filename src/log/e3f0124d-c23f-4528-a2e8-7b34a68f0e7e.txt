@@ -1,0 +1,110 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\"}"
+}
+```[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"job_post_file\":\"\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"job_post_file\":\"\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"job_post_file\":\"\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"job_post_file\":\"\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"job_post_file\":\"\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_writer",
+    "action_input": "{\"resume_file\":\"./static/e3f0124d-c23f-4528-a2e8-7b34a68f0e7e/bf24c232-a9cb-43c9-9d74-e2ae068faa68.txt\", \"resume_template\":\"./resume_templates/functional/functional-0.png\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

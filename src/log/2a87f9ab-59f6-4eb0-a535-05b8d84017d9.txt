@@ -1,0 +1,11 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with more details? Are you looking for a review of your current resume, or do you need help creating a new one? If you want a review, please provide your resume file. If you need help creating a new one, please provide some information about yourself and the job you're applying for.[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "I'm here to assist you with your resume. Could you please provide more details? Are you looking for a review of your current resume, or do you need help creating a new one? If you want a review, please provide your resume file. If you need help creating a new one, please provide some information about yourself and the job you're applying for."
+}
+```[0m
+
+[1m> Finished chain.[0m

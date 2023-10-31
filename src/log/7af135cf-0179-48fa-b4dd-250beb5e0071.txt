@@ -1,0 +1,31 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. However, I will need your current resume file and the job post file to proceed. Could you please provide these files?[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To rewrite your resume using a new template, I need your current resume file and the job post file. Could you please provide these files?"
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/7af135cf-0179-48fa-b4dd-250beb5e0071/60723758-27ac-457b-be55-06c53d666550.txt\"}"
+}
+```[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about_me\":\"help me write a cover letter\", \"resume_file\":\"./static/7af135cf-0179-48fa-b4dd-250beb5e0071/60723758-27ac-457b-be55-06c53d666550.txt\", \"job_post_file\": \"\"}"
+}
+```[0m

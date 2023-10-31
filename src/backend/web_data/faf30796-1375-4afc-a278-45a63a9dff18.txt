@@ -1,0 +1,142 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+You Need to Avoid These ATS Formatting Mistakes - Jobscan
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            Skip to content       
+              Jobscan Logo     Products     Job Tracker BoardTrack and manage your job applications and interviews.    Resume Power EditEdit your resume with AI-powered software.    LinkedIn Optimization ToolGet noticed by recruiters on LinkedIn.    Resume Builder ToolBuild an ATS-friendly resume for free.    Resume Optimization ReportOptimize your resume for ATS to get more interviews.    Cover Letter GeneratorGenerate a personalized cover letter in seconds.    Cover Letter Optimization ReportOptimize your cover letter to get more interviews.   Career Change ToolUpload your resume to discover your best next step.    Product WalkthroughVideo walkthroughs of all Jobscan products. Scan Your Resume   ATS Resume    
+
+ Resume Optimization ReportOptimize your resume for ATS to get more interviews.    What Is An ATS?Everything you need to know about applicant tracking systems.    How to Optimize Your Resume for ATSLearn ATS resume secrets on formatting and keywords.   How to Write a ResumeWrite the perfect resume and get more interviews.    Resume TemplatesFree ATS-friendly resume templates.   ATS Resume TemplatesEdit your resume in Microsoft Word.  Google Docs Resume TemplatesEdit in Google Docs and download for free.      Resume FormatsPick the right format for your career.    Resume ExamplesExplore our library of resume samples for any profession. Get Your Free Resume Score   Cover Letter    
+
+ Cover Letter Optimization ReportOptimize your cover letter to get more interviews.    How to Write a Cover LetterLearn how to write a convincing cover letter.    Cover Letter FormatsFind out which type of cover letter is right for you.    Cover Letter TemplatesFree templates to get you started.    Cover Letter ExamplesCover letter examples by job and situation. Generate a Personalized Cover Letter   Linkedin    
+
+ LinkedIn Optimization ToolOptimize your LinkedIn profile to get noticed by recruiters.   LinkedIn Profile Writing GuideLearn how to write an attention-grabbing LinkedIn profile.    LinkedIn Headline ExamplesWrite a headline that will get recruiters to notice you.    LinkedIn Summary ExamplesTips, and examples to help you write a powerful summary. Optimize Your LinkedIn Profile   Pricing Resources     Jobscan BlogInsider knowledge and advice to help job seekers get more interviews.    Resume GuidesLearn how to optimize and tailor your resume for the job to show that you’re the best candidate.    ATS GuidesFind out ATS secrets so you can optimize your resume and make a good impression on the recruiter.    Cover Letter GuidesGuides, tips, and advice for writing a convincing cover letter that makes you stand out from the crowd.    Job Search AdviceTips and hacks for saving time and getting better results in your job search.    LinkedIn GuidesLearn how to craft the perfect LinkedIn profile. Guides on headlines, summaries, work experience, and more.   Career Change GuidesExpert advice on how to make a career change with guides for every step of the journey.   Learning CenterIn-depth guides on optimizing your resume, cover letter, and LinkedIn profile. Customer StoriesSee how Jobscan helped job seekers get their dream job.   Organizations     UniversitiesImprove student employment outcomes and coaching efficiency.    GovernmentSpecial pricing for government outplacement and career services centers.    NGOsPartnerships to benefit non-profit organizations that help underserved jobseekers.    BusinessPowerful tools for career services and staffing businesses and associations.    Career CoachesSpecial pricing and powerful analytics for coaches.    AffiliatesJoin as an affiliate partner and earn a commission.    Jobscan WidgetEmbed Jobscan into your site to increase engagement and authority.      Search   Log In Sign Up Dashboard 
+
+                Jobscan>Blog > All About ATS (Applicant Tracking Systems)>You Need to Avoid These ATS Formatting Mistakes    You Need to Avoid These ATS Formatting Mistakes  Are your resumes being rejected by ATS systems? These common formatting mistakes might be the problem.        
+
+    by Robert Henderson, CPRW, Resume ExpertJune 15, 2023August 11, 2023                   ShareTwitterFacebookWhatsAppPinterestLinkedIn      Search    ⚲  Are ATS formatting mistakes sabotaging your chances of landing your dream job? ATS stands for applicant tracking system. It’s computer software that most companies use today to help them organize the huge amount of applications they receive for each job opening.  Unfortunately, many high-quality resumes get lost in the ATS, never to be seen again. Why does this happen? The problem could be as simple as incorrect resume formatting. In this article, we’ll show you how to avoid formatting errors and create a resume that has the best chance of making it out of the ATS and into the hands of a hiring manager. Table of Contents    Mistake #1 – Not having the best date format for your resume Mistake #2 – Unclear abbreviations and acronyms Mistake #3 – Using tables and columns Mistake #4 – Using headers and footers Mistake #5 – Using a unique font Mistake #6 – Not using standard headings Mistake #7 – Not using the right file type Mistake #8 – Not proofreading your resume Mistake #9 – Treating every ATS the same way   What is an ATS resume format? Can using fancy fonts and graphics affect ATS resume parsing? Are there specific keywords that ATS systems prioritize in resume screening? How do you know if your resume is ATS-friendly? What is the best resume template for ATS?  How do ATS parse and analyze resumes? When you submit your resume, it goes directly to an ATS. The first thing most ATS will do when they receive your resume is parse it. Parsing is when the ATS extracts the work experience, skills, education, and contact information from your resume and organizes it for easy analysis.   This allows employers to focus on the actual text of your resume, not the visuals or design aesthetic. The extracted data is stored in the ATS database. Hiring managers search the database to find suitable job candidates by typing in keywords.  For example, if the job is for a teacher, hiring managers will search the ATS for words like “teaching,” “classroom,” or “lesson plans”. Resumes with these keywords have a better chance of being noticed. Unfortunately, even resumes that are perfectly tailored for the job and have all the right keywords might never be found. Why? Because these resumes contain simple formatting mistakes.  It seems a shame that your hard work could be ruined by something so simple, but it happens all the time. Before you send out your resume, check to make sure it doesn’t contain one of these formatting errors that could cost you a job opportunity. The 9 most common mistakes to avoid in ATS resume formatting Mistake #1 – Not having the best date format for your resume It may seem like a trivial matter, but having the best date format for your resume is crucial for ensuring that it’s parsed correctly. There are two acceptable date formats. One is MM/YYYY. As in, “03/2023.”  If you choose this date formatting, always put a “0” before single-digit months. Never use “3/2023,” for example.  The other acceptable date format is the name of the month spelled out followed by the year, like “March 2023.” Here’s an example of a resume using the MM/YYYY format: 
+
+ Here’s an example of a resume using the “month followed by year” format:  
+
+ Whichever format you choose, be consistent! Mixing up the date formats on your resume can lead to incorrect parsing.  There’s one more thing — always use both the month and year on your resume. Only using the year can cause confusion. In fact, some ATS automatically assign a start date of January 1st to any work experience that only shows the year. Avoid these mistakes by running your resume through a tool like Jobscan’s resume scanner. It quickly points out any formatting mistakes, including incorrect date formatting, like this:  
+
+ Mistake #2 – Unclear abbreviations and acronyms While it may seem obvious to you what a particular abbreviation or acronym stands for, it might not be so obvious to an ATS.  This can be a problem if you only have an abbreviation or acronym on your resume, but the hiring manager searches for the long-form version of that word.  For example, if a hiring manager searches for “certified public accountant” and you only have “CPA” on your resume, that could cause the ATS to skip over your resume.  That’s why it’s important to include both long-form versions of keywords and acronym versions. This will ensure that your resume will be found by employers who are searching the ATS for either term. Here’s an example of how to do this.  Instead of saying: “In my previous role, I led a successful ERP implementation, resulting in a 20% increase in ROI.” You could say: “In my previous role, I led a successful Enterprise Resource Planning (ERP) implementation, resulting in a 20% increase in Return on Investment (ROI).”  Adding the acronym or abbreviation in parenthesis after the long version will help the ATS understand your resume better, as well as human readers who may not be familiar with the abbreviation. Mistake #3 – Using tables and columns Some job seekers try to create visually appealing resumes by using graphics like tables and columns to organize their information.  Unfortunately, tables and columns can confuse the ATS, potentially leading to your application being overlooked.  The key is to strike a balance between visual appeal and ATS compatibility. The best way to do this is to keep it simple.  Instead of tables, columns, and other fancy graphics, use simple headings and bullet points to create clear sections that can easily be read. This will ensure that the ATS accurately extracts and categorizes your information. Below is an example of a resume that uses a colored font for visual pop while keeping the formatting simple and straightforward. This is actually a good strategy for adding some visual appeal while keeping your resume ATS compliant.  
+
+ Always use black dot bullet points, like in the example above. Non-traditional bullet points such as stars, diamonds, and checkboxes do not always get parsed correctly by the ATS. If you prefer using resume templates, ensure that they are designed with ATS compatibility in mind. All of Jobscan’s free resume templates are optimized for ATS scanning and avoid complex tables or columns.  Mistake #4 – Using headers and footers Job seekers sometimes put additional details or design elements at the very top (header) or bottom (footer) of their resume.  For example, the top of a resume might feature a logo, or the bottom might show page numbers (if the resume is more than one page). Using headers and footers can cause parsing issues for ATS systems, which only focus on the content within the main body of the resume.  Always be sure to have one-inch margins on all sides of your resume. Keep the margins clear of any text. This will make it easier for both humans and machines to read it.  Jobscan’s resume scanner will quickly tell you if your resume has any errors regarding page setup or layout.     
+
+ Mistake #5 – Using a unique font Once again, this mistake occurs when people want to personalize their resumes too much. Remember, keep it simple.  Using a unique font(s) on your resume might be a good way to showcase your creativity, but it could mess up the ATS.  Always choose fonts that are widely available and commonly used. We recommend the following fonts to use on your resume: 
+
+ These fonts are legible, widely available, and compatible with most ATS software. Don’t use two or more different fonts on your resume. Again, it could confuse the ATS.  Font size doesn’t matter quite as much, but we suggest sticking to a 10 or 12-point font to make your resume look professional when it lands in the hands of the hiring manager. There are things you can do with fonts to improve the look of your resume. You can color them, as we’ve seen, but you can also make fonts bigger, like for a section heading. You can also bold text, like in the job title.  Here’s an example:  
+
+ Thanks to the proper use of fonts, this information is presented in a way that is appealing to read. It poses no problems for an ATS, either.  The best way to make sure your resume doesn’t have any font errors is by running it through Jobscan’s resume scanner. It will point out any potential issues, like this:  
+
+ Mistake #6 – Not using standard headings Sometimes job seekers like to get creative with the section headings of their resumes.  Unfortunately, when you use non-standard headings, the ATS may struggle to identify the relevant sections. They may misinterpret the content. What’s a non-standard section heading? Here are some examples:    “My Story” or “About Me” instead of “Summary” or “Objective” “Where I Excel” instead of “Skills” “Companies I’ve Impacted” instead of “Work Experience” “Education Journey” instead of “Education” “Certifications and Cool Stuff” instead of “Certifications” or “Training”   These headings will not only confuse the ATS, but they’ll confuse human readers too. Hiring managers are used to reading resumes that follow standardized formats.  Again, keep it simple. Stick to the following standard headings and you’ll be fine:   Summary/Objective Work Experience Education Skills Certifications Awards/Achievements   Mistake #7 – Not using the right file type Some file formats are more ATS-friendly than others. Here are some file formats you should NOT use:   Image Formats (e.g., .jpg, .png)  Rich Text Format (.rtf)   HTML Files (.html)   Microsoft Publisher (.pub)  Adobe InDesign (.indd)    Here are the two file types we recommend using instead. They are very commonly used and will pose no problems for the ATS:   Microsoft Word (.doc and .docx) – The .docx format is the newer version and is highly recommended. PDF (Portable Document Format) – This file format preserves the original formatting and layout of a document, regardless of the software or device used to view it.    It’s always a good idea to check the specific requirements or preferences of the employer. Some may explicitly request resumes in PDF format, while others may prefer Word. To make sure you’re using a file type that can be read by the ATS, use Jobscan’s resume scanner. It will tell you if there’s a problem with the way you saved your resume, like this:  
+
+ Mistake #8 – Not proofreading your resume How important is it to carefully proofread your resume multiple times? Well, 77 percent of hiring managers said they would immediately reject a resume with any typos or grammatical errors! That sounds about right. Nothing bothers hiring managers more than seeing misspelled words or too many spaces between words. It’s sloppy and unprofessional.  Mistakes like this can also prevent your resume from being parsed correctly by the ATS in the first place.  Proofreading is a good way to start finding mistakes, but it’s hard to catch all of them. And it only takes one mistake to seriously decrease your chances of getting a job interview. In addition to proofreading, you can try free grammar and spell-check tools that you can find online. Here are two we recommend:  Grammarly – This popular tool offers a free version that checks for basic grammar and spelling errors. It integrates with web browsers to provide real-time suggestions and explanations of mistakes. Hemingway Editor – This free tool focuses on improving the readability and clarity of your writing. It highlights complex sentences, passive voice, adverbs, and other elements that can affect the flow and impact of your resume.   You can also ask someone else, such as a friend, family member, or professional colleague, to review your resume. Fresh eyes can often spot mistakes that you may have overlooked.  You should also test the ATS compatibility of your resume by uploading it to an online ATS checker like Jobscan’s resume scanner. This step allows you to identify any potential formatting issues and make necessary adjustments before submitting your application. Mistake #9 – Treating every ATS the same way Every ATS is different, each with its own unique design, features, and algorithms. This leads to variations in how they process and interpret resumes.  As a result, it is crucial for job seekers to understand that tailoring their resumes to specific ATS requirements can increase their chances of success in the application process. That’s why Jobscan’s resume scanner offers customized ATS tips based on the company you’re applying to.  Learn more with this video:  
+
+ FAQs What is an ATS resume format? An ATS resume format is designed to be accurately read and interpreted by an applicant tracking system.  When you submit your resume online, it is often processed by an ATS before it reaches the hands of a hiring manager. The ATS scans the resume for relevant keywords, qualifications, and other criteria specified by the employer, and ranks or filters the resumes based on this analysis. Can using fancy fonts and graphics affect ATS resume parsing? Yes, using fancy fonts and graphics can indeed affect ATS resume parsing. Applicant tracking systems are designed to scan and interpret text-based resumes. When you use fancy fonts, decorative elements, or graphics, it can hinder the ATS’s ability to read and understand the content accurately. Are there specific keywords that ATS systems prioritize in resume screening? Yes, ATS scans resumes for keywords that are related to the job requirements. These keywords describe skills, qualifications, job titles, and education. Online tools like Jobscan’s resume scanner can help you identify these keywords and add them to your resume. How do you know if your resume is ATS-friendly? The best way to know if your resume is ATS-friendly is to check it with an online tool like Jobscan’s resume scanner. After you upload your resume and the job description to the scanner, it produces a Match Report.  This report highlights the skills and keywords you should try to add to your resume. Here’s an example of a Match Report:  
+
+ What is the best resume template for ATS? Jobscan offers free ATS-friendly resume templates to help get you started. These professional templates are easy to use and available in a variety of formats, so you can choose the one that best suits your needs.   Use Jobscan’s free ATS-friendly resume templates and start building your resume that gets noticed by recruiters! 
+
+    More expert insights on this topic:         
+
+    How to Add Work Experience to Your Resume in 2023         
+
+    Should You Include a Picture on Your Resume in 2023?         
+
+    How to Create an ATS-Friendly Resume in 2023 (With 20 Free Templates)    Click to rate this article[Total: 303 Average: 5]
+
+  Posted in All, All About ATS (Applicant Tracking Systems), Optimize Your Resume    Post navigation Convert Your Resume to an ATS-Friendly Format – Free Resume ConverterShould You Use a Functional Resume Template?       Search      Join 25,000 job seekers who get weekly job search tips      
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+       Close Search       Search for:        
+     Join 25,000 job seekers who get bi-weekly job search tips Get the insider knowledge and tools you need to optimize you resume, cover letter, and LinkedIn profile to get more job interviews.                    PlatformPricing Resume Optimization Resume Builder Resume Power Edit LinkedIn Optimization Job Tracker Career Change Tool Cover Letter Optimization Tutorials    ATS ResumeWhat Is An ATS? How to Optimize Your Resume for ATS How to Write a Resume Resume Formats Resume Templates Resume Examples Cover LetterHow to Write a Cover Letter Cover Letter Formats Cover Letter Templates Cover Letter Examples    LinkedinLinkedIn Profile Writing Guide LinkedIn Headline Examples LinkedIn Summary Examples CompanyAbout Press Careers Affiliates    SupportCustomer Support Privacy Terms Companies Hiring List    (opens in a new tab) 
+
+  
+
+  WCAG 2.1 Compliance    ADA Compliance          Facebook    Twitter    Instagram    YouTube    LinkedIn    TikTok     © 2023 Jobscan  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+

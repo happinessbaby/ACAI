@@ -1,0 +1,22 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "personal_statement_writer",
+    "action_input": {
+        "personal statement": "",
+        "personal description": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "personal_statement_writer",
+    "action_input": {
+        "personal statement": "",
+        "personal description": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "personal_statement_writer",
+    "action_input": {
+        "personal statement": "",
+        "personal description": ""
+    }
+}[0m

@@ -1,0 +1,9 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "interview_preparation_helper",
+    "action_input": "./uploads/file/d89b394a-b6af-491c-9e53-5323b03497e4.txt"
+}
+```[0m

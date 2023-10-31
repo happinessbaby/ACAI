@@ -1,0 +1,89 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I have initiated the mock interview process. Please confirm if you wish to proceed."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mGreat! Let's get started with the interview process. I will ask you a series of questions to learn more about your skills and experience. Please answer each question to the best of your ability. 
+
+Question: Can you tell me about your previous work experience?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The candidate provided information about their previous work experience as a big data engineer at Walmart.
+
+Negative Feedback: The candidate's response is incomplete. They mentioned that they worked at Walmart as a big data engineer but did not provide any details about their responsibilities or achievements in that role. It would be helpful for the candidate to provide more specific information about their work experience at Walmart.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mThank you for sharing that you worked as a big data engineer at Walmart. Could you please provide more details about your responsibilities and achievements in that role?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The candidate provided detailed information about their responsibilities and achievements as a big data engineer at Walmart. They mentioned revamping the old repository, writing unit tests, collaborating with other teams for migration, working with Spark dataframes in Scala, and contributing to the design of a new feature.
+
+Overall, the candidate's response demonstrates their experience in various aspects of big data engineering and their ability to work collaboratively with other teams.
+
+Great job![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mThat's impressive! It sounds like you had a significant impact on the team at Walmart as a big data engineer. 
+
+Question: Can you tell me about a challenging project or problem you encountered during your time at Walmart and how you approached it?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The candidate provided a specific example of a challenging project they encountered during their time at Walmart. They described a situation where a bunch of unit tests suddenly started failing, causing frustration for the team. However, they were able to persevere and identify the root cause of the problem. 
+
+The candidate also highlighted the importance of being careful when adding new code to an existing codebase and emphasized the need for thorough unit testing. This demonstrates their attention to detail and commitment to ensuring the quality of the codebase.
+
+Well done![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mThat's a great example of a challenging situation you faced as a big data engineer at Walmart. It can be frustrating when previously passing unit tests suddenly start failing, but it's impressive that you and your team were able to persevere and identify the root cause of the problem.
+
+Question: Can you tell me about a time when you had to collaborate with other teams or departments to achieve a common goal? How did you approach the collaboration and what was the outcome?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The candidate provided a clear and concise answer to the question. They described how they approached collaboration with other teams or departments by creating a channel of communication. They mentioned that at the start of the day, they would confirm their duties and throughout the day, they would update their progress. They also mentioned that their team manager hosted daily meetups where they would report their progress.
+
+The candidate emphasized the importance of good communication in building collaboration, which is a key aspect of successful teamwork.
+
+Well done![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m

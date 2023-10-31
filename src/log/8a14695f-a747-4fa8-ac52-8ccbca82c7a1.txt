@@ -1,0 +1,40 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_preparation_helper",
+    "action_input": {
+        "interview topic": "SQL"
+    }
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I have created a study companion for you to review SQL interview questions. Please upload any study material you have for SQL so that I can assist you further."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `quiz_interview_material` with `data structures`
+
+
+[0m[32;1m[1;3mSure! Here's a question on data structures:
+
+Question: What is the purpose of indexes in a database?
+
+Please provide your answer.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `quiz_interview_material` with `data structures`
+
+
+[0m[32;1m[1;3m
+Invoking: `quiz_interview_material` with `data structures`
+
+
+[0m

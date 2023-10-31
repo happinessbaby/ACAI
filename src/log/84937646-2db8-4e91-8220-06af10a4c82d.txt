@@ -1,0 +1,13 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/64adf71b-687f-4121-97c7-2aa68999d8bd.txt\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/64adf71b-687f-4121-97c7-2aa68999d8bd.txt\", \"job post link\": \"\"}"
+}[0m

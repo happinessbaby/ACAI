@@ -1,0 +1,44 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "data analyst",
+        "company": "southern company",
+        "resume file": "./static/37140589-78c8-468a-9442-86aae694ff93/6581442f-6741-4b8f-928c-23d37be013f2.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. I will evaluate your resume for the data analyst position at Southern Company. Please provide me with your resume file."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: I apologize for the confusion. Please provide me with your resume file so that I can evaluate it for the data analyst position at Southern Company.[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "data analyst",
+        "company": "Southern Company",
+        "resume file": "./static/37140589-78c8-468a-9442-86aae694ff93/6581442f-6741-4b8f-928c-23d37be013f2.txt"
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "data analyst",
+        "company": "Southern Company",
+        "resume file": "./static/37140589-78c8-468a-9442-86aae694ff93/6581442f-6741-4b8f-928c-23d37be013f2.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "data analyst",
+        "company": "Southern Company",
+        "resume file": "./static/37140589-78c8-468a-9442-86aae694ff93/6581442f-6741-4b8f-928c-23d37be013f2.txt",
+        "job post link": ""
+    }
+}[0m

@@ -1,0 +1,115 @@
++-----------------------------------+-----------------------------------+
+| YUEQI PENG                        | Mobile: (205) 519-1594            |
+|                                   |                                   |
+| Software Engineer                 | yueqipeng2021@gmail.com           |
+|                                   |                                   |
+| Hardworking and dependable        | LinkedIn:                         |
+| candidate successful at managing  | https://www.linkedin.com/in/yueqi |
+| multiple priorities with a        | -peng-304943214/                  |
+| positive attitude. Values         |                                   |
+| teamwork and adaptable to         | GitHub:                           |
+| different work demands.           | https://github.com/happinessbaby  |
+| Passionate about programming and  |                                   |
+| has a keen interest in developing |                                   |
+| AI products during free times.    |                                   |
++-----------------------------------+-----------------------------------+
+
+SKILLS
+
+-   Languages: Python, Java, C#, Scala, SQL, HTML, CSS, and JavaScript
+    frameworks
+
+-   Tools: Spark, Kafka, Tableau, Git, Linux, Flask API
+
+-   Database: Hadoop, MongoDB, MySQL
+
+-   Cloud computing: AWS, GCP
+
+-   Skilled in both functional programming and object-oriented
+    programming
+
+-   Strong communication skills in team environment
+
+-   Strong analytical mindset and problem-solving skills
+
+PROFESSIONAL EXPERIENCE
+
+WALMART 05/2022 - 10/2022
+
+BIG DATA ENGINEER
+
+-   Collaborated with cross-functional teams in evaluating and improving
+    low level design of new back-end features that included streaming
+    services and data analytic sectors
+
+-   Tested methodology with writing and execution of test plans,
+    debugging and testing scripts and tools, and revamped old code bases
+    to modern development standards for improved error handling and data
+    handling to meet the functional programming paradigm
+
+-   Participated in planning software development methodologies, design
+    patterns, and maintaining long-term health of the system
+
+-   Deployed workflows through continuous integration, wrote unit tests,
+    and composed bi-weekly Jira summaries on team accomplishments
+
+REVATURE 01/2022 - 12/2022
+
+BIG DATA ENGINEER
+
+-   Implemented the complete Extract, Transform, and Load process using
+    tools such as Scala, Spark, Hadoop, and SQL
+
+-   Worked with other members on Big Data related projects, including
+    building a pub-sub API using Spark-Kafka Integration, setting up
+    remote HDFS cluster on AWS, and building correlation matrix and
+    logistic regression models for prediction of trends using Spark
+    MLLibs
+
+EDUCATION
+
+UNIVERSITY OF CHICAGO, Chicago, IL
+
+Bachelors of Arts: Mathematics 2009 – 2013
+
+CERTIFICATION & TRAINING
+
+TASKIMPETUS INC. 06/2023 – present
+
+-   Learned data analysis tools such as Tableau, Pandas, and Matlab Plot
+    and used them to create Dataframes, graphs and charts, dashboards
+    and stories for a variety of practical data sets
+
+-   Applied acquired skills and knowledge to successfully complete
+    projects
+
+FOURTHBRAIN 12/2022 – 04/2023
+
+Machine Learning Engineer Program
+
+-   Learned Exploratory Data Analysis, feature engineering, and
+    statistical principles and modeling technique through analyzing
+    pricing trends, developing forecasting models, and conducting
+    statistical analysis.
+
+-   Collaborated with other team members in creating a Reinforcement
+    Learning capstone project on saving space in 3D box packing for
+    logistic companies and showcased project’s business values and
+    increased KPI for percentage of space packed from 70% to 75% when
+    comparing AI’s box packing plan to those drafted by human experts
+
+PROJECTS
+
+EMPOWERING JOB SEEKERS WITH LLM (ongoing)
+
+-   Utilizing Large Language Model in building a platform that can help
+    job seekers write cover letters, improve and tailor their resume,
+    and practice for mock interview
+
+3D PACKING WITH REINFORCEMENT LEARNING
+
+-   Designed and Built a 3D bin packing environment in Unity
+
+-   Implemented and managed parallel environment training and curriculum
+    learning using ML-Agents toolkit for better Reinforcement Learning
+    solutions

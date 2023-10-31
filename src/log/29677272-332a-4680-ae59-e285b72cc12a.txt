@@ -1,0 +1,18 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Hello! How can I assist you today?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you evaluate your resume. Please provide me with the necessary information. Could you please provide the job title, company, resume file, and the job post link?[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. To evaluate your resume, please provide me with the job title, company, resume file, and the job post link."
+}[0m
+
+[1m> Finished chain.[0m
