@@ -168,5 +168,6 @@ src/unit_test.py
 src/venvAutoGPT3
 src/frontend/node_modules
 src/my_feature_repo
-
+src/web_data
+src/interview_data
 
