@@ -159,13 +159,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+node_modules
 src/secrets.toml
 src/.env
 src/my_material
 src/generated_responses
 src/unit_test.py
 src/venvAutoGPT3
-src/node_modules
+src/frontend/node_modules
 src/my_feature_repo
 
 
