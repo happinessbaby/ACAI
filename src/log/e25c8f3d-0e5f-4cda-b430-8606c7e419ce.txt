@@ -1,0 +1,17 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mSure, I can help you with that. To rewrite your resume using a new template, we will use the `redesign_resume_template` tool to create a new template and then the `resume_writer` tool to rewrite your resume. 
+
+First, let's create a new template. Here is the JSON blob for the `redesign_resume_template` tool:
+
+```json
+{
+    "action": "redesign_resume_template",
+    "action_input": "{\"resume_file\":\"./static/e25c8f3d-0e5f-4cda-b430-8606c7e419ce/846f02d7-4367-421a-96de-dc32656ecb27.txt\"}"
+}
+```
+
+Once we have the new template, we will use the `resume_writer` tool to rewrite your resume. I will provide the JSON blob for that tool once we have the new template.[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m

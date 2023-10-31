@@ -1,0 +1,42 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: That's great! To help you with your application, I can assist in creating a cover letter or evaluating your resume against the job posting. Could you please provide me with your resume and a brief description about yourself? This will help me to generate a cover letter or evaluate your resume more effectively.[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To assist you with your application, I need your resume and a brief description about yourself. This will help me to generate a cover letter or evaluate your resume more effectively. Could you please provide these details?"
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. To generate a cover letter, I need some information from you. Could you please provide a brief description about yourself and your resume file?[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To assist you with your cover letter, I need some information from you. Could you please provide a brief description about yourself and your resume file?"
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\", \"resume file\":\"\", \"job post link\":\"https://www.linkedin.com/jobs/view/3702846845/?refId=ByteString(length%3D16%2Cbytes%3Dbf89a567...74f783d1)&trackingId=%2F4QLcmkW5LVzrw8%2B34m1QA%3D%3D\"}"
+}
+```[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\", \"resume file\":\"./static/ca83fd0e-408e-409e-acd4-97b8e4b8d67e/254fb01a-34ca-416c-a046-8ff29367aac5.txt\", \"job post link\":\"https://www.linkedin.com/jobs/view/3702846845/?refId=ByteString(length%3D16%2Cbytes%3Dbf89a567...74f783d1)&trackingId=%2F4QLcmkW5LVzrw8%2B34m1QA%3D%3D\"}"
+}
+```[0m

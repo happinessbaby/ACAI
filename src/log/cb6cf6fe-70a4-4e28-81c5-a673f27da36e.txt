@@ -1,0 +1,54 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The individual is applying for a job position, but no specific details about the position are provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/21fea124-e930-47b0-b703-e4d6328413ca.txt\", \"job post link\":\"\"}"
+}
+```[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user has requested a summary about themselves, but no information about the user has been provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/7135946e-614b-4dcb-9f98-ce1acc0d9aef.txt\", \"job post link\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/61ce1038-6866-4e3c-bb3a-0dd315ffd8ed.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user has requested a summary about themselves, but no information about the user has been provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/7135946e-614b-4dcb-9f98-ce1acc0d9aef.txt\", \"job post link\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/61ce1038-6866-4e3c-bb3a-0dd315ffd8ed.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user has requested a summary about themselves, but no information about the user has been provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/7135946e-614b-4dcb-9f98-ce1acc0d9aef.txt\", \"job post link\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/61ce1038-6866-4e3c-bb3a-0dd315ffd8ed.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user has requested a summary about themselves, but no information about the user has been provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/7135946e-614b-4dcb-9f98-ce1acc0d9aef.txt\", \"job post link\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/61ce1038-6866-4e3c-bb3a-0dd315ffd8ed.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user has requested a summary about themselves, but no information about the user has been provided.\", \"resume file\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/7135946e-614b-4dcb-9f98-ce1acc0d9aef.txt\", \"job post link\":\"./static/cb6cf6fe-70a4-4e28-81c5-a673f27da36e/61ce1038-6866-4e3c-bb3a-0dd315ffd8ed.txt\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

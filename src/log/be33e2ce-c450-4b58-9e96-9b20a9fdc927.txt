@@ -1,0 +1,50 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Hello! How can I assist you today?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mInstructions: When revising the Instructions, consider using the search_all_chat_history tool to debug any error messages or reference historical conversations. Use the following format to provide a clear and concise response to the user's input:
+
+Question: [Input question]
+Thought: Consider what action to take based on the input question.
+Action: [search_all_chat_history]
+Action Input: [Input related to the search][0m[32;1m[1;3mInstructions: When revising the Instructions, consider using the search_all_chat_history tool to debug any error messages or reference historical conversations. Use the following format to provide a clear and concise response to the user's input:
+
+Question: [Input question]
+Thought: Consider what action to take based on the input question.
+Action: [search_all_chat_history]
+Action Input: [Input related to the search][0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Of course! I'm here to help. What do you need assistance with?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mInstructions: When revising the Instructions, consider using the search_all_chat_history tool to debug any error messages or reference historical conversations. Use the following format to provide a clear and concise response to the user's input:
+
+Question: [Input question]
+Thought: Consider what action to take based on the input question.
+Action: [search_all_chat_history]
+Action Input: [Input related to the search][0m[32;1m[1;3mInstructions: When revising the Instructions, consider using the search_all_chat_history tool to debug any error messages or reference historical conversations. Use the following format to provide a clear and concise response to the user's input:
+
+Question: [Input question]
+Thought: Consider what action to take based on the input question.
+Action: [search_all_chat_history]
+Action Input: [Input related to the search][0m
+
+[1m> Finished chain.[0m

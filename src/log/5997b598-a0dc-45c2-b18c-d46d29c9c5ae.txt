@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator_tool",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/dd22f76f-54d1-400a-91b1-ce9e9795fe3a.txt\", \"job post link\": \"\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Based on the evaluation of your resume, it was found that the original summary remains relevant and does not need to be refined."
+}[0m
+
+[1m> Finished chain.[0m

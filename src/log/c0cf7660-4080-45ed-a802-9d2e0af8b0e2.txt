@@ -1,0 +1,49 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `search_interview_database` with `{'question': ''}`
+
+
+[0m[32;1m[1;3mSure! Here's an interview question for you:
+
+Can you describe a time when you had to coordinate multiple marketing campaigns across different channels? How did you ensure that all the stakeholders were involved and that the campaigns were executed successfully?
+
+Please take your time to think about your response.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `search_interview_database` with `{'question': ''}`
+
+
+[0m[32;1m[1;3m
+Invoking: `search_interview_material` with `interview_questions`
+
+
+[0m[32;1m[1;3m
+Invoking: `search_interview_material` with `interview_questions`
+
+
+[0m[32;1m[1;3m
+Invoking: `search_interview_material` with `interview_questions`
+
+
+[0m[32;1m[1;3m
+Invoking: `search_interview_material` with `interview_questions`
+
+
+[0m[32;1m[1;3m
+Invoking: `search_interview_material` with `interview_questions`
+
+
+[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `search_interview_database` with `{'question': ''}`
+
+
+[0m

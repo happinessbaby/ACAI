@@ -1,0 +1,25 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\", \"resume file\":\"\", \"job post link\": \"\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To assist you in writing a cover letter, I need your resume. Could you please provide it?"
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\", \"resume file\":\"./static/3235ee45-fb73-437b-8669-d5ed1c1c28d2/afe2ab24-8f8d-4acf-a6d1-fc0dd9bab655.txt\", \"job post link\": \"\"}"
+}
+```[0m

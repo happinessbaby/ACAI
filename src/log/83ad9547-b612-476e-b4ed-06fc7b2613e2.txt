@@ -1,0 +1,7 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: {
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/cf20c3b5-3001-4806-9f43-623e665b0674.txt\", \"job post link\": \"\"}"
+}[0m

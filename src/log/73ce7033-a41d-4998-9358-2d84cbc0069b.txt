@@ -1,0 +1,59 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with the file of your cover letter?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover_letter\", \"user query\":\"cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with the file of your cover letter?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover letter\", \"user query\":\"cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with the file of your cover letter?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover letter\", \"user query\":\"cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover letter\", \"user query\":\"improve\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with your cover letter file?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover letter\", \"user query\":\"improve cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with the file of your cover letter?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover letter\", \"user query\":\"improve cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. Could you please provide me with the file of your cover letter?[0m[32;1m[1;3m```json
+{
+    "action": "search_user_material",
+    "action_input": "{\"user material path\":\"cover_letter\", \"user query\":\"cover letter\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m

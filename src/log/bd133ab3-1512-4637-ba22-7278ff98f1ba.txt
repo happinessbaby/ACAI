@@ -1,0 +1,42 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I have initiated the mock interview process. Please confirm if you wish to proceed."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mGreat! Let's continue with the interview process. 
+
+Question: Can you tell me about your previous work experience?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The Human asked for clarification about the tools available, showing an interest in utilizing the available resources to provide a better answer.
+
+To answer your question, I have access to several tools that can assist in finding information. These include search_interview_material, search_resume, and search_job_posting. These tools can help me gather relevant information to provide a comprehensive response to your questions.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mPositive Feedback: The Human asked for clarification about the tools available, showing an interest in utilizing the available resources to provide a better answer.
+
+To answer your question, I have access to several tools that can assist in finding information. These include search_interview_material, search_resume, and search_job_posting. These tools can help me gather relevant information to provide a comprehensive response to your questions.[0m
+
+[1m> Finished chain.[0m

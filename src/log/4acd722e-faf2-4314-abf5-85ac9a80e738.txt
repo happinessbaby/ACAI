@@ -1,0 +1,27 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\", \"resume file\":\"\", \"job post link\":\"\"}"
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure! I can help you write a cover letter. To get started, I will need some information from you. Could you please provide me with your resume file?[0m[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"\",\"resume file\":\"<resume file>\",\"job post link\":\"\"}"
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: I apologize for the confusion. To help you write a cover letter, I can generate a cover letter for you using the cover_letter_generator tool. Please provide me with the necessary information such as your about me, resume file, and the job post link (if available).[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. To help you write a cover letter, I can generate a cover letter for you using the cover_letter_generator tool. Please provide me with the necessary information such as your about me, resume file, and the job post link (if available)."
+}[0m
+
+[1m> Finished chain.[0m

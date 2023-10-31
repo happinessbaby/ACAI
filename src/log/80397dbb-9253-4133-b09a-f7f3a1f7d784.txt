@@ -1,0 +1,62 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `Wikipedia_Search` with `interview question`
+
+
+[0m[32;1m[1;3mSure! Here is some information about job interviews from Wikipedia:
+
+A job interview is a conversation between a job applicant and a representative of an employer. It is conducted to assess whether the applicant should be hired. Interviews can vary in structure, ranging from informal conversations to structured interviews with predetermined questions. Structured interviews are generally more accurate predictors of suitable employees. The interview is typically preceded by the evaluation of resumes or job applications. Job interviews can take place in various settings, including networking events, career fairs, and through video conferencing software. Multiple rounds of interviews may be conducted, especially for challenging or desirable positions. Once all candidates have been interviewed, the employer selects the most desirable candidate(s) and begins negotiating a job offer.
+
+Is there anything specific you would like to know about interview questions?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `Wikipedia_Search` with `interview question`
+
+
+[0m[32;1m[1;3mAccording to Wikipedia, a job interview is a conversation between a job applicant and a representative of an employer to assess whether the applicant should be hired. Interviews can vary in structure, ranging from informal conversations to structured interviews with predetermined questions. Structured interviews are generally more accurate predictors of suitable employees. The interview is typically preceded by the evaluation of resumes or job applications. Multiple rounds of interviews may be conducted, especially for challenging or desirable positions. Once all candidates have been interviewed, the employer selects the most desirable candidate(s) and begins negotiating a job offer.
+
+Is there anything specific you would like to know about interview questions?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m

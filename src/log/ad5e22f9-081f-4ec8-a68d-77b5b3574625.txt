@@ -1,0 +1,16 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: "Hi Acai, I'm looking to apply for a new job and I need help with my resume. Can you evaluate it for me?"[0m[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{\"about_me\":\"\", \"resume_file\":\"\", \"job_post_file\":\"\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "I'd be happy to help evaluate your resume. Could you please provide me with your resume file?"
+}
+```[0m
+
+[1m> Finished chain.[0m

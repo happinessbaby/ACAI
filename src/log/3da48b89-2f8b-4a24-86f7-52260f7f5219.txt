@@ -1,0 +1,20 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. However, I need your current resume file to proceed. Could you please upload it?[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To redesign your resume, I need your current resume file. Could you please upload it?"
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "redesign_resume",
+    "action_input": "{\"resume_file\":\"./static/3da48b89-2f8b-4a24-86f7-52260f7f5219/a8821149-bb3b-4f2c-b769-32eb078ad597.txt\"}"
+}
+```[0m

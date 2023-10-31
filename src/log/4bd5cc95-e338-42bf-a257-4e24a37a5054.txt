@@ -1,0 +1,43 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"my_resume.docx\", \"job post link\": \"\"}"
+}[0m

@@ -1,0 +1,28 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user wants to apply for a job on LinkedIn, but the specific job details and tracking information are not provided.\", \"resume file\":\"./static/33b65b0f-59df-430b-b13f-d9313869daac/142403e8-a52c-4af9-9d68-158a07310621.txt\", \"job post link\":\"\"}"
+}
+```[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user wants to apply for a job on LinkedIn, but the specific job details and tracking information are not provided.\", \"resume file\":\"./static/33b65b0f-59df-430b-b13f-d9313869daac/142403e8-a52c-4af9-9d68-158a07310621.txt\", \"job post link\":\"\"}"
+}
+```[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "cover_letter_generator",
+    "action_input": "{\"about me\":\"The user wants to apply for a job on LinkedIn, but the specific job details and tracking information are not provided.\", \"resume file\":\"./static/33b65b0f-59df-430b-b13f-d9313869daac/142403e8-a52c-4af9-9d68-158a07310621.txt\", \"job post link\":\"\"}"
+}
+```[0m

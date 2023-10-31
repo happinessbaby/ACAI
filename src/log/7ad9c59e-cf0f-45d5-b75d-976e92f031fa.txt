@@ -1,0 +1,42 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I have initiated the mock interview process. Please confirm if you wish to proceed."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mGreat! Let's continue with the interview. 
+
+Question: Can you tell me about your previous work experience?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mSure! Here's an interview material related question:
+
+Question: How would you handle a difficult customer situation?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `search_interview_material` with `{}`
+
+
+[0m

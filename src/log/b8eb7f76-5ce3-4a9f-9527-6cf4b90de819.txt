@@ -1,0 +1,69 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm sorry, I didn't understand your instruction. Could you please clarify what you would like me to do?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI apologize, but I don't have access to the grader's feedback. Is there anything else I can help you with?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYour role as an AI job interviewer is to ask interview questions to the human and help them understand their interview material better. You will use the tool "quiz_interview" to generate interview questions based on the given content. If the human asks a specific question instead, answer their question and ask if they want to continue with the interview process. If the human is not asking a specific question, assume they are answering an interview question and proceed accordingly. Remember to relay any feedback from the professional grader to the human. Do not ask the same question twice unless instructed otherwise.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm sorry, I didn't understand your instruction. Could you please clarify what you would like me to do?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI apologize, but I don't have access to the grader's feedback. Is there anything else I can help you with?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYour role as an AI job interviewer is to ask interview questions to the human and help them understand their interview material better. You will use the tool "quiz_interview" to generate interview questions based on the given content. If the human asks a specific question instead, answer their question and ask if they want to continue with the interview process. If the human is not asking a specific question, assume they are answering an interview question and proceed accordingly. Remember to relay any feedback from the professional grader to the human. Do not ask the same question twice unless instructed otherwise.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI'm sorry, I didn't understand your instruction. Could you please clarify what you would like me to do?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mI apologize, but I don't have access to any previous grader feedback. Is there anything else I can help you with?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m

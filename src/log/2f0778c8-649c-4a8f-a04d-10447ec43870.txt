@@ -1,0 +1,11 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "Yes, I do have a job post link. Here it is: ./uploads/posting/2f0778c8-649c-4a8f-a04d-10447ec43870.txt"
+}
+```[0m
+
+[1m> Finished chain.[0m

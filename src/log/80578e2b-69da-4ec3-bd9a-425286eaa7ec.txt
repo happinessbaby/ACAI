@@ -1,0 +1,18 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Hi! How can I assist you today? Are you looking for help with interview preparation?[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Hi! How can I assist you today? Are you looking for help with interview preparation?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: I'm sorry, but I'm not sure what specific assistance you're looking for. Could you please provide more details or let me know how I can help you?[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. How can I assist you with your job interview preparation?"
+}[0m
+
+[1m> Finished chain.[0m

@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mskip[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mThank you! I appreciate your positive message. Now, let's get started with the interview. Are you ready?[0m
+
+[1m> Finished chain.[0m

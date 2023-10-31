@@ -1,0 +1,68 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Sure! Let's proceed with the mock interview. Could you please provide any interview material or specific questions you would like to focus on?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYes, I am an interviewer. I can help you with any interview-related questions or provide feedback on your interview responses. How can I assist you?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYes, I am an AI interviewer. I can ask you interview questions and provide feedback on your responses. How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `interview_stopper` with ``
+
+
+[0m[32;1m[1;3mAlright, I understand. If you have any other questions or need assistance with anything else, feel free to ask. Good luck with your future endeavors![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `interview_stopper` with ``
+
+
+[0m[32;1m[1;3mI understand. If you have any other questions or need assistance with anything else, feel free to ask. Thank you for your time and have a great day![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYou're welcome! If you have any other questions in the future, feel free to ask. Goodbye and take care![0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYou're welcome! If you have any other questions, feel free to ask. Goodbye and have a great day![0m
+
+[1m> Finished chain.[0m

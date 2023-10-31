@@ -1,0 +1,16 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "web_search",
+    "action_input": "LinkedIn job posting summary"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "A job posting on LinkedIn typically includes a summary at the top of the profile, under the photo, in the 'About' section. This summary should be clear, concise, and easy to read, avoiding the use of jargon, acronyms, or vague terms. The job posting should attract high-quality candidates and should be written in a way that is easy to understand. It's also important to note that employers are increasingly advertising roles without professional requirements. The 'Jobs' tab on a LinkedIn Page allows all members to search for a job with your organization and create job alerts for newly posted roles."
+}
+```[0m
+
+[1m> Finished chain.[0m

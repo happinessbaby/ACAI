@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/46103dfb-7e61-4a6f-8f6c-2e054cb0dae0.txt\", \"job post link\": \"\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The evaluation of your resume is complete. You can find the evaluation file [here](./static/resume_evaluation/46103dfb-7e61-4a6f-8f6c-2e054cb0dae0/missing.txt)."
+}[0m
+
+[1m> Finished chain.[0m

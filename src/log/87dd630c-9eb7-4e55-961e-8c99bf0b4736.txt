@@ -1,0 +1,49 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"<job>\", \"company\":\"<company>\", \"resume file\":\"<resume file>\", \"job post link\": \"<job post link>\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. To help you write a cover letter, I would need some specific information such as the job title, company name, your resume file, and the job post link. Could you please provide those details?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: I apologize, but I'm not sure what you mean by "I just did." Could you please provide more context or clarify your request?[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I apologize for the confusion. Could you please provide more information or clarify your request?"
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "Your first question was 'help me write a cover letter'."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"accountant\", \"company\":\"XYZ Company\", \"resume file\":\"./static/87dd630c-9eb7-4e55-961e-8c99bf0b4736/22ec2908-deda-4934-b1f4-3977eac678cd.txt\", \"job post link\": \"<job post link>\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"accountant\", \"company\":\"XYZ Company\", \"resume file\":\"./static/87dd630c-9eb7-4e55-961e-8c99bf0b4736/22ec2908-deda-4934-b1f4-3977eac678cd.txt\", \"job post link\": \"<job post link>\"}"
+}[0m
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"accountant\", \"company\":\"XYZ Company\", \"resume file\":\"./static/87dd630c-9eb7-4e55-961e-8c99bf0b4736/22ec2908-deda-4934-b1f4-3977eac678cd.txt\", \"job post link\": \"<job post link>\"}"
+}[0m

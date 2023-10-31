@@ -1,0 +1,27 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. To better assist you, could you please provide me with the job post link or file and your resume file? This will help me understand the requirements of the job and how we can tailor your application to fit those needs.[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To better assist you in tailoring your application, could you please provide me with the job post link or file and your resume file? This will help me understand the requirements of the job and how we can tailor your application to fit those needs."
+}
+```[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_customize_writer",
+    "action_input": "{ \"job_post_file\":\"https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/California---San-Francisco/Software-Engineering-SMTS_JR222995-1\", \"about_me\":\"help me tailor my application\", \"resume_file\":\"./static/e6f630d3-4ed2-4736-9fa4-66b15ebd3fec/7decc318-fcc5-49e9-81b7-d7eab326fece.txt\"}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "Based on the job posting, here are some suggestions to tailor your resume: \n\n1. Add programming languages like Java, Python, C++, Ruby, JavaScript to the skills section.\n2. Mention your experience with Agile, Scrum, or Waterfall methodologies in the professional experience section.\n3. Include database management skills like SQL, MySQL, Oracle, MongoDB in the skills section.\n4. Highlight your experience with web development frameworks like Django, Ruby on Rails, AngularJS, React.\n5. Add Git, SVN to the skills section as your experience with version control systems.\n6. Mention your familiarity with Windows, Linux, and MacOS operating systems in the skills section.\n7. Highlight your experience with software testing and debugging, including unit testing, integration testing, and bug tracking.\n8. Mention your proficiency in object-oriented programming principles in the skills section.\n9. Highlight your experience with software architecture and design patterns.\n10. Mention your problem-solving and analytical skills in the professional experience section.\n11. Highlight your team collaboration and communication skills.\n12. Mention your experience with the software development life cycle (SDLC).\n13. Highlight your experience with continuous integration and deployment (CI/CD) practices.\n14. Mention your experience with cloud computing platforms like AWS, Azure, Google Cloud.\n15. Highlight your experience with mobile app development for iOS and Android platforms.\n16. Mention your experience with front-end development, including HTML, CSS, and JavaScript frameworks like jQuery.\n17. Highlight your experience with back-end development, including RESTful APIs and server-side frameworks like Node.js.\n18. If relevant to the position, mention your experience with machine learning and data analysis projects.\n\nThese changes will help align your resume with the specific skills and experiences that the hiring manager is looking for in a Software Engineer."
+}
+```[0m
+
+[1m> Finished chain.[0m

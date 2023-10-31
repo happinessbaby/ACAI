@@ -1,0 +1,16 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "resume_evaluator",
+    "action_input": "{'job':'<job>', 'company':'<company>', 'resume file':'<resume file>', 'job post link': '<job post link>'}"
+}
+```[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "I'm sorry, but I need more information to evaluate your resume. Can you provide the job you're applying for, the company name, the resume file, and the job post link?"
+}
+```[0m
+
+[1m> Finished chain.[0m

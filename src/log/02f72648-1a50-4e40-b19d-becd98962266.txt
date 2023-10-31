@@ -1,0 +1,17 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m
+Invoking: `quiz_interview` with `interview`
+
+
+[0m[32;1m[1;3mSure! Here's an interview question to help you study for your interview:
+
+Question: How would you describe your working style and performance?
+
+Take some time to think about your answer, and when you're ready, you can provide your response.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m

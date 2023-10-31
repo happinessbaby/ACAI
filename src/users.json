@@ -1,0 +1,7 @@
+{
+    
+    "chuck": {"password": "norris", "roles": ["admin"]},
+    "lee": {"password": "douglas", "roles": []},
+    "mary": {"password": "jane", "roles": []},
+    "steven": {"password": "wilson", "roles": ["admin"]}
+}

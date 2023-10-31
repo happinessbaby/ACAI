@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I can initiate a mock interview for you. Please let me know if you have any specific interview topic in mind."
+}[0m
+
+[1m> Finished chain.[0m

@@ -1,0 +1,7 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./uploads/file/67065298-0e64-4270-bbcb-6c1a1caf35f5.txt\", \"job post link\": \"\"}"
+}[0m

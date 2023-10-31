@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYes, I can hear you. How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYes, I can hear you. How can I assist you today?[0m
+
+[1m> Finished chain.[0m

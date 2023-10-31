@@ -1,0 +1,7 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"./static/83957702-45b4-4a5e-8c7a-22f3cdcd4678/3a6b6ef2-bf2c-4584-9bfd-2426380f2777.txt\", \"job post link\": \"\"}"
+}[0m

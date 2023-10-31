@@ -1,0 +1,49 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "interview_starter",
+    "action_input": "{\"interview topic\": \"mock interview\"}"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "The response to your last comment is that I have initiated the mock interview process. Please confirm if you wish to proceed."
+}[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mHello! How can I assist you today?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mYes, how can I assist you?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mOf course! I'd be happy to start the interview session with you. Please let me know if you have any specific questions or if there's a particular topic you'd like to discuss.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCertainly! Let's begin the interview session. I will ask you a series of questions to learn more about your skills, experience, and qualifications. Please answer each question to the best of your ability. Are you ready to proceed?[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mGreat! Let's get started with the interview session. Here's your first question:
+
+1. Can you tell me about your previous work experience?
+
+Please provide your response.[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m

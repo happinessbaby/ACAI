@@ -1,0 +1,29 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"\", \"job post link\":\"\"}"
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "cover_letter_generator",
+    "action_input": "{\"job\":\"\", \"company\":\"\", \"resume file\":\"\", \"job post link\": \"\"}"
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "read_file",
+    "action_input": {
+        "file_path": "./static/f9f95510-ae30-4dda-8d50-164d74850fd0/b8b74fdb-d1e5-4ac1-9c0a-d6758665247d.txt"
+    }
+}[0m[32;1m[1;3m[0m
+
+[1m> Finished chain.[0m

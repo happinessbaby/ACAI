@@ -1,0 +1,11 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help with that. However, I would need the interview material file to provide a more detailed preparation. Could you please upload the interview material file?[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To assist you in preparing for your job interview, I need the interview material file. Could you please upload it?"
+}
+```[0m
+
+[1m> Finished chain.[0m

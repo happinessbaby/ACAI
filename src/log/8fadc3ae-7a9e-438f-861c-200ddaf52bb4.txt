@@ -1,0 +1,12 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "web_search",
+    "action_input": "pynput"
+}[0m[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "pynput is a library that allows you to control and monitor input devices, such as mouse and keyboard. It provides functionality for controlling and monitoring mouse and keyboard input. You can use it to listen for mouse and keyboard events, simulate mouse and keyboard actions, and more."
+}[0m
+
+[1m> Finished chain.[0m

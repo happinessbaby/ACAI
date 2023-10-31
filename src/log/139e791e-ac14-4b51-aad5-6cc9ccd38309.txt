@@ -1,0 +1,9 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "Final Answer",
+    "action_input": "I have several tools available. Some of them include: cover_letter_generator, resume_evaluator, web_search, Wikipedia_Search, Wikipedia_Lookup, get download link, read_file, and list_directory. Let me know if you need help with any specific task!"
+}[0m
+
+[1m> Finished chain.[0m

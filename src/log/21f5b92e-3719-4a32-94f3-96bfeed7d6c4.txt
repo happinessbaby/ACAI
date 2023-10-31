@@ -1,0 +1,92 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m[32;1m[1;3m{
+    "action": "resume_evaluator",
+    "action_input": {
+        "job": "",
+        "company": "",
+        "resume file": "./uploads/file/21cbfc74-d074-4c91-9d72-48da665131e5.txt",
+        "job post link": ""
+    }
+}[0m

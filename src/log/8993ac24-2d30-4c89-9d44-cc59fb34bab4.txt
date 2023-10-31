@@ -1,0 +1,9 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3m```json
+{
+    "action": "requests_get",
+    "action_input": "https://www.linkedin.com/jobs/view/3702846845/?refId=ByteString(length%3D16%2Cbytes%3Dbf89a567...74f783d1)&trackingId=%2F4QLcmkW5LVzrw8%2B34m1QA%3D%3D"
+}
+```[0m

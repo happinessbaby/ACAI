@@ -1,0 +1,11 @@
+
+
+[1m> Entering new AgentExecutor chain...[0m
+[32;1m[1;3mCould not parse LLM output: Sure, I can help you with that. However, I will need your current resume file and the job post file to proceed. Could you please provide these files? Also, if you have a specific resume template in mind, please share that as well. If not, I can use the redesign_resume_template tool to create a new template for you.[0m[32;1m[1;3m```json
+{
+    "action": "Final Answer",
+    "action_input": "To rewrite your resume using a new template, I need your current resume file and the job post file. If you have a specific resume template in mind, please share that as well. If not, I can create a new template for you. Could you please provide these files?"
+}
+```[0m
+
+[1m> Finished chain.[0m
