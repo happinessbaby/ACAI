@@ -8,7 +8,7 @@ from utils.common_utils import get_generated_responses, get_web_resources, extra
 from typing import Any, List, Union, Dict
 from langchain.docstore.document import Document
 from langchain.tools import tool
-from utils.tools import create_search_tools
+from utils.agent_tools import create_search_tools
 import json
 from json import JSONDecodeError
 import faiss

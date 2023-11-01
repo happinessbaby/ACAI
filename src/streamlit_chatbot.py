@@ -38,10 +38,9 @@ import base64
 from langchain.tools import tool
 import streamlit.components.v1 as components, html
 from PIL import Image
+from my_component import my_component
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-# sys.path.append(os.path.join(os.path.dirname(__file__), '../src'))
-# from src import my_component
 
 # Either this or add_indentation() MUST be called on each page in your
 # app to add indendation in the sidebar
@@ -70,6 +69,7 @@ template_path = os.environ["TEMPLATE_PATH"]
 placeholder = st.empty()
 max_token_count=3500
 topic = "jobs"
+my_component("World")
 
 
 class Chat():

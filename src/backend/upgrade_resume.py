@@ -11,7 +11,7 @@ from utils.basic_utils import read_txt, memoized
 from utils.common_utils import (get_web_resources, retrieve_from_db,  get_generated_responses,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
                             search_related_samples,  extract_personal_information)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain
-from utils.tools import create_search_tools, create_sample_tools
+from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
 from json import JSONDecodeError

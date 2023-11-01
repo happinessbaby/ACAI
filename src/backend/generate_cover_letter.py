@@ -18,7 +18,7 @@ from langchain.agents.agent_toolkits import create_python_agent
 from langchain.tools.python.tool import PythonREPLTool
 from typing import List
 from utils.langchain_utils import create_summary_chain, generate_multifunction_response
-from utils.tools import create_search_tools, create_sample_tools
+from utils.agent_tools import create_search_tools, create_sample_tools
 from langchain.tools import tool
 from docx import Document
 
