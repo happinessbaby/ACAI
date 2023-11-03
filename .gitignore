@@ -170,4 +170,9 @@ src/frontend/node_modules
 src/my_feature_repo
 src/web_data
 src/interview_data
+src/pickle_memory
+src/session/
+src/log/
+
+
 

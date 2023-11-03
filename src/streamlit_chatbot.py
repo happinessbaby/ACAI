@@ -39,6 +39,9 @@ from langchain.tools import tool
 import streamlit.components.v1 as components, html
 from PIL import Image
 from my_component import my_component
+# from thread_safe_st import ThreadSafeSt
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+import threading
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 
@@ -69,12 +72,14 @@ template_path = os.environ["TEMPLATE_PATH"]
 placeholder = st.empty()
 max_token_count=3500
 topic = "jobs"
-my_component("World")
-
-
+# my_component("http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg")
+# img = my_component("http://www.google.co.il/images/srpr/nav_logo73.png", key="templates")
+# print(img)
+# st.markdown(img)
 class Chat():
 
     userid: str=""
+    ctx = get_script_run_ctx()
 
     def __init__(self):
         self._create_chatbot()
@@ -170,11 +175,11 @@ class Chat():
 
             #Sidebar section
             with st.sidebar:
-                st.title("""Hi, I'm your career AI advisor Acai!""")
+                st.title("""Hi, I'm Acai, a career AI.""")
                 add_vertical_space(1)
                 st.markdown('''
                                                     
-                Chat with me, upload and share whatever you want, or click on the Mock Interview tab above to try it out! 
+                Chat with me, upload and share, or click on the Mock Interview tab above to try it out! 
                                                     
                 ''')
 
@@ -186,27 +191,27 @@ class Chat():
                         # help="This can be a job posting, for example.",
                         on_change=self.form_callback)
             
+                # st.text_area(label="About me", placeholder="""This can be anything that will help me pinpoint your request better, e.g.,  what kind of job you're looking for, where you're applying, etc.""")
+
 
                 # st.markdown("Quick navigation")
                 # with st.form( key='my_form', clear_on_submit=True):
 
-                #     # col1, col2= st.columns([5, 5])
+                # col1, col2= st.columns([5, 5])
 
-                #     # with col1:
-                #     #     job = st.text_input(
-                #     #         "job/program",
-                #     #         "",
-                #     #         key="job",
-                #     #     )
-                    
-                #     # with col2:
-                #     #     company = st.text_input(
-                #     #         "company/institution",
-                #     #         "",
-                #     #         key = "company"
-                #     #     )
-
-                #     # about_me = st.text_area(label="About", placeholder="""You can say,  I want to apply for the MBA program at ABC University, or I wish to work for XYZ as a customer service representative. 
+                # with col1:
+                #     st.text_input(
+                #         "job/program",
+                #         "",
+                #         key="job",
+                #     )
+                
+                # with col2:
+                #     st.text_input(
+                #         "company/institution",
+                #         "",
+                #         key = "company"
+                #     )
                     
                 #     # If you want to provide any links, such as a link to a job posting, please paste it here. """, key="about_me")
 
@@ -242,15 +247,42 @@ class Chat():
 
             c1, c2 = st.columns([2, 1])
 
+            def question_callback():
 
-            # if "prefilled" not in st.session_state:
-            #     st.session_state["prefilled"] = ""
+                """ Sends user input to chat agent. """
+                if st.session_state.input!="":
+                    callback_done.set()
+                    self.question = self.process_user_input(st.session_state.input) 
+                elif st.session_state.prefilled!="":
+                    callback_done.set()
+                    self.question = self.process_user_input(st.session_state.prefilled)
+                callback_done.wait()
+                if self.question:
+                    with st.form(key="template_form"):
+                        img = my_component("http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg", "templates")
+                        st.markdown(img)
+                        st.session_state["template_path"] = img
+                        st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
+                    # response = self.new_chat.askAI(st.session_state.userid, self.question, callbacks = None)
+                    # if response == "functional" or response == "chronological" or response == "student":
+                    #     self.resume_template_popup(response)
+                    # else:
+                    #     st.session_state.questions.append(self.question)
+                    #     st.session_state.responses.append(response)
+                st.session_state.questionInput = st.session_state.input
+                st.session_state.input = ''    
+
+            callback_done = threading.Event()
+            thread = threading.Thread(target=question_callback)
+            add_script_run_ctx(thread, self.ctx)
+            thread.start()
+
             c1.text_input("Chat with me: ",
                         # value=st.session_state.prefilled, 
                         key="input", 
                         label_visibility="hidden", 
                         placeholder="Chat with me",
-                        on_change = self.question_callback,
+                        on_change = question_callback
                         )
             # Automatically select the last input with last_index
             c2.selectbox(label="Sample questions",
@@ -258,32 +290,12 @@ class Chat():
                         key = "prefilled",
                         format_func=lambda x: '---sample questions---' if x == '' else x,
                         label_visibility= "hidden",
-                        on_change = self.question_callback,
+                        on_change = question_callback
                         )
 
             # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
 
 
-    def question_callback(self):
-
-        """ Sends user input to chat agent. """
-        if st.session_state.input!="":
-            self.question = self.process_user_input(st.session_state.input) 
-        elif st.session_state.prefilled!="":
-            self.question = self.process_user_input(st.session_state.prefilled)
-        if self.question:
-            response = self.new_chat.askAI(st.session_state.userid, self.question, callbacks = None)
-            self.resume_template_popup(response)
-
-            # if response == "functional" or response == "chronological" or response == "student":
-            #     self.resume_template_popup(response)
-            # else:
-            #     st.session_state.questions.append(self.question)
-            #     st.session_state.responses.append(response)
-        st.session_state.questionInput = st.session_state.input
-        st.session_state.input = ''    
-
-    
     def file_upload_popup(self):
 
         """Use this tool when user wants to upload their files."""
@@ -320,19 +332,15 @@ class Chat():
         #     self.process_about_me(about_me)
         # except Exception:
         #     pass
-        # if st.session_state.prefilled:
-        #     st.session_state.input = st.session_state.prefilled
-        #     self.question_callback()
-        # else:
         # passes the previous user question to the agent one more time after user uploads form
         try:
             print(f"QUESTION INPUT: {st.session_state.questionInput}")
             if st.session_state.questionInput!="":
-                st.session_state.input = st.session_state.questionInput
-                self.question_callback()
-                # response = self.new_chat.askAI(st.session_state.userid, st.session_state.questionInput, callbacks=None)
-                # st.session_state.questions.append(st.session_state.questionInput)
-                # st.session_state.responses.append(response)   
+                # st.session_state.input = st.session_state.questionInput
+                # self.question_callback()
+                response = self.new_chat.askAI(st.session_state.userid, st.session_state.questionInput, callbacks=None)
+                st.session_state.questions.append(st.session_state.questionInput)
+                st.session_state.responses.append(response)   
         # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
         except AttributeError:
             pass
@@ -347,80 +355,88 @@ class Chat():
             dir_path = "./resume_templates/functional/"
         # modal = Modal(key="template_popup", title=f"")
         # with modal.container():
-        with st.form( key='template_form', clear_on_submit=True):
-            img_path= "../resume_templates/functional/functional-0.png"
-            # img_path = "/streamlit_chatbot/static/functional-0.png"
-            # st.image(img_path, caption="basic functional")
-            # bootstrap 4 collapse example
-            def display_image(img_path):
-                # Define the HTML hyperlink with the image
-                # html_string = f'<a href="{img_path}"><img src="{img_path}" width="200" caption="legend" id="img0"></a>'
-                # html_string = f'<a href="{img_path}"><img src="{img_path}" onclick="saveClick(img0)" id="img0"></a>'
-                html_string = f'<a href="http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg"><img src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-1.jpg" width="200" caption="legend" id="img0"></a>'
-                return html_string
+        #     with st.form( key='template_form', clear_on_submit=True):
+        img = my_component("http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg", "templates")
+        st.markdown(img)
+        if img:
+            st.session_state["template_path"] = img
+            print(f"template path session state: {st.session_state.template_path}")
+                # st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
+        # print(int(img))
+        # st.markdown(img)
+            # img_path= "../resume_templates/functional/functional-0.png"
+            # # img_path = "/streamlit_chatbot/static/functional-0.png"
+            # # st.image(img_path, caption="basic functional")
+            # # bootstrap 4 collapse example
+            # def display_image(img_path):
+            #     # Define the HTML hyperlink with the image
+            #     # html_string = f'<a href="{img_path}"><img src="{img_path}" width="200" caption="legend" id="img0"></a>'
+            #     # html_string = f'<a href="{img_path}"><img src="{img_path}" onclick="saveClick(img0)" id="img0"></a>'
+            #     html_string = f'<a href="http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg"><img src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-1.jpg" width="200" caption="legend" id="img0"></a>'
+            #     return html_string
     
 
-            js_string = """ 
-                <script language="javascript">
-                    alert("test");
-                    var descriptionTag = document.getElementById('description');
-                    document.getElementById("img0").onclick = function() {
-                        alert("image 0 clicked");
-                        descriptionTag.innerText = 'image 0 clicked';
-                    }
-                </script>"""
-            # html_form = f"""
-            #     <form method="post" name="contactForm">
-            #         {display_image(img_path)}
-            #     </form>
-            # """
-            html_form =   f"""
-                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-                <link rel="stylesheet" href="../static/styles/lightbox.css">
-                <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-                <div id="accordion">
-                <div class="card">
-                    <div class="card-header" id="headingOne">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            basic templates
-                        </button>
-                    </h5>
-                    </div>
-                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-                    <div class="card-body">
-                        {display_image(img_path)}
-                    </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header" id="headingTwo">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        Collapsible Group Item #2
-                        </button>
-                    </h5>
-                    </div>
-                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                    <div class="card-body">
-                        Collapsible Group Item #2 content
-                    </div>
-                    </div>
-                </div>
-                </div>
-                     <div id="descriptioncontainer">
-                        <p id="description">Click on the portraits above to learn more about each member of the organisation. The description will appear here and replace this text.</p>
-                </div>
-                """
+            # js_string = """ 
+            #     <script language="javascript">
+            #         alert("test");
+            #         var descriptionTag = document.getElementById('description');
+            #         document.getElementById("img0").onclick = function() {
+            #             alert("image 0 clicked");
+            #             descriptionTag.innerText = 'image 0 clicked';
+            #         }
+            #     </script>"""
+            # # html_form = f"""
+            # #     <form method="post" name="contactForm">
+            # #         {display_image(img_path)}
+            # #     </form>
+            # # """
+            # html_form =   f"""
+            #     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            #     <link rel="stylesheet" href="../static/styles/lightbox.css">
+            #     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+            #     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+            #     <div id="accordion">
+            #     <div class="card">
+            #         <div class="card-header" id="headingOne">
+            #         <h5 class="mb-0">
+            #             <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            #                 basic templates
+            #             </button>
+            #         </h5>
+            #         </div>
+            #         <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+            #         <div class="card-body">
+            #             {display_image(img_path)}
+            #         </div>
+            #         </div>
+            #     </div>
+            #     <div class="card">
+            #         <div class="card-header" id="headingTwo">
+            #         <h5 class="mb-0">
+            #             <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+            #             Collapsible Group Item #2
+            #             </button>
+            #         </h5>
+            #         </div>
+            #         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+            #         <div class="card-body">
+            #             Collapsible Group Item #2 content
+            #         </div>
+            #         </div>
+            #     </div>
+            #     </div>
+            #          <div id="descriptioncontainer">
+            #             <p id="description">Click on the portraits above to learn more about each member of the organisation. The description will appear here and replace this text.</p>
+            #     </div>
+            #     """
 
-            components.html(
-                html_form + js_string,
-                # <script src="../static/js/lightbox-plus-jquery.js"></script>
-                # <script src="../static/js/test.js">
-                height=600,
-                scrolling=True,
-            )
+            # components.html(
+            #     html_form + js_string,
+            #     # <script src="../static/js/lightbox-plus-jquery.js"></script>
+            #     # <script src="../static/js/test.js">
+            #     height=600,
+            #     scrolling=True,
+            # )
            
         # self.set_clickable_icons(dir_path)
         # content = f"<a href='#' id='{id}'><img src='https://icons.iconarchive.com/icons/custom-icon-design/pretty-office-7/256/Save-icon.png'></a>"
@@ -436,7 +452,7 @@ class Chat():
         # if pick_me:
         #     st.session_state["resume_template_file"] = f"{dir_path}functional-0.png"
                 # st.experimental_rerun()
-        st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
+            # st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
         # if modal.close():
         #     st.experimental_rerun()
 
@@ -445,10 +461,11 @@ class Chat():
 
         """ Calls the resume_rewriter tool to rewrite the resume according to the chosen resume template. """
 
-        resume_template_file = st.session_state.resume_template_file
+        resume_template_file = st.session_state.template_path
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
         st.session_state.input = question
-        self.question_callback()
+        print("SUCCCCCCCCCCCCCCCCCCCC")
+        # self.question_callback()
 
 
     def set_clickable_icons(self, dir_path):
