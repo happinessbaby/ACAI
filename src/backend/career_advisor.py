@@ -44,7 +44,7 @@ from utils.agent_tools import create_wiki_tools, create_search_tools, create_ret
 from langchain.schema import OutputParserException
 from multiprocessing import Process, Queue, Value
 from backend.generate_cover_letter import  create_cover_letter_generator_tool
-from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
+from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template, create_resume_template_tool
 from backend.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
 from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
 from langchain.agents.agent_toolkits import create_retriever_tool
@@ -123,6 +123,7 @@ class ChatController():
         resume_evaluator_tool = create_resume_evaluator_tool()
         resume_rewriter_tool = create_resume_rewriter_tool()
         resume_template_tool = [redesign_resume_template]
+        # resume_template_tool = create_resume_template_tool
         # resume_evaluator_tool = [resume_evaluator]
         user_material_tool = [search_user_material]
         # file_loader_tool = create_file_loader_tool()
