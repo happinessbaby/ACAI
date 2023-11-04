@@ -87,7 +87,7 @@ class Chat():
   
     def _create_chatbot(self):
 
-        styl = f"""
+        textinput_styl = f"""
         <style>
             .stTextInput {{
             position: fixed;
@@ -95,7 +95,7 @@ class Chat():
             }}
         </style>
         """
-        styl1 = f"""
+        selectbox_styl = f"""
         <style>
             .stSelectbox {{
             position: fixed;
@@ -103,16 +103,8 @@ class Chat():
             }}
         </style>
         """
-        # styl = f"""
-        # <style>
-        #     .element-container:nth-of-type(1) stTextInput {{
-        #     position: fixed;
-        #     bottom: 3rem;
-        #     }}
-        # </style>
-        # """
-        st.markdown(styl, unsafe_allow_html=True)
-        st.markdown(styl1, unsafe_allow_html=True)
+        st.markdown(textinput_styl, unsafe_allow_html=True)
+        st.markdown(selectbox_styl, unsafe_allow_html=True)
 
         with placeholder.container():
 
@@ -159,23 +151,26 @@ class Chat():
                 "can you evaluate my resume?": "evaluate",
                 "rewrite my resume using a new template": "reformat",
             }
-            # Generate empty lists for generated and past.
-            ## past stores User's questions
+
+            ## questions stores User's questions
             if 'questions' not in st.session_state:
                 st.session_state['questions'] = list()
-            ## generated stores AI generated responses
+            ## responses stores AI generated responses
             if 'responses' not in st.session_state:
                 st.session_state['responses'] = list()
             # hack to clear text after user input
             if 'questionInput' not in st.session_state:
-                st.session_state["questionInput"] = ''       
+                st.session_state["questionInput"] = ''  
+            # input stores current user question     
             if 'input' not in st.session_state:
                 st.session_state["input"] = ''
+            # prefilled stores current sample question
             if 'prefilled' not in st.session_state:
                 st.session_state["prefilled"] = ''
+        
             if 'loading' not in st.session_state:
                 st.session_state["loading"] = st.empty()
-            #Sidebar section
+            # Sidebar section
             with st.sidebar:
                 st.title("""Hi, I'm Acai, a career AI.""")
                 add_vertical_space(1)
@@ -207,8 +202,8 @@ class Chat():
                         "Job",
                         "",
                         key="job",
-                        placeholder="the job position or program you're applying",                  
-                        on_change=self.form_callback
+                        placeholder="job title or program name",                  
+                        on_change=self.form_callback,
                     )
                 
                 with col2:
@@ -216,25 +211,20 @@ class Chat():
                         "Company",
                         "",
                         key = "company",
-                        placeholder="the name of the company or institution",
+                        placeholder="name of the company or institution",
                         on_change=self.form_callback
                     )
-
-                if "callback_msg" not in st.session_state:
-                    st.session_state["callback_msg"] = st.empty()
                 
 
                 add_vertical_space(3)
             # Chat section
+            ## Displays the current conversation
             if st.session_state['responses']:
                 for i in range(len(st.session_state['responses'])-1, -1, -1):
                     message(st.session_state['responses'][i], key=str(i), avatar_style="initials", seed="ACAI", allow_html=True)
                     message(st.session_state['questions'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
 
-            c1, c2 = st.columns([2, 1])
-
             def question_callback():
-
                 """ Sends user input to chat agent. """
                 if st.session_state.input!="":
                     callback_done.set()
@@ -259,6 +249,8 @@ class Chat():
             add_script_run_ctx(thread, self.ctx)
             thread.start()
 
+            c1, c2 = st.columns([2, 1])
+            # User chat input area
             c1.text_input("Chat with me: ",
                         # value=st.session_state.prefilled, 
                         key="input", 
@@ -266,64 +258,63 @@ class Chat():
                         placeholder="Chat with me",
                         on_change = question_callback
                         )
-            # Automatically select the last input with last_index
+            # Select from sample questions
             c2.selectbox(label="Sample questions",
                         options=sorted(SAMPLE_QUESTIONS.keys()), 
                         key = "prefilled",
-                        format_func=lambda x: '---sample questions---' if x == '' else x,
+                        format_func=lambda x: '-----sample questions-----' if x == '' else x,
                         label_visibility= "hidden",
                         on_change = question_callback
                         )
 
             # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
-    def callback_msg(self, msg):
-        
-        
-        return st.session_state.callback_msg.text(msg)
 
 
     def file_upload_popup(self, callback_msg=""):
 
         """Popup for user to upload files. """
 
-        modal = Modal(title="Upload your files", key="file_popup")
+        modal = Modal(title="Upload your files", key="file_popup", max_width=600)
         with modal.container():
             st.write(callback_msg)
             if "file_loading" not in st.session_state:
                 st.session_state["file_loading"]=st.empty()
-            with st.form(key='file_popup_form', clear_on_submit=True):
-                # add_vertical_space(1)
-                st.file_uploader(
-                    label="Upload your resume, cover letter, or anything you want to share with me.",
-                    type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                    key = "files",
-                    # help = "This can be your resume, cover letter, or anything else you want to share with me. ",
-                    label_visibility="hidden",
-                    accept_multiple_files=True
-                    )
-                # add_vertical_space(1)
-                st.form_submit_button(label='Submit', on_click=self.form_callback)  
+            col1, _ = st.columns([10, 1])
+            with col1:
+                with st.form(key='file_popup_form', clear_on_submit=True):
+                    # add_vertical_space(1)
+                    st.file_uploader(
+                        label="Upload your resume, cover letter, or anything you want to share with me.",
+                        type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                        key = "files",
+                        # help = "This can be your resume, cover letter, or anything else you want to share with me. ",
+                        label_visibility="hidden",
+                        accept_multiple_files=True
+                        )
+                    # add_vertical_space(1)
+                    st.form_submit_button(label='Submit', on_click=self.form_callback)  
 
 
     def link_share_popup(self, callback_msg=""):
 
         """Popup for user to share url. """
 
-        modal = Modal(title="Share a link", key="link_popup")
+        modal = Modal(title="Share a link", key="link_popup", max_width=500)
         with modal.container():
             st.write(callback_msg)
             if "link_loading" not in st.session_state:
                 st.session_state["link_loading"]=st.empty()
-            with st.form(key="link_popup_form", clear_on_submit=True):
-                st.text_area(
-                    label="", 
-                    placeholder="This can be a job posting url for example", 
-                    key = "link", 
-                    # label_visibility="hidden",
-                    help="If the link does not work, try saving the content and upload it as a file.",
-                    # on_change=self.form_callback
-                    )
-                st.form_submit_button(label="Submit", on_click=self.form_callback)
+            col1, _ = st.columns([10, 1])
+            with col1:
+                with st.form(key="link_popup_form", clear_on_submit=True):
+                    st.text_area(
+                        label="", 
+                        placeholder="This can be a job posting url for example", 
+                        key = "link", 
+                        # label_visibility="hidden",
+                        help="If the link does not work, try saving the content and upload it as a file.",
+                        )
+                    st.form_submit_button(label="Submit", on_click=self.form_callback)
 
 
 
@@ -344,14 +335,13 @@ class Chat():
             pass
         try:
             job = st.session_state.job
-            st.session_state.job=""
-            self.callback_msg("Successfully submitted")
+            st.info("sucessfully submitted")
             self.new_chat.update_entities(f"job:{job} /n ###")
         except Exception:
             pass
         try:
             company = st.session_state.company
-            st.session_state.company=""
+            st.info("sucessfully submitted")
             self.new_chat.update_entities(f"company:{company} /n ###")
         except Exception:
             pass
@@ -360,7 +350,7 @@ class Chat():
         #     self.process_about_me(about_me)
         # except Exception:
         #     pass
-        # passes the previous user question to the agent one more time after user uploads form
+        ## Passes the previous user question to the agent one more time after user uploads form
         try:
             # print(f"QUESTION INPUT: {st.session_state.questionInput}")
             if st.session_state.questionInput!="":
@@ -472,16 +462,6 @@ class Chat():
             self.new_chat.update_entities(f"about me:{user_input} /n ###")
         return user_input
     
-        # if check_content_safety(text_str=user_input):
-        #     if evaluate_content(user_input, "a job, program, company, or institutation description or a personal background description"):
-        #         self.new_chat.update_entities(f"about me:{user_input} /n ###")
-        #     urls = re.findall(r'(https?://\S+)', user_input)
-        #     print(urls)
-        #     if urls:
-        #         for url in urls:
-        #             self.process_link(url)
-        #     return user_input
-        # else: return ""
 
 
 
@@ -522,6 +502,7 @@ class Chat():
                 content_safe, content_type, content_topics = check_content(end_path)
                 print(content_type, content_safe, content_topics) 
                 if content_safe and content_type!="empty":
+                    st.info("sucessfully submitted")
                     self.update_entities(content_type, content_topics, end_path)
                 else:
                     self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
@@ -540,12 +521,13 @@ class Chat():
                 content_safe, content_type, content_topics = check_content(end_path)
                 print(content_type, content_safe, content_topics) 
                 if content_safe and content_type!="empty" and content_type!="browser error":
+                    st.info("sucessfully submitted")
                     self.update_entities(content_type, content_topics, end_path)
                 else:
-                    self.link_share_popup(callback_msg=f"Failed processing {links}. Please try another link!")
+                    self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
                     os.remove(end_path)
             else:
-                self.link_share_popup(callback_msg=f"Failed processing {links}. Please try another link!")
+                self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
                 os.remove(end_path)
 
 
