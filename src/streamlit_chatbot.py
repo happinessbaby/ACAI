@@ -440,11 +440,12 @@ class Chat():
             print(f"MY COMPONENT KEY AVAIALBLE: {template_path}")
         # resume_template_file = st.session_state.template_path
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{template_path}. """
+        print(question)
         # response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
         # st.session_state.questions.append(st.session_state.questionInput)
         # st.session_state.responses.append(response) 
-        st.session_state.input = question  
-        self.question_callback(self.callback_done, append_question=False)
+        # st.session_state.input = question  
+        # self.question_callback(self.callback_done, append_question=False)
 
 
     # def set_clickable_icons(self, dir_path):

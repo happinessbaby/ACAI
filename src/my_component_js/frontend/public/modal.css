@@ -1,5 +1,13 @@
-#scrollable {
+#images {
     overflow: auto;
     width: 1000px;  
     height: 600px; 
+}
+
+#images img:hover {
+    cursor: pointer;
+}
+
+.active {
+    border: 3px dotted brown;
 }

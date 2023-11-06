@@ -9,6 +9,7 @@ import { Streamlit, RenderData } from "streamlit-component-lib"
 // const imgNode = document.body.appendChild(document.createElement("img"))
 // const div = document.body.appendChild(document.createElement("div"))
 // const imgNode = document.getElementById("MyImg")!;
+const imgs = document.getElementById("images")!;
 const imgNode0 = document.getElementsByTagName("a")[0];
 const imgNode1 = document.getElementsByTagName("a")[1];
 const imgNode2 = document.getElementsByTagName("a")[2];
@@ -89,8 +90,24 @@ function onRender(event: Event): void {
 
   }
 
+  var cN = "active";
+  var prev = 0;
+  let imgs = document.querySelectorAll<HTMLImageElement>(".thumbnail");
+  for (var i = 0; i < imgs.length; i += 1) {
+    (function(i) {
+      imgs[i].addEventListener("click", function() {
+        imgs[prev].className="thumbnail";
+        this.className === "thumbnail" ? this.className = cN : this.className = "thumbnail"; // Toggle class name
+        prev = i;
+        Streamlit.setComponentValue(i);
+      });
+    })(i);
+    // Swap img.alt with li.innerHTML
+    // var temp = list.innerHTML;
+    // list.children[i].innerHTML = this.alt;
+    // this.alt = temp;
+  }
   
-
   // Show "Hello, name!" with a non-breaking space afterwards.
   // textNode.textContent = `Hello, ${img0}! ` + String.fromCharCode(160)
   // imgNode.setAttribute( 'src', `${img0}` );
