@@ -6,20 +6,28 @@ import { Streamlit, RenderData } from "streamlit-component-lib"
 // const textNode = span.appendChild(document.createTextNode(""))
 // const button = span.appendChild(document.createElement("button"))
 // button.textContent = "Click Me!"
-const imgNode = document.body.appendChild(document.createElement("img"))
+// const imgNode = document.body.appendChild(document.createElement("img"))
 // const div = document.body.appendChild(document.createElement("div"))
-// var imgNode = document.getElementById("MyImg")!
+// const imgNode = document.getElementById("MyImg")!;
+const imgNode0 = document.getElementsByTagName("a")[0];
+const imgNode1 = document.getElementsByTagName("a")[1];
+const imgNode2 = document.getElementsByTagName("a")[2];
+const imgNode3 = document.getElementsByTagName("a")[3];
+const imgNode4 = document.getElementsByTagName("a")[4];
+const imgNode5 = document.getElementsByTagName("a")[5];
  // Get the modal
-var modal = document.getElementById("myModal")!;
-const modalImg = modal.appendChild(document.createElement("img"))
+// var modal = document.getElementById("myModal")!;
+// const modalImg = modal.appendChild(document.createElement("img"))
+// modalImg.classList.add("modal_content")
+// const modalImg = document.getElementById("img0")!;
 
 // Get the <span> element that closes the modal
 let close: HTMLElement = document.getElementsByClassName("close")[0] as HTMLElement;
 
 // When the user clicks on <span> (x), close the modal
-close.onclick = function() {
-  modal.style.display = "none";
-}
+// close.onclick = function() {
+//   modal.style.display = "none";
+// }
 
 // Add a click handler to our button. It will send data back to Streamlit.
 // let numClicks = 0
@@ -62,23 +70,37 @@ function onRender(event: Event): void {
   // }
 
   // // Disable our button if necessary.
-  // button.disabled = data.disabled
+  // button.disabled = data.disabled  
 
   // RenderData.args is the JSON dictionary of arguments sent from the
   // Python script.
   // let name = data.args["name"]
-  let img0 = data.args["name"]
+  let dir_name = data.args["name"]
+  if (dir_name=="functional") {
+    const img0 =  "/resume_templates/functional/functional0.png"
+    const img1 = "/resume_templates/functional/functional1.png"
+    const img2 = "/resume_templates/functional/functional2.jpeg"
+    imgNode0.href = img0
+    imgNode1.href = img1
+    imgNode2.href = img2
+    // imgNode3.href = img0
+    // imgNode4.href = img0
+    // imgNode5.href = img0
+
+  }
+
+  
 
   // Show "Hello, name!" with a non-breaking space afterwards.
   // textNode.textContent = `Hello, ${img0}! ` + String.fromCharCode(160)
-  imgNode.setAttribute( 'src', `${img0}` );
+  // imgNode.setAttribute( 'src', `${img0}` );
 
-  imgNode.onclick = function(): void {
-    modal.style.display = "block";
-    modalImg.src = `${img0}`;
-    //   captionText.innerHTML = this.alt;
-    Streamlit.setComponentValue(`${img0}`);
-  }
+  // imgNode.onclick = function(): void {
+  //   modal.style.display = "block";
+  //   modalImg.src = `${img0}`;
+  //   // captionText.innerHTML = this.alt;
+  //   Streamlit.setComponentValue(`${img0}`);
+  // }
 
 
     // We tell Streamlit to update our frameHeight after each render event, in

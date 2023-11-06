@@ -6,47 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Streamlit Component" />
+    <link rel="stylesheet" href="lightbox2.css">
+    <link rel="stylesheet" href="modal.css">
     <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="lightbox.css">
   </head>
   <body>
         <!-- Trigger the Modal -->
     <!-- <img id="MyImg"  alt="Snow" style="width:100%;max-width:300px"> -->
-
+    <div id="scrollable">
+    <a id="MyImg0" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
+    <a id="MyImg1" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
+    <a id="MyImg2" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
+    <!-- <a id="MyImg3" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
+    <a id="MyImg4" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
+    <a id="MyImg5" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a> -->
+    </div>
     <!-- The Modal -->
-    <div id="myModal" class="modal">
+    <!-- <div id="myModal" class="modal"> -->
 
       <!-- The Close Button -->
-      <span class="close">&times;</span>
+      <!-- <span class="close">&times;</span> -->
 
       <!-- Modal Content (The Image) -->
       <!-- <img class="modal-content" id="img01"> -->
 
       <!-- Modal Caption (Image Text) -->
       <!-- <div id="caption"></div> -->
-    </div>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <!-- <script>
-        // Get the modal
-        var modal = document.getElementById("myModal");
-      // Get the image and insert it inside the modal - use its "alt" text as a caption
-        var img = document.getElementById("myImg");
-        var modalImg = document.getElementById("img01");
-        var captionText = document.getElementById("caption");
-
-        img.onclick = function(){
-          modal.style.display = "block";
-          modalImg.src = this.src;
-          captionText.innerHTML = this.alt;
-        }
-
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
-
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-          modal.style.display = "none";
-        }
-    </script> -->
+    <!-- </div> -->
+    <!-- <noscript>You need to enable JavaScript to run this app.</noscript> -->
+    <script src="lightbox2-plus-jquery.js"></script>
+    <script>
+      lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true
+      })
+  </script>
   </body>
 </html>

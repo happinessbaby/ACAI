@@ -1053,7 +1053,7 @@ def check_content(file_path: str) -> Union[bool, str, set] :
         {
             "name": "category",
             "type": "string",
-            "enum": ["resume", "cover letter", "job posting", "education program", "personal statement", "browser error", "learning material", "empty", "other"],
+            "enum": ["empty", "resume", "cover letter", "job posting", "education program", "personal statement", "browser error", "learning material", "other"],
             "description": "categorizes content into the provided categories",
             "required":True,
         },

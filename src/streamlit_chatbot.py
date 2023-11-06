@@ -162,12 +162,11 @@ class Chat():
             if 'questionInput' not in st.session_state:
                 st.session_state["questionInput"] = ''  
             # input stores current user question     
-            if 'input' not in st.session_state:
-                st.session_state["input"] = ''
-            # prefilled stores current sample question
-            if 'prefilled' not in st.session_state:
-                st.session_state["prefilled"] = ''
-        
+            # if 'input' not in st.session_state:
+            #     st.session_state["input"] = ''
+            # # prefilled stores current sample question
+            # if 'prefilled' not in st.session_state:
+            #     st.session_state["prefilled"] = ''      
             if 'loading' not in st.session_state:
                 st.session_state["loading"] = st.empty()
             # Sidebar section
@@ -220,32 +219,38 @@ class Chat():
             # Chat section
             ## Displays the current conversation
             if st.session_state['responses']:
-                for i in range(len(st.session_state['responses'])-1, -1, -1):
-                    message(st.session_state['responses'][i], key=str(i), avatar_style="initials", seed="ACAI", allow_html=True)
-                    message(st.session_state['questions'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
+                for i in range(len(st.session_state['responses'])):
+                    try:
+                        message(st.session_state['questions'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
+                        message(st.session_state['responses'][i], key=str(i), avatar_style="initials", seed="AI", allow_html=True)
+                    except Exception:
+                        pass
 
-            def question_callback():
-                """ Sends user input to chat agent. """
-                if st.session_state.input!="":
-                    callback_done.set()
-                    question = self.process_user_input(st.session_state.input) 
-                elif st.session_state.prefilled!="":
-                    callback_done.set()
-                    question = self.process_user_input(st.session_state.prefilled)
-                callback_done.wait()
-                if question:
-                    self.resume_template_popup("functional")
-                    # response = self.new_chat.askAI(st.session_state.userid, self.question, callbacks = None)
-                    # if response == "functional" or response == "chronological" or response == "student":
-                    #     self.resume_template_popup(response)
-                    # else:
-                    #     st.session_state.questions.append(self.question)
-                    #     st.session_state.responses.append(response)
-                st.session_state.questionInput = st.session_state.input
-                st.session_state.input = ''    
+            # def question_callback():
+            #     """ Sends user input to chat agent. """
+            #     try:
+            #         if st.session_state.input!="":
+            #             callback_done.set()
+            #             question = self.process_user_input(st.session_state.input) 
+            #         elif st.session_state.prefilled!="":
+            #             callback_done.set()
+            #             question = self.process_user_input(st.session_state.prefilled)
+            #     except Exception:
+            #         pass
+            #     callback_done.wait()
+            #     if question:
+            #         self.resume_template_popup("functional")
+            #         # response = self.new_chat.askAI(st.session_state.userid, self.question, callbacks = None)
+            #         # if response == "functional" or response == "chronological" or response == "student":
+            #         #     self.resume_template_popup(response)
+            #         # else:
+            #         #     st.session_state.questions.append(self.question)
+            #         #     st.session_state.responses.append(response)
+            #     st.session_state.questionInput = st.session_state.input
+            #     st.session_state.input = ''    
 
-            callback_done = threading.Event()
-            thread = threading.Thread(target=question_callback)
+            self.callback_done = threading.Event()
+            thread = threading.Thread(target=self.question_callback, args=(self.callback_done, ))
             add_script_run_ctx(thread, self.ctx)
             thread.start()
 
@@ -256,7 +261,8 @@ class Chat():
                         key="input", 
                         label_visibility="hidden", 
                         placeholder="Chat with me",
-                        on_change = question_callback
+                        on_change = self.question_callback, 
+                        args = [self.callback_done],
                         )
             # Select from sample questions
             c2.selectbox(label="Sample questions",
@@ -264,57 +270,91 @@ class Chat():
                         key = "prefilled",
                         format_func=lambda x: '-----sample questions-----' if x == '' else x,
                         label_visibility= "hidden",
-                        on_change = question_callback
+                        on_change = self.question_callback, 
+                        args = [self.callback_done],
                         )
 
             # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
+    def question_callback(self, callback_done, append_question=True):
+
+        """ Sends user input to chat agent. """
+
+        question = None
+        try:
+            if st.session_state.input!="" or st.session_state.prefilled!="":
+                callback_done.set() 
+                question = st.session_state.input if st.session_state.input else st.session_state.prefilled      
+        except Exception:
+            pass
+        callback_done.wait()
+        if question is not None:
+            self.resume_template_popup("functional")
+            # with st.session_state.loading, st.spinner("Please wait..."):
+            #     response = self.new_chat.askAI(st.session_state.userid, question, callbacks = None)
+            #     if response == "functional" or response == "chronological" or response == "student":
+            #         self.resume_template_popup(response)
+            #     else:
+            #         if append_question:
+            #             st.session_state.questions.append(question)
+            #         st.session_state.responses.append(response)
+            st.session_state.questionInput =  st.session_state.input if st.session_state.input else st.session_state.prefilled  
+            st.session_state.input = ''    
+            st.session_state.prefilled = ''
 
 
     def file_upload_popup(self, callback_msg=""):
 
         """Popup for user to upload files. """
 
-        modal = Modal(title="Upload your files", key="file_popup", max_width=600)
-        with modal.container():
-            st.write(callback_msg)
-            if "file_loading" not in st.session_state:
-                st.session_state["file_loading"]=st.empty()
-            col1, _ = st.columns([10, 1])
-            with col1:
-                with st.form(key='file_popup_form', clear_on_submit=True):
-                    # add_vertical_space(1)
-                    st.file_uploader(
-                        label="Upload your resume, cover letter, or anything you want to share with me.",
-                        type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                        key = "files",
-                        # help = "This can be your resume, cover letter, or anything else you want to share with me. ",
-                        label_visibility="hidden",
-                        accept_multiple_files=True
-                        )
-                    # add_vertical_space(1)
-                    st.form_submit_button(label='Submit', on_click=self.form_callback)  
+        # modal = Modal(title="Upload your files", key="file_popup", max_width=600)
+        placeholder = st.empty()
+        if "file_modal" not in st.session_state:
+            st.session_state["file_modal"] =  Modal(title="    ", key="file_popup", max_width=600)
+        with placeholder.container():
+            with st.session_state.file_modal.container():
+                st.write(callback_msg)
+                if "file_loading" not in st.session_state:
+                    st.session_state["file_loading"]=st.empty()
+                col1, _ = st.columns([10, 1])
+                with col1:
+                    with st.form(key='file_popup_form', clear_on_submit=True):
+                        # add_vertical_space(1)
+                        st.file_uploader(
+                            label="Upload your resume, cover letter, or anything you want to share with me.",
+                            type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                            key = "files",
+                            # help = "This can be your resume, cover letter, or anything else you want to share with me. ",
+                            label_visibility="hidden",
+                            accept_multiple_files=True
+                            )
+                        # add_vertical_space(1)
+                        st.form_submit_button(label='Submit', on_click=self.form_callback)  
 
 
     def link_share_popup(self, callback_msg=""):
 
         """Popup for user to share url. """
-
-        modal = Modal(title="Share a link", key="link_popup", max_width=500)
-        with modal.container():
-            st.write(callback_msg)
-            if "link_loading" not in st.session_state:
-                st.session_state["link_loading"]=st.empty()
-            col1, _ = st.columns([10, 1])
-            with col1:
-                with st.form(key="link_popup_form", clear_on_submit=True):
-                    st.text_area(
-                        label="", 
-                        placeholder="This can be a job posting url for example", 
-                        key = "link", 
-                        # label_visibility="hidden",
-                        help="If the link does not work, try saving the content and upload it as a file.",
-                        )
-                    st.form_submit_button(label="Submit", on_click=self.form_callback)
+    
+        # modal = Modal(title="Share a link", key="link_popup", max_width=500)
+        placeholder=st.empty()
+        if "link_modal" not in st.session_state:
+            st.session_state["link_modal"] =  Modal(title="   ", key="link_popup", max_width=500)
+        with placeholder.container():
+            with st.session_state.link_modal.container():
+                st.write(callback_msg)
+                if "link_loading" not in st.session_state:
+                    st.session_state["link_loading"]=st.empty()
+                col1, _ = st.columns([10, 1])
+                with col1:
+                    with st.form(key="link_popup_form", clear_on_submit=True):
+                        st.text_area(
+                            label="", 
+                            placeholder="This can be a job posting url for example", 
+                            key = "link", 
+                            # label_visibility="hidden",
+                            help="If the link does not work, try saving the content and upload it as a file.",
+                            )
+                        st.form_submit_button(label="Submit", on_click=self.form_callback)
 
 
 
@@ -325,24 +365,32 @@ class Chat():
 
         try:
             files = st.session_state.files 
-            self.process_file(files)
+            if files:
+                self.process_file(files)
+                st.session_state.files=""
         except Exception:
             pass
         try:
             link = st.session_state.link
-            self.process_link(link)
+            if link:
+                self.process_link(link)
+                st.session_state.link=""
         except Exception:
             pass
         try:
             job = st.session_state.job
-            st.info("sucessfully submitted")
-            self.new_chat.update_entities(f"job:{job} /n ###")
+            if job:
+                st.toast("sucessfully submitted")
+                self.new_chat.update_entities(f"job:{job} /n ###")
+                st.session_state.job=""
         except Exception:
             pass
         try:
             company = st.session_state.company
-            st.info("sucessfully submitted")
-            self.new_chat.update_entities(f"company:{company} /n ###")
+            if company:
+                st.toast("sucessfully submitted")
+                self.new_chat.update_entities(f"company:{company} /n ###")
+                st.session_state.company=""
         except Exception:
             pass
         # try:
@@ -354,9 +402,12 @@ class Chat():
         try:
             # print(f"QUESTION INPUT: {st.session_state.questionInput}")
             if st.session_state.questionInput!="":
-                response = self.new_chat.askAI(st.session_state.userid, st.session_state.questionInput, callbacks=None)
-                st.session_state.questions.append(st.session_state.questionInput)
-                st.session_state.responses.append(response)   
+                st.session_state.input = st.session_state.questionInput
+                self.question_callback(self.callback_done, append_question=False)
+                # with st.session_state.loading, st.spinner("Thinking..."):
+                #     response = self.new_chat.askAI(st.session_state.userid, st.session_state.questionInput, callbacks=None)
+                #     st.session_state.questions.append(st.session_state.questionInput)
+                #     st.session_state.responses.append(response)   
         # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
         except AttributeError:
             pass
@@ -366,15 +417,17 @@ class Chat():
         """ Popup window for user to select a resume template based on the resume type. """
 
         print("TEMPLATE POPUP")
-        dir_path="./resume_templates/functional/"
-        if resume_type == "functional" or resume_type=="chronological":
-            dir_path = "./resume_templates/functional/"
-        # modal = Modal(key="template_popup", title=f"")
-        # with modal.container():
-        with st.form( key='template_form', clear_on_submit=True):
-            img = my_component("http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg", "templates")
-            # st.markdown(img)
-            st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
+        placeholder = st.empty()
+        modal = Modal(key="template_popup", title=f"", max_width=1000)
+        with placeholder.container():
+            with modal.container():
+                col1, _ = st.columns([10, 1])
+                with col1:
+                    with st.form( key='template_form', clear_on_submit=True):
+                        # img = my_component("http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg", "templates")
+                        img = my_component(resume_type, "templates")
+                        # st.markdown(img)
+                        st.form_submit_button(label='Submit', on_click=self.resume_template_callback)
 
 
 
@@ -387,9 +440,11 @@ class Chat():
             print(f"MY COMPONENT KEY AVAIALBLE: {template_path}")
         # resume_template_file = st.session_state.template_path
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{template_path}. """
-        response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
-        st.session_state.questions.append(st.session_state.questionInput)
-        st.session_state.responses.append(response)   
+        # response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
+        # st.session_state.questions.append(st.session_state.questionInput)
+        # st.session_state.responses.append(response) 
+        st.session_state.input = question  
+        self.question_callback(self.callback_done, append_question=False)
 
 
     # def set_clickable_icons(self, dir_path):
@@ -502,11 +557,12 @@ class Chat():
                 content_safe, content_type, content_topics = check_content(end_path)
                 print(content_type, content_safe, content_topics) 
                 if content_safe and content_type!="empty":
-                    st.info("sucessfully submitted")
+                    st.toast("sucessfully submitted")
                     self.update_entities(content_type, content_topics, end_path)
                 else:
-                    self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
                     os.remove(end_path)
+                    st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
+                    # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
         
         
 
@@ -520,15 +576,17 @@ class Chat():
             # if (retrieve_web_content(posting, save_path = end_path)):
                 content_safe, content_type, content_topics = check_content(end_path)
                 print(content_type, content_safe, content_topics) 
-                if content_safe and content_type!="empty" and content_type!="browser error":
-                    st.info("sucessfully submitted")
+                if (content_safe and content_type!="empty" and content_type!="browser error"):
+                    st.toast("sucessfully submitted")
                     self.update_entities(content_type, content_topics, end_path)
                 else:
-                    self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
                     os.remove(end_path)
+                    st.toast(f"Failed processing {str(links)}. Please try another link!")
+                    # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
             else:
-                self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
                 os.remove(end_path)
+                st.toast(f"Failed processing {str(links)}. Please try another link!")
+                # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
 
 
     
