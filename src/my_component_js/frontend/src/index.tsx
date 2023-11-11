@@ -13,9 +13,9 @@ const imgs = document.getElementById("images")!;
 const imgNode0 = document.getElementsByTagName("a")[0];
 const imgNode1 = document.getElementsByTagName("a")[1];
 const imgNode2 = document.getElementsByTagName("a")[2];
-const imgNode3 = document.getElementsByTagName("a")[3];
-const imgNode4 = document.getElementsByTagName("a")[4];
-const imgNode5 = document.getElementsByTagName("a")[5];
+const imgThumb0 = document.getElementsByTagName("img")[0];
+const imgThumb1 = document.getElementsByTagName("img")[1];
+const imgThumb2 = document.getElementsByTagName("img")[2];
  // Get the modal
 // var modal = document.getElementById("myModal")!;
 // const modalImg = modal.appendChild(document.createElement("img"))
@@ -84,9 +84,9 @@ function onRender(event: Event): void {
     imgNode0.href = img0
     imgNode1.href = img1
     imgNode2.href = img2
-    // imgNode3.href = img0
-    // imgNode4.href = img0
-    // imgNode5.href = img0
+    imgThumb0.src = img0
+    imgThumb1.src = img1
+    imgThumb2.src = img2
 
   }
 
