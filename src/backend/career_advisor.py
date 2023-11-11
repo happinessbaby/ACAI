@@ -66,7 +66,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 log_path = os.environ["LOG_PATH"]
 pickle_path = os.environ["PICKLE_PATH"]
-save_path = os.environ["SAVE_PATH"]
+static_path = os.environ["STATIC_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
 # debugging langchain: very useful
 langchain.debug=True 
@@ -93,7 +93,7 @@ memory_key="chat_history"
 class ChatController():
 
     # llm = ChatOpenAI(streaming=True, callbacks=[StreamingStdOutCallbackHandler()], temperature=0, cache = False)
-    llm = ChatOpenAI(streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
+    llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
     embeddings = OpenAIEmbeddings()
     chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)
@@ -123,24 +123,22 @@ class ChatController():
         resume_evaluator_tool = create_resume_evaluator_tool()
         resume_rewriter_tool = create_resume_rewriter_tool()
         resume_template_tool = [redesign_resume_template]
+        # resume_template_tool = create_resume_template_tool()
         # resume_evaluator_tool = [resume_evaluator]
         user_material_tool = [search_user_material]
-        # file_loader_tool = create_file_loader_tool()
         # file loader tool
-        working_directory = save_path+f"{self.userid}/"
-        file_loader_tool = [file_loader]
+        # working_directory = static_path
+        # # file_loader_tool = [file_loader]
     
         # file_sys_tools = FileManagementToolkit(
         #     root_dir=working_directory, # ensures only the working directory is accessible 
-        #     selected_tools=["read_file", "list_directory"],
+        #     selected_tools=["read_file"],
         # ).get_tools()
         # file_sys_tools[0].return_direct = True
-        # file_sys_tools[1].return_direct = True
         # file_sys_tools[0].description = 'Read file from disk. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.'
-        # file_sys_tools[1].description = 'List files and directories in a specified folder. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.'
 
         requests_get = load_tools(["requests_get"])
-        link_download_tool = [binary_file_downloader_html]
+        # link_download_tool = [binary_file_downloader_html]
         # general vector store tool
         store = retrieve_faiss_vectorstore(faiss_web_data_path)
         retriever = store.as_retriever()
@@ -164,7 +162,7 @@ class ChatController():
         # wiki tool
         wiki_tool = create_wiki_tools()
         # gather all the tools together
-        self.tools =  cover_letter_tool + resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool+ wiki_tool + search_tool+ link_download_tool  + general_tool  + personal_statement_customize_tool + cover_letter_customize_tool + user_material_tool  + requests_get
+        self.tools =  cover_letter_tool + resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool+ wiki_tool + search_tool + general_tool  + personal_statement_customize_tool + cover_letter_customize_tool + user_material_tool  + requests_get
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")
@@ -195,8 +193,6 @@ class ChatController():
         Always check the relevant entities below before answering a question. They will help you assist the human better. 
 
         Relevant entities: {entities}
-
-        You are provided with the following tools, use them whenever possible:
 
         If you encounter any problems communicating with Human, follow the Instruction below, if relevant. 
 
@@ -572,6 +568,7 @@ class ChatController():
         print(f"Entity type: {entity_type}")
         self.delete_entities(entity_type)
         self.entities += f"\n{text}\n"
+        self.entities.strip()
         print(f"Successfully added entities {self.entities}.")
 
     def delete_entities(self, type: str) -> None:
@@ -581,6 +578,7 @@ class ChatController():
         delimiter = "###"
         starting_indices = [m.start() for m in re.finditer(type, self.entities)]
         end_indices = [m.start() for m in re.finditer(delimiter, self.entities)]
+        print(type, starting_indices, end_indices)
         for i in range(len(starting_indices)):
             self.entities = self.entities.replace(self.entities[starting_indices[i]:end_indices[i]+len(delimiter)], "")
 

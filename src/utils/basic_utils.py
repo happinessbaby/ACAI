@@ -139,20 +139,21 @@ def retrieve_web_content(link, save_path="./web_data/test.txt"):
     
 # this one is better than the above function 
 def html_to_text(urls:List[str], save_path="./web_data/test.txt"):
+
+    """Writes a list of url content to txt file. """
     
-    loader = AsyncHtmlLoader(urls)
-    docs = loader.load()
-    html2text = Html2TextTransformer()
-    docs_transformed = html2text.transform_documents(docs)
-    content = docs_transformed[0].page_content              
-    if content:
+    try:
+        loader = AsyncHtmlLoader(urls)
+        docs = loader.load()
+        html2text = Html2TextTransformer()
+        docs_transformed = html2text.transform_documents(docs)
+        content = docs_transformed[0].page_content              
         with open(save_path, 'w') as file:
             file.write(content)
             file.close()
             print('Content retrieved and written to file.')
             return True
-    else:
-        print('Failed to retrieve content from the URL.')
+    except Exception:
         return False
 
 

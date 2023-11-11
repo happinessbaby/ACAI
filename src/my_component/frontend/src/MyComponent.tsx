@@ -4,12 +4,15 @@ import {
   withStreamlitConnection,
 } from "streamlit-component-lib"
 import React, { ReactNode } from "react"
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 interface State {
   numClicks: number
   isFocused: boolean
 }
 
+const [open, setOpen] = React.useState(false);
 /**
  * This is a React-based component template. The `render()` function is called
  * automatically when your component should be re-rendered.
@@ -56,6 +59,15 @@ class MyComponent extends StreamlitComponentBase<State> {
         >
           Click Me!
         </button>
+        <Lightbox
+          open={open}
+          close={() => setOpen(false)}
+          slides={[
+            { src: "http://lokeshdhakar.com/projects/lightbox2/images/image-1.jpg" },
+            // { src: "/image2.jpg" },
+            // { src: "/image3.jpg" },
+        ]}
+      />
       </span>
     )
   }

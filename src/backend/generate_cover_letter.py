@@ -29,6 +29,8 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # cover_letter_path = os.environ["COVER_LETTER_PATH"]
 cover_letter_samples_path = os.environ["COVER_LETTER_SAMPLES_PATH"]
+faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
+save_path = os.environ["SAVE_PATH"]
 # TODO: caching and serialization of llm
 llm = ChatOpenAI(temperature=0.5, cache=False)
 # llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
@@ -44,29 +46,24 @@ delimiter5 = '~~~~'
 document = Document()
 document.add_heading('Cover Letter', 0)
       
-def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_path="") -> str:
+def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_path="") -> None:
     
     """ Main function that generates the cover letter.
     
     Keyword Args:
 
-      my_job_title (str): job applying for
+      about_me(str)
 
-      company (str): company applying for
+      resume_file(str): path to the resume file in txt format
 
-      resume_file (str): path to the resume file in txt format
-
-      posting_path (str): path to job posting in txt format
-
-    Returns:
-
-      cover letter as a text string
+      posting_path(str): path to job posting in txt format
      
     """
     
     dirname, fname = os.path.split(resume_file)
     filename = Path(fname).stem 
     docx_filename = filename + "_cover_letter"+".docx"
+    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
 
     # Get resume info
     resume_content = read_txt(resume_file)
@@ -86,7 +83,7 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
 
     # Get adviced from web data on personalized best practices
     advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
-    advices = retrieve_from_db(advice_query)
+    advices = retrieve_from_db(advice_query, vectorstore=faiss_web_data)
     # Get sample comparisons
     related_samples = search_related_samples(job, cover_letter_samples_path)
     sample_tools, tool_names = create_sample_tools(related_samples, "cover_letter")
@@ -208,10 +205,10 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     my_cover_letter = llm(cover_letter_message).content
     cover_letter = get_completion(f"Extract the cover letter from text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
-    document.save(docx_filename)
-    print(f"Successfully saved cover letter to: {docx_filename}")
-    return f"""file_path:{docx_filename}"""
-    return cover_letter
+    document.save(end_path)
+    print(f"Successfully saved cover letter to: {end_path}")
+    # return f"""file_path:{save_path}"""
+    # return cover_letter
 
 
 # @tool(return_direct=True)
@@ -307,7 +304,7 @@ def create_cover_letter_generator_tool() -> List[Tool]:
      Input should be a single string strictly in the following JSON format: {parameters} \n
      Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
     (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) 
-    Output should be using the "get download link" tool in the following single string JSON format: {output}
+    Output should be telling user to check the Download Your Files tab at the sidebar.
     """
     tools = [
         Tool(
