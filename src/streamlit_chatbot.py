@@ -419,18 +419,14 @@ class Chat():
         except Exception:
             pass
         ## Passes the previous user question to the agent one more time after user uploads form
-        try:
-            # print(f"QUESTION INPUT: {st.session_state.questionInput}")
-            if st.session_state.questionInput!="":
-                st.session_state.input = st.session_state.questionInput
-                self.question_callback(self.callback_done, append_question=False)
-                # with st.session_state.loading, st.spinner("Thinking..."):
-                #     response = self.new_chat.askAI(st.session_state.userid, st.session_state.questionInput, callbacks=None)
-                #     st.session_state.questions.append(st.session_state.questionInput)
-                #     st.session_state.responses.append(response)   
-        # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
-        except AttributeError:    
-           pass
+        # try:
+        #     # print(f"QUESTION INPUT: {st.session_state.questionInput}")
+        #     if st.session_state.questionInput!="":
+        #         st.session_state.input = st.session_state.questionInput
+        #         self.question_callback(self.callback_done, append_question=False)
+        # # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
+        # except AttributeError:    
+        #    pass
 
 
     @st.cache_data(experimental_allow_widgets=True)
@@ -466,7 +462,7 @@ class Chat():
         # st.session_state.questions.append(st.session_state.questionInput)
         # st.session_state.responses.append(response) 
         st.session_state.input = question  
-        self.question_callback(self.callback_done, append_question=True)
+        self.question_callback(self.callback_done, append_question=False)
 
 
     # def set_clickable_icons(self, dir_path):
@@ -666,9 +662,7 @@ class Chat():
 
         download_dir = os.path.join(save_path, st.session_state.userid, "downloads")
         generated_files = []
-        if not os.listdir(download_dir):
-            print("No files found in the directory.")
-        else:
+        if os.listdir(download_dir):
             print("Some files found in the directory.")
             for path in Path(download_dir).glob('**/*.*'):
                 file=str(path)

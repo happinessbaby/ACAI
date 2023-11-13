@@ -66,7 +66,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 log_path = os.environ["LOG_PATH"]
 pickle_path = os.environ["PICKLE_PATH"]
-static_path = os.environ["STATIC_PATH"]
+# static_path = os.environ["STATIC_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
 # debugging langchain: very useful
 langchain.debug=True 
