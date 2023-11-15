@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Streamlit Component" />
-    <link rel="stylesheet" href="lightbox2.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
+    />
+    <!-- <link rel="stylesheet" href="lightbox2.css"> -->
     <link rel="stylesheet" href="modal.css">
     <link rel="stylesheet" href="bootstrap.min.css" />
   </head>
@@ -17,9 +21,12 @@
     <!-- <a id="MyImg0" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 0"></a>
     <a id="MyImg1" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 1"></a>
     <a id="MyImg2" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 2"></a> -->
-    <a id="MyImg0" data-lightbox="img" style="width:300px;max-width:300px"><img class="thumbnail" alt="basic 0"></a>
-    <a id="MyImg1" data-lightbox="img" style="width:300px;max-width:300px"><img class="thumbnail" alt="basic 1"></a>
-    <a id="MyImg2" data-lightbox="img" style="width:300px;max-width:300px"><img class="thumbnail" alt="basic 2"></a>
+    <!-- <a id="MyImg0" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 0"></a>
+    <a id="MyImg1" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 1"></a>
+    <a id="MyImg2" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 2"></a> -->
+    <a id="MyImg0"  data-fancybox="gallery"><img class="thumbnail" alt="basic 0"></a>
+    <a id="MyImg1"  data-fancybox="gallery"><img class="thumbnail" alt="basic 1"></a>
+    <a id="MyImg2"  data-fancybox="gallery"><img class="thumbnail" alt="basic 2"></a>
     <!-- <a id="MyImg3" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
     <a id="MyImg4" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
     <a id="MyImg5" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a> -->
@@ -37,12 +44,20 @@
       <!-- <div id="caption"></div> -->
     <!-- </div> -->
     <!-- <noscript>You need to enable JavaScript to run this app.</noscript> -->
-    <script src="lightbox2-plus-jquery.js"></script>
+    <!-- <script src="lightbox2-plus-jquery.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <script>
-      lightbox.option({
-        'resizeDuration': 200,
-        'wrapAround': true
-      })
+      // lightbox.option({
+      //   'resizeDuration': 200,
+      //   'wrapAround': true,
+      //   'fitImagesInViewport': false,
+      // })
+      // $.fancybox.defaults.fullScreen = { autoStart : true };
+      Fancybox.bind('[data-fancybox="gallery"]', {
+        // fullscreen: {
+        //   autoStart: true,
+        // },
+      });   
   </script>
   </body>
 </html>

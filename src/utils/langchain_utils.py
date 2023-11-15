@@ -55,7 +55,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.docstore.document import Document
-from utils.basic_utils import read_txt, timing
+from utils.basic_utils import read_txt, timing, timeout
 from json import JSONDecodeError
 from langchain.document_transformers import LongContextReorder
 from langchain.retrievers import BM25Retriever, EnsembleRetriever
@@ -71,6 +71,7 @@ from langchain.schema import LLMResult, HumanMessage
 from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
 import asyncio
+import errno
 
 
 
@@ -634,7 +635,7 @@ class MyCustomSyncHandler(BaseCallbackHandler):
 
     """Callback handler that can be used to handle callbacks from langchain."""
 
-    @timing
+    @timeout(5, os.strerror(errno.ETIMEDOUT))
     def on_llm_start(
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> None:
