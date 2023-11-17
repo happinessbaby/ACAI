@@ -162,6 +162,7 @@ class Chat():
             "help me generate a cover letter": "generate",
             "Evaluate my resume": "evaluate",
             "rewrite my resume using a new template": "reformat",
+            "tailor my resume to a job position": "tailor",
         }
 
         ## questions stores User's questions
@@ -540,7 +541,7 @@ class Chat():
                 # },
                 "topic": {
                     "type": "string",
-                    "enum": ["career goals", "job or program description", "company or institution description"],
+                    "enum": ["question or answer", "career goals", "job or program description", "company or institution description"],
                     "description": "determines if the statement contains certain topic",
                 },
             },
@@ -553,7 +554,7 @@ class Chat():
         #     self.file_upload_popup()
         # else: 
         if topic == "career goals" or topic=="job or program description" or topic=="company or institution description":
-            self.new_chat.update_entities(f"about me:{user_input} /n ###")
+            self.new_chat.update_entities(f"about_me:{user_input} /n"+"###", '###')
         return user_input
     
 
@@ -640,14 +641,19 @@ class Chat():
         """ Update entities for chat agent. """
 
         if content_type!="other" and content_type!="learning material":
+            delimiter=""
+            if content_type=="job posting":
+                delimiter = "@@@"
+            elif content_type=="resume":
+                delimiter = "$$$"    
             if content_type=="job posting":
                 content = read_txt(end_path)
                 token_count = num_tokens_from_text(content)
                 if token_count>max_token_count:
                     shorten_content(end_path, content_type) 
-            content_type = content_type.replace(" ", "_").strip()        
-            entity = f"""{content_type}_file: {end_path} /n ###"""
-            self.new_chat.update_entities(entity)
+            content_type = content_type.replace(" ", "_").strip()
+            entity = f"""{content_type}_file: {end_path} /n"""+delimiter
+            self.new_chat.update_entities(entity, delimiter)
         if content_type=="learning material" :
             # update user material, to be used for "search_user_material" tool
             self.update_vectorstore(end_path)

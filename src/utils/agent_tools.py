@@ -2,8 +2,8 @@ from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
 from langchain.vectorstores import DocArrayInMemorySearch
 from langchain.tools.python.tool import PythonREPLTool
 from langchain.agents import AgentType
-from utils.basic_utils import read_txt, convert_to_txt
-from utils.langchain_utils import ( create_compression_retriever, 
+from utils.basic_utils import read_txt, convert_to_txt, process_json
+from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_faiss_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
@@ -262,15 +262,14 @@ def search_user_material(json_request: str) -> str:
       Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>" \n"""
 
     try:
-        json_request = json_request.strip("'<>() ").replace('\'', '\"')
-        args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODE ERROR: {e}")
         return "Format in a single string JSON and try again."
  
     vs_path = args["user_material_path"]
     query = args["user_query"]
-    if vs_path!="" and query!="":
+    try:
         # subquery_relevancy = "how to determine what's relevant in resume"
         # option 1: compression retriever
         retriever = create_compression_retriever(vectorstore=vs_path)
@@ -284,8 +283,8 @@ def search_user_material(json_request: str) -> str:
         texts = [doc.page_content for doc in docs]
         texts_merged = "\n\n".join(texts)
         return texts_merged
-    else:
-        return "There is no user material or query to look up."
+    except Exception:
+        return "Stop using the search_user_material tool. There is no user material or query to look up. Use another tool."
 
 
 
@@ -297,8 +296,7 @@ def file_loader(json_request: str) -> str:
     Input should be a single string in the following JSON format: '{{"file": "<file>"}}' \n """
 
     try:
-        json_request = json_request.strip("'<>() ").replace('\'', '\"')
-        args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
         file = args["file"]
         file_content = read_txt(file)
         if os.path.getsize(file)<2000:    
@@ -310,24 +308,30 @@ def file_loader(json_request: str) -> str:
     except Exception as e:
         return "file did not load successfully. try another tool"
     
-@tool("get_download_link", return_direct=True)
-def binary_file_downloader_html(json_request: str):
+# @tool("get_download_link", return_direct=True)
+# def binary_file_downloader_html(json_request: str):
 
-    """ Gets the download link from file. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
+#     """ Gets the download link from file. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
     
-    Input should be a strictly single string in the following JSON format: '{{"file path": "<file path>"}}' """
+#     Input should be a strictly single string in the following JSON format: '{{"file path": "<file path>"}}' """
 
-    try: 
-        args = json.loads(json_request)
-        file = args["file_path"]
-    except JSONDecodeError:
-        return """ Format in the following JSON and try again: '{{"file path": "<file path>"}}' """
-    with open(file, 'rb') as f:
-        data = f.read()
-    bin_str = base64.b64encode(data).decode()
-    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download the cover letter</a>'
-    return href
-    
+#     try: 
+#         args = json.loads(json_request)
+#         file = args["file_path"]
+#     except JSONDecodeError:
+#         return """ Format in the following JSON and try again: '{{"file path": "<file path>"}}' """
+#     with open(file, 'rb') as f:
+#         data = f.read()
+#     bin_str = base64.b64encode(data).decode()
+#     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download the cover letter</a>'
+#     return href
+
+@tool("help and instruction")
+def provide_help_and_instruction(query:str) -> str:
+
+    """ Useful when user asks you to help them navigate the site, such as where to upload and download their files, and also provide them with what you can do as an AI career advisor."""
+
+    #TODO: help user navigate the site.
 
 
 
@@ -363,13 +367,3 @@ def debug_error(self, error_message: str) -> str:
     return "shorten your prompt"
 
 
-def handle_tool_error(error: ToolException) -> str:
-
-    """ Handles tool exceptions. """
-
-    if error==JSONDecodeError or error.args[0].startswith("Too many arguments to single-input tool"):
-        return "Format in a single JSON string with correct key and value and try again."
-    return (
-        "The following errors occurred during tool execution:"
-        + error.args[0]
-        + "Please try another tool.")

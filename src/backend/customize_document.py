@@ -2,8 +2,8 @@ from utils.openai_api import get_completion, get_completion_from_messages
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
 from pathlib import Path
-from utils.basic_utils import read_txt, convert_to_txt
-from utils.langchain_utils import generate_multifunction_response, create_summary_chain
+from utils.basic_utils import read_txt, convert_to_txt, process_json
+from utils.langchain_utils import generate_multifunction_response, create_summary_chain, handle_tool_error
 from utils.common_utils import get_generated_responses, get_web_resources, extract_posting_keywords, retrieve_from_db, get_web_resources, extract_pursuit_information
 from typing import Any, List, Union, Dict
 from langchain.docstore.document import Document
@@ -189,7 +189,7 @@ def create_resume_customize_writer_tool() -> List[Tool]:
         func = process_resume,
         description = description, 
         verbose = False,
-        handle_tool_error=True,
+        handle_tool_error=handle_tool_error,
         )
     ]
     print("Succesfully created resume customize wrtier tool.")
@@ -210,7 +210,7 @@ def create_cover_letter_customize_writer_tool() -> List[Tool]:
         func = process_cover_letter,
         description = description, 
         verbose = False,
-        handle_tool_error=True,
+        handle_tool_error=handle_tool_error,
         )
     ]
     print("Succesfully created cover letter customize writer tool.")
@@ -231,7 +231,7 @@ def create_personal_statement_customize_writer_tool() -> List[Tool]:
         func = process_personal_statement,
         description = description, 
         verbose = False,
-        handle_tool_error=True,
+        handle_tool_error=handle_tool_error,
         )
     ]
     print("Succesfully created personal statement customize writer tool.")
@@ -240,8 +240,7 @@ def create_personal_statement_customize_writer_tool() -> List[Tool]:
 def process_cover_letter(json_request:str) -> str:
 
     try:
-        json_request = json_request.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
-        args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
         return "Format in JSON and try again."
@@ -271,8 +270,7 @@ def process_cover_letter(json_request:str) -> str:
 def process_personal_statement(json_request:str) -> str:
 
     try:
-        json_request = json_request.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
-        args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
         return "Format in JSON and try again."
@@ -305,12 +303,11 @@ def process_personal_statement(json_request:str) -> str:
 def process_resume(json_request: str) -> str:
 
     try:
-        json_request = json_request.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
-        args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
         return "Format in JSON and try again."
-    print(args)
+
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
         return """stop using or calling the resume_customize_writer tool. Ask user to upload their resume instead. """
     else:

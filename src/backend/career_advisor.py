@@ -8,7 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 # from langchain.prompts import ChatPromptTemplate
 # from langchain.agents import ConversationalChatAgent, Tool, AgentExecutor
 from utils.common_utils import check_content
-from utils.agent_tools import search_user_material, search_all_chat_history, binary_file_downloader_html, file_loader
+from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
 from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler,
                              retrieve_redis_vectorstore, split_doc, CustomOutputParser, CustomPromptTemplate,
                              retrieve_faiss_vectorstore, merge_faiss_vectorstore, )
@@ -158,11 +158,11 @@ class ChatController():
         # web_tool_description="""This is a web research tool. You should not use it unless you absolutely cannot find answers elsewhere. Always return source information."""
         # web_tool = create_retriever_tools(web_research_retriever, "search_web", web_tool_description)
         # basic search tool 
-        search_tool = create_search_tools("google", 5)
+        # search_tool = create_search_tools("google", 5)
         # wiki tool
-        wiki_tool = create_wiki_tools()
+        # wiki_tool = create_wiki_tools()
         # gather all the tools together
-        self.tools =  cover_letter_tool + resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool+ wiki_tool + search_tool + general_tool  + personal_statement_customize_tool + cover_letter_customize_tool + user_material_tool  + requests_get
+        self.tools =  cover_letter_tool + resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool + general_tool  + personal_statement_customize_tool + cover_letter_customize_tool + user_material_tool  + requests_get
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")
@@ -190,11 +190,11 @@ class ChatController():
 
         Do not look up for Human anything that's unrelated to your role as a career advisor.
 
-        Always check the relevant entities below before answering a question. They will help you assist the human better. 
+        Always check the relevant entities below before answering a question. Human may ask you if you have certain files. Check the relevant entities before answering these question. 
 
         Relevant entities: {entities}
 
-        If you encounter any problems communicating with Human, follow the Instruction below, if relevant. 
+        If you encounter any problems communicating with Human, follow the Instruction below, if available. 
 
         Instruction: {instruction}
         """
@@ -489,10 +489,10 @@ class ChatController():
             raise e    
 
         # pickle memory (sanity check)
-        with open(pickle_path+ userid + '.pickle', 'wb') as handle:
-            memory = self.chat_agent.memory.load_memory_variables({})
-            pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print(f"Sucessfully pickled conversation: {memory}")
+        # with open(pickle_path+ userid + '.pickle', 'wb') as handle:
+        #     memory = self.chat_agent.memory.load_memory_variables({})
+        #     pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        #     print(f"Sucessfully pickled conversation: {memory}")
         return response
     
 
@@ -560,22 +560,21 @@ class ChatController():
     #     print(f"Succesfully updated tool {[t.name for t in tools]}for chat agent.")
 
 
-    def update_entities(self,  text:str) -> None:
+    def update_entities(self, text:str, delimiter:str) -> None:
 
         """ Updates entities list for main chat agent. Entities are files user loads or topics of the files. """
 
         entity_type = text.split(":")[0]
         print(f"Entity type: {entity_type}")
-        self.delete_entities(entity_type)
+        self.delete_entities(entity_type, delimiter)
         self.entities += f"\n{text}\n"
         self.entities.strip()
         print(f"Successfully added entities {self.entities}.")
 
-    def delete_entities(self, type: str) -> None:
+    def delete_entities(self, type:str, delimiter:str) -> None:
 
         """ Deletes entities of specific type. """
 
-        delimiter = "###"
         starting_indices = [m.start() for m in re.finditer(type, self.entities)]
         end_indices = [m.start() for m in re.finditer(delimiter, self.entities)]
         print(type, starting_indices, end_indices)
