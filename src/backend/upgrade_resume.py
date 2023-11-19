@@ -7,10 +7,10 @@ from langchain.output_parsers import CommaSeparatedListOutputParser
 from langchain.prompts import PromptTemplate
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
-from utils.basic_utils import read_txt, memoized
+from utils.basic_utils import read_txt, memoized, process_json
 from utils.common_utils import (get_web_resources, retrieve_from_db,  get_generated_responses,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
                             search_related_samples,  extract_personal_information)
-from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain
+from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
@@ -27,6 +27,7 @@ import uuid
 from docxtpl import DocxTemplate	
 from docx import Document
 from docx.shared import Inches
+
 
 
 
@@ -305,7 +306,7 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
     # print(context)
     functional_doc_template.render(context)
     functional_doc_template.save(end_path) 
-    # return f"""file_path:{end_path}"""  
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
 
 
 
@@ -315,7 +316,6 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     filename = Path(fname).stem 
     docx_filename = "resume_"+filename +".docx"
     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-
     resume_content = read_txt(resume_file)
     chronological_resume_template = DocxTemplate(template_file)
     info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
@@ -329,8 +329,8 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
         "WEBSITE": func("website", "WEBSITE"),
     }
     # TODO: add awards and honors or professional accomplishments
-    context_keys = ["SUMMARY", "PROFESSIONAL_EXPERIENCE", "RELEVANT_SKILLS", "EDUCATION"]
-    info_dict_keys = ["summary or objective", "work experience", "skills", "education"]
+    context_keys = ["SUMMARY", "PROFESSIONAL_EXPERIENCE", "RELEVANT_SKILLS", "EDUCATION", "HOBBIES", "CERTIFICATION"]
+    info_dict_keys = ["summary or objective", "work experience", "skills", "education", "hobbies", "certification"]
     context_dict = dict(zip(context_keys, info_dict_keys))
     context = {key: None for key in context_keys}
     tools = create_search_tools("google", 1)
@@ -367,8 +367,7 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
 
             PLEASE WRITE IN LESS THAN FIVE SENTENCES THE SUMMARY SECTION OF THE RESUME AND OUTPUT IT AS YOUR FINAL ANSWER. DO NOT OUTPUT ANYTHING ELSE. 
 
-            """
-            
+            """        
             content = generate_multifunction_response(query, tools)
         elif key=="RELEVANT_SKILLS":
             keywords = info_dict.get("job keywords", "")
@@ -402,7 +401,8 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     # print(context)
     chronological_resume_template.render(context)
     chronological_resume_template.save(end_path) 
-    # return f"""file_path:{end_path}"""  
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
+ 
 
 
 def reformat_student_resume(resume_file="", posting_path="", template_file="") -> None:
@@ -446,10 +446,9 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
         content = info_dict.get(value, "")
         context[key] = content
     context.update(personal_context)
-    # print(context)
     chronological_resume_template.render(context)
     chronological_resume_template.save(end_path) 
-    # return f"""file_path:{end_path}"""    
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
 
 # @tool("resume evaluator")
@@ -463,64 +462,22 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
       
 
 
-# @tool(return_direct=True)
-# def resume_evaluator(json_request: str)-> str:
-
-#     """Helps to evaluate a resume. Use this tool more than any other tool when user asks to evaluate or review a resume. 
-
-#     Input should be  a single string strictly in the following JSON format:  '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}' \n
-
-#     Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-
-#      (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) \n
-
-#      Output should be using the "get download link" tool in the following single string JSON format: '{{"file_path":"<file_path>"}}'
-   
-#     """
-
-#     try:
-#       json_request = json_request.strip("'<>() ").replace('\'', '\"')
-#       args = json.loads(json_request)
-#     except JSONDecodeError as e:
-#       print(f"JSON DECODE ERROR: {e}")
-#       return "Format in a single string JSON and try again."
-
-#     # if resume doesn't exist, ask for resume
-#     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-#       return "Can you provide your resume so I can further assist you? "
-#     else:
-#       # may need to clean up the path first
-#         resume_file = args["resume_file"]
-#     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
-#         about_me = ""
-#     else:
-#         about_me = args["about_me"]
-#     if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
-#         posting_path = ""
-#     else:
-#         posting_path = args["job_post_file"]
-
-#     return evaluate_resume(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
-
-
 
 def processing_resume(json_request: str) -> None:
 
     """ Input parser: input is LLM's action_input in JSON format. This function then processes the JSON data and feeds them to the resume evaluator. """
 
     try:
-      json_request = json_request.strip("'<>() ").replace('\'', '\"')
-      args = json.loads(json_request)
+      args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
       print(f"JSON DECODER ERROR: {e}")
-      return "Format in JSON and try again."
-
-    # if resume doesn't exist, ask for resume
+      return "Reformat in JSON and try again."
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
       return "Stop using the resume evaluator tool. Ask user for their resume."
     else:
-      # may need to clean up the path first
         resume_file = args["resume_file"]
+        if not Path(resume_file).is_file():
+            return "Something went wrong. Please upload your resume again."
     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
         about_me = ""
     else:
@@ -529,7 +486,8 @@ def processing_resume(json_request: str) -> None:
         posting_path = ""
     else:
         posting_path = args["job_post_file"]
-        
+        if not Path(posting_path).is_file():
+            return "Something went wrong. Please share the job post link or file again."    
     return evaluate_resume(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
 
 
@@ -539,22 +497,22 @@ def processing_template(json_request: str) -> None:
     """ Input parser: input is LLM's action_input in JSON format. This function then processes the JSON data and feeds them to the resume reformatters. """
 
     try:
-      json_request = json_request.strip("'<>() ").replace('\'', '\"')
-      args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
       print(f"JSON DECODER ERROR: {e}")
-      return "Format in JSON and try again."
-    # if resume doesn't exist, ask for resume
+      return "Reformat in JSON and try again."
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-      return "Stop using the resume_writer tool. Ask user for their resume."
+      return "Stop using the resume_writer tool. Ask user for their resume file and an optional job post link."
     else:
         resume_file = args["resume_file"]
+        if not Path(resume_file).is_file():
+            return "Something went wrong. Please upload your resume again."
     if ("resume_template_file" not in args or args["resume_template_file"]=="" or args["resume_template_file"]=="<resume_template_file>"):
-      return "Stop using the resume_writer tool. Use the redesign_resume_template tool instead."
+      return "Stop using the resume_writer tool. Use the rewrite_using_new_template tool instead."
     else:
         resume_template = args["resume_template_file"]
         if not Path(resume_template).is_file():
-            return "Stop using the resume_writer tool. Use the redesign_resume_template tool instead."
+            return "Stop using the resume_writer tool. Use the rewrite_using_new_template tool instead."
     if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
         posting_path = ""
     else:
@@ -568,88 +526,37 @@ def processing_template(json_request: str) -> None:
     elif resume_type=="student":
         return reformat_student_resume(resume_file=resume_file, posting_path=posting_path, template_file=resume_template)
     
-# def processing_redesign(json_request:str) -> str:
-
-#     try:
-#       json_request = json_request.strip("'<>() ").replace('\'', '\"')
-#       args = json.loads(json_request)
-#     except JSONDecodeError as e:
-#       print(f"JSON DECODER ERROR: {e}")
-#       return "Format in JSON and try again."
-
-#     # if resume doesn't exist, ask for resume
-#     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-#       return "Stop using the redesign_resume_template tool. Ask user for their resume."
-#     else:
-#       # may need to clean up the path first
-#         resume_file = args["resume_file"]
-#     if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
-#         posting_path = ""
-#     else:
-#         posting_path = args["job_post_file"]
-
-#     resume_type= research_resume_type(resume_file, posting_path)
-#     return resume_type
 
 
 
-
-@tool(return_direct=True)
+@tool("rewrite_using_new_template", return_direct=True)
 def redesign_resume_template(json_request:str):
 
-    """Creates resume_template. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
+    """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
     When there is resume_template_file in the prompt, use the "resume_writer" tool instead.
     Input should be a single string strictly in the followiwng JSON format: '{{"resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}' \n
-    Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-     (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) \n
-     Output should be exactly one of the following words and nothing else: student, chronological, or functional"""
+    Only the resume_file is needed. job_post_file is optional.
+    Output should be exactly one of the following words and nothing else: student, chronological, or functional"""
 
     try:
-      json_request = json_request.strip("'<>() ").replace('\'', '\"')
-      args = json.loads(json_request)
+        args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
       print(f"JSON DECODER ERROR: {e}")
-      return "Format in JSON and try again."
-
+      return "Reformat in JSON and try again."
     # if resume doesn't exist, ask for resume
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-      return "Stop using the redesign_resume_template tool. Ask user for their resume."
+      return "Can you provide your resume file and an optional job post link? "
     else:
-      # may need to clean up the path first
         resume_file = args["resume_file"]
+        if not Path(resume_file).is_file():
+            return "Sorry, something went wrong! Please upload your resume again."
     if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
         posting_path = ""
     else:
         posting_path = args["job_post_file"]
-
     resume_type= research_resume_type(resume_file, posting_path)
     return resume_type
-
-# def create_resume_template_tool() -> List[Tool]:
-
-#     name = "resume_template_redesign"
-#     parameters = '{{"resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}'
-#     description =  f"""Creates resume_template_file. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
-#     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
-#     When there is resume_template_file in the prompt, use the "resume_writer" tool instead.
-#     Input should be a single string strictly in the followiwng JSON format: {parameters}\n
-#     Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-#      (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) \n
-#      Output should be exactly one of the following words and nothing else: student, chronological, or functional"""
-#     tools = [
-#         Tool(
-#         name = name,
-#         func = processing_redesign,
-#         description = description,
-#         verbose = False,
-#         handle_tool_error=True, 
-
-#         )
-#     ]
-#     print("Succesfully created resume template redesign tool.")
-#     return tools
-
 
 
 def create_resume_evaluator_tool() -> List[Tool]:
@@ -660,12 +567,10 @@ def create_resume_evaluator_tool() -> List[Tool]:
 
     name = "resume_evaluator"
     parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}' 
-    output = '{{"file_path":"<file_path>"}}'
     description = f"""Evaluate a resume. Use this tool more than any other tool when user asks to evaluate or improves a resume. 
     Do not use this tool is asked to customize or tailr the resume. You should use the "resume_customize_writer" instead.
     Input should be a single string strictly in the following JSON format: {parameters} \n
-     Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-     (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) \n
+    Only the resume_file is needed. job_post_file and about_me are optional.
     Output should be telling user to check the Download Your Files tab at the sidebar.
     """
     tools = [
@@ -674,8 +579,7 @@ def create_resume_evaluator_tool() -> List[Tool]:
         func = processing_resume,
         description = description,
         verbose = False,
-        handle_tool_error=True,
-
+        handle_tool_error=handle_tool_error,
         )
     ]
     print("Succesfully created resume evaluator tool.")
@@ -685,14 +589,12 @@ def create_resume_rewriter_tool() -> List[Tool]:
 
     name = "resume_writer"
     parameters = '{{"resume_file":"<resume_file>", "job_post_file":"<job_post_file>", "resume_template_file":"<resume_template_file>"}}'
-    output = '{{"file_path":"<file_path>"}}'
-    description = f""" Rewrites a resume from a given resume template. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
-    Do not use this tool to evaluate or customize and tailor resume content. Use this tool only if resume_template_file is provided.
-    If resume_template_file is not available, use the resume_template_redesign tool first, which will create a resume_template_file. 
+    description = f""" Rewrites a resume from a given resume_template_file. 
+    Do not use this tool to evaluate or customize and tailor resume content. Use this tool only if resume_template_file is available.
+    If resume_template_file is not available, use the rewrite_using_new_template tool first, which will create a resume_template_file. 
+    DO NOT ASK USER FOR A RESUME_TEMPLATE. It should be generated from the rewrite_using_new_template tool.
     Input should be a single string strictly in the followiwng JSON format: {parameters} \n
-    Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-     (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) \n
-    Output should be telling user to check the Download Your Files tab at the sidebar.
+    Only resume_file and resume_template_file are needed. job_post_file is optional.
     """
     tools = [
         Tool(
@@ -700,7 +602,7 @@ def create_resume_rewriter_tool() -> List[Tool]:
         func = processing_template,
         description = description,
         verbose = False,
-        handle_tool_error=True,
+        handle_tool_error=handle_tool_error,
 
         )
     ]

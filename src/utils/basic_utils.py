@@ -22,6 +22,10 @@ from playwright.async_api import async_playwright
 import collections.abc, functools
 from functools import wraps
 from time import time
+import errno
+import os
+import signal
+import functools
     
 
 def convert_to_txt(file, output_path):
@@ -251,8 +255,13 @@ def remove_unessesary_lines(content):
     # Join the cleaned lines without any separators (remove newlines)
     cleaned_content = " ".join(deduped_lines)
 
-    return cleaned_content     
+    return cleaned_content  
 
+def process_json(json_str: str) -> str:
+
+    """ Processes str into valid json string """
+
+    return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
 class memoized(object):
 
@@ -294,14 +303,36 @@ def timing(f):
         return result
     return wrap
 
+class TimeoutError(Exception):
+    pass
+
+def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
+    def decorator(func):
+        def _handle_timeout(signum, frame):
+            raise TimeoutError(error_message)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.alarm(seconds)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+            return result
+
+        return wrapper
+
+    return decorator
+
 if __name__=="__main__":
     # retrieve_web_content(
     #     "https://www.google.com/search?q=software+engineer+jobs+in+chicago+&oq=jobs+in+chicago&aqs=chrome.0.0i131i433i512j0i512l9.1387j1j7&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwikxaml1dqBAxULkmoFHRzvD2MQudcGKAF6BAgSEC8&sxsrf=AM9HkKmG-P_UI-ha1ySTJJklAvltPyKEtA:1696363178524#fpstate=tldetail&htivrt=jobs&htidocid=AMKKBKD-6xYovEnvAAAAAA%3D%3D",
     #     save_path = f"./uploads/link/chicago0.txt")
     html_to_text(
-        "https://www.betterup.com/blog/skills-for-resume",
-        # save_path =f"./uploads/link/software08.txt")
-        save_path = f"./web_data/{str(uuid.uuid4())}.txt")
+        "https://www2.jobdiva.com/portal/?a=9bjdnw2mlhip8doaz2t0q9w4wphk960418ms6mtfp5oxvgnr76bfafpnr8c62y27&compid=0#/jobs/20845417?jobtitle=Pricing+Data+Analyst",
+        save_path =f"test.txt")
+        # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
 
 
 

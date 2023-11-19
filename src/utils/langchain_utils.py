@@ -55,7 +55,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.docstore.document import Document
-from utils.basic_utils import read_txt, timing
+from utils.basic_utils import read_txt, timing, timeout
 from json import JSONDecodeError
 from langchain.document_transformers import LongContextReorder
 from langchain.retrievers import BM25Retriever, EnsembleRetriever
@@ -70,7 +70,9 @@ from langchain.chains import create_tagging_chain, create_tagging_chain_pydantic
 from langchain.schema import LLMResult, HumanMessage
 from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
+from langchain.tools.base import ToolException
 import asyncio
+import errno
 
 
 
@@ -560,6 +562,19 @@ def retrieve_faiss_vectorstore(path: str, embeddings = OpenAIEmbeddings()) -> FA
         return db
     except Exception as e:
         return None
+    
+def handle_tool_error(error: ToolException) -> str:
+
+    """ Handles tool exceptions. """
+
+    if error==JSONDecodeError:
+        return "Reformat in JSON and try again"
+    elif error.args[0].startswith("Too many arguments to single-input tool"):
+        return "Format in a SINGLE JSON STRING. THIS IS A SINGLE-INPUT TOOL!."
+    return (
+        "The following errors occurred during tool execution:"
+        + error.args[0]
+        + "Please try another tool.")
 
 
 
@@ -634,7 +649,7 @@ class MyCustomSyncHandler(BaseCallbackHandler):
 
     """Callback handler that can be used to handle callbacks from langchain."""
 
-    @timing
+    @timeout(5, os.strerror(errno.ETIMEDOUT))
     def on_llm_start(
         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> None:

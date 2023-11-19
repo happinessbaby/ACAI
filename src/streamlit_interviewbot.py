@@ -57,7 +57,7 @@ openai.api_key = os.environ['OPENAI_API_KEY']
 # set_api_key(os.environ["11LABS_API_KEY"])
 save_path = os.environ["SAVE_PATH"]
 temp_path = os.environ["TEMP_PATH"]
-static_path = os.environ["STATIC_PATH"]
+# static_path = os.environ["STATIC_PATH"]
 placeholder = st.empty()
 # sd.default.samplerate=48000
 sd.default.channels = 1, 2
@@ -83,7 +83,7 @@ class Interview():
     
 
     def __init__(self):
-        self.set_png_as_page_bg(os.path.join(static_path, "background.png"))
+        self.set_png_as_page_bg(os.path.join("background.png"))
         self._create_interviewbot()
         # self.thread_run()
         # thread = threading.Thread(target=self._create_interviewbot)
