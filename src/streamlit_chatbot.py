@@ -162,7 +162,7 @@ class Chat():
             "help me generate a cover letter": "generate",
             "Evaluate my resume": "evaluate",
             "rewrite my resume using a new template": "reformat",
-            "tailor my resume to a job position": "tailor",
+            "tailor my document to a job position": "tailor",
         }
 
         ## questions stores User's questions
@@ -173,7 +173,7 @@ class Chat():
             st.session_state['responses'] = list()
         # hack to clear text after user input
         if 'questionInput' not in st.session_state:
-            st.session_state["questionInput"] = ''      
+            st.session_state["questionInput"] = None     
         if 'spinner_placeholder' not in st.session_state:
             st.session_state["spinner_placeholder"] = st.empty()
         ## hacky way to clear uploaded files once submitted
@@ -200,10 +200,10 @@ class Chat():
                                 key= f"files_{str(st.session_state.file_counter)}",
                                 on_change=self.form_callback)
                 st.text_area(label="Links", 
-                        placeholder="This can be a job posting url for example", 
+                        placeholder="This can be a job posting site for example", 
                         key = "links", 
                         # label_visibility="hidden",
-                        # help="This can be a job posting, for example.",
+                        help="If the link failed, please try to save the content into a file and upload it.",
                         on_change=self.form_callback)
                 # st.text_area(label="About",
                 #              key="about_me",
@@ -307,43 +307,48 @@ class Chat():
         # Chat input
         chat_input = st.chat_input(placeholder="Chat with me:",
                                     key="input",)
+        # Hacky way to clear selectbox below
+        def switch_input():
+            st.session_state.questionInput = st.session_state.prefilled
+            st.session_state.prefilled = None
         # Select from sample questions
         sample_questions=st.selectbox(label="Sample questions",
                     options=sorted(SAMPLE_QUESTIONS.keys()), 
                     key = "prefilled",
                     format_func=lambda x: '-----sample questions-----' if x == '' else x,
                     label_visibility= "hidden",
-                    on_change = self.question_callback, 
-                    args = [None],
+                    on_change =switch_input, 
                     )
-        if prompt := chat_input:
-            self.question_callback(prompt)
-            # st.chat_message("human").write(prompt)
-            # st.session_state.questions.append(prompt)
-            # # Note: new messages are saved to history automatically by Langchain during run
-            # # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-            # question = self.process_user_input(prompt)
-            # response = self.new_chat.askAI(st.session_state.userid, question,)
-            # if response == "functional" or response == "chronological" or response == "student":
-            #     self.resume_template_popup(response)
-            # else:
-            #     st.chat_message("ai").write(response)
-            #     st.session_state.responses.append(response)
+        if prompt := chat_input or st.session_state.questionInput:
+            # self.question_callback(prompt)
+            st.chat_message("human").write(prompt)
+            st.session_state.questions.append(prompt)
+            # Note: new messages are saved to history automatically by Langchain during run
+            # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
+            question = self.process_user_input(prompt)
+            response = self.new_chat.askAI(st.session_state.userid, question,)
+            if response == "functional" or response == "chronological" or response == "student":
+                self.resume_template_popup(response)
+            else:
+                st.chat_message("ai").write(response)
+                st.session_state.responses.append(response)
+            st.session_state.questionInput=None
 
-    def question_callback(self, prompt):
+    # def question_callback(self, prompt):
         
-        prompt = st.session_state.prefilled if st.session_state.prefilled else prompt    
-        st.chat_message("human").write(prompt)
-        st.session_state.questions.append(prompt)
-        # Note: new messages are saved to history automatically by Langchain during run
-        # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-        question = self.process_user_input(prompt)
-        response = self.new_chat.askAI(st.session_state.userid, question,)
-        if response == "functional" or response == "chronological" or response == "student":
-            self.resume_template_popup(response)
-        else:
-            st.chat_message("ai").write(response)
-            st.session_state.responses.append(response)
+    #     prompt = prompt if prompt is not None else st.session_state.prefilled   
+    #     st.chat_message("human").write(prompt)
+    #     st.session_state.questions.append(prompt)
+    #     # Note: new messages are saved to history automatically by Langchain during run
+    #     # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
+    #     question = self.process_user_input(prompt)
+    #     response = self.new_chat.askAI(st.session_state.userid, question,)
+    #     if response == "functional" or response == "chronological" or response == "student":
+    #         self.resume_template_popup(response)
+    #     else:
+    #         st.chat_message("ai").write(response)
+    #         st.session_state.responses.append(response)
+    #     return None
 
         
 
@@ -504,6 +509,8 @@ class Chat():
                 template_idx = my_component(resume_type, "templates")
                 st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type, template_idx])
 
+            
+
                     
 
 
@@ -515,7 +522,7 @@ class Chat():
         resume_template_file = os.path.join(template_path,resume_type, f"{resume_type}{template_idx}.docx")
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
         response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
-        st.session_state.responses.append(response)
+        return st.session_state.responses.append(response)
         # self.question_callback(self.callback_done, append_question=False)
 
 

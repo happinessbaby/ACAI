@@ -570,7 +570,7 @@ def handle_tool_error(error: ToolException) -> str:
     if error==JSONDecodeError:
         return "Reformat in JSON and try again"
     elif error.args[0].startswith("Too many arguments to single-input tool"):
-        return "Format in a SINGLE JSON STRING. DO NOT USE MULTI-ARGUMENTS INPUT."
+        return "Format in a SINGLE JSON STRING. THIS IS A SINGLE-INPUT TOOL!."
     return (
         "The following errors occurred during tool execution:"
         + error.args[0]

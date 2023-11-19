@@ -306,7 +306,7 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
     # print(context)
     functional_doc_template.render(context)
     functional_doc_template.save(end_path) 
-    # return f"""file_path:{end_path}"""  
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
 
 
 
@@ -316,7 +316,6 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     filename = Path(fname).stem 
     docx_filename = "resume_"+filename +".docx"
     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-
     resume_content = read_txt(resume_file)
     chronological_resume_template = DocxTemplate(template_file)
     info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
@@ -330,8 +329,8 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
         "WEBSITE": func("website", "WEBSITE"),
     }
     # TODO: add awards and honors or professional accomplishments
-    context_keys = ["SUMMARY", "PROFESSIONAL_EXPERIENCE", "RELEVANT_SKILLS", "EDUCATION"]
-    info_dict_keys = ["summary or objective", "work experience", "skills", "education"]
+    context_keys = ["SUMMARY", "PROFESSIONAL_EXPERIENCE", "RELEVANT_SKILLS", "EDUCATION", "HOBBIES", "CERTIFICATION"]
+    info_dict_keys = ["summary or objective", "work experience", "skills", "education", "hobbies", "certification"]
     context_dict = dict(zip(context_keys, info_dict_keys))
     context = {key: None for key in context_keys}
     tools = create_search_tools("google", 1)
@@ -368,8 +367,7 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
 
             PLEASE WRITE IN LESS THAN FIVE SENTENCES THE SUMMARY SECTION OF THE RESUME AND OUTPUT IT AS YOUR FINAL ANSWER. DO NOT OUTPUT ANYTHING ELSE. 
 
-            """
-            
+            """        
             content = generate_multifunction_response(query, tools)
         elif key=="RELEVANT_SKILLS":
             keywords = info_dict.get("job keywords", "")
@@ -403,7 +401,8 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     # print(context)
     chronological_resume_template.render(context)
     chronological_resume_template.save(end_path) 
-    # return f"""file_path:{end_path}"""  
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
+ 
 
 
 def reformat_student_resume(resume_file="", posting_path="", template_file="") -> None:
@@ -447,10 +446,9 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
         content = info_dict.get(value, "")
         context[key] = content
     context.update(personal_context)
-    # print(context)
     chronological_resume_template.render(context)
     chronological_resume_template.save(end_path) 
-    # return f"""file_path:{end_path}"""    
+    return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
 
 # @tool("resume evaluator")
@@ -597,7 +595,6 @@ def create_resume_rewriter_tool() -> List[Tool]:
     DO NOT ASK USER FOR A RESUME_TEMPLATE. It should be generated from the rewrite_using_new_template tool.
     Input should be a single string strictly in the followiwng JSON format: {parameters} \n
     Only resume_file and resume_template_file are needed. job_post_file is optional.
-    Output should be telling user to check the Download Your Files tab at the sidebar.
     """
     tools = [
         Tool(

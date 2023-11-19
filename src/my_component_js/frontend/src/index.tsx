@@ -90,6 +90,20 @@ function onRender(event: Event): void {
     imgThumb0.src = img0_thmb;
     imgThumb1.src = img1_thmb;
     imgThumb2.src = img2_thmb;
+  }
+  if (dir_name=="chronological") {
+    const img0 =  "/resume_templates/chronological/chronological0.png";
+    const img1 = "/resume_templates/chronological/chronological1.png";
+    const img2 = "/resume_templates/functional/chronological2.png";
+    const img0_thmb = "/resume_templates/chronological/chronological0_thmb.png";
+    const img1_thmb = "/resume_templates/chronological/chronological1_thmb.png";
+    const img2_thmb = "/resume_templates/chronological/chronological2_thmb.png";
+    imgNode0.href = img0;
+    imgNode1.href = img1;
+    imgNode2.href = img2;
+    imgThumb0.src = img0_thmb;
+    imgThumb1.src = img1_thmb;
+    imgThumb2.src = img2_thmb;
 
   }
 

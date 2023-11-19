@@ -124,36 +124,25 @@ def customize_cover_letter(cover_letter="", about_me="", posting_path="",):
     response = generate_multifunction_response(query, tools, early_stopping=True)
     return response
 
-def customize_resume(resume="", about_me="", posting_path=""):
+def customize_resume(resume="", posting_path=""):
 
     resume_content = read_txt(resume)
     # generated_info_dict=get_generated_responses(resume_content = resume_content, about_me=about_me, posting_path="")
     if (Path(posting_path).is_file()):
         posting = read_txt(posting_path)
-        keywords = extract_posting_keywords(posting)
-    elif about_me!="":
-        pursuit_dict = extract_pursuit_information(about_me)
-        job = pursuit_dict["job"]
-        program = pursuit_dict["program"]
-        if job!=-1:
-            keywords = get_web_resources(f"Research some ATS-friendly keywords and key phrases for {job}.")
-        elif program!=-1:
-            #TODO
-            keywords = get_web_resources(f"Research")
+        # keywords = extract_posting_keywords(posting)
 
-    # advice_query = f"""ATS-friendly way to write a resume"""
-    # advice = retrieve_from_db(advice_query)
     query = f"""  You are an expert resume advisor. 
 
         Generate a list of relevant information that can be added to or replaced in the resume.
         
-        The most important piece of information is the list of ATS keywords and key phrases that are in the job description, if available. 
+        The most important piece of information is the job description, if available. 
 
         You should use it as a your primarily guideline. 
 
         resume content: {resume_content}\n
 
-        job description keywords: {keywords} \n
+        job description: {posting} \n
 
         Please provide your reasoning as well. Please format your output as in the following example;
 
@@ -163,7 +152,7 @@ def customize_resume(resume="", about_me="", posting_path=""):
 
         2. Extract, Transform, and Load: ETL in the resume should be changed to Extract, Transform, and Load as in the job description
 
-        The above is just an example for your reference. Do not let it be your answer. 
+        The above is just an example. Please ONLY use the resume content and job description to generate your answer. 
         
         """
             
@@ -179,10 +168,9 @@ def create_resume_customize_writer_tool() -> List[Tool]:
     """ Agent tool that calls the function that customizes resume. """
 
     name = "resume_customize_writer"
-    parameters = '{{ "job_post_file":"<job_post_file>", "about_me":"<about_me>", "resume_file":"<resume_file>"}}'
+    parameters = '{{ "job_post_file":"<job_post_file>", "resume_file":"<resume_file>"}}'
     description = f""" Customizes and tailors resume to a job position. 
-    Input should be a single string strictly in the following JSON format: {parameters}
-    (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else)"""
+    Input should be a single string strictly in the following JSON format: {parameters} """
     tools = [
         Tool(
         name = name,
@@ -202,8 +190,7 @@ def create_cover_letter_customize_writer_tool() -> List[Tool]:
     name = "cover_letter_customize_writer"
     parameters = '{{"cover_letter_file":"<cover_letter_file>", "about_me":"<about_me>", "job_post_file:"<job_post_file>"}}'
     description = f""" Customizes, improves, and tailors cover letter. 
-    Input should be a single string strictly in the following JSON format: {parameters}
-    (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else)"""
+    Input should be a single string strictly in the following JSON format: {parameters} """
     tools = [
         Tool(
         name = name,
@@ -223,8 +210,7 @@ def create_personal_statement_customize_writer_tool() -> List[Tool]:
     name = "personal_statement_customize_writer"
     parameters = '{{"personal_statement_file":"<personal_statement_file>", "about_me":"<about_me>", "education_program_file:"<education_program_file>"}}'
     description = f""" Customizes, tailors, and improves personal statement.
-    Input should be a single string strictly in the following JSON format: {parameters}
-    (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else)"""
+    Input should be a single string strictly in the following JSON format: {parameters} """
     tools = [
         Tool(
         name = name,
@@ -243,14 +229,13 @@ def process_cover_letter(json_request:str) -> str:
         args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
-        return "Format in JSON and try again."
-    
+        return "Format in JSON and try again."   
     if ("cover_letter_file" not in args or args["cover_letter_file"]=="" or args["cover_letter_file"]=="<cover_letter_file>"):
-        return """stop using or calling the cover_letter_customize_writer tool. Ask user to upload their cover letter instead. """
+        return """Ask user to upload their cover letter instead. """
     else:
         cover_letter = args["cover_letter_file"]
     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>") and ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
-        return """stop using or calling the resume_customize_writer tool. ASk user to provide job positing or describe which position to tailor their cover letter to."""
+        return """ASk user to provide job positing or describe which position to tailor their cover letter to."""
     else:
         if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
             about_me = ""
@@ -260,11 +245,6 @@ def process_cover_letter(json_request:str) -> str:
             posting_path = ""
         else:
             posting_path = args["job_post_file"]
-    # if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-    #     resume = ""
-    # else:
-    #     resume = args["resume_file"]
-
     return customize_cover_letter(cover_letter=cover_letter, about_me=about_me, posting_path=posting_path)
 
 def process_personal_statement(json_request:str) -> str:
@@ -273,14 +253,13 @@ def process_personal_statement(json_request:str) -> str:
         args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
-        return "Format in JSON and try again."
-    
+        return "Format in JSON and try again." 
     if ("personal_statement_file" not in args or args["personal_statement_file"]=="" or args["personal_statement_file"]=="<personal_statement_file>"):
-        return """stop using or calling the personal_statement_customize_writer tool. Ask user to upload their personal statement instead. """
+        return """ Ask user to upload their personal statement. """
     else:
         personal_statement = args["personal_statement_file"]
     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>") and ("education_program_file" not in args or args["education_program_file"]=="" or args["education_program_file"]=="<education_program_file>"):
-        return """stop using or calling the resume_customize_writer tool. ASk user to provide program information or describe which program to tailor their personal statement to."""
+        return """ASk user to provide program information or describe which program to tailor their personal statement to."""
     else:
         if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
             about_me = ""
@@ -290,11 +269,6 @@ def process_personal_statement(json_request:str) -> str:
             program_path = ""
         else:
             program_path = args["education_program_file"]
-    # if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-    #     resume = ""
-    # else:
-    #     resume = args["resume_file"]
-
     return customize_personal_statement(personal_statement=personal_statement, about_me=about_me, program_path=program_path)
 
 
@@ -307,24 +281,19 @@ def process_resume(json_request: str) -> str:
     except JSONDecodeError as e:
         print(f"JSON DECODER ERROR: {e}")
         return "Format in JSON and try again."
-
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-        return """stop using or calling the resume_customize_writer tool. Ask user to upload their resume instead. """
+        return """ Ask user to upload their resume. """
     else:
+        if not Path(args["resume_file"]).is_file():
+            return """ Ask user to upload their resume again. """
         resume = args["resume_file"]
-    if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>") and ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
-        return """stop using or calling the resume_customize_writer tool. ASk user to provide job positing or program information or describe which position or program to tailor their resume to."""
+    if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+        return """ Ask user to share a job posting. """
     else:
-        if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
-            about_me = ""
-        else:
-            about_me = args["about_me"]
-        if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
-            posting_path = ""
-        else:
-            posting_path = args["job_post_file"]
-
-    return customize_resume(resume=resume, about_me=about_me, posting_path=posting_path)
+        if not Path(args["job_post_file"]).is_file():
+            return """ Ask user to share a job posting again. """
+        posting_path = args["job_post_file"]
+    return customize_resume(resume=resume,  posting_path=posting_path)
 
 
 if __name__=="__main__":
