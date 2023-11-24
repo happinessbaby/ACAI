@@ -482,10 +482,10 @@ def processing_resume(json_request: str) -> None:
         about_me = ""
     else:
         about_me = args["about_me"]
-    if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+    if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
-        posting_path = args["job_post_file"]
+        posting_path = args["job_posting_file"]
         if not Path(posting_path).is_file():
             return "Something went wrong. Please share the job post link or file again."    
     return evaluate_resume(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
@@ -513,10 +513,10 @@ def processing_template(json_request: str) -> None:
         resume_template = args["resume_template_file"]
         if not Path(resume_template).is_file():
             return "Stop using the resume_writer tool. Use the rewrite_using_new_template tool instead."
-    if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+    if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
-        posting_path = args["job_post_file"]
+        posting_path = args["job_posting_file"]
     # get resume type from directory name
     resume_type = resume_template.split("/")[-2]
     if resume_type=="functional":
@@ -535,8 +535,7 @@ def redesign_resume_template(json_request:str):
     """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
     When there is resume_template_file in the prompt, use the "resume_writer" tool instead.
-    Input should be a single string strictly in the followiwng JSON format: '{{"resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}' \n
-    Only the resume_file is needed. job_post_file is optional.
+    Input should be a single string strictly in the followiwng JSON format: '{{"resume_file":"<resume_file>", "job_posting_file":"<job_posting_file>"}}' \n
     Output should be exactly one of the following words and nothing else: student, chronological, or functional"""
 
     try:
@@ -551,10 +550,10 @@ def redesign_resume_template(json_request:str):
         resume_file = args["resume_file"]
         if not Path(resume_file).is_file():
             return "Sorry, something went wrong! Please upload your resume again."
-    if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+    if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
-        posting_path = args["job_post_file"]
+        posting_path = args["job_posting_file"]
     resume_type= research_resume_type(resume_file, posting_path)
     return resume_type
 
@@ -566,12 +565,10 @@ def create_resume_evaluator_tool() -> List[Tool]:
     Then it calls the processing_resume function to process the JSON data. """
 
     name = "resume_evaluator"
-    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_post_file":"<job_post_file>"}}' 
+    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_posting_file":"<job_posting_file>"}}' 
     description = f"""Evaluate a resume. Use this tool more than any other tool when user asks to evaluate or improves a resume. 
     Do not use this tool is asked to customize or tailr the resume. You should use the "resume_customize_writer" instead.
     Input should be a single string strictly in the following JSON format: {parameters} \n
-    Only the resume_file is needed. job_post_file and about_me are optional.
-    Output should be telling user to check the Download Your Files tab at the sidebar.
     """
     tools = [
         Tool(
@@ -588,13 +585,12 @@ def create_resume_evaluator_tool() -> List[Tool]:
 def create_resume_rewriter_tool() -> List[Tool]:
 
     name = "resume_writer"
-    parameters = '{{"resume_file":"<resume_file>", "job_post_file":"<job_post_file>", "resume_template_file":"<resume_template_file>"}}'
+    parameters = '{{"resume_file":"<resume_file>", "job_posting_file":"<job_posting_file>", "resume_template_file":"<resume_template_file>"}}'
     description = f""" Rewrites a resume from a given resume_template_file. 
     Do not use this tool to evaluate or customize and tailor resume content. Use this tool only if resume_template_file is available.
     If resume_template_file is not available, use the rewrite_using_new_template tool first, which will create a resume_template_file. 
     DO NOT ASK USER FOR A RESUME_TEMPLATE. It should be generated from the rewrite_using_new_template tool.
     Input should be a single string strictly in the followiwng JSON format: {parameters} \n
-    Only resume_file and resume_template_file are needed. job_post_file is optional.
     """
     tools = [
         Tool(

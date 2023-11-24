@@ -185,13 +185,16 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3", "span"]) 
         try:
             page = await browser.new_page()
             await page.goto(url)
-
             page_source = await page.content()
 
             # results = remove_unessesary_lines(extract_tags(remove_unwanted_tags(
             #     page_source), tags))
-            results = extract_tags(remove_unwanted_tags(
-                page_source), tags)
+            text = remove_unwanted_tags(
+                page_source).get_text()
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            results = "\n".join(chunk for chunk in chunks if chunk)
+            print(results)
             print("Content scraped")
         except Exception as e:
             results = f"Error: {e}"
@@ -199,7 +202,7 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3", "span"]) 
     # return page_source
     return results 
 
-def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]):
+def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]) -> BeautifulSoup:
     """
     This removes unwanted HTML tags from the given HTML content.
     """
@@ -209,7 +212,7 @@ def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]):
         for element in soup.find_all(tag):
             element.decompose()
 
-    return str(soup)
+    return soup
 
 
 def extract_tags(html_content, tags: list[str]):
@@ -330,7 +333,7 @@ if __name__=="__main__":
     #     "https://www.google.com/search?q=software+engineer+jobs+in+chicago+&oq=jobs+in+chicago&aqs=chrome.0.0i131i433i512j0i512l9.1387j1j7&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwikxaml1dqBAxULkmoFHRzvD2MQudcGKAF6BAgSEC8&sxsrf=AM9HkKmG-P_UI-ha1ySTJJklAvltPyKEtA:1696363178524#fpstate=tldetail&htivrt=jobs&htidocid=AMKKBKD-6xYovEnvAAAAAA%3D%3D",
     #     save_path = f"./uploads/link/chicago0.txt")
     html_to_text(
-        "https://www2.jobdiva.com/portal/?a=9bjdnw2mlhip8doaz2t0q9w4wphk960418ms6mtfp5oxvgnr76bfafpnr8c62y27&compid=0#/jobs/20845417?jobtitle=Pricing+Data+Analyst",
+        "https://jobs.lever.co/RaptorMaps/e2845018-aa14-4add-892d-826e1276132c",
         save_path =f"test.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
 

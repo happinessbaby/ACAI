@@ -62,7 +62,7 @@ show_pages(
         Page("streamlit_chatbot.py", "Home", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
         # Page("Streamlit_journey.py", "My Journey"),
-        # Page("streamlit_resources.py", "Resources", ":busts_in_silhouette:" ),
+        Page("streamlit_resources.py", "Resources", ":busts_in_silhouette:" ),
     ]
 )
 
@@ -608,7 +608,7 @@ class Chat():
                 print(content_type, content_safe) 
                 if content_safe and content_type!="empty":
                     self.update_entities(content_type, end_path)
-                    st.toast("sucessfully submitted")
+                    st.toast(f"your {content_type} is sucessfully submitted")
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
@@ -631,7 +631,7 @@ class Chat():
                 print(content_type, content_safe) 
                 if (content_safe and content_type!="empty" and content_type!="browser error"):
                     self.update_entities(content_type, end_path)
-                    st.toast("sucessfully submitted")
+                    st.toast(f"your {content_type} is sucessfully submitted")
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {str(links)}. Please try another link!")
@@ -698,7 +698,7 @@ class Chat():
         generated_files = []
         if os.listdir(download_dir):
             print("Some files found in the directory.")
-            for path in Path(download_dir).glob('**/*.*'):
+            for path in Path(download_dir).glob('**/*.docx*'):
                 file=str(path)
                 generated_files.append(file)
                 # st.session_state.generated_files.append(file)
