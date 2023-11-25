@@ -168,7 +168,7 @@ def create_resume_customize_writer_tool() -> List[Tool]:
     """ Agent tool that calls the function that customizes resume. """
 
     name = "resume_customize_writer"
-    parameters = '{{ "job_post_file":"<job_post_file>", "resume_file":"<resume_file>"}}'
+    parameters = '{{"job_post_file":"<job_post_file>", "resume_file":"<resume_file>"}}'
     description = f""" Customizes and tailors resume to a job position. 
     Input should be a single string strictly in the following JSON format: {parameters} """
     tools = [

@@ -93,7 +93,7 @@ memory_key="chat_history"
 class ChatController():
 
     # llm = ChatOpenAI(streaming=True, callbacks=[StreamingStdOutCallbackHandler()], temperature=0, cache = False)
-    llm = ChatOpenAI(streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
+    llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
     embeddings = OpenAIEmbeddings()
     chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)

@@ -321,6 +321,7 @@ class Chat():
                     )
         if prompt := chat_input or st.session_state.questionInput:
             # self.question_callback(prompt)
+            st.session_state.questionInput=None
             st.chat_message("human").write(prompt)
             st.session_state.questions.append(prompt)
             # Note: new messages are saved to history automatically by Langchain during run
@@ -332,7 +333,7 @@ class Chat():
             else:
                 st.chat_message("ai").write(response)
                 st.session_state.responses.append(response)
-            st.session_state.questionInput=None
+                st.rerun()
 
     # def question_callback(self, prompt):
         
@@ -348,7 +349,7 @@ class Chat():
     #     else:
     #         st.chat_message("ai").write(response)
     #         st.session_state.responses.append(response)
-    #     return None
+    
 
         
 
@@ -501,23 +502,22 @@ class Chat():
 
         """ Popup window for user to select a resume template based on the resume type. """
 
-        print("TEMPLATE POPUP")
-        question = None
         modal = Modal(key="template_popup", title=f"Pick a template", max_width=1000)
         with modal.container():
             with st.form( key='template_form', clear_on_submit=True):
                 template_idx = my_component(resume_type, "templates")
-                st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type, template_idx])
+                st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
 
             
 
                     
 
 
-    def resume_template_callback(self, resume_type:str, template_idx:str):
+    def resume_template_callback(self, resume_type:str):
 
         """ Calls the resume_rewriter tool to rewrite the resume according to the chosen resume template. """
 
+        template_idx = st.session_state.templates
         print(f"TEMPLATE IDX:{template_idx}")
         resume_template_file = os.path.join(template_path,resume_type, f"{resume_type}{template_idx}.docx")
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
@@ -608,7 +608,7 @@ class Chat():
                 print(content_type, content_safe) 
                 if content_safe and content_type!="empty":
                     self.update_entities(content_type, end_path)
-                    st.toast(f"your {content_type} is sucessfully submitted")
+                    st.toast(f"your {content_type} is successfully submitted")
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
@@ -631,7 +631,7 @@ class Chat():
                 print(content_type, content_safe) 
                 if (content_safe and content_type!="empty" and content_type!="browser error"):
                     self.update_entities(content_type, end_path)
-                    st.toast(f"your {content_type} is sucessfully submitted")
+                    st.toast(f"your {content_type} is successfully submitted")
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {str(links)}. Please try another link!")
@@ -687,7 +687,7 @@ class Chat():
         with open(file, 'rb') as f:
             data = f.read()
         bin_str = base64.b64encode(data).decode()
-        href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download the cover letter</a>'
+        href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     
     def check_user_downloads(self):
