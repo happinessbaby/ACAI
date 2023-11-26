@@ -1,5 +1,6 @@
 # Import the necessary modules
 import os
+import openai
 from utils.openai_api import get_completion
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
@@ -28,11 +29,12 @@ from docx import Document
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # cover_letter_path = os.environ["COVER_LETTER_PATH"]
+openai.api_key = os.environ["OPENAI_API_KEY"]
 cover_letter_samples_path = os.environ["COVER_LETTER_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 save_path = os.environ["SAVE_PATH"]
 # TODO: caching and serialization of llm
-llm = ChatOpenAI(temperature=0.5, cache=False)
+llm = ChatOpenAI(temperature=0.9)
 # llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
 embeddings = OpenAIEmbeddings()
 delimiter = "####"
@@ -64,12 +66,9 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     filename = Path(fname).stem 
     docx_filename = filename + "_cover_letter"+".docx"
     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-
     # Get resume info
     resume_content = read_txt(resume_file)
     info_dict = get_generated_responses(resume_content=resume_content, about_me=about_me, posting_path=posting_path)
-
-
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
     job_specification = info_dict.get("job specification", "")
@@ -80,7 +79,6 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     name = info_dict.get("name", "")
     phone = info_dict.get("phone", "")
     email = info_dict.get("email", "")
-
     # Get adviced from web data on personalized best practices
     advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
     advices = retrieve_from_db(advice_query, vectorstore=faiss_web_data)
@@ -120,14 +118,10 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
            Make a list of common features these cover letters share. 
 
         """
-  
     # tool = [search_relevancy_advice]
     relevancy = generate_multifunction_response(query_relevancy, sample_tools)
-
     # Use an LLM to generate a cover letter that is specific to the resume file that is being read
-
     # Step wise instructions: https://learn.deeplearning.ai/chatgpt-building-system/lesson/5/chain-of-thought-reasoning
-
     template_string2 = """You are a professional cover letter writer. A Human client has asked you to generate a cover letter for them.
   
         The content you are to use as reference to create the cover letter is delimited with {delimiter} characters.
@@ -180,8 +174,7 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
         Step 5:{delimiter4} <the cover letter you generate>
 
       Make sure to include {delimiter4} to separate every step.
-    """
-    
+    """  
     prompt_template = ChatPromptTemplate.from_template(template_string2)
     # print(prompt_template.messages[0].prompt.input_variables)
     cover_letter_message = prompt_template.format_messages(
@@ -317,12 +310,10 @@ def create_cover_letter_generator_tool() -> List[Tool]:
  
 if __name__ == '__main__':
     # test run defaults, change for yours (only resume_file cannot be left empty)
-    # my_job_title = 'Data Analyst'
-    # company = "Southern Company"
-    my_resume_file = './resume_samples/resume2023v3.txt'
-    job_posting = "./uploads/file/data_analyst_SC.txt"
-    about_me = ""
-    generate_basic_cover_letter(resume_file = my_resume_file, posting_path=job_posting, about_me=about_me)
+    resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v3.txt"
+    posting_path= "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/rov.txt"
+    template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
+    generate_basic_cover_letter(resume_file = resume_file, posting_path=posting_path)
 
 
 

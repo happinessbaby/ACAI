@@ -59,10 +59,10 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # should be
 show_pages(
     [
-        Page("streamlit_chatbot.py", "Home", "🏠"),
+        Page("streamlit_about.py", "About"),
+        Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
-        # Page("Streamlit_journey.py", "My Journey"),
-        Page("streamlit_resources.py", "Resources", ":busts_in_silhouette:" ),
+        Page("streamlit_resources.py", "Networking", ":busts_in_silhouette:" ),
     ]
 )
 
@@ -205,10 +205,10 @@ class Chat():
                         # label_visibility="hidden",
                         help="If the link failed, please try to save the content into a file and upload it.",
                         on_change=self.form_callback)
-                # st.text_area(label="About",
-                #              key="about_me",
-                #              placeholder="Tell me about your job application or career goals",
-                #              on_change=self.form_callback)
+                st.text_area(label="About Me",
+                             key="about_me",
+                             placeholder="Tell me about your job application or career goals",
+                             on_change=self.form_callback)
                 
             # file_path = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/analyst1.txt"    
             with st.expander("Download your files"):
@@ -226,7 +226,7 @@ class Chat():
                                                 
             Note: 
                 
-            Only the most recent uploaded files and links will be used.
+            Only the most recent uploaded files, links, and about me will be used.
                         
             If you refresh the page, your session conversation and downloads will be lost.
                                                 
@@ -326,8 +326,8 @@ class Chat():
             st.session_state.questions.append(prompt)
             # Note: new messages are saved to history automatically by Langchain during run
             # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-            question = self.process_user_input(prompt)
-            response = self.new_chat.askAI(st.session_state.userid, question,)
+            # question = self.process_user_input(prompt)
+            response = self.new_chat.askAI(st.session_state.userid, prompt,)
             if response == "functional" or response == "chronological" or response == "student":
                 self.resume_template_popup(response)
             else:
@@ -463,29 +463,13 @@ class Chat():
                 st.session_state.links=""
         except Exception:
             pass
-        # try:
-        #     job = st.session_state.job
-        #     if job:
-        #         st.toast("sucessfully submitted")
-        #         self.new_chat.update_entities(f"job:{job} /n ###")
-        #         st.session_state.job=""
-        # except Exception:
-        #     pass
-        # try:
-        #     company = st.session_state.company
-        #     if company:
-        #         st.toast("sucessfully submitted")
-        #         self.new_chat.update_entities(f"company:{company} /n ###")
-        #         st.session_state.company=""
-        # except Exception:
-        #     pass
-        # try:
-        #     about_me = st.session_state.about_me
-        #     self.new_chat.update_entities(f"about me:{about_me} /n ###")
-        #     st.toast("successfully submitted")
-        #     # self.process_about_me(about_me)
-        # except Exception:
-        #     pass
+        try:
+            about_me = st.session_state.about_me
+            self.new_chat.update_entities(f"about_me:{about_me} /n"+"###", '###')
+            st.session_state.about_me=""
+            st.toast("your about me is successfully submitted")
+        except Exception:
+            pass
         ## Passes the previous user question to the agent one more time after user uploads form
         # try:
         #     # print(f"QUESTION INPUT: {st.session_state.questionInput}")

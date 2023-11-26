@@ -1,4 +1,5 @@
 import os
+import openai
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
@@ -22,6 +23,7 @@ from typing import Dict, List, Optional, Union
 from langchain.document_loaders import BSHTMLLoader
 from langchain.tools import tool
 from langchain.agents.agent_toolkits import FileManagementToolkit
+from langchain.chains import LLMChain
 import docx
 import uuid
 from docxtpl import DocxTemplate	
@@ -35,6 +37,7 @@ from docx.shared import Inches
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # resume_evaluation_path = os.environ["RESUME_EVALUATION_PATH"]
+openai.api_key = os.environ["OPENAI_API_KEY"]
 resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 save_path = os.environ["SAVE_PATH"]
@@ -216,10 +219,11 @@ def research_resume_type(resume_file: str, posting_path: str)-> str:
 
 def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
 
-    dirname, fname = os.path.split(resume_file)
-    filename = Path(fname).stem 
-    docx_filename = "resume_"+filename +".docx"
-    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    # dirname, fname = os.path.split(resume_file)
+    # filename = Path(fname).stem 
+    # docx_filename = "resume_"+filename +".docx"
+    # end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    end_path = "test1.docx"
 
     resume_content = read_txt(resume_file)
     functional_doc_template = DocxTemplate(template_file)
@@ -247,13 +251,11 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
             job_description = info_dict.get("job description", "")
             job_specification = info_dict.get("job specification", "")
             skills = info_dict.get("skills", "")
-            query = f""" Your task is to improve or write the summary section of the functional resume.
+            query = f""" Your task is to improve or write the summary section of the functional resume in less than 50 words.
 
             If you are provided with an existing summary section, use it as your context and build on top of it.
               
-            Otherwise, refer to the job specification or job description below, whichever is available and incorportate relevant soft skill and hard skills into the summary.
-            
-            You are also given a set of skills that the applicant has. Use them in context but DO NOT list out specific skills. You're NOT writing a skills section. 
+            Otherwise, refer to the job specification or job description, skills, whichever is available and incorportate relevant soft skill and hard skills into the summary.
 
             objective section: {content}
 
@@ -273,37 +275,47 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
 
             4. [Position] certified in [skill] and [skill], looking to help [company] increase [goal metric]. Excellent [position] who can collaborate with large teams to [achieve goal]. \
             
-            PLEASE WRITE IN LESS THAN FIVE SENTENCES THE SUMMARY SECTION OF THE RESUME AND OUTPUT IT AS YOUR FINAL ANSWER. DO NOT OUTPUT ANYTHING ELSE. 
+            PLEASE WRITE IN LESS THAN 50 WORDS AND OUTPUT THE SUMMARY SECTION AS YOUR FINAL ANSWER. DO NOT OUTPUT ANYTHING ELSE. 
             
             """
             content = generate_multifunction_response(query, tools)
-        elif key=="PROFESSIONAL_ACCOMPLISHMENTS":
-         
+        elif key=="PROFESSIONAL_ACCOMPLISHMENTS":     
             keywords = info_dict.get("job keywords", "")
+            query = """ Your task is to pick at least 3 hard skills from the following available skillset. If there are no hard skills, pick the soft skills.
+             skillset: {keywords}.
+            
+             The criteria you use to pick the skills is based on if the skills exist or can be inferred in the resume delimited with {delimiter} characters below.
+
+             resume: {delimiter}{content}{delimiter} \n
+
+            {format_instructions}
+
+            """
+            output_parser = CommaSeparatedListOutputParser()
+            format_instructions = output_parser.get_format_instructions()
+            prompt = PromptTemplate(
+                template=query,
+                input_variables=["keywords", "delimiter", "content"],
+                partial_variables={"format_instructions": format_instructions}
+            )
+            chain = LLMChain(llm=llm, prompt=prompt, output_key="ats")
+            skills = chain.run({"keywords": keywords, "delimiter":delimiter, "content":content})
             query = f"""Your task is to catgeorize the professional accomplishments delimited with {delimiter} characters under certain skills. 
-
-            Please in total pick at least 3 hard skill from the following available skillset. If there are no hard skills, pick the soft skills.
-
-            skillset: {keywords}.
-
-            Categorize content of the professional accomlishments into different skills. For example, your output should be formated as the following:
-
+            Categorize content of the professional accomlishments into each skill. For example, your output should be formated as the following:
             SKill1:
 
                 - Examples of projects or situations that utilized this skill
                 - Measurable results and accomplishments
-
+                
+            skills: {skills}
             professional accomplishments: {delimiter}{content}{delimiter} \n
-
             Please start each bullet point with a strong action verb.
-
+            Please make each bullet point unique by putting it under one skill only, which should be the best fit for that content. 
             If professional accomplishments do not exist, please output an example. 
-
             """
             content = generate_multifunction_response(query, tools)
         context[key] = content
     context.update(personal_context)
-    # print(context)
     functional_doc_template.render(context)
     functional_doc_template.save(end_path) 
     return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
@@ -599,7 +611,6 @@ def create_resume_rewriter_tool() -> List[Tool]:
         description = description,
         verbose = False,
         handle_tool_error=handle_tool_error,
-
         )
     ]
     print("Succesfully created resume writer tool.")
@@ -610,12 +621,11 @@ def create_resume_rewriter_tool() -> List[Tool]:
 
 
 if __name__ == '__main__':
-    # my_job_title = 'Data Analyst'
-    # my_resume_file = './resume_samples/resume2023v3.txt'
-    job_posting = "./uploads/link/software09.txt"
-    # company = "Southern Company"
+    resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v3.txt"
+    posting_path= "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/rov.txt"
+    template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
+    reformat_functional_resume(resume_file=resume_file, posting_path=posting_path, template_file=template_file)
     # evaluate_resume(my_job_title =my_job_title, company = company, resume_file=my_resume_file, posting_path = job_posting)
-    my_resume_file = "./resume_samples/resume2023vs1.txt"
     # evaluate_resume(resume_file=my_resume_file)
 
 
