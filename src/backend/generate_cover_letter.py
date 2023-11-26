@@ -1,12 +1,13 @@
 # Import the necessary modules
 import os
+import openai
 from utils.openai_api import get_completion
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
-from utils.basic_utils import read_txt
+from utils.basic_utils import read_txt, process_json
 from utils.common_utils import (extract_personal_information, get_web_resources,  retrieve_from_db, get_generated_responses, search_related_samples)
 from datetime import date
 from pathlib import Path
@@ -17,7 +18,7 @@ from multiprocessing import Process, Queue, Value
 from langchain.agents.agent_toolkits import create_python_agent
 from langchain.tools.python.tool import PythonREPLTool
 from typing import List
-from utils.langchain_utils import create_summary_chain, generate_multifunction_response
+from utils.langchain_utils import create_summary_chain, generate_multifunction_response, handle_tool_error
 from utils.agent_tools import create_search_tools, create_sample_tools
 from langchain.tools import tool
 from docx import Document
@@ -28,11 +29,12 @@ from docx import Document
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # cover_letter_path = os.environ["COVER_LETTER_PATH"]
+openai.api_key = os.environ["OPENAI_API_KEY"]
 cover_letter_samples_path = os.environ["COVER_LETTER_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 save_path = os.environ["SAVE_PATH"]
 # TODO: caching and serialization of llm
-llm = ChatOpenAI(temperature=0.5, cache=False)
+llm = ChatOpenAI(temperature=0.9)
 # llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
 embeddings = OpenAIEmbeddings()
 delimiter = "####"
@@ -64,12 +66,9 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     filename = Path(fname).stem 
     docx_filename = filename + "_cover_letter"+".docx"
     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-
     # Get resume info
     resume_content = read_txt(resume_file)
     info_dict = get_generated_responses(resume_content=resume_content, about_me=about_me, posting_path=posting_path)
-
-
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
     job_specification = info_dict.get("job specification", "")
@@ -80,7 +79,6 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     name = info_dict.get("name", "")
     phone = info_dict.get("phone", "")
     email = info_dict.get("email", "")
-
     # Get adviced from web data on personalized best practices
     advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
     advices = retrieve_from_db(advice_query, vectorstore=faiss_web_data)
@@ -120,14 +118,10 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
            Make a list of common features these cover letters share. 
 
         """
-  
     # tool = [search_relevancy_advice]
     relevancy = generate_multifunction_response(query_relevancy, sample_tools)
-
     # Use an LLM to generate a cover letter that is specific to the resume file that is being read
-
     # Step wise instructions: https://learn.deeplearning.ai/chatgpt-building-system/lesson/5/chain-of-thought-reasoning
-
     template_string2 = """You are a professional cover letter writer. A Human client has asked you to generate a cover letter for them.
   
         The content you are to use as reference to create the cover letter is delimited with {delimiter} characters.
@@ -180,11 +174,9 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
         Step 5:{delimiter4} <the cover letter you generate>
 
       Make sure to include {delimiter4} to separate every step.
-    """
-    
+    """  
     prompt_template = ChatPromptTemplate.from_template(template_string2)
     # print(prompt_template.messages[0].prompt.input_variables)
-
     cover_letter_message = prompt_template.format_messages(
                     name = name,
                     phone = phone,
@@ -201,14 +193,12 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
                     delimiter = delimiter,
                     delimiter4 = delimiter4,
     )
-
     my_cover_letter = llm(cover_letter_message).content
     cover_letter = get_completion(f"Extract the cover letter from text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
     document.save(end_path)
     print(f"Successfully saved cover letter to: {end_path}")
-    # return f"""file_path:{save_path}"""
-    # return cover_letter
+    return "Successfully generated the cover letter. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
 
 # @tool(return_direct=True)
@@ -258,18 +248,17 @@ def processing_cover_letter(json_request: str) -> None:
     """ Input parser: input is LLM's action_input in JSON format. This function then processes the JSON data and feeds them to the cover letter generator. """
 
     try:
-      json_request = json_request.strip("'<>() ").replace('\'', '\"')
-      args = json.loads(json_request)
+      args = json.loads(process_json(json_request))
     except JSONDecodeError as e:
       print(f"JSON DECODE ERROR: {e}")
       return "Format in a single string JSON and try again."
-
     # if resume doesn't exist, ask for resume
     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
       return "Stop using the cover letter generator tool. Ask user for their resume, along with any other additional information that they could provide. "
     else:
-      # may need to clean up the path first
         resume_file = args["resume_file"]
+        if not Path(resume_file).is_file():
+          return "Something went wrong. Please upload your resume again."
     # if ("job" not in args or args["job"] == "" or args["job"]=="<job>"):
     #     job = ""
     # else:
@@ -282,10 +271,12 @@ def processing_cover_letter(json_request: str) -> None:
         about_me = ""
     else:
         about_me = args["about_me"]
-    if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+    if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
-        posting_path = args["job_post_file"]
+        posting_path = args["job_posting_file"]
+        if not Path(posting_path).is_file():
+          return "Something went wrong. Please share the job posting link or file again."  
 
     return generate_basic_cover_letter(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
 
@@ -298,13 +289,9 @@ def create_cover_letter_generator_tool() -> List[Tool]:
     Then it calls the processing_cover_letter function to process the JSON data. """
     
     name = "cover_letter_generator"
-    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_post_file": "<job_post_file>"}}'
-    output =  '{{"file_path": "<file_path>"}}'
+    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_posting_file": "<job_posting_file>"}}'
     description = f"""Helps to generate a cover letter. Use this tool more than any other tool when user asks to write a cover letter. 
      Input should be a single string strictly in the following JSON format: {parameters} \n
-     Leave value blank if there's no information provided. DO NOT MAKE STUFF UP. 
-    (remember to respond with a markdown code snippet of a JSON blob with a single action, and NOTHING else) 
-    Output should be telling user to check the Download Your Files tab at the sidebar.
     """
     tools = [
         Tool(
@@ -312,7 +299,7 @@ def create_cover_letter_generator_tool() -> List[Tool]:
         func =processing_cover_letter,
         description = description, 
         verbose = True,
-        handle_tool_error=True,
+        handle_tool_error=handle_tool_error,
         )
     ]
     print("Sucessfully created cover letter generator tool. ")
@@ -323,12 +310,10 @@ def create_cover_letter_generator_tool() -> List[Tool]:
  
 if __name__ == '__main__':
     # test run defaults, change for yours (only resume_file cannot be left empty)
-    # my_job_title = 'Data Analyst'
-    # company = "Southern Company"
-    my_resume_file = './resume_samples/resume2023v3.txt'
-    job_posting = "./uploads/file/data_analyst_SC.txt"
-    about_me = ""
-    generate_basic_cover_letter(resume_file = my_resume_file, posting_path=job_posting, about_me=about_me)
+    resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v3.txt"
+    posting_path= "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/rov.txt"
+    template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
+    generate_basic_cover_letter(resume_file = resume_file, posting_path=posting_path)
 
 
 
