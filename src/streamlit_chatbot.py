@@ -62,7 +62,7 @@ show_pages(
         Page("streamlit_about.py", "About"),
         Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
-        Page("streamlit_resources.py", "Networking", ":busts_in_silhouette:" ),
+        # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
     ]
 )
 
@@ -183,7 +183,7 @@ class Chat():
         #     st.session_state["select_counter"] = 0
         # Sidebar section
         with st.sidebar:
-            st.title("""Hi, I'm Acai, a career AI.""")
+            st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
             add_vertical_space(1)
             st.markdown('''
                                                 

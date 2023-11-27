@@ -171,7 +171,7 @@ class Interview():
             if "interview_session_id" not in st.session_state:
                 st.session_state["interview_session_id"] = str(uuid.uuid4())
                 print(f"INTERVIEW Session: {st.session_state.interview_session_id}")
-                modal = Modal(title="Welcome to your mock interview session!", key="popup")
+                modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
                 with modal.container():
                     with st.form( key='my_form', clear_on_submit=True):
                         add_vertical_space(1)

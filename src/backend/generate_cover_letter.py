@@ -112,7 +112,6 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
 
         1. Education in Management of Human Resources is not directly related to skills required for a data analyst 
 
-
       Step 2:  Sample cover letters are provided in your tools. Research {str(tool_names)} and answer the following question: and answer the following question:
 
            Make a list of common features these cover letters share. 
@@ -194,7 +193,7 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
                     delimiter4 = delimiter4,
     )
     my_cover_letter = llm(cover_letter_message).content
-    cover_letter = get_completion(f"Extract the cover letter from text: {my_cover_letter}")
+    cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
     document.save(end_path)
     print(f"Successfully saved cover letter to: {end_path}")
