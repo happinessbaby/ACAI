@@ -42,7 +42,7 @@ resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 save_path = os.environ["SAVE_PATH"]
 # TODO: caching and serialization of llm
-llm = ChatOpenAI(temperature=0.0)
+llm = ChatOpenAI(temperature=0.9)
 # llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
 embeddings = OpenAIEmbeddings()
 # TODO: save these delimiters in json file to be loaded from .env
@@ -306,11 +306,11 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
 
                 - Examples of projects or situations that utilized this skill
                 - Measurable results and accomplishments
-                
+
             skills: {skills}
             professional accomplishments: {delimiter}{content}{delimiter} \n
             Please start each bullet point with a strong action verb.
-            Please make each bullet point unique by putting it under one skill only, which should be the best fit for that content. 
+            Please make each bullet point unique by putting it under one skill only, which should be the best fit for that skill. 
             If professional accomplishments do not exist, please output an example. 
             """
             content = generate_multifunction_response(query, tools)
@@ -621,7 +621,7 @@ def create_resume_rewriter_tool() -> List[Tool]:
 
 
 if __name__ == '__main__':
-    resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v3.txt"
+    resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt"
     posting_path= "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/rov.txt"
     template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
     reformat_functional_resume(resume_file=resume_file, posting_path=posting_path, template_file=template_file)
