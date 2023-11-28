@@ -15,6 +15,8 @@ from langchain.chains import LLMMathChain
 from langchain.chains import (create_extraction_chain,
                               create_extraction_chain_pydantic)
 import os
+import openai
+from dotenv import load_dotenv, find_dotenv
 import json
 import random, string
 from json import JSONDecodeError
@@ -38,6 +40,8 @@ from utils.langchain_utils import create_ensemble_retriever
 from typing import List, Union, Any, Optional, Dict
 from langchain.tools.base import ToolException
 
+_ = load_dotenv(find_dotenv()) # read local .env file
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 def create_wiki_tools() -> List[Tool]:
 

@@ -1,3 +1,4 @@
+import openai
 from utils.openai_api import get_completion
 from utils.openai_api import get_completion, get_completion_from_messages
 from langchain.chat_models import ChatOpenAI
@@ -72,7 +73,7 @@ from datetime import date
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
-
+openai.api_key = os.environ["OPENAI_API_KEY"]
 delimiter = "####"
 delimiter2 = "'''"
 delimiter3 = '---'
