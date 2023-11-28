@@ -10,6 +10,7 @@ import tiktoken
 import math
 
 _ = load_dotenv(find_dotenv()) # read local .env file
+openai.api_key = os.environ["OPENAI_API_KEY"]
 # openai.api_key = os.environ['OPENAI_API_KEY']
 # models = openai.Model.list()
 delimiter = "####"

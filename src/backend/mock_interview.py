@@ -1,3 +1,4 @@
+import openai
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.cache import InMemoryCache
@@ -66,6 +67,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 memory_key="chat_history"
 memory_max_token = 500
+openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 save_path = os.environ["SAVE_PATH"]
 faiss_interview_data_path= os.environ["FAISS_INTERVIEW_DATA_PATH"]

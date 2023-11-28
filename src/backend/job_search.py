@@ -1,3 +1,5 @@
+import os
+import openai
 from langchain.agents import load_tools
 from langchain.utilities import TextRequestsWrapper
 from langchain.document_loaders.base import Document
@@ -7,7 +9,7 @@ from langchain.document_loaders import ApifyDatasetLoader
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) 
-
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 class JobSearch():

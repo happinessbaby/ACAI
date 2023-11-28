@@ -1,3 +1,4 @@
+import openai
 from langchain.agents.react.base import DocstoreExplorer
 from langchain.document_loaders import TextLoader, DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
@@ -79,6 +80,7 @@ import errno
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # You may need to update the path depending on where you stored it
+openai.api_key = os.environ["OPENAI_API_KEY"]
 redis_password=os.getenv('REDIS_PASSWORD')
 redis_url = f"redis://:{redis_password}@localhost:6379"
 redis_client = redis.Redis.from_url(redis_url)
