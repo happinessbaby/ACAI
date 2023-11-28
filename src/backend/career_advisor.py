@@ -1,5 +1,6 @@
 
 import os
+import openai
 from pathlib import Path
 from typing import Any
 from langchain.chat_models import ChatOpenAI
@@ -64,6 +65,7 @@ from langchain.globals import set_llm_cache
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
+openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 pickle_path = os.environ["PICKLE_PATH"]
 # static_path = os.environ["STATIC_PATH"]
