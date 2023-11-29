@@ -46,8 +46,12 @@ from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain.callbacks.base import BaseCallbackHandler
 import threading
 import queue
-_ = load_dotenv(find_dotenv()) # read local .env file
+import boto3
 
+_ = load_dotenv(find_dotenv()) # read local .env file
+s3 = boto3.resource('s3')
+bucket = s3.Bucket('acaitest01')
+bucket.upload_file("test.txt")
 
 # Either this or add_indentation() MUST be called on each page in your
 # app to add indendation in the sidebar
