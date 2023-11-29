@@ -113,6 +113,7 @@ class Chat():
         # with placeholder.container():
         
         if "userid" not in st.session_state:
+            st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
             st.session_state["userid"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.userid}")
             self.userid = st.session_state.userid
@@ -122,10 +123,10 @@ class Chat():
             st.session_state["basechat"] = new_chat 
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
-        # if "tipofday" not in st.session_state:
-        #     tip = generate_tip_of_the_day(topic)
-        #     st.session_state["tipofday"] = tip
-        #     st.write(tip)
+        if "tipofday" not in st.session_state:
+            tip = generate_tip_of_the_day(topic)
+            st.session_state["tipofday"] = tip
+            st.write(tip)
             
         try:
             self.new_chat = st.session_state.basechat
@@ -183,7 +184,6 @@ class Chat():
         #     st.session_state["select_counter"] = 0
         # Sidebar section
         with st.sidebar:
-            st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
             add_vertical_space(1)
             st.markdown('''
                                                 

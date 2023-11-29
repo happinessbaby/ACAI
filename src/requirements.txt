@@ -8,7 +8,7 @@ pypandoc==1.11
 wikipedia==1.4.0
 google-search-results==2.4.2
 google-api-python-client==2.88.0
-streamlit==1.24.1
+streamlit
 streamlit-chat==0.1.1
 streamlit-extras==0.2.7
 unstructured==0.8.1

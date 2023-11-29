@@ -74,6 +74,7 @@ from datetime import date
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
+faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
 delimiter = "####"
 delimiter2 = "'''"
 delimiter3 = '---'
@@ -89,7 +90,7 @@ def generate_tip_of_the_day(topic:str) -> str:
     """ Generates a tip of the day and an affirming message. """
 
     query = f"""Generate a helpful tip of the day message for job seekers. Make it specific to topic {topic}. Output the message only. """
-    response = retrieve_from_db(query)
+    response = retrieve_from_db(query, faiss_web_data_path )
     return response
 
 
