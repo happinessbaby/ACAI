@@ -221,10 +221,11 @@ class Interview():
                 if "baseinterview" not in st.session_state:
                     # update interview agents prompts from form variables
                     if  st.session_state.about!="":
-                        additional_prompt_info = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
+                        additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
                     else:
                         additional_prompt_info = ""
-                    new_interview = InterviewController(st.session_state.userid, additional_prompt_info)
+                        generated_dict = {}
+                    new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
                     st.session_state["baseinterview"] = new_interview     
                     # welcome_msg = "Welcome to your mock interview session. I will begin conducting the interview now. Please review the sidebar for instructions. "
                     # message(welcome_msg, avatar_style="initials", seed="AI_Interviewer", allow_html=True)
@@ -348,12 +349,15 @@ class Interview():
         with placeholder.container():
             modal = Modal(key="feedback_popup", title="Thank you for your participation in the interview session. I have a printout of your session summary and I value your feedback too!")
             with modal.container():
-                feedback_path = self.new_interview.retrieve_feedback( )
+                feedback = self.new_interview.retrieve_feedback()
+                questions = self.new_interview.craft_questions()
+                followup=self.new_interview.write_followup()
+                feedback_path = self.output_printout(feedback+questions+followup)
                 with open(feedback_path) as f:
                     st.download_button('Download my session summary', f)  # Defaults to 'text/plain'
                 with st.form(key="feedback_form", clear_on_submit=True):
                     submit = st.form_submit_button()
-                    #TODO write feedback for AI to a place
+                    #TODO write feedback to AI
 
 
 
@@ -529,7 +533,7 @@ class Interview():
         if company_description!="":
             additional_interview_info += f"company description: {company_description} \n"
 
-        return additional_interview_info
+        return additional_interview_info, generated_dict
 
     def process_about_interview(self, about_interview:str) -> None:
 

@@ -88,9 +88,10 @@ class InterviewController():
     interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=llm, input_key="input", max_token_limit=memory_max_token)
 
 
-    def __init__(self, userid, additional_prompt_info):
+    def __init__(self, userid, additional_prompt_info, generated_dict):
         self.userid = userid
         self.additional_interview_info = additional_prompt_info
+        self.generated_dict = generated_dict
         self._initialize_log()
         self._initialize_interview_agent()
         self._initialize_interview_grader()
@@ -331,21 +332,55 @@ class InterviewController():
             # print(f"Sucessfully pickled conversation: {chat_history}")
         return response
     
+    def craft_questions(self):
+        if self.generated_dict:
+            job_description = self.generated_dict.get("job description", "")
+            company_description = self.generated_dict.get("company description", "")
+            job_specification=self.generated_dict.get("job specification", "")
+            questions = "\n\nQUESTIONS TO ASK THE INTERVIEWER: \n"
+            questions += get_completion(f"""Based on the following job description, job specification, company description, whichever is available, 
+                                   generate 5-10 strategic questions an applicant could ask the hiring manager at the end of the interview.
+                                   job description: {job_description} \
+                                    job specification: {job_specification} \
+                                    company description: {company_description} \
+                                   """)
+        else:
+            questions = ""
+        return questions
+    
+    def write_followup(self):
+        if self.generated_dict:
+            name = self.generated_dict.get("name", "")
+            job = self.generated_dict.get("job", "")
+            company=self.generated_dict.get("company", "")
+            followup = "\n\nFOLLOW-UP EMAIL: \n"
+            followup += get_completion(f""" Applicant {name} recently interviewed for a {job} role at {company}.
+                                      Can you generate  a follow-up email that {name} could send to reinterate their interest and tactifully ask the status of the hiring process?""")
+        else:
+            followup = ""
+        return followup
+    
 
     def retrieve_feedback(self):
 
-        """ Retrieves feedback from conversation and writes it to file. """
+        """ Retrieves feedback from conversation. """
 
         # conversation = str(self.interview_memory.chat_memory.messages)
         end_path = os.path.join(log_path, f"{Path(self.logfile).stem}.txt")
         convert_to_txt(self.logfile, end_path)
         conversation = read_txt(end_path)
-        response = get_completion(f"Extract the positive and negative feedbacks from the following conversation: {conversation}")
+        feedback = "MOCK INTERVIEW FEEDBACK:\n"
+        feedback += get_completion(f"Extract the positive and negative feedbacks from the following conversation: {conversation}")
+        return feedback
+    
+    def output_printout(self, response):
         with open(log_path+"./feedback.txt", "w") as f:
             f.write(response)
-        print(conversation)
         print(f"Successfully retrieved interview feedback summary: {response}")
         return "./feedback.txt"
+
+    
+    
         
 
     
