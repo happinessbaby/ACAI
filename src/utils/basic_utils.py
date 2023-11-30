@@ -26,68 +26,88 @@ import errno
 import os
 import signal
 import functools
+import codecs
     
 
-def convert_to_txt(file, output_path):
+def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     file_ext = os.path.splitext(file)[1]
     if (file_ext)=='.txt':
-        os.rename(file, output_path)
+        move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
     if (file_ext=='.pdf'): 
-        convert_pdf_to_txt(file, output_path)
+        convert_pdf_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
     elif (file_ext=='.odt' or file_ext=='.docx'):
-        convert_doc_to_txt(file, output_path)
+        convert_doc_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
     elif (file_ext==".log"):
-        convert_log_to_txt(file, output_path)
+        convert_log_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
     elif (file_ext==".pptx"):
-        convert_pptx_to_txt(file, output_path)
-    elif (file_ext==".ipynb"):
-        convert_ipynb_to_txt(file, output_path)
+        convert_pptx_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
 
-def convert_ipynb_to_txt(file, output_path):
-    os.rename(file, output_path)
+def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+    if storage=="LOCAL":
+        os.rename(file, output_path)
+    elif storage=="S3":
+         # Copy object A as object B
+        s3.Object(bucket_name, output_path).copy_from(CopySource=os.path.join(bucket_name, file))
+        # Delete the former object A
+        # s3.Object(bucket_name, file).delete()
 
         
 
-def convert_log_to_txt(file, output_path):
+def convert_log_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     with open(file, "r") as f:
         content = f.read()
-        print(content)
-        with open(output_path, "w") as f:
-            f.write(content)
-            f.close()
+        if storage=="LOCAL":
+            with open(output_path, "w") as f:
+                f.write(content)
+                f.close()
+        elif storage=="S3":
+            s3.Object(bucket_name, output_path).put(Body=content)
 
-def convert_pptx_to_txt(pptx_file, output_path):
+
+def convert_pptx_to_txt(pptx_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     prs = Presentation(pptx_file)
     text = ""
     for slide in prs.slides:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 text+=shape.text+'\n'
-    with open(output_path, 'w') as f:
-        f.write(text)
-        f.close()
+    if storage=="LOCAL":
+        with open(output_path, 'w') as f:
+            f.write(text)
+            f.close()
+    elif storage=="S3":
+        s3.Object(bucket_name, output_path).put(Body=text)
 
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
-def convert_pdf_to_txt(pdf_file, output_path):
+def convert_pdf_to_txt(pdf_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     pdf = fitz.open(pdf_file)
     text = ""
     for page in pdf:
         text+=page.get_text() + '\n'
-    with open(output_path, 'w') as f:
-        f.write(text)
-        f.close()
+    if storage=="LOCAL":
+        with open(output_path, 'w') as f:
+            f.write(text)
+            f.close()
+    elif storage=="S3":
+        s3.Object(bucket_name, output_path).put(Body=text)
 
 #TODO: needs to find the best docx to txt converter that takes care of special characters best
-def convert_doc_to_txt(doc_file, output_path):
+def convert_doc_to_txt(doc_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
 
-def read_txt(file):
-    try:
+def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
+    if storage=="LOCAL":
         with open(file, 'r', errors='ignore') as f:
             text = f.read()
             return text
-    except Exception as e:
-        raise e
+    elif storage=="S3":
+        s3_object = s3.Object(bucket_name, file)
+        line_stream = codecs.getreader("utf-8")
+        text = ""
+        for line in line_stream(s3_object.get()['Body']):
+            text += line
+        return text
+
     
 def markdown_table_to_dict(markdown_table):
     # Convert Markdown to HTML
@@ -142,7 +162,7 @@ def retrieve_web_content(link, save_path="./web_data/test.txt"):
         return False
     
 # this one is better than the above function 
-def html_to_text(urls:List[str], save_path="./web_data/test.txt"):
+def html_to_text(urls:List[str], save_path="./web_data/test.txt", storage="LOCAL", bucket_name=None, s3=None):
 
     """Writes a list of url content to txt file. """
     
@@ -151,12 +171,15 @@ def html_to_text(urls:List[str], save_path="./web_data/test.txt"):
         docs = loader.load()
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
-        content = docs_transformed[0].page_content              
-        with open(save_path, 'w') as file:
-            file.write(content)
-            file.close()
-            print('Content retrieved and written to file.')
-            return True
+        content = docs_transformed[0].page_content  
+        if storage=="LOCAL":            
+            with open(save_path, 'w') as file:
+                file.write(content)
+                file.close()
+                print('Content retrieved and written to file.')
+                return True
+        elif storage=="S3":
+            s3.Object(bucket_name, save_path).put(Body=content)
     except Exception:
         return False
 

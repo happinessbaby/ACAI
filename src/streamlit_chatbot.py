@@ -49,9 +49,6 @@ import queue
 import boto3
 
 _ = load_dotenv(find_dotenv()) # read local .env file
-s3 = boto3.resource('s3')
-bucket = s3.Bucket('acaitest01')
-bucket.upload_file("test.txt")
 
 # Either this or add_indentation() MUST be called on each page in your
 # app to add indendation in the sidebar
@@ -70,13 +67,9 @@ show_pages(
     ]
 )
 
-
-# st.title("Testing Streamlit custom components")
-# my_compnonent()
+STORAGE = "S3"
+bucket_name = "acaitest01"
 openai.api_key = os.environ['OPENAI_API_KEY']
-save_path = os.environ["SAVE_PATH"]
-temp_path = os.environ["TEMP_PATH"]
-template_path = os.environ["TEMPLATE_PATH"]
 placeholder = st.empty()
 max_token_count=3500
 topic = "jobs"
@@ -84,12 +77,53 @@ topic = "jobs"
 
 class Chat():
 
-    # userid: str=""
     ctx = get_script_run_ctx()
 
     def __init__(self):
         self._create_chatbot()
 
+    @st.cache_resource()
+    def _init_paths(_self, userid):
+        if "template_path" not in st.session_state:
+            st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
+        if STORAGE == "LOCAL":
+            if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["SAVE_PATH"]
+            if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+            try: 
+                temp_dir = os.path.join(st.session_state.temp_path, userid)
+                os.mkdir(temp_dir)
+                user_dir = os.path.join(st.session_state.save_path, userid)
+                os.mkdir(user_dir)
+                download_dir = os.path.join(user_dir, "downloads")
+                os.mkdir(download_dir)
+                # if "download_dir" not in st.session_state:
+                #     st.session_state["download_dir"] = download_dir
+            except FileExistsError:
+                pass
+        elif STORAGE=="S3":
+            session = boto3.Session(         
+                aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+            )
+            s3 = session.resource("s3")
+            bucket = s3.Bucket(bucket_name)
+            if "s3" not in st.session_state:
+                st.session_state["s3"] = s3
+            if "bucket" not in st.session_state:
+                st.session_state["bucket"] = bucket
+            if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
+            if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+            try:
+                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, userid))
+                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid))
+                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid, "downloads"))
+            except Exception as e:
+                raise e
+                
   
     def _create_chatbot(self):
 
@@ -118,19 +152,22 @@ class Chat():
         
         if "userid" not in st.session_state:
             st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
+            tip = generate_tip_of_the_day(topic)
+            st.write(tip)
             st.session_state["userid"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.userid}")
-            self.userid = st.session_state.userid
+            self._init_paths(st.session_state.userid)
+            # self.userid = st.session_state.userid
             # super().__init__(st.session_state.userid)
         if "basechat" not in st.session_state:
             new_chat = ChatController(st.session_state.userid)
             st.session_state["basechat"] = new_chat 
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
-        if "tipofday" not in st.session_state:
-            tip = generate_tip_of_the_day(topic)
-            st.session_state["tipofday"] = tip
-            st.write(tip)
+        # if "tipofday" not in st.session_state:
+        #     tip = generate_tip_of_the_day(topic)
+        #     st.session_state["tipofday"] = tip
+        #     st.write(tip)
             
         try:
             self.new_chat = st.session_state.basechat
@@ -138,17 +175,17 @@ class Chat():
         except AttributeError as e:
             raise e
     
-        try: 
-            temp_dir = os.path.join(temp_path, st.session_state.userid)
-            os.mkdir(temp_dir)
-            user_dir = os.path.join(save_path, st.session_state.userid)
-            os.mkdir(user_dir)
-            download_dir = os.path.join(user_dir, "downloads")
-            os.mkdir(download_dir)
-            # if "download_dir" not in st.session_state:
-            #     st.session_state["download_dir"] = download_dir
-        except FileExistsError:
-            pass
+        # try: 
+        #     temp_dir = os.path.join(temp_path, st.session_state.userid)
+        #     os.mkdir(temp_dir)
+        #     user_dir = os.path.join(save_path, st.session_state.userid)
+        #     os.mkdir(user_dir)
+        #     download_dir = os.path.join(user_dir, "downloads")
+        #     os.mkdir(download_dir)
+        #     # if "download_dir" not in st.session_state:
+        #     #     st.session_state["download_dir"] = download_dir
+        # except FileExistsError:
+        #     pass
 
         # Initialize chat history
 
@@ -209,8 +246,8 @@ class Chat():
                         # label_visibility="hidden",
                         help="If the link failed, please try to save the content into a file and upload it.",
                         on_change=self.form_callback)
-                st.text_area(label="About Me",
-                             key="about_me",
+                st.text_area(label="About",
+                             key="about",
                              placeholder="Tell me about your job application or career goals",
                              on_change=self.form_callback)
                 
@@ -468,10 +505,11 @@ class Chat():
         except Exception:
             pass
         try:
-            about_me = st.session_state.about_me
-            self.new_chat.update_entities(f"about_me:{about_me} /n"+"###", '###')
-            st.session_state.about_me=""
-            st.toast("your about me is successfully submitted")
+            about = st.session_state.about
+            if about:
+                self.new_chat.update_entities(f"about_me:{about} /n"+"###", '###')
+                st.session_state.about=""
+                st.toast("successfully submitted")
         except Exception:
             pass
         ## Passes the previous user question to the agent one more time after user uploads form
@@ -507,7 +545,7 @@ class Chat():
 
         template_idx = st.session_state.templates
         print(f"TEMPLATE IDX:{template_idx}")
-        resume_template_file = os.path.join(template_path,resume_type, f"{resume_type}{template_idx}.docx")
+        resume_template_file = os.path.join(st.session_state.template_path,resume_type, f"{resume_type}{template_idx}.docx")
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
         response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
         return st.session_state.responses.append(response)
@@ -584,15 +622,18 @@ class Chat():
             for uploaded_file in uploaded_files:
                 file_ext = Path(uploaded_file.name).suffix
                 filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(temp_path, st.session_state.userid, filename)
-                with open(tmp_save_path, 'wb') as f:
-                    f.write(uploaded_file.getvalue())
-                end_path =  os.path.join(save_path, st.session_state.userid, Path(filename).stem+'.txt')
-                # Convert file to txt and save it to uploads
-                convert_to_txt(tmp_save_path, end_path)
-                # content_safe, content_type, content_topics = check_content(end_path)
-                # print(content_type, content_safe, content_topics) 
-                content_safe, content_type = check_content(end_path)
+                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.userid, filename)
+                end_path =  os.path.join(st.session_state.save_path, st.session_state.userid, Path(filename).stem+'.txt')
+                if STORAGE=="LOCAL":
+                    with open(tmp_save_path, 'wb') as f:
+                        f.write(uploaded_file.getvalue())
+                    # Convert file to txt and save it to uploads
+                elif STORAGE=="S3":
+                    st.session_state.s3.Object(bucket_name, tmp_save_path).put(Body=uploaded_file.getvalue())
+                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3) 
+                ## content_safe, content_type, content_topics = check_content(end_path)
+                ## print(content_type, content_safe, content_topics) 
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3)
                 print(content_type, content_safe) 
                 if content_safe and content_type!="empty":
                     self.update_entities(content_type, end_path)
@@ -600,7 +641,7 @@ class Chat():
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
-                    # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
+                    self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
         
         
 
@@ -609,13 +650,10 @@ class Chat():
         """ Processes user shared links including converting all format to txt, checking content safety, and categorizing content type """
         # with st.session_state.link_loading, st.spinner("Processing..."):
         with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-            end_path = os.path.join(save_path, st.session_state.userid, str(uuid.uuid4())+".txt")
+            end_path = os.path.join(st.session_state.save_path, st.session_state.userid, str(uuid.uuid4())+".txt")
             links = re.findall(r'(https?://\S+)', links)
-            if html_to_text(links, save_path=end_path):
-            # if (retrieve_web_content(posting, save_path = end_path)):
-                # content_safe, content_type, content_topics = check_content(end_path)
-                # print(content_type, content_safe, content_topics) 
-                content_safe, content_type = check_content(end_path)
+            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3):
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3)
                 print(content_type, content_safe) 
                 if (content_safe and content_type!="empty" and content_type!="browser error"):
                     self.update_entities(content_type, end_path)
@@ -662,7 +700,7 @@ class Chat():
         self.new_chat.update_entities(entity)
         vs_name = "user_material"
         vs = merge_faiss_vectorstore(vs_name, end_path)
-        vs_path =  os.path.join(save_path, st.session_state.userid, vs_name)
+        vs_path =  os.path.join(st.session_state.save_path, st.session_state.userid, vs_name)
         vs.save_local(vs_path)
         entity = f"""user_material_path: {vs_path} /n ###"""
         self.new_chat.update_entities(entity)
@@ -682,13 +720,25 @@ class Chat():
 
         """ Check generated files in download folder and returns a list of file names. """
 
-        download_dir = os.path.join(save_path, st.session_state.userid, "downloads")
+        download_dir = os.path.join(st.session_state.save_path, st.session_state.userid, "downloads")
         generated_files = []
-        if os.listdir(download_dir):
-            print("Some files found in the directory.")
-            for path in Path(download_dir).glob('**/*.docx*'):
-                file=str(path)
-                generated_files.append(file)
+        if STORAGE=="LOCAL":
+            try:
+                for path in Path(download_dir).glob('**/*.docx*'):
+                    file=str(path)
+                    print(f"DOWNLOAD FILE: {file}")
+                    generated_files.append(file)
+            except Exception:
+                pass
+        elif STORAGE=="S3":
+            try:
+                for my_bucket_object in st.session_state.bucket.filter(Prefix=download_dir):
+                    file = my_bucket_object.key
+                    if Path(file).suffix == ".docx":
+                        print(f"DOWNLOAD FILE: {file}")
+                        generated_files.append(file)
+            except Exception:
+                pass
                 # st.session_state.generated_files.append(file)
         return generated_files
 

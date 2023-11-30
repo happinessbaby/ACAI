@@ -1044,7 +1044,7 @@ def evaluate_content(content: str, content_type: str) -> bool:
         return False
 
 
-def check_content(file_path: str) -> Union[bool, str, set] :
+def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) -> Union[bool, str, set] :
 
     """Extracts file properties using Doctran: https://python.langchain.com/docs/integrations/document_transformers/doctran_extract_properties
 
@@ -1058,7 +1058,7 @@ def check_content(file_path: str) -> Union[bool, str, set] :
     
     """
 
-    docs = split_doc_file_size(file_path)
+    docs = split_doc_file_size(file_path, storage=storage, bucket_name=bucket_name, s3=s3)
     # if file is too large, will randomly select n chunks to check
     docs_len = len(docs)
     print(f"File splitted into {docs_len} documents")
