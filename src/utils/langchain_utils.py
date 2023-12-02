@@ -81,8 +81,8 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # You may need to update the path depending on where you stored it
 openai.api_key = os.environ["OPENAI_API_KEY"]
-aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
+aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 redis_password=os.getenv('REDIS_PASSWORD')
 redis_url = f"redis://:{redis_password}@localhost:6379"
 redis_client = redis.Redis.from_url(redis_url)
@@ -138,7 +138,11 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
 
 def split_doc_file_size(path: str, storage="LOCAL", bucket_name=None, s3=None,  splitter_type = "tiktoken", chunk_size=2000) -> List[Document]:
     
-    bytes = os.path.getsize(path)
+    if storage=="LOCAL":
+        bytes = os.path.getsize(path)
+    elif storage=="S3":
+        response = s3.head_object(Bucket=bucket_name, Key=path)
+        bytes = response['ContentLength']
     docs: List[Document] = []
     # if file is small, don't split
     # 1 byte ~= 1 character, and 1 token ~= 4 characters, so 1 byte ~= 0.25 tokens. Max length is about 4000 tokens for gpt3.5, so if file is less than 15000 bytes, don't need to split. 

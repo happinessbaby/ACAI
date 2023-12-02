@@ -107,20 +107,23 @@ class Chat():
                 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
             )
-            s3 = session.resource("s3")
-            bucket = s3.Bucket(bucket_name)
-            if "s3" not in st.session_state:
-                st.session_state["s3"] = s3
-            if "bucket" not in st.session_state:
-                st.session_state["bucket"] = bucket
+            # s3 = session.resource("s3")
+            # bucket = s3.Bucket(bucket_name)
+            client = session.client('s3')
+            # if "s3" not in st.session_state:
+            #     st.session_state["s3"] = s3
+            # if "bucket" not in st.session_state:
+            #     st.session_state["bucket"] = bucket
+            if "client" not in st.session_state:
+                st.session_state["client"] = client
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
             if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
             try:
-                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, userid))
-                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid))
-                bucket.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid, "downloads"))
+                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, userid))
+                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid))
+                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid, "downloads"))
             except Exception as e:
                 raise e
                 
@@ -152,8 +155,8 @@ class Chat():
         
         if "userid" not in st.session_state:
             st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
-            tip = generate_tip_of_the_day(topic)
-            st.write(tip)
+            # tip = generate_tip_of_the_day(topic)
+            # st.write(tip)
             st.session_state["userid"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.userid}")
             self._init_paths(st.session_state.userid)
@@ -627,13 +630,11 @@ class Chat():
                 if STORAGE=="LOCAL":
                     with open(tmp_save_path, 'wb') as f:
                         f.write(uploaded_file.getvalue())
-                    # Convert file to txt and save it to uploads
                 elif STORAGE=="S3":
-                    st.session_state.s3.Object(bucket_name, tmp_save_path).put(Body=uploaded_file.getvalue())
-                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3) 
-                ## content_safe, content_type, content_topics = check_content(end_path)
-                ## print(content_type, content_safe, content_topics) 
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3)
+                    st.session_state.client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
+                # Convert file to txt and save it 
+                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client) 
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client)
                 print(content_type, content_safe) 
                 if content_safe and content_type!="empty":
                     self.update_entities(content_type, end_path)
@@ -641,7 +642,7 @@ class Chat():
                 else:
                     os.remove(end_path)
                     st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
-                    self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
+                    # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
         
         
 
@@ -652,13 +653,14 @@ class Chat():
         with st.session_state.spinner_placeholder, st.spinner("Processing..."):
             end_path = os.path.join(st.session_state.save_path, st.session_state.userid, str(uuid.uuid4())+".txt")
             links = re.findall(r'(https?://\S+)', links)
-            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3):
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3)
+            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client):
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client)
                 print(content_type, content_safe) 
                 if (content_safe and content_type!="empty" and content_type!="browser error"):
                     self.update_entities(content_type, end_path)
                     st.toast(f"your {content_type} is successfully submitted")
                 else:
+                    #TODO: second browser reader for special links such as the OnlinePDFReader: https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf
                     os.remove(end_path)
                     st.toast(f"Failed processing {str(links)}. Please try another link!")
                     # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
@@ -680,7 +682,7 @@ class Chat():
             elif content_type=="resume":
                 delimiter = "$$$"    
             if content_type=="job posting":
-                content = read_txt(end_path)
+                content = read_txt(end_path, storage=STORAGE, bucket_name=bucket_name,s3=st.session_state.client)
                 token_count = num_tokens_from_text(content)
                 if token_count>max_token_count:
                     shorten_content(end_path, content_type) 
@@ -697,7 +699,7 @@ class Chat():
         """ Update vector store for chat agent. """
 
         # entity = f"""topics: {str(content_topics)} """
-        self.new_chat.update_entities(entity)
+        # self.new_chat.update_entities(entity)
         vs_name = "user_material"
         vs = merge_faiss_vectorstore(vs_name, end_path)
         vs_path =  os.path.join(st.session_state.save_path, st.session_state.userid, vs_name)
@@ -709,10 +711,14 @@ class Chat():
     def binary_file_downloader_html(self, file: str):
 
         """ Gets the download link for generated file. """
-
-        with open(file, 'rb') as f:
-            data = f.read()
-        bin_str = base64.b64encode(data).decode()
+        if STORAGE=="LOCAL":
+            with open(file, 'rb') as f:
+                data = f.read()
+            bin_str = base64.b64encode(data).decode()   
+        elif STORAGE=="S3":
+            object = st.session_state.client.get_object(Bucket=bucket_name, Key=file)
+            data = object['Body'].read()
+            bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     
@@ -732,14 +738,13 @@ class Chat():
                 pass
         elif STORAGE=="S3":
             try:
-                for my_bucket_object in st.session_state.bucket.filter(Prefix=download_dir):
-                    file = my_bucket_object.key
-                    if Path(file).suffix == ".docx":
-                        print(f"DOWNLOAD FILE: {file}")
+                response = st.session_state.client.list_objects(Bucket=bucket_name, Prefix=download_dir)
+                for content in response.get('Contents', []):
+                    file=content.get['Key']
+                    if Path(file).suffix==".docx":
                         generated_files.append(file)
             except Exception:
                 pass
-                # st.session_state.generated_files.append(file)
         return generated_files
 
     

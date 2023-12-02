@@ -15,7 +15,7 @@ from langchain.document_loaders import UnstructuredURLLoader
 from typing import Any, List, Union, Dict
 from docxtpl import DocxTemplate
 from langchain.document_transformers import Html2TextTransformer
-from langchain.document_loaders import AsyncHtmlLoader
+from langchain.document_loaders import AsyncHtmlLoader, S3FileLoader
 import asyncio
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
@@ -28,71 +28,79 @@ import signal
 import functools
 import codecs
     
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
+aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
 def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
-    file_ext = os.path.splitext(file)[1]
-    if (file_ext)=='.txt':
+
+    """ Converts file to TXT file and move it to destination location. """
+
+    file_ext = Path(file).suffix
+    if (file_ext)=='.txt' and file!=output_path:
         move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-    if (file_ext=='.pdf'): 
-        convert_pdf_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-    elif (file_ext=='.odt' or file_ext=='.docx'):
-        convert_doc_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-    elif (file_ext==".log"):
-        convert_log_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-    elif (file_ext==".pptx"):
-        convert_pptx_to_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
+    else:
+        if storage=="LOCAL":
+            if (file_ext=='.pdf'): 
+                convert_pdf_to_txt(file, output_path)
+            elif (file_ext=='.odt' or file_ext=='.docx'):
+                convert_doc_to_txt(file, output_path)
+            elif (file_ext==".log"):
+                convert_log_to_txt(file, output_path)
+            elif (file_ext==".pptx"):
+                convert_pptx_to_txt(file, output_path)
+        elif storage=="S3":
+            loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            text = loader.load()[0].page_content
+            s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
+
+
 
 def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     if storage=="LOCAL":
         os.rename(file, output_path)
     elif storage=="S3":
          # Copy object A as object B
-        s3.Object(bucket_name, output_path).copy_from(CopySource=os.path.join(bucket_name, file))
-        # Delete the former object A
-        # s3.Object(bucket_name, file).delete()
-
+        copy_source = {'Bucket': bucket_name, 'Key': file}
+        s3.copy_object(
+            Bucket=bucket_name,
+            Key=output_path,
+            CopySource=copy_source,
+        )
         
 
-def convert_log_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+def convert_log_to_txt(file, output_path):
     with open(file, "r") as f:
         content = f.read()
-        if storage=="LOCAL":
-            with open(output_path, "w") as f:
-                f.write(content)
-                f.close()
-        elif storage=="S3":
-            s3.Object(bucket_name, output_path).put(Body=content)
+        with open(output_path, "w") as f:
+            f.write(content)
+            f.close()
+      
 
-
-def convert_pptx_to_txt(pptx_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+def convert_pptx_to_txt(pptx_file, output_path):
     prs = Presentation(pptx_file)
     text = ""
     for slide in prs.slides:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 text+=shape.text+'\n'
-    if storage=="LOCAL":
-        with open(output_path, 'w') as f:
-            f.write(text)
-            f.close()
-    elif storage=="S3":
-        s3.Object(bucket_name, output_path).put(Body=text)
-
+    with open(output_path, 'w') as f:
+        f.write(text)
+        f.close()
+ 
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
-def convert_pdf_to_txt(pdf_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+def convert_pdf_to_txt(pdf_file, output_path):
     pdf = fitz.open(pdf_file)
     text = ""
     for page in pdf:
         text+=page.get_text() + '\n'
-    if storage=="LOCAL":
-        with open(output_path, 'w') as f:
-            f.write(text)
-            f.close()
-    elif storage=="S3":
-        s3.Object(bucket_name, output_path).put(Body=text)
+    with open(output_path, 'w') as f:
+        f.write(text)
+        f.close()
 
 #TODO: needs to find the best docx to txt converter that takes care of special characters best
-def convert_doc_to_txt(doc_file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+def convert_doc_to_txt(doc_file, output_path):
     pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
 
 def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
@@ -101,11 +109,9 @@ def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
             text = f.read()
             return text
     elif storage=="S3":
-        s3_object = s3.Object(bucket_name, file)
-        line_stream = codecs.getreader("utf-8")
-        text = ""
-        for line in line_stream(s3_object.get()['Body']):
-            text += line
+        data = s3.get_object(Bucket=bucket_name, Key=file)
+        contents = data['Body'].read()
+        text = contents.decode("utf-8")
         return text
 
     
@@ -162,9 +168,9 @@ def retrieve_web_content(link, save_path="./web_data/test.txt"):
         return False
     
 # this one is better than the above function 
-def html_to_text(urls:List[str], save_path="./web_data/test.txt", storage="LOCAL", bucket_name=None, s3=None):
+def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s3=None):
 
-    """Writes a list of url content to txt file. """
+    """Writes a list of urls' content to txt file. """
     
     try:
         loader = AsyncHtmlLoader(urls)
@@ -179,7 +185,8 @@ def html_to_text(urls:List[str], save_path="./web_data/test.txt", storage="LOCAL
                 print('Content retrieved and written to file.')
                 return True
         elif storage=="S3":
-            s3.Object(bucket_name, save_path).put(Body=content)
+            s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
+            return True
     except Exception:
         return False
 
