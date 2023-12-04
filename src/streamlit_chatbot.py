@@ -713,12 +713,11 @@ class Chat():
         """ Gets the download link for generated file. """
         if STORAGE=="LOCAL":
             with open(file, 'rb') as f:
-                data = f.read()
-            bin_str = base64.b64encode(data).decode()   
+                data = f.read() 
         elif STORAGE=="S3":
             object = st.session_state.client.get_object(Bucket=bucket_name, Key=file)
             data = object['Body'].read()
-            bin_str = base64.b64encode(data).decode() 
+        bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     

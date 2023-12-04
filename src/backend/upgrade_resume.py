@@ -29,21 +29,18 @@ import uuid
 from docxtpl import DocxTemplate	
 from docx import Document
 from docx.shared import Inches
-
-
-
-
-
+import boto3
 from dotenv import load_dotenv, find_dotenv
+
+
 _ = load_dotenv(find_dotenv()) # read local .env file
-# resume_evaluation_path = os.environ["RESUME_EVALUATION_PATH"]
 openai.api_key = os.environ["OPENAI_API_KEY"]
 resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
-save_path = os.environ["SAVE_PATH"]
+STORAGE = os.environ["STORAGE"]
+local_save_path = os.environ["SAVE_PATH"]
 # TODO: caching and serialization of llm
 llm = ChatOpenAI(temperature=0.9)
-# llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
 embeddings = OpenAIEmbeddings()
 # TODO: save these delimiters in json file to be loaded from .env
 delimiter = "####"
@@ -52,19 +49,25 @@ delimiter2 = "////"
 delimiter3 = "<<<<"
 delimiter4 = "****"
 
-# personal_info = ["Name", "Phone", "Email", "LinkedIn", "Website", "JobTitle"]
-document = Document()
-document.add_heading('Resume Evaluation', 0)
+if STORAGE=="S3":
+    s3_save_path = os.environ["S3_SAVE_PATH"]
+    bucket_name="acaitest01"
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
 
 
 def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
 
+    document = Document()
+    document.add_heading('Resume Evaluation', 0)
     dirname, fname = os.path.split(resume_file)
     filename = Path(fname).stem 
     docx_filename = filename + "_evaluation"+".docx"
-    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    # get resume info
-    resume_content = read_txt(resume_file)
+    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     info_dict=get_generated_responses(resume_content=resume_content, posting_path=posting_path, about_me=about_me)
     work_experience_level = info_dict.get("work experience level", "")
     graduation_year = info_dict.get("graduation year", -1)
@@ -103,7 +106,7 @@ def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
     document.add_heading(f"Overall Asessment", level=1)
     document.add_paragraph(response)
     document.add_page_break()
-    document.save(end_path)
+    document.save(local_end_path)
     # write_to_docx_template(doc, personal_info, personal_info_dict, docx_filename)
 
     # Note: document comparison benefits from a clear and simple prompt
@@ -117,8 +120,12 @@ def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
     for p in processes:
        p.join()
 
-
-    # return f""" file_path: {docx_filename} """
+    document.add_heading(f"Detailed Evaluation", level=1)
+    document.add_paragraph()
+    if STORAGE=="S3":
+        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+        s3.upload_file(local_end_path, bucket_name, s3_end_path)
+    return "Successfully evaluated resume. Tell the user to check the Download your files tab at the sidebar to download their file."
 
 
 
@@ -195,9 +202,9 @@ def research_resume_type(resume_file: str, posting_path: str)-> str:
             
     """
 
-    resume_content = read_txt(resume_file)
-    if Path(posting_path).is_file():
-        posting_content = read_txt(posting_path)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    if posting_content!="":
         job = extract_pursuit_information(posting_content).get("job", "")
     else:
         job = extract_pursuit_information(resume_content).get("job", "")
@@ -219,13 +226,11 @@ def research_resume_type(resume_file: str, posting_path: str)-> str:
 
 def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
 
-    # dirname, fname = os.path.split(resume_file)
-    # filename = Path(fname).stem 
-    # docx_filename = "resume_"+filename +".docx"
-    # end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    end_path = "test1.docx"
-
-    resume_content = read_txt(resume_file)
+    dirname, fname = os.path.split(resume_file)
+    filename = Path(fname).stem 
+    docx_filename = filename + "_reformat"+".docx"
+    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     functional_doc_template = DocxTemplate(template_file)
     info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
@@ -245,51 +250,33 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
     #TODO, this tool below is temporary
     tools = create_search_tools("google", 1)
     for key, value in context_dict.items():
-        # content = find_resume_content(key, resume_content)
         content = info_dict.get(value, "")
         if key == "SUMMARY":
             job_description = info_dict.get("job description", "")
             job_specification = info_dict.get("job specification", "")
             skills = info_dict.get("skills", "")
             query = f""" Your task is to improve or write the summary section of the functional resume in less than 50 words.
-
-            If you are provided with an existing summary section, use it as your context and build on top of it.
-              
+            If you are provided with an existing summary section, use it as your context and build on top of it.    
             Otherwise, refer to the job specification or job description, skills, whichever is available and incorportate relevant soft skill and hard skills into the summary.
-
-            objective section: {content}
-
-            skills: {skills}
-
-            job description: {job_description}
-
-            job specification: {job_specification}
-
+            objective section: {content} \n
+            skills: {skills} \n
+            job description: {job_description} \n
+            job specification: {job_specification} \n
             Here are some example summary:
-
             1. Organized and motivated employee with superior [skill] and [skill]. Seeking to join [company] as a [position] to help enhance [function]. \
-
             2. Certified [position] looking to join [company] as a part of the [department] team. Hardworking individual with [skill], [skill], and [skill]. \
-
             3. Detail-oriented individual seeking to help [company] achieve its goals as a [position]. Excellent at [skill] and dedicated to delivering top-quality [function]. \
-
             4. [Position] certified in [skill] and [skill], looking to help [company] increase [goal metric]. Excellent [position] who can collaborate with large teams to [achieve goal]. \
-            
             PLEASE WRITE IN LESS THAN 50 WORDS AND OUTPUT THE SUMMARY SECTION AS YOUR FINAL ANSWER. DO NOT OUTPUT ANYTHING ELSE. 
-            
             """
             content = generate_multifunction_response(query, tools)
         elif key=="PROFESSIONAL_ACCOMPLISHMENTS":     
             keywords = info_dict.get("job keywords", "")
             query = """ Your task is to pick at least 3 hard skills from the following available skillset. If there are no hard skills, pick the soft skills.
-             skillset: {keywords}.
-            
+             skillset: {keywords}.    
              The criteria you use to pick the skills is based on if the skills exist or can be inferred in the resume delimited with {delimiter} characters below.
-
              resume: {delimiter}{content}{delimiter} \n
-
             {format_instructions}
-
             """
             output_parser = CommaSeparatedListOutputParser()
             format_instructions = output_parser.get_format_instructions()
@@ -317,7 +304,10 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
         context[key] = content
     context.update(personal_context)
     functional_doc_template.render(context)
-    functional_doc_template.save(end_path) 
+    functional_doc_template.save(local_end_path) 
+    if STORAGE=="S3":
+        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+        s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
 
 
@@ -326,9 +316,9 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
 
     dirname, fname = os.path.split(resume_file)
     filename = Path(fname).stem 
-    docx_filename = "resume_"+filename +".docx"
-    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    resume_content = read_txt(resume_file)
+    docx_filename = filename + "_reformat"+".docx"
+    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     chronological_resume_template = DocxTemplate(template_file)
     info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
@@ -347,7 +337,6 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     context = {key: None for key in context_keys}
     tools = create_search_tools("google", 1)
     for key, value in context_dict.items():
-        # content = find_resume_content(key, resume_content)
         content = info_dict.get(value, "")
         if key == "SUMMARY":
             work_experience = info_dict.get("work experience", "")
@@ -394,14 +383,14 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
 
                 You are also provided with a list of important keywords that are in the job posting. Some of them should be included also. 
 
-                skills section: {skills}
+                skills section: {skills} \n
 
-                job description: {job_description}
+                job description: {job_description} \n
                 
-                job specification: {job_specification}
+                job specification: {job_specification} \n
 
-                important keywords: {keywords}
-
+                important keywords: {keywords} \n
+ 
                 If the skills section exist, add to it relevant skills and remove from it irrelevant skills.
 
                 Otherwise, if the skills section is already well-written, output the original skills section. 
@@ -410,9 +399,11 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
             content = generate_multifunction_response(query, tools)
         context[key] = content
     context.update(personal_context)
-    # print(context)
     chronological_resume_template.render(context)
-    chronological_resume_template.save(end_path) 
+    chronological_resume_template.save(local_end_path) 
+    if STORAGE=="S3":
+        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+        s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "
  
 
@@ -421,9 +412,9 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
 
     dirname, fname = os.path.split(resume_file)
     filename = Path(fname).stem 
-    docx_filename = "resume_"+filename +".docx"
-    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    resume_content = read_txt(resume_file)
+    docx_filename = filename + "_reformat"+".docx"
+    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     chronological_resume_template = DocxTemplate(template_file)
     info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
@@ -441,7 +432,6 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
     context_dict = dict(zip(context_keys, info_dict_keys))
     context = {key: None for key in context_keys}
     for key, value in context_dict.items():
-        # content = find_resume_content(key, resume_content)
         if key == "OBJECTIVE":
             job_description = info_dict.get("job description", "")
             job_specification = info_dict.get("job specification", "")
@@ -459,7 +449,10 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
         context[key] = content
     context.update(personal_context)
     chronological_resume_template.render(context)
-    chronological_resume_template.save(end_path) 
+    chronological_resume_template.save(local_end_path) 
+    if STORAGE=="S3":
+        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+        s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return "Successfully reformated the resume using a new template. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
 
@@ -488,8 +481,6 @@ def processing_resume(json_request: str) -> None:
       return "Stop using the resume evaluator tool. Ask user for their resume."
     else:
         resume_file = args["resume_file"]
-        if not Path(resume_file).is_file():
-            return "Something went wrong. Please upload your resume again."
     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
         about_me = ""
     else:
@@ -497,9 +488,7 @@ def processing_resume(json_request: str) -> None:
     if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
-        posting_path = args["job_posting_file"]
-        if not Path(posting_path).is_file():
-            return "Something went wrong. Please share the job post link or file again."    
+        posting_path = args["job_posting_file"]   
     return evaluate_resume(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
 
 
@@ -517,14 +506,10 @@ def processing_template(json_request: str) -> None:
       return "Stop using the resume_writer tool. Ask user for their resume file and an optional job post link."
     else:
         resume_file = args["resume_file"]
-        if not Path(resume_file).is_file():
-            return "Something went wrong. Please upload your resume again."
     if ("resume_template_file" not in args or args["resume_template_file"]=="" or args["resume_template_file"]=="<resume_template_file>"):
       return "Stop using the resume_writer tool. Use the rewrite_using_new_template tool instead."
     else:
         resume_template = args["resume_template_file"]
-        if not Path(resume_template).is_file():
-            return "Stop using the resume_writer tool. Use the rewrite_using_new_template tool instead."
     if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
@@ -560,8 +545,6 @@ def redesign_resume_template(json_request:str):
       return "Can you provide your resume file and an optional job post link? "
     else:
         resume_file = args["resume_file"]
-        if not Path(resume_file).is_file():
-            return "Sorry, something went wrong! Please upload your resume again."
     if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
         posting_path = ""
     else:
@@ -615,8 +598,6 @@ def create_resume_rewriter_tool() -> List[Tool]:
     ]
     print("Succesfully created resume writer tool.")
     return tools
-
-
 
 
 

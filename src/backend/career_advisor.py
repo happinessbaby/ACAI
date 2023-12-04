@@ -68,8 +68,8 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 pickle_path = os.environ["PICKLE_PATH"]
-# static_path = os.environ["STATIC_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
+STORAGE = os.environ["STORAGE"]
 # debugging langchain: very useful
 langchain.debug=True 
 # The result evaluation process slows down chat by a lot, unless necessary, set to false

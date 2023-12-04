@@ -104,16 +104,29 @@ def convert_doc_to_txt(doc_file, output_path):
     pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
 
 def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
-    if storage=="LOCAL":
-        with open(file, 'r', errors='ignore') as f:
-            text = f.read()
+    try:
+        if storage=="LOCAL":
+            with open(file, 'r', errors='ignore') as f:
+                text = f.read()
+                return text
+        elif storage=="S3":
+            data = s3.get_object(Bucket=bucket_name, Key=file)
+            contents = data['Body'].read()
+            text = contents.decode("utf-8")
             return text
-    elif storage=="S3":
-        data = s3.get_object(Bucket=bucket_name, Key=file)
-        contents = data['Body'].read()
-        text = contents.decode("utf-8")
-        return text
+    except Exception as e:
+        return ""
 
+# def output_path(file:str, file_type:str, storage="LOCAL"):
+
+#     """ Creates output path of the given file. """
+
+#     dirname, fname = os.path.split(file)
+#     filename = Path(fname).stem 
+#     docx_filename = filename + "_" + file_type +".docx"
+#     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
+#     if storage=="LOCAL":
+#     elif storage=="S3":
     
 def markdown_table_to_dict(markdown_table):
     # Convert Markdown to HTML

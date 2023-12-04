@@ -22,20 +22,20 @@ from utils.langchain_utils import create_summary_chain, generate_multifunction_r
 from utils.agent_tools import create_search_tools, create_sample_tools
 from langchain.tools import tool
 from docx import Document
+import boto3
 
 
 
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
-# cover_letter_path = os.environ["COVER_LETTER_PATH"]
+
 openai.api_key = os.environ["OPENAI_API_KEY"]
 cover_letter_samples_path = os.environ["COVER_LETTER_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
-save_path = os.environ["SAVE_PATH"]
+STORAGE = os.environ["STORAGE"]
 # TODO: caching and serialization of llm
 llm = ChatOpenAI(temperature=0.9)
-# llm = OpenAI(temperature=0, top_p=0.2, presence_penalty=0.4, frequency_penalty=0.2)
 embeddings = OpenAIEmbeddings()
 delimiter = "####"
 delimiter1 = "****"
@@ -44,9 +44,15 @@ delimiter3 = '---'
 delimiter4 = '////'
 delimiter5 = '~~~~'
 
-
-document = Document()
-document.add_heading('Cover Letter', 0)
+local_save_path = os.environ["SAVE_PATH"]
+if STORAGE=="S3":
+    s3_save_path = os.environ["S3_SAVE_PATH"]
+    bucket_name="acaitest01"
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
       
 def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_path="") -> None:
     
@@ -62,12 +68,14 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
      
     """
     
+    document = Document()
+    document.add_heading('Cover Letter', 0)
     dirname, fname = os.path.split(resume_file)
     filename = Path(fname).stem 
     docx_filename = filename + "_cover_letter"+".docx"
-    end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     # Get resume info
-    resume_content = read_txt(resume_file)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     info_dict = get_generated_responses(resume_content=resume_content, about_me=about_me, posting_path=posting_path)
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
@@ -195,8 +203,10 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     my_cover_letter = llm(cover_letter_message).content
     cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
-    document.save(end_path)
-    print(f"Successfully saved cover letter to: {end_path}")
+    document.save(local_end_path)
+    if STORAGE=="S3":
+        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+        s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return "Successfully generated the cover letter. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
 
@@ -256,16 +266,6 @@ def processing_cover_letter(json_request: str) -> None:
       return "Stop using the cover letter generator tool. Ask user for their resume, along with any other additional information that they could provide. "
     else:
         resume_file = args["resume_file"]
-        if not Path(resume_file).is_file():
-          return "Something went wrong. Please upload your resume again."
-    # if ("job" not in args or args["job"] == "" or args["job"]=="<job>"):
-    #     job = ""
-    # else:
-    #   job = args["job"]
-    # if ("company" not in args or args["company"] == "" or args["company"]=="<company>"):
-    #     company = ""
-    # else:
-    #     company = args["company"]
     if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
         about_me = ""
     else:
@@ -274,8 +274,7 @@ def processing_cover_letter(json_request: str) -> None:
         posting_path = ""
     else:
         posting_path = args["job_posting_file"]
-        if not Path(posting_path).is_file():
-          return "Something went wrong. Please share the job posting link or file again."  
+    
 
     return generate_basic_cover_letter(about_me=about_me, resume_file=resume_file, posting_path=posting_path)
 
@@ -288,7 +287,7 @@ def create_cover_letter_generator_tool() -> List[Tool]:
     Then it calls the processing_cover_letter function to process the JSON data. """
     
     name = "cover_letter_generator"
-    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_posting_file": "<job_posting_file>"}}'
+    parameters = '{{"about_me":"<about_me>", "resume_file":"<resume_file>", "job_posting_file":"<job_posting_file>"}}'
     description = f"""Helps to generate a cover letter. Use this tool more than any other tool when user asks to write a cover letter. 
      Input should be a single string strictly in the following JSON format: {parameters} \n
     """
