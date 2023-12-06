@@ -27,6 +27,7 @@ from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks import get_openai_callback, StdOutCallbackHandler, FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
+from langchain.memory.chat_message_histories import DynamoDBChatMessageHistory
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from langchain.schema.messages import SystemMessage
 from langchain.prompts import MessagesPlaceholder
@@ -95,9 +96,6 @@ memory_key="chat_history"
 class ChatController():
 
     # llm = ChatOpenAI(streaming=True, callbacks=[StreamingStdOutCallbackHandler()], temperature=0, cache = False)
-    llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
-    embeddings = OpenAIEmbeddings()
-    chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)
     # retry_decorator = _create_retry_decorator(llm)
     set_llm_cache(InMemoryCache())
@@ -105,6 +103,11 @@ class ChatController():
 
     def __init__(self, userid):
         self.userid = userid
+        # message_history = DynamoDBChatMessageHistory(table_name="SessionTable", session_id=userid)
+        # self.chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, chat_memory=message_history, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
+        self.llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
+        embeddings = OpenAIEmbeddings()
+        self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key,  return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
         self._initialize_log()
         self._initialize_chat_agent()
         if update_instruction:
@@ -411,6 +414,7 @@ class ChatController():
          # initialize file callback logging
         logfile = log_path + f"{self.userid}.log"
         self.handler = FileCallbackHandler(logfile)
+        #TODO: add log file to S3?
         logger.add(logfile,  enqueue=True)
         # Upon start, all the .log files will be deleted and changed to .txt files
         for path in  Path(log_path).glob('**/*.log'):

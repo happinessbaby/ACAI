@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Streamlit Component" />
+    <meta name="google-signin-client_id" content="617595678646-95o6n84rc2a6v2c73uj538oc9dl4grua.apps.googleusercontent.com">
+    <style>
+    </style>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
@@ -15,37 +18,21 @@
     <link rel="stylesheet" href="bootstrap.min.css" />
   </head>
   <body>
-        <!-- Trigger the Modal -->
-    <!-- <img id="MyImg"  alt="Snow" style="width:100%;max-width:300px"> -->
     <div id="images">
-    <!-- <a id="MyImg0" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 0"></a>
-    <a id="MyImg1" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 1"></a>
+      <!-- <a id="MyImg0" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 0"></a>
+        <a id="MyImg1" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 1"></a>
     <a id="MyImg2" data-lightbox="img" style="width:100%;max-width:300px"><img class="thumbnail" alt="basic 2"></a> -->
     <!-- <a id="MyImg0" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 0"></a>
-    <a id="MyImg1" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 1"></a>
-    <a id="MyImg2" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 2"></a> -->
+      <a id="MyImg1" data-lightbox="img" style="width:100px ;height:100px"><img class="thumbnail" alt="basic 1"></a>
+      <a id="MyImg2" data-lightbox="img" style="width:100px;height:100px"><img class="thumbnail" alt="basic 2"></a> -->
     <a id="MyImg0"  data-fancybox="gallery"><img class="thumbnail" alt="basic 0"></a>
     <a id="MyImg1"  data-fancybox="gallery"><img class="thumbnail" alt="basic 1"></a>
     <a id="MyImg2"  data-fancybox="gallery"><img class="thumbnail" alt="basic 2"></a>
-    <!-- <a id="MyImg3" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
-    <a id="MyImg4" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a>
-    <a id="MyImg5" data-lightbox="img0" style="width:100%;max-width:300px"><img class="example-image" src="http://lokeshdhakar.com/projects/lightbox2/images/thumb-6.jpg" alt="Small lighthouse at bottom with ocean behind"></a> -->
-    </div>
-    <!-- The Modal -->
-    <!-- <div id="myModal" class="modal"> -->
-
-      <!-- The Close Button -->
-      <!-- <span class="close">&times;</span> -->
-
-      <!-- Modal Content (The Image) -->
-      <!-- <img class="modal-content" id="img01"> -->
-
-      <!-- Modal Caption (Image Text) -->
-      <!-- <div id="caption"></div> -->
-    <!-- </div> -->
-    <!-- <noscript>You need to enable JavaScript to run this app.</noscript> -->
+  </div>
+  <div id="google" class="g-signin2" data-onsuccess="onSignIn" data-longtitle="true"></div>
+  <!-- <a href="#" onclick="signOut();">Sign out</a> -->
+  <div id="token"></div>
     <!-- <script src="lightbox2-plus-jquery.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
     <script>
       // lightbox.option({
       //   'resizeDuration': 200,
@@ -55,9 +42,44 @@
       // $.fancybox.defaults.fullScreen = { autoStart : true };
       Fancybox.bind('[data-fancybox="gallery"]', {
         // fullscreen: {
-        //   autoStart: true,
+          //   autoStart: true,
         // },
       });   
-  </script>
-  </body>
+      function onSignIn(googleUser) {
+        var profile = googleUser.getBasicProfile();
+        console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+        console.log('Name: ' + profile.getName());
+        console.log('Image URL: ' + profile.getImageUrl());
+        console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+        window.id_token = googleUser.getAuthResponse().id_token
+        
+      }
+      function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut().then(function () {
+          console.log('User signed out.');
+        });
+      }
+    function onSuccess(googleUser) {
+      console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+    }
+    function onFailure(error) {
+      console.log(error);
+    }
+    function renderButton() {
+      gapi.signin2.render('g-signin2', {
+        'scope': 'profile email',
+        'width': 240,
+        'height': 50,
+        'longtitle': true,
+        'theme': 'dark',
+        'onsuccess': onSuccess,
+        'onfailure': onFailure
+      });
+    }
+    </script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+</body>
 </html>

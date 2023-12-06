@@ -39,7 +39,7 @@ import base64
 from langchain.tools import tool
 import streamlit.components.v1 as components, html
 from PIL import Image
-from my_component import my_component
+from my_component_js import lightbox, login
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
@@ -47,6 +47,9 @@ from langchain.callbacks.base import BaseCallbackHandler
 import threading
 import queue
 import boto3
+import yaml
+
+
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -58,20 +61,33 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Specify what pages should be shown in the sidebar, and what their titles and icons
 # should be
+# print(f"SIGNED IN: {User.signed_in}")
+# if User.signed_in==False:
+#     user_status="Sign in"
+# else:
+#     user_status="User"
+
+try:
+    st.session_state["signed_in"]
+    user_status="User"
+except Exception:
+    user_status="Sign in"
+
+
 show_pages(
     [
-        Page("streamlit_about.py", "About"),
+        # Page("streamlit_about.py", "About"),
+        Page("streamlit_user.py", f"{user_status}"),
         Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
         # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
     ]
 )
 
-STORAGE = "S3"
-bucket_name = "acaitest01"
+STORAGE = os.environ['STORAGE']
+bucket_name = os.environ['BUCKET_NAME']
 openai.api_key = os.environ['OPENAI_API_KEY']
-placeholder = st.empty()
-max_token_count=3500
+max_token_count = os.environ['MAX_TOKEN_COUNT']
 topic = "jobs"
 
 
@@ -82,7 +98,9 @@ class Chat():
     def __init__(self):
         self._create_chatbot()
 
-    @st.cache_resource()
+
+
+    # @st.cache_resource()
     def _init_paths(_self, userid):
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
@@ -98,8 +116,6 @@ class Chat():
                 os.mkdir(user_dir)
                 download_dir = os.path.join(user_dir, "downloads")
                 os.mkdir(download_dir)
-                # if "download_dir" not in st.session_state:
-                #     st.session_state["download_dir"] = download_dir
             except FileExistsError:
                 pass
         elif STORAGE=="S3":
@@ -107,13 +123,7 @@ class Chat():
                 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
             )
-            # s3 = session.resource("s3")
-            # bucket = s3.Bucket(bucket_name)
             client = session.client('s3')
-            # if "s3" not in st.session_state:
-            #     st.session_state["s3"] = s3
-            # if "bucket" not in st.session_state:
-            #     st.session_state["bucket"] = bucket
             if "client" not in st.session_state:
                 st.session_state["client"] = client
             if "save_path" not in st.session_state:
@@ -126,18 +136,19 @@ class Chat():
                 client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid, "downloads"))
             except Exception as e:
                 raise e
+
                 
   
     def _create_chatbot(self):
 
-        textinput_styl = f"""
-        <style>
-            .stTextInput {{
-            position: fixed;
-            bottom: 3rem;
-            }}
-        </style>
-        """
+        # textinput_styl = f"""
+        # <style>
+        #     .stTextInput {{
+        #     position: fixed;
+        #     bottom: 3rem;
+        #     }}
+        # </style>
+        # """
         selectbox_styl = f"""
         <style>
             .stSelectbox {{
@@ -148,68 +159,27 @@ class Chat():
         </style>
         """
 
-        st.markdown(textinput_styl, unsafe_allow_html=True)
+        # st.markdown(textinput_styl, unsafe_allow_html=True)
         st.markdown(selectbox_styl, unsafe_allow_html=True)
 
         # with placeholder.container():
         
         if "userid" not in st.session_state:
             st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
-            # tip = generate_tip_of_the_day(topic)
-            # st.write(tip)
             st.session_state["userid"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.userid}")
-            self._init_paths(st.session_state.userid)
-            # self.userid = st.session_state.userid
             # super().__init__(st.session_state.userid)
+        if "paths" not in st.session_state:
+            self._init_paths(st.session_state.userid)
+        # if "tip" not in st.session_state:
+            # tip = generate_tip_of_the_day(topic)
+            # st.session_state["tip"] = tip
+            # st.write(tip)
         if "basechat" not in st.session_state:
             new_chat = ChatController(st.session_state.userid)
             st.session_state["basechat"] = new_chat 
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
-        # if "tipofday" not in st.session_state:
-        #     tip = generate_tip_of_the_day(topic)
-        #     st.session_state["tipofday"] = tip
-        #     st.write(tip)
-            
-        try:
-            self.new_chat = st.session_state.basechat
-            # self.msgs = st.session_state.message_history
-        except AttributeError as e:
-            raise e
-    
-        # try: 
-        #     temp_dir = os.path.join(temp_path, st.session_state.userid)
-        #     os.mkdir(temp_dir)
-        #     user_dir = os.path.join(save_path, st.session_state.userid)
-        #     os.mkdir(user_dir)
-        #     download_dir = os.path.join(user_dir, "downloads")
-        #     os.mkdir(download_dir)
-        #     # if "download_dir" not in st.session_state:
-        #     #     st.session_state["download_dir"] = download_dir
-        # except FileExistsError:
-        #     pass
-
-        # Initialize chat history
-
-
-        # expand_new_thoughts = st.sidebar.checkbox(
-        #     "Expand New Thoughts",
-        #     value=True,
-        #     help="True if LLM thoughts should be expanded by default",
-        # )
-
-        # msgs = StreamlitChatMessageHistory(key="langchain_messages")
-        # view_messages = st.expander("View the message contents in session state")
-        SAMPLE_QUESTIONS = {
-            "":"",
-            # "upload my files": "upload",
-            "help me generate a cover letter": "generate",
-            "Evaluate my resume": "evaluate",
-            "rewrite my resume using a new template": "reformat",
-            "tailor my document to a job position": "tailor",
-        }
-
         ## questions stores User's questions
         if 'questions' not in st.session_state:
             st.session_state['questions'] = list()
@@ -224,8 +194,26 @@ class Chat():
         ## hacky way to clear uploaded files once submitted
         if "file_counter" not in st.session_state:
             st.session_state["file_counter"] = 0
-        # if "select_counter" not in st.session_state:
-        #     st.session_state["select_counter"] = 0
+            
+        try:
+            self.new_chat = st.session_state.basechat
+            # self.msgs = st.session_state.message_history
+        except AttributeError as e:
+            raise e
+    
+        # Initialize chat history
+        # msgs = StreamlitChatMessageHistory(key="langchain_messages")
+        # view_messages = st.expander("View the message contents in session state")
+        SAMPLE_QUESTIONS = {
+            "":"",
+            # "upload my files": "upload",
+            "help me generate a cover letter": "generate",
+            "Evaluate my resume": "evaluate",
+            "rewrite my resume using a new template": "reformat",
+            "tailor my document to a job position": "tailor",
+        }
+
+
         # Sidebar section
         with st.sidebar:
             add_vertical_space(1)
@@ -240,24 +228,28 @@ class Chat():
             with st.expander("Upload & Share"):
                 st.file_uploader(label="Files",
                                 accept_multiple_files=True,
-                                # key="files",
+                                help = "This can be a resume, cover letter, job posting, study material, etc.",
                                 key= f"files_{str(st.session_state.file_counter)}",
                                 on_change=self.form_callback)
-                st.text_area(label="Links", 
-                        placeholder="This can be a job posting site for example", 
-                        key = "links", 
-                        # label_visibility="hidden",
-                        help="If the link failed, please try to save the content into a file and upload it.",
+                additional = st.radio(label="Additional information?", 
+                         options=["link", "self-description"], 
+                         key="select_options",
+                         index=None,)
+                if additional=="link":
+                    st.text_area(label="Links", 
+                            placeholder="This can be a job posting site for example", 
+                            key = "links", 
+                            # label_visibility="hidden",
+                            help="If the link failed, please try to save the content into a file and upload it.",
                         on_change=self.form_callback)
-                st.text_area(label="About",
-                             key="about",
-                             placeholder="Tell me about your job application or career goals",
-                             on_change=self.form_callback)
-                
-            # file_path = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/analyst1.txt"    
+                elif additional=="self-description":
+                    st.text_area(label="About",
+                                key="about",
+                                placeholder="This can be your career goal or something unique about yourself",
+                                on_change=self.form_callback)
+                  
             with st.expander("Download your files"):
                 files = self.check_user_downloads()
-                # files = st.session_state.generated_files
                 if files:
                     for file in files:
                         st.markdown(self.binary_file_downloader_html(file), unsafe_allow_html=True)
@@ -266,10 +258,14 @@ class Chat():
 
             add_vertical_space(3)
 
+            if user_status=="User":
+                st.write("USER LOGGED IN")
+                #TODO: add past session conversation here
+
             st.markdown('''
                                                 
             Note: 
-                
+               
             Only the most recent uploaded files, links, and about me will be used.
                         
             If you refresh the page, your session conversation and downloads will be lost.
@@ -534,7 +530,7 @@ class Chat():
         modal = Modal(key="template_popup", title=f"Pick a template", max_width=1000)
         with modal.container():
             with st.form( key='template_form', clear_on_submit=True):
-                template_idx = my_component(resume_type, "templates")
+                template_idx = lightbox(resume_type, "templates")
                 st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
 
             
@@ -698,11 +694,10 @@ class Chat():
 
         """ Update vector store for chat agent. """
 
-        # entity = f"""topics: {str(content_topics)} """
-        # self.new_chat.update_entities(entity)
         vs_name = "user_material"
         vs = merge_faiss_vectorstore(vs_name, end_path)
         vs_path =  os.path.join(st.session_state.save_path, st.session_state.userid, vs_name)
+        #TODO: SAVE TO DYNAMODB BACKED FAISS RETRIEVAL VS
         vs.save_local(vs_path)
         entity = f"""user_material_path: {vs_path} /n ###"""
         self.new_chat.update_entities(entity)

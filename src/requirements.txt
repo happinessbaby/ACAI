@@ -51,3 +51,5 @@ st_clickable_images
 tenacity==8.2.3
 toml==0.10.2
 geopy==2.4.0
+httpx-oauth
+streamlit-authenticator

@@ -69,7 +69,11 @@ channels = 1 # number of channel
 device = 4
 # keyboard = Controller()
 # keyboard_event = Keyboard()
-
+try:
+    st.session_state["signed_in"]
+    user_status="User"
+except Exception:
+    user_status="Sign in"
 
 
 class Interview():
@@ -148,6 +152,10 @@ class Interview():
                 ''')
 
                 add_vertical_space(5)
+
+                if user_status=="User":
+                    st.write("PAST SESSION RECORDING HERE.")
+                    #TODO
                 st.markdown('''
         
                 Troubleshooting:

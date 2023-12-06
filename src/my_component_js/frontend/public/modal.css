@@ -2,6 +2,7 @@
     overflow: auto;
     width: 1000px;  
     height: 600px; 
+    visibility:hidden;
 }
 
 #images img:hover {
@@ -10,4 +11,10 @@
 
 .active {
     border: 3px dotted brown;
+}
+.g-signin2 {
+    visibility:hidden;
+}
+.token {
+    visibility:hidden;
 }

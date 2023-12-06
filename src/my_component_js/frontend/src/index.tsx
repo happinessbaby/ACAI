@@ -9,6 +9,11 @@ import { Streamlit, RenderData } from "streamlit-component-lib"
 // const imgNode = document.body.appendChild(document.createElement("img"))
 // const div = document.body.appendChild(document.createElement("div"))
 // const imgNode = document.getElementById("MyImg")!;
+declare global {
+  interface Window {
+   id_token?: void // Make it optional
+  }
+ }
 const imgs = document.getElementById("images")!;
 const imgNode0 = document.getElementsByTagName("a")[0];
 const imgNode1 = document.getElementsByTagName("a")[1];
@@ -16,6 +21,7 @@ const imgNode2 = document.getElementsByTagName("a")[2];
 const imgThumb0 = document.getElementsByTagName("img")[0];
 const imgThumb1 = document.getElementsByTagName("img")[1];
 const imgThumb2 = document.getElementsByTagName("img")[2];
+const googleButton = document.getElementById("google")!;
  // Get the modal
 // var modal = document.getElementById("myModal")!;
 // const modalImg = modal.appendChild(document.createElement("img"))
@@ -23,30 +29,13 @@ const imgThumb2 = document.getElementsByTagName("img")[2];
 // const modalImg = document.getElementById("img0")!;
 
 // Get the <span> element that closes the modal
-let close: HTMLElement = document.getElementsByClassName("close")[0] as HTMLElement;
+// let close: HTMLElement = document.getElementsByClassName("close")[0] as HTMLElement;
 
 // When the user clicks on <span> (x), close the modal
 // close.onclick = function() {
 //   modal.style.display = "none";
 // }
 
-// Add a click handler to our button. It will send data back to Streamlit.
-// let numClicks = 0
-// let isFocused = false
-// button.onclick = function(): void {
-//   // Increment numClicks, and pass the new value back to
-//   // Streamlit via `Streamlit.setComponentValue`.
-//   numClicks += 1
-//   Streamlit.setComponentValue(numClicks)
-// }
-
-// button.onfocus = function(): void {
-//   isFocused = true
-// }
-
-// button.onblur = function(): void {
-//   isFocused = false
-// }
 
 /**
  * The component's render function. This will be called immediately after
@@ -76,8 +65,9 @@ function onRender(event: Event): void {
   // RenderData.args is the JSON dictionary of arguments sent from the
   // Python script.
   // let name = data.args["name"]
-  let dir_name = data.args["name"]
-  if (dir_name=="functional") {
+  let name = data.args["name"]
+  if (name=="functional") {
+    document.getElementById("images")!.style.visibility = "visible";
     const img0 =  "/resume_templates/functional/functional0.png";
     const img1 = "/resume_templates/functional/functional1.png";
     const img2 = "/resume_templates/functional/functional2.png";
@@ -91,7 +81,8 @@ function onRender(event: Event): void {
     imgThumb1.src = img1_thmb;
     imgThumb2.src = img2_thmb;
   }
-  if (dir_name=="chronological") {
+  else if (name=="chronological") {
+    document.getElementById("images")!.style.visibility = "visible";
     const img0 =  "/resume_templates/chronological/chronological0.png";
     const img1 = "/resume_templates/chronological/chronological1.png";
     const img2 = "/resume_templates/functional/chronological2.png";
@@ -106,25 +97,51 @@ function onRender(event: Event): void {
     imgThumb2.src = img2_thmb;
 
   }
-
-  var cN = "active";
-  var prev = 0;
-  let imgs = document.querySelectorAll<HTMLImageElement>(".thumbnail");
-  for (var i = 0; i < imgs.length; i += 1) {
-    (function(i) {
-      imgs[i].addEventListener("click", function() {
-        imgs[prev].className="thumbnail";
-        this.className === "thumbnail" ? this.className = cN : this.className = "thumbnail"; // Toggle class name
-        prev = i;
-        Streamlit.setComponentValue(i);
-      });
-    })(i);
+  else if (name=="signin") {
+    googleButton.style.visibility = "visible";
+    googleButton?.addEventListener('click', function handleClick(event) {
+      console.log('button clicked');
+      var token = window.id_token;
+      Streamlit.setComponentValue(token);
+    });
+    // function onSignIn(googleUser) {
+    //   var profile = googleUser.getBasicProfile();
+    //   var id_token = googleUser.getAuthResponse().id_token;
+    //   // console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+    //   // console.log('Name: ' + profile.getName());
+    //   // console.log('Image URL: ' + profile.getImageUrl());
+    //   // console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+    //   Streamlit.setComponentValue(id_token);
+    // };
+  }
+  else if (name=="signout") {
+    document.getElementById("google")!.style.visibility = "invisible";
+    // function signOut() {
+    //   var auth2 = gapi.auth2.getAuthInstance();
+    //   auth2.signOut().then(function () {
+    //     console.log('User signed out.');
+    //   });
+    // }
+  }
+  if (name=="functional" || name=="chronological") {
+    var cN = "active";
+    var prev = 0;
+    let imgs = document.querySelectorAll<HTMLImageElement>(".thumbnail");
+    for (var i = 0; i < imgs.length; i += 1) {
+      (function(i) {
+        imgs[i].addEventListener("click", function() {
+          imgs[prev].className="thumbnail";
+          this.className === "thumbnail" ? this.className = cN : this.className = "thumbnail"; // Toggle class name
+          prev = i;
+          Streamlit.setComponentValue(i);
+        });
+      })(i);
     // Swap img.alt with li.innerHTML
     // var temp = list.innerHTML;
     // list.children[i].innerHTML = this.alt;
     // this.alt = temp;
-  }
-  
+      }
+    }
   // Show "Hello, name!" with a non-breaking space afterwards.
   // textNode.textContent = `Hello, ${img0}! ` + String.fromCharCode(160)
   // imgNode.setAttribute( 'src', `${img0}` );
