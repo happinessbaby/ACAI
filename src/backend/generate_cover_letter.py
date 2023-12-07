@@ -46,13 +46,16 @@ delimiter5 = '~~~~'
 
 local_save_path = os.environ["SAVE_PATH"]
 if STORAGE=="S3":
+    bucket_name = os.envrion["BUCKET_NAME"]
     s3_save_path = os.environ["S3_SAVE_PATH"]
-    bucket_name="acaitest01"
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
                 )
     s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
       
 def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_path="") -> None:
     

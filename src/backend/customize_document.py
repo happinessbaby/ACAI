@@ -22,16 +22,17 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 STORAGE = os.environ["STORAGE"]
-if STORAGE=="LOCAL":
-    save_path = os.environ["SAVE_PATH"]
-elif STORAGE=="S3":
-    save_path = os.environ["S3_SAVE_PATH"]
-    bucket_name="acaitest01"
+if STORAGE=="S3":
+    bucket_name = os.envrion["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_SAVE_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
                 )
     s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
 
 def customize_personal_statement(personal_statement="", about_me="", program_path=""):
 

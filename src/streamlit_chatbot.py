@@ -61,17 +61,13 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Specify what pages should be shown in the sidebar, and what their titles and icons
 # should be
-# print(f"SIGNED IN: {User.signed_in}")
-# if User.signed_in==False:
-#     user_status="Sign in"
-# else:
-#     user_status="User"
 
 try:
     st.session_state["signed_in"]
     user_status="User"
 except Exception:
     user_status="Sign in"
+
 
 
 show_pages(
@@ -105,6 +101,7 @@ class Chat():
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         if STORAGE == "LOCAL":
+            st.session_state.client=None
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["SAVE_PATH"]
             if "temp_path" not in st.session_state:

@@ -1,19 +1,13 @@
 import { Streamlit, RenderData } from "streamlit-component-lib"
+// import { OAuth2Client } from "google-auth-library";
+// require('dotenv').config();
 
-// Add text and a button to the DOM. (You could also add these directly
-// to index.html.)
-// const span = document.body.appendChild(document.createElement("span"))
-// const textNode = span.appendChild(document.createTextNode(""))
-// const button = span.appendChild(document.createElement("button"))
-// button.textContent = "Click Me!"
-// const imgNode = document.body.appendChild(document.createElement("img"))
-// const div = document.body.appendChild(document.createElement("div"))
-// const imgNode = document.getElementById("MyImg")!;
-declare global {
-  interface Window {
-   id_token?: void // Make it optional
-  }
- }
+// declare global {
+//   interface Window {
+//    id_token?: void // Make it optional
+//   }
+//  }
+const CLIENT_ID = process.env.GOOGLE_DEFAULT_CLIENT_ID!;
 const imgs = document.getElementById("images")!;
 const imgNode0 = document.getElementsByTagName("a")[0];
 const imgNode1 = document.getElementsByTagName("a")[1];
@@ -22,6 +16,7 @@ const imgThumb0 = document.getElementsByTagName("img")[0];
 const imgThumb1 = document.getElementsByTagName("img")[1];
 const imgThumb2 = document.getElementsByTagName("img")[2];
 const googleButton = document.getElementById("google")!;
+const token = document.getElementById("token")!;
  // Get the modal
 // var modal = document.getElementById("myModal")!;
 // const modalImg = modal.appendChild(document.createElement("img"))
@@ -99,10 +94,24 @@ function onRender(event: Event): void {
   }
   else if (name=="signin") {
     googleButton.style.visibility = "visible";
-    googleButton?.addEventListener('click', function handleClick(event) {
-      console.log('button clicked');
-      var token = window.id_token;
-      Streamlit.setComponentValue(token);
+    token.addEventListener("change", function handleClick(event) {
+      var token_id = (token as HTMLInputElement).value
+      const {OAuth2Client} = require('google-auth-library');
+      const client = new OAuth2Client();
+      async function verify() {
+        const ticket = await client.verifyIdToken({
+            idToken: token_id,
+            audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+            // Or, if multiple clients access the backend:
+            //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+        });
+        const payload = ticket.getPayload();
+        const userid = payload['sub'];
+        Streamlit.setComponentValue(userid);
+        // If request specified a G Suite domain:
+        // const domain = payload['hd'];
+      }
+      verify().catch(console.error);
     });
     // function onSignIn(googleUser) {
     //   var profile = googleUser.getBasicProfile();

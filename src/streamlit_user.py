@@ -9,6 +9,10 @@ from google.auth.transport import requests
 
 CLIENT_ID = os.environ['GOOGLE_DEFAULT_CLIENT_ID'].split(".")[0]
 sign_in_placeholder=st.empty()
+
+
+
+
 class User():
     
     signed_in = False if "signed_in" not in st.session_state else True
@@ -71,21 +75,21 @@ class User():
 
         if self.signed_in==False:
             with sign_in_placeholder.container():
-                token = login(name="signin", key="signin")
-                if token:
-                    try:
-                        # Specify the CLIENT_ID of the app that accesses the backend:
-                        idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
-                        # ID token is valid. Get the user's Google Account ID from the decoded token.
-                        userid = idinfo['sub']
-                        #After you have verified the token, check if the user is already in your user database.
-                        #  If so, establish an authenticated session for the user. If the user isn't yet in your user database, create a new user record from the information in the ID token payload, and establish a session for the user. 
-                        # You can prompt the user for any additional profile information you require when you detect a newly created user in your app.
-                        st.session_state["signed_in"]="google"
-                        st.rerun()
-                    except ValueError:
-                        # Invalid token
-                        pass
+                user_info = login(name="signin", key="signin")
+                # if token:
+                #     try:
+                #         # Specify the CLIENT_ID of the app that accesses the backend:
+                #         idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
+                #         # ID token is valid. Get the user's Google Account ID from the decoded token.
+                #         userid = idinfo['sub']
+                #         #After you have verified the token, check if the user is already in your user database.
+                #         #  If so, establish an authenticated session for the user. If the user isn't yet in your user database, create a new user record from the information in the ID token payload, and establish a session for the user. 
+                #         # You can prompt the user for any additional profile information you require when you detect a newly created user in your app.
+                #         st.session_state["signed_in"]="google"
+                #         st.rerun()
+                #     except ValueError:
+                #         # Invalid token
+                #         pass
 
 
             # authorization_url = asyncio.run(

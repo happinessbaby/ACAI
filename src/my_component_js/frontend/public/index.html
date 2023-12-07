@@ -31,7 +31,7 @@
   </div>
   <div id="google" class="g-signin2" data-onsuccess="onSignIn" data-longtitle="true"></div>
   <!-- <a href="#" onclick="signOut();">Sign out</a> -->
-  <div id="token"></div>
+  <input type="hidden" value="" id="token"></div>
     <!-- <script src="lightbox2-plus-jquery.js"></script> -->
     <script>
       // lightbox.option({
@@ -40,19 +40,27 @@
       //   'fitImagesInViewport': false,
       // })
       // $.fancybox.defaults.fullScreen = { autoStart : true };
-      Fancybox.bind('[data-fancybox="gallery"]', {
+      // Fancybox.bind('[data-fancybox="gallery"]', {
         // fullscreen: {
           //   autoStart: true,
         // },
-      });   
+      // });   
       function onSignIn(googleUser) {
         var profile = googleUser.getBasicProfile();
         console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
         console.log('Name: ' + profile.getName());
         console.log('Image URL: ' + profile.getImageUrl());
         console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-        window.id_token = googleUser.getAuthResponse().id_token
-        
+        id_token = googleUser.getAuthResponse().id_token
+        // var xhr = new XMLHttpRequest();
+        // xhr.open('POST', 'https://yourbackend.example.com/tokensignin');
+        // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        // xhr.onload = function() {
+        //   console.log('Signed in as: ' + xhr.responseText);
+        // };
+        // xhr.send('idtoken=' + id_token);
+        document.getElementById("token").value=id_token
+                
       }
       function signOut() {
         var auth2 = gapi.auth2.getAuthInstance();
@@ -60,9 +68,9 @@
           console.log('User signed out.');
         });
       }
-    function onSuccess(googleUser) {
-      console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-    }
+    // function onSuccess(googleUser) {
+    //   console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+    // }
     function onFailure(error) {
       console.log(error);
     }
@@ -73,7 +81,7 @@
         'height': 50,
         'longtitle': true,
         'theme': 'dark',
-        'onsuccess': onSuccess,
+        'onsuccess': onSignIn,
         'onfailure': onFailure
       });
     }
