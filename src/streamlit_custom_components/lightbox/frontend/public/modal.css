@@ -12,9 +12,3 @@
 .active {
     border: 3px dotted brown;
 }
-.g-signin2 {
-    visibility:hidden;
-}
-.token {
-    visibility:hidden;
-}

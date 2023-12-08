@@ -77,6 +77,7 @@ langchain.debug=True
 evaluate_result = False
 # The instruction update process is still being tested for effectiveness
 update_instruction = False
+pickle_conversation = False
 delimiter = "####"
 word_count = 100
 memory_max_token = 500
@@ -110,8 +111,13 @@ class ChatController():
         self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key,  return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
         self._initialize_log()
         self._initialize_chat_agent()
+        # initialize instructor
         if update_instruction:
             self._initialize_meta_agent()
+        # initialize evaluator
+        if (evaluate_result):
+            self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
+
         
 
 
@@ -171,10 +177,6 @@ class ChatController():
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")
-
-        # initialize evaluator
-        if (evaluate_result):
-            self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
 
         # initialize dynamic args for prompt
         self.entities = ""
@@ -495,10 +497,11 @@ class ChatController():
             raise e    
 
         # pickle memory (sanity check)
-        # with open(pickle_path+ userid + '.pickle', 'wb') as handle:
-        #     memory = self.chat_agent.memory.load_memory_variables({})
-        #     pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        #     print(f"Sucessfully pickled conversation: {memory}")
+        if pickle_conversation:
+            with open(pickle_path+ userid + '.pickle', 'wb') as handle:
+                memory = self.chat_agent.memory.load_memory_variables({})
+                pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                print(f"Sucessfully pickled conversation: {memory}")
         return response
     
 

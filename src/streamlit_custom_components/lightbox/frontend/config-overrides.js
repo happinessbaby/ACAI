@@ -15,6 +15,7 @@ module.exports = function override(config, env) {
         net: false,
         dns: false,
         tls: false,
+        fs: false,
     };
     config.plugins.push(
         new webpack.ProvidePlugin({

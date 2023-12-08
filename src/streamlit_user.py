@@ -1,5 +1,5 @@
 import streamlit as st
-from my_component_js import login
+from streamlit_custom_components.login import login
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
