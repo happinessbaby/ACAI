@@ -39,7 +39,7 @@ import base64
 from langchain.tools import tool
 import streamlit.components.v1 as components, html
 from PIL import Image
-from streamlit_custom_components.lightbox import lightbox
+from my_component import my_component
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
@@ -527,7 +527,7 @@ class Chat():
         modal = Modal(key="template_popup", title=f"Pick a template", max_width=1000)
         with modal.container():
             with st.form( key='template_form', clear_on_submit=True):
-                template_idx = lightbox(resume_type, "templates")
+                template_idx = my_component(resume_type, "templates")
                 st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
 
             

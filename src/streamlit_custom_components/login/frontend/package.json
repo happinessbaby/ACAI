@@ -6,12 +6,14 @@
     "@types/jest": "^24.0.0",
     "@types/node": "^12.0.0",
     "assert": "^2.1.0",
+    "axios": "^1.6.2",
     "buffer": "^6.0.3",
+    "cor": "^0.0.0",
     "crypto-browserify": "^3.12.0",
     "dotenv": "^16.3.1",
-    "os": "^0.1.2", 
     "google-auth-library": "^9.4.1",
     "https-browserify": "^1.0.0",
+    "os": "^0.1.2",
     "os-browserify": "^0.3.0",
     "process": "^0.11.10",
     "react-app-rewired": "^2.2.1",
@@ -27,7 +29,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
-},
+  },
   "eslintConfig": {
     "extends": "react-app"
   },

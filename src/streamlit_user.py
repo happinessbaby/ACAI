@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_custom_components.login import login
+from my_component import my_component
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -75,9 +75,13 @@ class User():
 
         if self.signed_in==False:
             with sign_in_placeholder.container():
-                user_info = login(name="signin", key="signin")
+                user_info = my_component(name="signin", key="signin")
+                if user_info:
+                    st.session_state["signed_in"] = "google"
+                    st.rerun()
                 # if token:
                 #     try:
+                #         token = requests.get("http://localhost:8501")
                 #         # Specify the CLIENT_ID of the app that accesses the backend:
                 #         idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
                 #         # ID token is valid. Get the user's Google Account ID from the decoded token.
@@ -125,6 +129,7 @@ class User():
                 sign_up = st.button(label="sign up", key="signup")
                 if sign_up:
                     st.session_state["signed_in"] = "system"
+                    st.rerun()
 
                     # try:
                     #     if authenticator.register_user("Register user", "main", preauthorization=False):
@@ -145,6 +150,7 @@ class User():
         else:
             logout = authenticator.logout('Logout', 'sidebar')
             if logout:
+                logout = my_component("signout", key="signout")
                 del st.session_state.signed_in
                 print("logging out")
             st.title("welcome back!") 

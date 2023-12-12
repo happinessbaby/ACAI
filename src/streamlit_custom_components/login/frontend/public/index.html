@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Streamlit Component</title>
+    <title>Login Component</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
@@ -13,22 +13,15 @@
     <link rel="stylesheet" href="bootstrap.min.css" />
   </head>
   <body>
-  <div id="google" class="g-signin2" data-onsuccess="onSignIn" data-longtitle="true"></div>
-  <a href="#" onclick="signOut();">Sign out</a>
-  <input type="hidden" value="" id="token"></div>
-    <!-- <script src="lightbox2-plus-jquery.js"></script> -->
+    <div id="google" class="g-signin2" data-onsuccess="onSignIn" data-longtitle="true"></div>
+    <!-- <a href="#" onclick="signOut();">Sign out</a> -->
+    <!-- <input type="hidden" value="" id="token"></div> -->
+
     <script>
-      // lightbox.option({
-      //   'resizeDuration': 200,
-      //   'wrapAround': true,
-      //   'fitImagesInViewport': false,
-      // })
-      // $.fancybox.defaults.fullScreen = { autoStart : true };
-      // Fancybox.bind('[data-fancybox="gallery"]', {
-        // fullscreen: {
-          //   autoStart: true,
-        // },
-      // });   
+  
+      var cors = require('cors')
+      app.use(cors()) // Use this after the variable declaration
+      
       function onSignIn(googleUser) {
         var profile = googleUser.getBasicProfile();
         console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
@@ -36,22 +29,25 @@
         console.log('Image URL: ' + profile.getImageUrl());
         console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
         id_token = googleUser.getAuthResponse().id_token
-        // var xhr = new XMLHttpRequest();
-        // xhr.open('POST', 'https://yourbackend.example.com/tokensignin');
-        // xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        // xhr.onload = function() {
-        //   console.log('Signed in as: ' + xhr.responseText);
-        // };
-        // xhr.send('idtoken=' + id_token);
-        document.getElementById("token").value=id_token
-                
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'http://localhost:8501');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+          console.log('Signed in as: ' + xhr.responseText);
+        };
+        xhr.send('idtoken=' + id_token);
+        // document.getElementById("token").value=id_token           
       }
+
+
+
       function signOut() {
         var auth2 = gapi.auth2.getAuthInstance();
         auth2.signOut().then(function () {
           console.log('User signed out.');
         });
       }
+    
     // function onSuccess(googleUser) {
     //   console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
     // }
@@ -71,6 +67,6 @@
     }
     </script>
   <script src="https://apis.google.com/js/platform.js" async defer></script>
-  <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+  <!-- <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script> -->
 </body>
 </html>

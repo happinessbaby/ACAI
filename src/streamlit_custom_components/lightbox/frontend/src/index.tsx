@@ -10,19 +10,6 @@ const imgThumb0 = document.getElementsByTagName("img")[0];
 const imgThumb1 = document.getElementsByTagName("img")[1];
 const imgThumb2 = document.getElementsByTagName("img")[2];
 
- // Get the modal
-// var modal = document.getElementById("myModal")!;
-// const modalImg = modal.appendChild(document.createElement("img"))
-// modalImg.classList.add("modal_content")
-// const modalImg = document.getElementById("img0")!;
-
-// Get the <span> element that closes the modal
-// let close: HTMLElement = document.getElementsByClassName("close")[0] as HTMLElement;
-
-// When the user clicks on <span> (x), close the modal
-// close.onclick = function() {
-//   modal.style.display = "none";
-// }
 
 
 /**
@@ -105,16 +92,7 @@ function onRender(event: Event): void {
     // this.alt = temp;
       }
     }
-  // Show "Hello, name!" with a non-breaking space afterwards.
-  // textNode.textContent = `Hello, ${img0}! ` + String.fromCharCode(160)
-  // imgNode.setAttribute( 'src', `${img0}` );
 
-  // imgNode.onclick = function(): void {
-  //   modal.style.display = "block";
-  //   modalImg.src = `${img0}`;
-  //   // captionText.innerHTML = this.alt;
-  //   Streamlit.setComponentValue(`${img0}`);
-  // }
 
 
     // We tell Streamlit to update our frameHeight after each render event, in
