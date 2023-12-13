@@ -48,6 +48,8 @@ import threading
 import queue
 import boto3
 import yaml
+import decimal
+import time
 
 
 
@@ -67,6 +69,11 @@ try:
     user_status="User"
 except Exception:
     user_status="Sign in"
+
+session = boto3.Session(         
+                aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+            )
 
 
 
@@ -92,45 +99,52 @@ class Chat():
     ctx = get_script_run_ctx()
 
     def __init__(self):
+
         self._create_chatbot()
 
+    def _load_past_sessions(self):
+        if user_status=="User":
+            #need to load past session and show on sidebar
+            db_client = session.client('dynamodb')
+            if "db_client" not in st.session_state:
+                st.session_state["db_client"] = db_client
+            # need to save current session
+        
 
 
     # @st.cache_resource()
-    def _init_paths(_self, userid):
+    def _init_paths(_self, sessionId):
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         if STORAGE == "LOCAL":
-            st.session_state.client=None
+            st.session_state.s3_client=None
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["SAVE_PATH"]
             if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
             try: 
-                temp_dir = os.path.join(st.session_state.temp_path, userid)
+                temp_dir = os.path.join(st.session_state.temp_path, sessionId)
                 os.mkdir(temp_dir)
-                user_dir = os.path.join(st.session_state.save_path, userid)
+                user_dir = os.path.join(st.session_state.save_path, sessionId)
                 os.mkdir(user_dir)
                 download_dir = os.path.join(user_dir, "downloads")
                 os.mkdir(download_dir)
+                chat_dir = os.path.join(user_dir, "chat")
+                os.mkdir(chat_dir)
             except FileExistsError:
                 pass
         elif STORAGE=="S3":
-            session = boto3.Session(         
-                aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-            )
-            client = session.client('s3')
-            if "client" not in st.session_state:
-                st.session_state["client"] = client
+            if "s3_client" not in st.session_state:
+                st.session_state["s3_client"] = session.client('s3')
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
             if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
             try:
-                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, userid))
-                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid))
-                client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, userid, "downloads"))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId, "downloads"))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId, "chat"))
             except Exception as e:
                 raise e
 
@@ -159,21 +173,25 @@ class Chat():
         # st.markdown(textinput_styl, unsafe_allow_html=True)
         st.markdown(selectbox_styl, unsafe_allow_html=True)
 
+        if user_status=="User":
+            if "db_client" not in st.session_state:
+                st.session_state["db_client"] = session.client('dynamodb')
+
         # with placeholder.container():
         
-        if "userid" not in st.session_state:
+        if "sessionId" not in st.session_state:
             st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
-            st.session_state["userid"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.userid}")
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
             # super().__init__(st.session_state.userid)
         if "paths" not in st.session_state:
-            self._init_paths(st.session_state.userid)
+            self._init_paths(st.session_state.sessionId)
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
             # st.write(tip)
         if "basechat" not in st.session_state:
-            new_chat = ChatController(st.session_state.userid)
+            new_chat = ChatController(st.session_state.sessionId)
             st.session_state["basechat"] = new_chat 
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
@@ -253,11 +271,14 @@ class Chat():
                 else:
                     st.write("AI generated files will be shown here")
 
-            add_vertical_space(3)
-
-            if user_status=="User":
-                st.write("USER LOGGED IN")
-                #TODO: add past session conversation here
+            with st.expander("Past sessions"):
+                if user_status=="User":
+                    if "past_sessions" not in st.session_state:
+                        st.session_state["past_sessions"] = self.retrieve_sessions()
+                    for session_id in st.session_state.past_sessions:
+                        st.button("some text", on_click=self.load_session, args=[session_id])
+                else:
+                    st.write("Please sign in or sign up to see past sessions")
 
             st.markdown('''
                                                 
@@ -334,13 +355,16 @@ class Chat():
         # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
 
         # Display conversation history
+        if "conversation_placeholder" not in st.session_state:
+            st.session_state["conversation_placeholder"]=st.empty()
         if st.session_state['responses']:
-            for i in range(len(st.session_state['responses'])):
-                try:
-                    st.chat_message("human").write(st.session_state['questions'][i])
-                    st.chat_message("ai").write(st.session_state['responses'][i])
-                except Exception:
-                    pass  
+            self.display_conversation( st.session_state['questions'],st.session_state['responses'] )
+            # for i in range(len(st.session_state['responses'])):
+            #     try:
+            #         st.chat_message("human").write(st.session_state['questions'][i])
+            #         st.chat_message("ai").write(st.session_state['responses'][i])
+            #     except Exception:
+            #         pass  
         # Chat input
         chat_input = st.chat_input(placeholder="Chat with me:",
                                     key="input",)
@@ -364,7 +388,7 @@ class Chat():
             # Note: new messages are saved to history automatically by Langchain during run
             # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
             # question = self.process_user_input(prompt)
-            response = self.new_chat.askAI(st.session_state.userid, prompt,)
+            response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
             if response == "functional" or response == "chronological" or response == "student":
                 self.resume_template_popup(response)
             else:
@@ -476,6 +500,15 @@ class Chat():
     #                         )
     #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
+    def display_conversation(self, human, ai):
+
+        with st.session_state.conversation_placeholder.container():
+            for i in range(len(ai)):
+                try:
+                    st.chat_message("human").write(human[i])
+                    st.chat_message("ai").write(ai[i])
+                except Exception:
+                    pass  
 
 
  
@@ -543,7 +576,7 @@ class Chat():
         print(f"TEMPLATE IDX:{template_idx}")
         resume_template_file = os.path.join(st.session_state.template_path,resume_type, f"{resume_type}{template_idx}.docx")
         question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
-        response = self.new_chat.askAI(st.session_state.userid, question, callbacks=None)
+        response = self.new_chat.askAI(st.session_state.sessionId, question, callbacks=None,)
         return st.session_state.responses.append(response)
         # self.question_callback(self.callback_done, append_question=False)
 
@@ -618,16 +651,16 @@ class Chat():
             for uploaded_file in uploaded_files:
                 file_ext = Path(uploaded_file.name).suffix
                 filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.userid, filename)
-                end_path =  os.path.join(st.session_state.save_path, st.session_state.userid, Path(filename).stem+'.txt')
+                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
+                end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, Path(filename).stem+'.txt')
                 if STORAGE=="LOCAL":
                     with open(tmp_save_path, 'wb') as f:
                         f.write(uploaded_file.getvalue())
                 elif STORAGE=="S3":
-                    st.session_state.client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
+                    st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
                 # Convert file to txt and save it 
-                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client) 
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client)
+                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client) 
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
                 print(content_type, content_safe) 
                 if content_safe and content_type!="empty":
                     self.update_entities(content_type, end_path)
@@ -644,10 +677,10 @@ class Chat():
         """ Processes user shared links including converting all format to txt, checking content safety, and categorizing content type """
         # with st.session_state.link_loading, st.spinner("Processing..."):
         with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-            end_path = os.path.join(st.session_state.save_path, st.session_state.userid, str(uuid.uuid4())+".txt")
+            end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, str(uuid.uuid4())+".txt")
             links = re.findall(r'(https?://\S+)', links)
-            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client):
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.client)
+            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client):
+                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
                 print(content_type, content_safe) 
                 if (content_safe and content_type!="empty" and content_type!="browser error"):
                     self.update_entities(content_type, end_path)
@@ -675,7 +708,7 @@ class Chat():
             elif content_type=="resume":
                 delimiter = "$$$"    
             if content_type=="job posting":
-                content = read_txt(end_path, storage=STORAGE, bucket_name=bucket_name,s3=st.session_state.client)
+                content = read_txt(end_path, storage=STORAGE, bucket_name=bucket_name,s3=st.session_state.s3_client)
                 token_count = num_tokens_from_text(content)
                 if token_count>max_token_count:
                     shorten_content(end_path, content_type) 
@@ -693,7 +726,7 @@ class Chat():
 
         vs_name = "user_material"
         vs = merge_faiss_vectorstore(vs_name, end_path)
-        vs_path =  os.path.join(st.session_state.save_path, st.session_state.userid, vs_name)
+        vs_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, vs_name)
         #TODO: SAVE TO DYNAMODB BACKED FAISS RETRIEVAL VS
         vs.save_local(vs_path)
         entity = f"""user_material_path: {vs_path} /n ###"""
@@ -703,21 +736,94 @@ class Chat():
     def binary_file_downloader_html(self, file: str):
 
         """ Gets the download link for generated file. """
+
         if STORAGE=="LOCAL":
             with open(file, 'rb') as f:
                 data = f.read() 
         elif STORAGE=="S3":
-            object = st.session_state.client.get_object(Bucket=bucket_name, Key=file)
+            object = st.session_state.s3_client.get_object(Bucket=bucket_name, Key=file)
             data = object['Body'].read()
         bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     
+    def save_session(self):
+
+        """ Saves chat session. """
+
+        chat_file =  os.path.join(st.session_state.save_path, "chat", st.session_state.sessionId, ".pickle")
+        with open(chat_file) as fs:
+            data = pickle.load(fs)
+        json_obj = json.dumps(data, parse_float = decimal.Decimal)
+        for conversation in json_obj:
+            #convert conversation to readable json
+            chat = ""
+            print(chat)      
+        downloads = self.check_user_downloads()
+        user = st.session_state.db_client.get_item(
+            TableName='ChatSession',
+            Key={
+                'name': {'userId': st.session_state.userId},
+            }
+        )
+        if 'Item' in user:
+            # append session info
+            info = [{"sessionId": st.session_state.sessionId, time:time(), "chat":chat, "downloads":True if downloads else False}]
+            st.session_state.db_client.update_item(
+                Key={"userId": st.session_state.userId},
+                UpdateExpression="set #info = list_append(info, :n)",
+                ExpressionAttributeValues={
+                    ":n": info,
+                },
+                ReturnValues="UPDATED_NEW",
+                TableName = "ChatSession"
+            )
+        else:
+            # put new user into table
+            st.session_state.db_client.put_item(
+                Item={
+                    'userId': st.session_state.userId,
+                    'info': 
+                        [{
+                            'sessionId': st.session_state.sessionId,
+                            'time': time(),
+                            'chat': chat,
+                            'downloads': True if downloads else False,
+                        }],
+                },
+                TableName="ChatSession",
+            )
+
+    def retrieve_sessions(self): 
+
+        """ Returns a list of session ids associated with user"""
+
+        user = st.session_state.db_client.get_item(
+            TableName='ChatSession',
+            Key={
+                'name': {'userId': st.session_state.userId},
+            }
+        )
+        if 'Item' in user:
+            
+            return []
+        
+    def load_session(self, sessionId):
+
+        """ Loads a session from session id"""
+
+        human = ["hi"]
+        ai = ["how can I help you"]
+        self.display_conversation(human, ai)
+
+
+
+        
     def check_user_downloads(self):
 
         """ Check generated files in download folder and returns a list of file names. """
 
-        download_dir = os.path.join(st.session_state.save_path, st.session_state.userid, "downloads")
+        download_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads")
         generated_files = []
         if STORAGE=="LOCAL":
             try:
@@ -729,7 +835,7 @@ class Chat():
                 pass
         elif STORAGE=="S3":
             try:
-                response = st.session_state.client.list_objects(Bucket=bucket_name, Prefix=download_dir)
+                response = st.session_state.s3_client.list_objects(Bucket=bucket_name, Prefix=download_dir)
                 for content in response.get('Contents', []):
                     file=content.get['Key']
                     if Path(file).suffix==".docx":

@@ -7,9 +7,10 @@ import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-CLIENT_ID = os.environ['GOOGLE_DEFAULT_CLIENT_ID'].split(".")[0]
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
 sign_in_placeholder=st.empty()
-
+login_file = os.environ["LOGIN_FILE"]
 
 
 
@@ -69,7 +70,7 @@ class User():
 
 # if "signed_in" not in st.session_state:
 #     st.session_state["signed_in"]=False
-        with open('./user_login.yaml') as file:
+        with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
 

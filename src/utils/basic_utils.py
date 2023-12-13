@@ -27,6 +27,8 @@ import os
 import signal
 import functools
 import codecs
+import json
+import decimal
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -370,6 +372,15 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
         return wrapper
 
     return decorator
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            if abs(o) % 1 > 0:
+                return float(o)
+            else:
+                return int(o)
+        return super(DecimalEncoder, self).default(o)
 
 if __name__=="__main__":
     # retrieve_web_content(

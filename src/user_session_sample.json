@@ -1,0 +1,30 @@
+[
+    {
+    "userId": "abc",
+     "info": [{
+        "sessionId": "irfha;ofija;f",
+        "time": "2023-12-12-16:09",
+        "chat": [
+            {"Human": [],
+            "AI": []
+        }
+        ],
+        "downloads" : true
+        },
+        {
+        "sessionId": "ino[ojkwqeqw",
+        "time": "2023-12-13-11:33",
+        "chat": [
+            {"Human": [],
+            "AI": []
+        }
+        ],
+        "downloads" : false
+
+        }
+    ] 
+    },
+    {
+        
+    }
+]

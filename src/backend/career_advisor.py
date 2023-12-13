@@ -68,9 +68,8 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
-pickle_path = os.environ["PICKLE_PATH"]
+save_path = os.environ["SAVE_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
-STORAGE = os.environ["STORAGE"]
 # debugging langchain: very useful
 langchain.debug=True 
 # The result evaluation process slows down chat by a lot, unless necessary, set to false
@@ -435,7 +434,7 @@ class ChatController():
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
     @retry(wait=wait_fixed(5))
-    def askAI(self, userid:str, user_input:str, callbacks=None,) -> str:
+    def askAI(self, userid:str, user_input:str, callbacks=None) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
@@ -496,12 +495,12 @@ class ChatController():
             # self.askAI(userid, user_input, callbacks)    
             raise e    
 
-        # pickle memory (sanity check)
-        if pickle_conversation:
-            with open(pickle_path+ userid + '.pickle', 'wb') as handle:
-                memory = self.chat_agent.memory.load_memory_variables({})
-                pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                print(f"Sucessfully pickled conversation: {memory}")
+        # pickle conversation
+        memory = self.chat_agent.memory.load_memory_variables({})
+        pickle_path = os.path.join(save_path, userid, "chat", f"{userid}.pickle")
+        with open(pickle_path, 'wb') as handle:
+            pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print(f"Sucessfully pickled conversation: {memory}")
         return response
     
 
