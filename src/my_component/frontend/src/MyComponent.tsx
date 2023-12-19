@@ -3,27 +3,91 @@ import {
   StreamlitComponentBase,
   withStreamlitConnection,
 } from "streamlit-component-lib"
-import React, { ReactNode } from "react"
+import React, { PropsWithChildren, ReactNode } from "react"
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { GoogleLogin } from '@react-oauth/google';
 import Gallery from 'react-photo-gallery'
 import axios from 'axios';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import ReactFancyBox from 'react-fancybox'
 import 'react-fancybox/lib/fancybox.css'
 import Fancybox from './Fancybox'
-import Carousel, { Modal, ModalGateway } from 'react-images'
-import {functional_templates} from "./functional_templates" ;
+import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
+import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
+import DisplaySession from "./DisplaySession";
+import About from "./About";
 
 interface State {
   // numClicks: number
   // isFocused: boolean
-  modalIsOpen: boolean
-  imgSelected: number
+  // modalIsOpen: boolean
+  // imgSelected: number
 }
 
+interface LightboxProps {
+  thumbnails?: any
+  templates: ViewType[]
+  
+}
+
+interface SessionProps {
+  
+  datetimes: string
+}
+
+
+
+function Templates(props: LightboxProps) {
+    const [currentImage, setCurrentImage] = useState(0);
+    const [viewIsOpen, setViewerIsOpen] = useState(false);
+    const openLightbox = useCallback((event, { photo, index }) => {
+      setCurrentImage(index);
+      setViewerIsOpen(true);
+      Streamlit.setComponentValue(index);
+    }, []);
+    
+    const closeLightbox = () => {
+      setCurrentImage(0);
+      setViewerIsOpen(false);
+    };
+    // const handleSubmit = () => {
+    //   Streamlit.setComponentValue(currentImage);
+    // };
+    
+    return (
+      <base target="_parent">
+        <Gallery photos={props.thumbnails} onClick={openLightbox}/>
+        <ModalGateway>
+          {viewIsOpen ? (
+            <Modal onClose={closeLightbox}>
+              <Carousel
+                currentIndex={currentImage}
+                views = {props.templates}
+                // views={functional_templates.map(x => ({
+                //   ...x,
+                //   srcset: x.srcSet,
+                //   caption: x.title
+                // }))}
+              />
+            </Modal>
+          ) : null}
+        </ModalGateway>
+        </base>
+    );
+
+}
+
+function Sessions(props: SessionProps) {
+  const onSelection = (args:number) => {
+    console.log(args)
+    Streamlit.setComponentValue(args);
+  }
+  const datetimes = props.datetimes.split(",")
+  const [pastSessions] = useState(datetimes)
+  return < DisplaySession msgs={pastSessions} onSelection={onSelection}/>
+}
 
 
 
@@ -36,7 +100,7 @@ const mappingFunction = (img:any, index:any) => ({index, src: img.source, sizes:
 
 class MyComponent extends StreamlitComponentBase<State> {
   // public state = { numClicks: 0, isFocused: false }
-  public state= {imgSelected:0, modalIsOpen:false}
+  // public state= {imgSelected:0, modalIsOpen:false, datetimes:""}
 
   // closeLightbox = () => {
   //   this.setState(img_state => ({ modalIsOpen: !img_state.modalIsOpen}))
@@ -62,30 +126,37 @@ class MyComponent extends StreamlitComponentBase<State> {
     const name = this.props.args["name"];
     // const closeLightbox = this.closeLightbox
     // const openLightbox =this.openLightbox
+
     if (name=="functional") { 
-      const photosForGallery = functional_templates.map(mappingFunction)
-        return (
-          <div>
-            <Gallery photos={photosForGallery} onClick={(e, { index }) => this.setState({ imgSelected: index, modalIsOpen: true },   () => Streamlit.setComponentValue(index))} 
-   />
-            <ModalGateway>
-              {this.state.modalIsOpen ? (
-                <Modal onClose={() => {
-                  this.setState(img_state => ({ modalIsOpen: !img_state.modalIsOpen}))}}>
-                  <Carousel
-                    currentIndex={this.state.imgSelected}
-                    views = {functional_templates}
-                    // views={functional_templates.map(x => ({
-                    //   ...x,
-                    //   srcset: x.srcSet,
-                    //   caption: x.title
-                    // }))}
-                  />
-                </Modal>
-              ) : null}
-            </ModalGateway>
-          </div>
-        );
+      const funcThumbnails = functionalTemplates.map(mappingFunction);
+      return (<Templates thumbnails={funcThumbnails} templates={functionalTemplates}/>)
+    }
+    else if (name=="chronological") {
+      const chronoThumbnails = chronologicalTemplates.map(mappingFunction);
+      return (<Templates thumbnails={chronoThumbnails} templates={chronologicalTemplates}/>)
+    }
+  //       return (
+  //         <div>
+  //           <Gallery photos={photosForGallery} onClick={(e, { index }) => this.setState({ imgSelected: index, modalIsOpen: true },   () => Streamlit.setComponentValue(index))} 
+  //  />
+  //           <ModalGateway>
+  //             {this.state.modalIsOpen ? (
+  //               <Modal onClose={() => {
+  //                 this.setState(img_state => ({ modalIsOpen: !img_state.modalIsOpen}))}}>
+  //                 <Carousel
+  //                   currentIndex={this.state.imgSelected}
+  //                   views = {functional_templates}
+  //                   // views={functional_templates.map(x => ({
+  //                   //   ...x,
+  //                   //   srcset: x.srcSet,
+  //                   //   caption: x.title
+  //                   // }))}
+  //                 />
+  //               </Modal>
+  //             ) : null}
+  //           </ModalGateway>
+  //         </div>
+  //       );
 
       
       // return <Gallery
@@ -132,7 +203,6 @@ class MyComponent extends StreamlitComponentBase<State> {
       //   </div>
       // );
 
-    }
     else if (name=="signin") {
 
 
@@ -218,11 +288,16 @@ class MyComponent extends StreamlitComponentBase<State> {
     else if (name =="signout") {
       googleLogout();
     }
+    else if (name=="about") {
+      return (<About />)
+    }
+    else {
+      return (< Sessions datetimes={name} />)
+    }
 
 
 
-
-    // Show a button and some text.
+      // Show a button andsome text.
     // When the button is clicked, we'll increment our "numClicks" state
     // variable, and send its new value back to Streamlit, where it'll
     // be available to the Python program.

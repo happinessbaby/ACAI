@@ -26,7 +26,7 @@ from multiprocessing import Process, Queue, Value
 import pickle
 import requests
 from functools import lru_cache
-from typing import Any
+from typing import Any, List, Union
 import multiprocessing as mp
 from utils.langchain_utils import merge_faiss_vectorstore, create_tag_chain
 import openai
@@ -34,6 +34,7 @@ import json
 from st_pages import show_pages_from_config, add_page_title, show_pages, Page
 from st_clickable_images import clickable_images
 from st_click_detector import click_detector
+from streamlit_extras.switch_page_button import switch_page
 from streamlit_modal import Modal
 import base64
 from langchain.tools import tool
@@ -64,11 +65,14 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # Specify what pages should be shown in the sidebar, and what their titles and icons
 # should be
 
-try:
-    st.session_state["signed_in"]
-    user_status="User"
-except Exception:
-    user_status="Sign in"
+# try:
+#     st.session_state["signed_in"]
+#     user_status="User"
+# except Exception:
+#     user_status="Sign in"
+
+user_status="User"
+st.session_state.userId="test123"
 
 session = boto3.Session(         
                 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
@@ -80,6 +84,7 @@ session = boto3.Session(
 show_pages(
     [
         # Page("streamlit_about.py", "About"),
+        Page("streamlit_about.py", "About"),
         Page("streamlit_user.py", f"{user_status}"),
         Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
@@ -89,6 +94,7 @@ show_pages(
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']
+table_name = os.environ["TABLE_NAME"]
 openai.api_key = os.environ['OPENAI_API_KEY']
 max_token_count = os.environ['MAX_TOKEN_COUNT']
 topic = "jobs"
@@ -102,30 +108,36 @@ class Chat():
 
         self._create_chatbot()
 
-    def _load_past_sessions(self):
+    # @st.cache_resource()  
+    def _init_connections(_self):
+
         if user_status=="User":
-            #need to load past session and show on sidebar
-            db_client = session.client('dynamodb')
             if "db_client" not in st.session_state:
-                st.session_state["db_client"] = db_client
-            # need to save current session
+                st.session_state["db_client"] = session.client('dynamodb', region_name='us-west-2')
+            if "dnm_table" not in st.session_state:
+                dynamodb = session.resource('dynamodb', region_name='us-west-2') 
+                st.session_state["dnm_table"] = dynamodb.Table(table_name)
+        if STORAGE=="LOCAL":
+            st.session_state.s3_client=None
+        elif STORAGE=="S3":
+            if "s3_client" not in st.session_state:
+                st.session_state["s3_client"] = session.client('s3')
         
-
-
+    ## NOTE: when user refreshes page, all cached resources are gone 
     # @st.cache_resource()
-    def _init_paths(_self, sessionId):
+    def _init_paths(_self):
+
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         if STORAGE == "LOCAL":
-            st.session_state.s3_client=None
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["SAVE_PATH"]
             if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
             try: 
-                temp_dir = os.path.join(st.session_state.temp_path, sessionId)
+                temp_dir = os.path.join(st.session_state.temp_path, st.session_state.sessionId)
                 os.mkdir(temp_dir)
-                user_dir = os.path.join(st.session_state.save_path, sessionId)
+                user_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId)
                 os.mkdir(user_dir)
                 download_dir = os.path.join(user_dir, "downloads")
                 os.mkdir(download_dir)
@@ -134,17 +146,16 @@ class Chat():
             except FileExistsError:
                 pass
         elif STORAGE=="S3":
-            if "s3_client" not in st.session_state:
-                st.session_state["s3_client"] = session.client('s3')
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
             if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
             try:
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId, "downloads"))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, sessionId, "chat"))
+                # create "directories" in S3 bucket
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat"))
             except Exception as e:
                 raise e
 
@@ -173,9 +184,6 @@ class Chat():
         # st.markdown(textinput_styl, unsafe_allow_html=True)
         st.markdown(selectbox_styl, unsafe_allow_html=True)
 
-        if user_status=="User":
-            if "db_client" not in st.session_state:
-                st.session_state["db_client"] = session.client('dynamodb')
 
         # with placeholder.container():
         
@@ -184,8 +192,10 @@ class Chat():
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
             # super().__init__(st.session_state.userid)
-        if "paths" not in st.session_state:
-            self._init_paths(st.session_state.sessionId)
+        if "resources" not in st.session_state:
+            self._init_connections()
+            self._init_paths()
+            st.session_state["resources"] = True
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
@@ -209,6 +219,9 @@ class Chat():
         ## hacky way to clear uploaded files once submitted
         if "file_counter" not in st.session_state:
             st.session_state["file_counter"] = 0
+        # Display conversation history
+        if "conversation_placeholder" not in st.session_state:
+            st.session_state["conversation_placeholder"]=st.empty()
             
         try:
             self.new_chat = st.session_state.basechat
@@ -264,21 +277,19 @@ class Chat():
                                 on_change=self.form_callback)
                   
             with st.expander("Download your files"):
-                files = self.check_user_downloads()
-                if files:
-                    for file in files:
-                        st.markdown(self.binary_file_downloader_html(file), unsafe_allow_html=True)
-                else:
-                    st.write("AI generated files will be shown here")
+                if "download_placeholder" not in st.session_state:
+                    st.session_state["download_placeholder"]=st.empty()
+      
 
             with st.expander("Past sessions"):
-                if user_status=="User":
-                    if "past_sessions" not in st.session_state:
-                        st.session_state["past_sessions"] = self.retrieve_sessions()
-                    for session_id in st.session_state.past_sessions:
-                        st.button("some text", on_click=self.load_session, args=[session_id])
-                else:
-                    st.write("Please sign in or sign up to see past sessions")
+                if "past_placeholder" not in st.session_state:
+                    st.session_state["past_placeholder"]=st.empty()
+
+            test = st.button("save session")
+            if test:
+                session_id = my_component("12-15, 12-17, 12-18", key=f"session_0")
+                print(f"SESSION CLICKED IS: {session_id}")
+                
 
             st.markdown('''
                                                 
@@ -353,12 +364,9 @@ class Chat():
         #             )
 
         # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
-
-        # Display conversation history
-        if "conversation_placeholder" not in st.session_state:
-            st.session_state["conversation_placeholder"]=st.empty()
-        if st.session_state['responses']:
-            self.display_conversation( st.session_state['questions'],st.session_state['responses'] )
+        self.display_past_sessions()
+        self.display_conversation()
+        self.display_downloads()      
             # for i in range(len(st.session_state['responses'])):
             #     try:
             #         st.chat_message("human").write(st.session_state['questions'][i])
@@ -500,15 +508,63 @@ class Chat():
     #                         )
     #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
-    def display_conversation(self, human, ai):
+    def display_conversation(self):
+
+        """ Displays a conversation on main screen. """
 
         with st.session_state.conversation_placeholder.container():
-            for i in range(len(ai)):
-                try:
-                    st.chat_message("human").write(human[i])
-                    st.chat_message("ai").write(ai[i])
-                except Exception:
-                    pass  
+            if st.session_state["current_session"] == st.session_state["sessionId"]:
+                ai = st.session_state["responses"]
+                human =  st.session_state["questions"]
+            else:
+                ai = st.session_state["past_responses"]
+                human = st.session_state["past_questions"]
+            if human:
+                for i in range(len(ai)):
+                    try:
+                        st.chat_message("human").write(human[i])
+                        st.chat_message("ai").write(ai[i])
+                    except Exception:
+                        pass  
+        
+    def display_downloads(self):
+
+        """ Displays AI generated files in sidebar downloads tab, if available, given the current session. """
+        
+        files = self.check_user_downloads(st.session_state["current_session"])
+        with st.session_state.download_placeholder.container():
+            if files:
+                for file in files:
+                    st.markdown(self.binary_file_downloader_html(file), unsafe_allow_html=True)
+            else:
+                st.write("AI generated files will be shown here")
+
+    def display_past_sessions(self):
+
+        """ Displays past sessions in sidebar tab. """
+
+        with st.session_state.past_placeholder.container():
+            if user_status=="User":
+                if "past_human_sessions" not in st.session_state:
+                    human, ai, times = self.retrieve_sessions()
+                    st.session_state["past_human_sessions"] = human
+                    st.session_state["past_ai_sessions"] = ai
+                    session_displays = times
+                if st.session_state.past_human_sessions is not None:
+                    selected_idx = my_component(session_displays, key=f"session")
+                    st.session_state["current_session"]= session_displays[selected_idx]
+                    st.session_state["past_responses"] = st.session_state.past_ai_sessions[selected_idx]
+                    st.session_state["past_questions"] = st.session_state.past_human_sessions[selected_idx]
+                            # self.save_current_session()
+                else:
+                    st.write("No past sessions")
+                    st.session_state["current_session"]=st.session_state.sessionId
+            else:
+                st.session_state["current_session"]=st.session_state.sessionId
+                st.write("Please sign in or sign up to see past sessions")
+
+
+
 
 
  
@@ -747,28 +803,22 @@ class Chat():
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     
-    def save_session(self):
+    def save_current_session(self):
 
         """ Saves chat session. """
-
-        chat_file =  os.path.join(st.session_state.save_path, "chat", st.session_state.sessionId, ".pickle")
-        with open(chat_file) as fs:
-            data = pickle.load(fs)
-        json_obj = json.dumps(data, parse_float = decimal.Decimal)
-        for conversation in json_obj:
-            #convert conversation to readable json
-            chat = ""
-            print(chat)      
-        downloads = self.check_user_downloads()
-        user = st.session_state.db_client.get_item(
-            TableName='ChatSession',
-            Key={
-                'name': {'userId': st.session_state.userId},
-            }
-        )
-        if 'Item' in user:
+  
+        chat = self.new_chat.conversation
+        downloads = self.check_user_downloads(st.session_state.sessionId)
+        # user = st.session_state.db_client.get_item(
+        #     TableName='ChatSession',
+        #     Key={   
+        #         'name': {'userId': st.session_state.userId},
+        #     }
+        # )
+        # if 'Item' in user:
+        try:
             # append session info
-            info = [{"sessionId": st.session_state.sessionId, time:time(), "chat":chat, "downloads":True if downloads else False}]
+            info = [{"sessionId": {'S': st.session_state.sessionId}, "human":chat["human"], "ai":chat["ai"]}]
             st.session_state.db_client.update_item(
                 Key={"userId": st.session_state.userId},
                 UpdateExpression="set #info = list_append(info, :n)",
@@ -778,52 +828,80 @@ class Chat():
                 ReturnValues="UPDATED_NEW",
                 TableName = "ChatSession"
             )
-        else:
+        # else:
+        except Exception:
             # put new user into table
-            st.session_state.db_client.put_item(
-                Item={
-                    'userId': st.session_state.userId,
-                    'info': 
-                        [{
-                            'sessionId': st.session_state.sessionId,
-                            'time': time(),
-                            'chat': chat,
-                            'downloads': True if downloads else False,
-                        }],
+            with st.session_state.dnm_table.batch_writer() as batch:
+                for i in range(len(chat["human"])):
+                    batch.put_item(
+                        Item={
+                            'userId': 
+                            {"S": st.session_state.userId},
+                            'info': 
+                            {"L":
+                                [{
+                                    'sessionId':
+                                    {"S":st.session_state.sessionId},
+                                    'human': {"L": [{"S": chat["human"][i]}]},
+                                    'ai': {"L": [{"S": chat["ai"][i]}]},
+                                }],
+                            }
+                        },
+                    )
+
+    def retrieve_sessions(self, sessionId=None) -> Union[List[str], List[str], List[str]]: 
+
+        """ Returns past chat sessions associated with user"""
+
+        try:
+            human = st.session_state.db_client.query(
+               ExpressionAttributeValues={
+                ':v1': {
+                    'S': st.session_state.userId,
                 },
-                TableName="ChatSession",
+            },
+            KeyConditionExpression='userId = :v1',
+            ProjectionExpression='human',
+            TableName='chatSession',
             )
+        except Exception as e:
+            human = None
+        try:
+            ai = st.session_state.db_client.query(
+               ExpressionAttributeValues={
+                ':v1': {
+                    'S': st.session_state.userId,
+                },
+            },
+            KeyConditionExpression='userId = :v1',
+            ProjectionExpression='ai',
+            TableName='chatSession',
+            )
+        except Exception as e:
+            ai = None
+        try:
+            times = st.session_state.db_client.query(
+               ExpressionAttributeValues={
+                ':v1': {
+                    'S': st.session_state.userId,
+                },
+            },
+            KeyConditionExpression='userId = :v1',
+            ProjectionExpression='sessionId',
+            TableName='chatSession',
+            )
+        except Exception as e:
+            times = None
+        return human, ai, times
 
-    def retrieve_sessions(self): 
-
-        """ Returns a list of session ids associated with user"""
-
-        user = st.session_state.db_client.get_item(
-            TableName='ChatSession',
-            Key={
-                'name': {'userId': st.session_state.userId},
-            }
-        )
-        if 'Item' in user:
-            
-            return []
-        
-    def load_session(self, sessionId):
-
-        """ Loads a session from session id"""
-
-        human = ["hi"]
-        ai = ["how can I help you"]
-        self.display_conversation(human, ai)
 
 
-
-        
-    def check_user_downloads(self):
+    # @st.cache_resource()
+    def check_user_downloads(self, sessionId):
 
         """ Check generated files in download folder and returns a list of file names. """
 
-        download_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads")
+        download_dir = os.path.join(st.session_state.save_path, sessionId, "downloads")
         generated_files = []
         if STORAGE=="LOCAL":
             try:
@@ -842,6 +920,26 @@ class Chat():
                         generated_files.append(file)
             except Exception:
                 pass
+        # if not generated_files:
+        #     # retrieve session downloads
+        #     try: 
+        #         response1 = st.session_state.db_client.query(
+        #         ExpressionAttributeValues={
+        #             ':v1': {
+        #                 'S': st.session_state.userId,
+        #             },
+        #             ':v2': {
+        #                 'S': sessionId,
+        #             }
+        #         },
+        #         KeyConditionExpression='userId = :v1 & sessionId =  :v2',
+        #         ProjectionExpression='downloads',
+        #         TableName='chatSession',
+        #         )
+        #         generated_files = response1["Items"]
+        #     except Exception as e:
+        #         raise e
+
         return generated_files
 
     

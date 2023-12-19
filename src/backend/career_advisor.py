@@ -117,6 +117,8 @@ class ChatController():
         if (evaluate_result):
             self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
 
+        self.conversation = {"human": [], "ai": []}
+
         
 
 
@@ -495,12 +497,14 @@ class ChatController():
             # self.askAI(userid, user_input, callbacks)    
             raise e    
 
+        self.conversation["human"].append(user_input)
+        self.conversation["ai"].append(response)
         # pickle conversation
-        memory = self.chat_agent.memory.load_memory_variables({})
-        pickle_path = os.path.join(save_path, userid, "chat", f"{userid}.pickle")
-        with open(pickle_path, 'wb') as handle:
-            pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print(f"Sucessfully pickled conversation: {memory}")
+        # memory = self.chat_agent.memory.load_memory_variables({})
+        # pickle_path = os.path.join(save_path, userid, "chat", f"{userid}.pickle")
+        # with open(pickle_path, 'wb') as handle:
+        #     pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        #     print(f"Sucessfully pickled conversation: {memory}")
         return response
     
 
