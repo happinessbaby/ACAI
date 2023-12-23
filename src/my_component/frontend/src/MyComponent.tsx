@@ -17,7 +17,10 @@ import Fancybox from './Fancybox'
 import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
-import About from "./About";
+import About from "./About"
+import Welcome from "./Welcome"
+import GoogleSignin from "./GoogleSignin";
+import DisplayTemplate from "./DisplayTemplate"
 
 interface State {
   // numClicks: number
@@ -32,51 +35,17 @@ interface LightboxProps {
   
 }
 
-interface SessionProps {
-  
+interface SessionProps {  
   datetimes: string
 }
 
 
 
 function Templates(props: LightboxProps) {
-    const [currentImage, setCurrentImage] = useState(0);
-    const [viewIsOpen, setViewerIsOpen] = useState(false);
-    const openLightbox = useCallback((event, { photo, index }) => {
-      setCurrentImage(index);
-      setViewerIsOpen(true);
-      Streamlit.setComponentValue(index);
-    }, []);
-    
-    const closeLightbox = () => {
-      setCurrentImage(0);
-      setViewerIsOpen(false);
-    };
-    // const handleSubmit = () => {
-    //   Streamlit.setComponentValue(currentImage);
-    // };
-    
-    return (
-      <base target="_parent">
-        <Gallery photos={props.thumbnails} onClick={openLightbox}/>
-        <ModalGateway>
-          {viewIsOpen ? (
-            <Modal onClose={closeLightbox}>
-              <Carousel
-                currentIndex={currentImage}
-                views = {props.templates}
-                // views={functional_templates.map(x => ({
-                //   ...x,
-                //   srcset: x.srcSet,
-                //   caption: x.title
-                // }))}
-              />
-            </Modal>
-          ) : null}
-        </ModalGateway>
-        </base>
-    );
-
+  const streamlitCallback = (args: any) => { 
+    Streamlit.setComponentValue(args)
+  }
+  return <DisplayTemplate lightboxCallback = {streamlitCallback} thumbnails={props.thumbnails} templates={props.templates}/>
 }
 
 function Sessions(props: SessionProps) {
@@ -89,6 +58,13 @@ function Sessions(props: SessionProps) {
   return < DisplaySession msgs={pastSessions} onSelection={onSelection}/>
 }
 
+function Signin() {
+  const streamlitCallback = (args: any) => {
+    var email = args.email 
+    Streamlit.setComponentValue(email)
+  }
+  return < GoogleSignin signinCallback = {streamlitCallback}/>
+}
 
 
 const mappingFunction = (img:any, index:any) => ({index, src: img.source, sizes: ["(min-width: 480px) 20vw,(min-width: 1024px) 25vw,25vw"], width: 4, height: 3});
@@ -126,10 +102,13 @@ class MyComponent extends StreamlitComponentBase<State> {
     const name = this.props.args["name"];
     // const closeLightbox = this.closeLightbox
     // const openLightbox =this.openLightbox
-
-    if (name=="functional") { 
+    if (name=="welcome") {
+        return (<Welcome />)
+    }
+    else if (name=="functional") { 
       const funcThumbnails = functionalTemplates.map(mappingFunction);
       return (<Templates thumbnails={funcThumbnails} templates={functionalTemplates}/>)
+
     }
     else if (name=="chronological") {
       const chronoThumbnails = chronologicalTemplates.map(mappingFunction);
@@ -159,49 +138,6 @@ class MyComponent extends StreamlitComponentBase<State> {
   //       );
 
       
-      // return <Gallery
-      // photos={functional_templates}
-      // direction={"column"}
-      // columns={4}
-      // onClick={(e, { index }) => this.imageClick(index)} /> 
-      // return (
-      //   <div>
-      //     <Fancybox
-      //       options={{
-      //         Carousel: {
-      //           infinite: false,
-      //         },
-      //       }}
-      //     >
-      //       <a data-fancybox="gallery" href="/resume_templates/functional/functional0.png">
-      //         <img
-      //           alt=""
-      //           src= "/resume_templates/functional/functional0_thmb.png"
-      //           width="500"
-      //           height="500"
-      //           onClick={()=>this.imageClick}
-      //         />
-      //       </a>
-      //       <a data-fancybox="gallery" href="/resume_templates/functional/functional1.png">
-      //         <img
-      //           alt=""
-      //           src="/resume_templates/functional/functional1_thmb.png"
-      //           width="500"
-      //           height="500"
-      //         />
-      //       </a>
-      //       <a data-fancybox="gallery" href="/resume_templates/functional/functional2.png">
-      //         <img
-      //           alt=""
-      //           src="/resume_templates/functional/functional2_thmb.png"
-      //           width="500"
-      //           height="500"
-      //           onClick={this.imageClick}
-      //         />
-      //       </a>
-      //     </Fancybox>
-      //   </div>
-      // );
 
     else if (name=="signin") {
 
@@ -223,67 +159,7 @@ class MyComponent extends StreamlitComponentBase<State> {
     //   style.border = borderStyling
     //   style.outline = borderStyling
     // }
-//     const [ user, setUser ] = useState(null);
-//     const [ profile, setProfile ] = useState(null);
-//     const login = useGoogleLogin({
-//       onSuccess: (codeResponse) => setUser(codeResponse),
-//       onError: (error) => console.log('Login Failed:', error)
-//       });
-
-//       useEffect(
-//         () => {
-//             if (user) {
-//                 axios
-//                     .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
-//                         headers: {
-//                             Authorization: `Bearer ${user.access_token}`,
-//                             Accept: 'application/json'
-//                         }
-//                     })
-//                     .then((res) => {
-//                         setProfile(res.data);
-//                     })
-//                     .catch((err) => console.log(err));
-//             }
-//         },
-//         [ user ]
-//     );
-
-//     const logOut = () => {
-//       googleLogout();
-//       setProfile(null);
-//   };
-//   return (
-//     <div>
-//         <h2>React Google Login</h2>
-//         <br />
-//         <br />
-//         {profile ? (
-//             <div>
-//                 <img src={profile.picture} alt="user image" />
-//                 <h3>User Logged in</h3>
-//                 <p>Name: {profile.name}</p>
-//                 <p>Email Address: {profile.email}</p>
-//                 <br />
-//                 <br />
-//                 <button onClick={logOut}>Log out</button>
-//             </div>
-//         ) : (
-//             <button onClick={() => login()}>Sign in with Google 🚀 </button>
-//         )}
-//     </div>
-// );
-    return (
-    <GoogleLogin
-        onSuccess={credentialResponse => {
-          console.log(credentialResponse);
-          Streamlit.setComponentValue(credentialResponse)
-        }}
-        onError={() => {
-          console.log('Login Failed');
-        }}
-      />
-      );
+      return <Signin />
     }
     else if (name =="signout") {
       googleLogout();
@@ -295,47 +171,8 @@ class MyComponent extends StreamlitComponentBase<State> {
       return (< Sessions datetimes={name} />)
     }
 
-
-
-      // Show a button andsome text.
-    // When the button is clicked, we'll increment our "numClicks" state
-    // variable, and send its new value back to Streamlit, where it'll
-    // be available to the Python program.
-    // return (
-    //   <span>
-    //     Hello, {name}! &nbsp;
-    //     <button
-    //       style={style}
-    //       onClick={this.onClicked}
-    //       disabled={this.props.disabled}
-    //       onFocus={this._onFocus}
-    //       onBlur={this._onBlur}
-    //     >
-    //       Click Me!
-    //     </button>
-    //   </span>
-    // )
   }
 
-  // /** Click handler for our "Click Me!" button. */
-  // private onClicked = (): void => {
-    // Increment state.numClicks, and pass the new value back to
-    // Streamlit via `Streamlit.setComponentValue`.
-  //   this.setState(
-  //     prevState => ({ numClicks: prevState.numClicks + 1 }),
-  //     () => Streamlit.setComponentValue(this.state.numClicks)
-  //   )
-  // }
-
-  // /** Focus handler for our "Click Me!" button. */
-  // private _onFocus = (): void => {
-  //   this.setState({ isFocused: true })
-  // }
-
-  // /** Blur handler for our "Click Me!" button. */
-  // private _onBlur = (): void => {
-  //   this.setState({ isFocused: false })
-  // }
 }
 
 // "withStreamlitConnection" is a wrapper function. It bootstraps the

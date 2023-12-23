@@ -16,12 +16,16 @@ login_file = os.environ["LOGIN_FILE"]
 
 class User():
     
+    #TODO check sign in status with cookies instead of session state
     signed_in = False if "signed_in" not in st.session_state else True
 
     def __init__(self):
         self._sign_in()
 
     def _sign_in(self):
+        
+        if "signin_placeholder" not in st.session_state:
+            st.session_state["signin_placeholder"] = st.empty()
 
 # client_secret = os.environ['GOOGLE_DEFAULT_CLIENT_SECRET']
 # # client = GoogleOAuth2(client_id, client_secret)
@@ -73,12 +77,13 @@ class User():
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-
         if self.signed_in==False:
             with sign_in_placeholder.container():
                 user_info = my_component(name="signin", key="signin")
-                if user_info:
+                if user_info!=-1:
                     st.session_state["signed_in"] = "google"
+                    st.session_state["userId"] = user_info
+                    print(st.session_state.userId)
                     st.rerun()
                 # if token:
                 #     try:
@@ -122,6 +127,7 @@ class User():
                 print(name, authentication_status, username)
                 if authentication_status:
                     st.session_state["signed_in"] = "system"
+                    st.session_state["userId"] = name
                     st.rerun()
                 elif authentication_status == False:
                     st.error('Username/password is incorrect')

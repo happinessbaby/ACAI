@@ -48,6 +48,7 @@ from langchain.callbacks.base import BaseCallbackHandler
 import threading
 import queue
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 import yaml
 import decimal
 import time
@@ -65,14 +66,12 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # Specify what pages should be shown in the sidebar, and what their titles and icons
 # should be
 
-# try:
-#     st.session_state["signed_in"]
-#     user_status="User"
-# except Exception:
-#     user_status="Sign in"
+try:
+    st.session_state["signed_in"]
+    user_status="User"
+except Exception:
+    user_status="Sign in"
 
-user_status="User"
-st.session_state.userId="test123"
 
 session = boto3.Session(         
                 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
@@ -115,7 +114,9 @@ class Chat():
             if "db_client" not in st.session_state:
                 st.session_state["db_client"] = session.client('dynamodb', region_name='us-west-2')
             if "dnm_table" not in st.session_state:
-                dynamodb = session.resource('dynamodb', region_name='us-west-2') 
+                dynamodb = session.resource('dynamodb', region_name='us-east-2') 
+                print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
+                print(session.client("dynamodb",'us-east-2').list_tables())
                 st.session_state["dnm_table"] = dynamodb.Table(table_name)
         if STORAGE=="LOCAL":
             st.session_state.s3_client=None
@@ -188,9 +189,11 @@ class Chat():
         # with placeholder.container():
         
         if "sessionId" not in st.session_state:
-            st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
+            # st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
+            welcome = my_component("welcome", key="welcome")
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
+            st.session_state["current_session"] = st.session_state["sessionId"]
             # super().__init__(st.session_state.userid)
         if "resources" not in st.session_state:
             self._init_connections()
@@ -287,8 +290,7 @@ class Chat():
 
             test = st.button("save session")
             if test:
-                session_id = my_component("12-15, 12-17, 12-18", key=f"session_0")
-                print(f"SESSION CLICKED IS: {session_id}")
+               self.save_current_session()
                 
 
             st.markdown('''
@@ -546,16 +548,20 @@ class Chat():
         with st.session_state.past_placeholder.container():
             if user_status=="User":
                 if "past_human_sessions" not in st.session_state:
-                    human, ai, times = self.retrieve_sessions()
+                    human, ai, ids = self.retrieve_sessions()
                     st.session_state["past_human_sessions"] = human
                     st.session_state["past_ai_sessions"] = ai
-                    session_displays = times
+                    st.session_state["session_displays"] = ",".join(ids)
                 if st.session_state.past_human_sessions is not None:
-                    selected_idx = my_component(session_displays, key=f"session")
-                    st.session_state["current_session"]= session_displays[selected_idx]
-                    st.session_state["past_responses"] = st.session_state.past_ai_sessions[selected_idx]
-                    st.session_state["past_questions"] = st.session_state.past_human_sessions[selected_idx]
-                            # self.save_current_session()
+                    selected_idx = my_component(st.session_state.session_displays, key=f"session")
+                    if selected_idx!=-1:
+                        st.session_state["current_session"]= st.session_state.session_displays.split(",")[selected_idx]
+                        print(st.session_state.current_session)
+                        st.session_state["past_responses"] = st.session_state.past_ai_sessions[selected_idx]
+                        print(st.session_state.past_responses)
+                        st.session_state["past_questions"] = st.session_state.past_human_sessions[selected_idx]
+                        if st.session_state["responses"]:
+                            self.save_current_session()
                 else:
                     st.write("No past sessions")
                     st.session_state["current_session"]=st.session_state.sessionId
@@ -619,9 +625,7 @@ class Chat():
                 template_idx = my_component(resume_type, "templates")
                 st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
 
-            
-
-                    
+                            
 
 
     def resume_template_callback(self, resume_type:str):
@@ -809,90 +813,82 @@ class Chat():
   
         chat = self.new_chat.conversation
         downloads = self.check_user_downloads(st.session_state.sessionId)
-        # user = st.session_state.db_client.get_item(
-        #     TableName='ChatSession',
-        #     Key={   
-        #         'name': {'userId': st.session_state.userId},
-        #     }
-        # )
-        # if 'Item' in user:
-        try:
+        user = st.session_state.dnm_table.get_item(
+            # TableName=table_name,
+            Key={'userId': st.session_state.userId},
+
+        )
+        if 'Item' in user:
             # append session info
-            info = [{"sessionId": {'S': st.session_state.sessionId}, "human":chat["human"], "ai":chat["ai"]}]
-            st.session_state.db_client.update_item(
+            info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
+            st.session_state.dnm_table.update_item(
                 Key={"userId": st.session_state.userId},
-                UpdateExpression="set #info = list_append(info, :n)",
+                UpdateExpression="set info = list_append(info, :n)",
                 ExpressionAttributeValues={
                     ":n": info,
                 },
                 ReturnValues="UPDATED_NEW",
-                TableName = "ChatSession"
             )
-        # else:
-        except Exception:
+            print("APPENDING OLD USER TO TABLE")
+        else:
+        # except Exception:
             # put new user into table
-            with st.session_state.dnm_table.batch_writer() as batch:
-                for i in range(len(chat["human"])):
-                    batch.put_item(
-                        Item={
-                            'userId': 
-                            {"S": st.session_state.userId},
-                            'info': 
-                            {"L":
-                                [{
-                                    'sessionId':
-                                    {"S":st.session_state.sessionId},
-                                    'human': {"L": [{"S": chat["human"][i]}]},
-                                    'ai': {"L": [{"S": chat["ai"][i]}]},
-                                }],
-                            }
-                        },
-                    )
+            info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
+            st.session_state.dnm_table.put_item(
+                Item = {
+                    "userId": st.session_state.userId,
+                    "info": info,
+                },
+            )
+            print("ADDING NEW USER TO TABLE")
+            # with st.session_state.dnm_table.batch_writer() as batch:
+            #     for i in range(len(chat["human"])):
+            #         batch.put_item(
+            #             Item={
+            #                 'userId': 
+            #                 {"S": st.session_state.userId},
+            #                 'info': 
+            #                 {"L":
+            #                     [{
+            #                         'sessionId':
+            #                         {"S":st.session_state.sessionId},
+            #                         'human': {"L": [{"S": chat["human"][i]}]},
+            #                         'ai': {"L": [{"S": chat["ai"][i]}]},
+            #                     }],
+            #                 }
+            #             },
+            #         )
 
-    def retrieve_sessions(self, sessionId=None) -> Union[List[str], List[str], List[str]]: 
+    def retrieve_sessions(self) -> Union[List[str], List[str], List[str]]: 
 
         """ Returns past chat sessions associated with user"""
 
         try:
-            human = st.session_state.db_client.query(
-               ExpressionAttributeValues={
-                ':v1': {
-                    'S': st.session_state.userId,
-                },
-            },
-            KeyConditionExpression='userId = :v1',
-            ProjectionExpression='human',
-            TableName='chatSession',
-            )
+            # human = st.session_state.db_client.query(
+            #    ExpressionAttributeValues={
+            #     ':v1': {
+            #         'S': st.session_state.userId,
+            #     },
+            # },
+            # KeyConditionExpression='userId = :v1',
+            # ProjectionExpression='human',
+            # TableName=table_name,
+            # )
+            response = st.session_state.dnm_table.query(
+                KeyConditionExpression=Key('userId').eq(st.session_state.userId)),
+            print(response)
         except Exception as e:
-            human = None
+            raise e
+        human, ai, ids = [], [], []
         try:
-            ai = st.session_state.db_client.query(
-               ExpressionAttributeValues={
-                ':v1': {
-                    'S': st.session_state.userId,
-                },
-            },
-            KeyConditionExpression='userId = :v1',
-            ProjectionExpression='ai',
-            TableName='chatSession',
-            )
-        except Exception as e:
-            ai = None
-        try:
-            times = st.session_state.db_client.query(
-               ExpressionAttributeValues={
-                ':v1': {
-                    'S': st.session_state.userId,
-                },
-            },
-            KeyConditionExpression='userId = :v1',
-            ProjectionExpression='sessionId',
-            TableName='chatSession',
-            )
-        except Exception as e:
-            times = None
-        return human, ai, times
+            session_info = response[0]['Items'][0]['info']
+            for item in session_info:
+                human.append(item["human"])
+                ai.append(item["ai"])
+                ids.append(item["sessionId"])
+        except Exception:
+            pass
+        return human, ai, ids
 
 
 

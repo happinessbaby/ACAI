@@ -27,7 +27,7 @@ function Fancybox(props: PropsWithChildren<Props>) {
     };
   });
 
-  return <div ref={containerRef}>{props.children}</div>;
+  return <div ref={containerRef} >{props.children}</div>;
 }
 
 export default Fancybox;
