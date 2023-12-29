@@ -17,7 +17,6 @@ import Fancybox from './Fancybox'
 import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
-import About from "./About"
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
 import DisplayTemplate from "./DisplayTemplate"
@@ -59,9 +58,10 @@ function Sessions(props: SessionProps) {
 }
 
 function Signin() {
-  const streamlitCallback = (args: any) => {
-    var email = args.email 
-    Streamlit.setComponentValue(email)
+  const streamlitCallback = (token: any, data:any) => {
+    var email = data.email 
+    console.log(token, email)
+    Streamlit.setComponentValue(token + "###" + email)
   }
   return < GoogleSignin signinCallback = {streamlitCallback}/>
 }
@@ -159,13 +159,14 @@ class MyComponent extends StreamlitComponentBase<State> {
     //   style.border = borderStyling
     //   style.outline = borderStyling
     // }
+
+      
       return <Signin />
     }
-    else if (name =="signout") {
-      googleLogout();
-    }
-    else if (name=="about") {
-      return (<About />)
+    else if (name =="signout") { 
+      localStorage.removeItem("accessTokenKey");
+      return <div></div>
+      // googleLogout(); // what does this do??
     }
     else {
       return (< Sessions datetimes={name} />)

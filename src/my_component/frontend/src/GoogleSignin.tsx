@@ -1,19 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { googleLogout, useGoogleLogin, TokenResponse, GoogleLogin} from '@react-oauth/google';
+import { googleLogout,  useGoogleLogin, TokenResponse, GoogleLogin} from '@react-oauth/google';
 import axios from 'axios';
 
 function GoogleSignin(props: any) {
     const [ user, setUser ] = useState<Omit<TokenResponse, "error" | "error_description" | "error_uri">>();
+    const [ status, setStatus] = useState(true)
     // const [ profile, setProfile ] = useState(null);
 
     const login = useGoogleLogin({
-        onSuccess: (codeResponse) => setUser(codeResponse),
+        onSuccess: (codeResponse) => {setUser(codeResponse); console.log(codeResponse)},
         onError: (error) => console.log('Login Failed:', error)
     });
 
+
     useEffect(
         () => {
-            if (user) {
+            const access_token = localStorage.getItem("accessTokenKey");
+            axios
+                .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${access_token}`, {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`,
+                        Accept: 'application/json'
+                    }
+                })
+                .then((res) => {
+                    console.log("user already logged in")
+                    props.signinCallback(access_token, res.data);
+                    // setProfile(res.data);
+                })
+                .catch((err) =>  {setStatus(false); console.log("status set to false")});
+            if (!status && user) {
+                console.log(user.access_token);
                 axios
                     .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
                         headers: {
@@ -22,7 +39,9 @@ function GoogleSignin(props: any) {
                         }
                     })
                     .then((res) => {
-                        props.signinCallback(res.data)
+                        console.log("logging in user")
+                        props.signinCallback(user.access_token, res.data);
+                        localStorage.setItem("accessTokenKey", user.access_token);
                         // setProfile(res.data);
                     })
                     .catch((err) => console.log(err));

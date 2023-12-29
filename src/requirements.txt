@@ -53,3 +53,6 @@ toml==0.10.2
 geopy==2.4.0
 httpx-oauth
 streamlit-authenticator
+extra-streamlit-components
+localstoragePy
+hydralit-components

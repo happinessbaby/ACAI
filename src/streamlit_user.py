@@ -1,4 +1,5 @@
 import streamlit as st
+import extra_streamlit_components as stx
 from my_component import my_component
 import yaml
 from yaml.loader import SafeLoader
@@ -6,6 +7,9 @@ import streamlit_authenticator as stauth
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies
+import time
+import datetime
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -16,16 +20,15 @@ login_file = os.environ["LOGIN_FILE"]
 
 class User():
     
-    #TODO check sign in status with cookies instead of session state
-    signed_in = False if "signed_in" not in st.session_state else True
+    cookie = get_cookie("userInfo")
+    # st.write(get_all_cookies())
 
     def __init__(self):
         self._sign_in()
 
     def _sign_in(self):
-        
-        if "signin_placeholder" not in st.session_state:
-            st.session_state["signin_placeholder"] = st.empty()
+
+                
 
 # client_secret = os.environ['GOOGLE_DEFAULT_CLIENT_SECRET']
 # # client = GoogleOAuth2(client_id, client_secret)
@@ -77,14 +80,17 @@ class User():
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-        if self.signed_in==False:
+        if self.cookie is None:
             with sign_in_placeholder.container():
                 user_info = my_component(name="signin", key="signin")
+                print(user_info)
                 if user_info!=-1:
-                    st.session_state["signed_in"] = "google"
-                    st.session_state["userId"] = user_info
-                    print(st.session_state.userId)
-                    st.rerun()
+                    print(f"user signed in through google: {user_info}")
+                    # NOTE: Google's token expires after 1 hour
+                    set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
+                    time.sleep(2)
+                    # st.write(get_all_cookies())
+                    # st.rerun()
                 # if token:
                 #     try:
                 #         token = requests.get("http://localhost:8501")
@@ -124,10 +130,9 @@ class User():
                         #     except Exception:
                         #         pass
                 name, authentication_status, username = authenticator.login('Login', 'main')
-                print(name, authentication_status, username)
+                # print(name, authentication_status, username)
                 if authentication_status:
-                    st.session_state["signed_in"] = "system"
-                    st.session_state["userId"] = name
+                    print("user signed in through system")
                     st.rerun()
                 elif authentication_status == False:
                     st.error('Username/password is incorrect')
@@ -135,7 +140,6 @@ class User():
                     st.warning('Please enter your username and password')
                 sign_up = st.button(label="sign up", key="signup")
                 if sign_up:
-                    st.session_state["signed_in"] = "system"
                     st.rerun()
 
                     # try:
@@ -157,11 +161,24 @@ class User():
         else:
             logout = authenticator.logout('Logout', 'sidebar')
             if logout:
-                logout = my_component("signout", key="signout")
-                del st.session_state.signed_in
-                print("logging out")
-            st.title("welcome back!") 
-            #TODO ADD USER PERSONALIZED PAGE HERE
+                # Hacky way to log out of Google
+                with st.spinner("logging out"):
+                    delete_cookie(get_cookie("userInfo"), key="deleteCookie")
+                    _ = my_component("signout", key="signout")
+                    st.rerun()
+            self._create_user_page()
+
+
+    def _create_user_page(self):
+        chosen_id = stx.tab_bar(data=[
+                stx.TabBarItemData(id=1, title="ToDo", description="Tasks to take care of"),
+                stx.TabBarItemData(id=2, title="Done", description="Tasks taken care of"),
+                stx.TabBarItemData(id=3, title="Overdue", description="Tasks missed out"),
+            ], default=1)
+        st.info(f"{chosen_id=}")
+        #TODO ADD USER PERSONALIZED PAGE HERE
+
+
 
 
 

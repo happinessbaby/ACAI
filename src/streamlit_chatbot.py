@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
+import extra_streamlit_components as stx
 from pathlib import Path
 import random
 import time
@@ -52,7 +53,10 @@ from boto3.dynamodb.conditions import Key, Attr
 import yaml
 import decimal
 import time
-
+from cookie_manager import get_cookie, get_all_cookies
+from dynamodb_manager import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists
+import time
+import re
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -66,11 +70,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # Specify what pages should be shown in the sidebar, and what their titles and icons
 # should be
 
-try:
-    st.session_state["signed_in"]
-    user_status="User"
-except Exception:
-    user_status="Sign in"
+
 
 
 session = boto3.Session(         
@@ -83,8 +83,7 @@ session = boto3.Session(
 show_pages(
     [
         # Page("streamlit_about.py", "About"),
-        Page("streamlit_about.py", "About"),
-        Page("streamlit_user.py", f"{user_status}"),
+        Page("streamlit_user.py", f"User"),
         Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
         # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
@@ -97,36 +96,52 @@ table_name = os.environ["TABLE_NAME"]
 openai.api_key = os.environ['OPENAI_API_KEY']
 max_token_count = os.environ['MAX_TOKEN_COUNT']
 topic = "jobs"
+# st.write(get_all_cookies())
 
 
 class Chat():
 
     ctx = get_script_run_ctx()
+    cookie = get_cookie("userInfo")
+    # time.sleep(1)
 
+    
     def __init__(self):
 
+        if self.cookie:
+            # self.userId = self.cookie.split("###")[1]
+            self.userId = re.split("###|@", self.cookie)[1]
+            print(self.userId)
+        else:
+            self.userId = None
+        self._init_session_states()
+        self._init_styles(st.session_state.sessionId)
+        self._init_paths(st.session_state.sessionId)
+        self._init_connections(self.userId)
         self._create_chatbot()
+        
 
-    # @st.cache_resource()  
-    def _init_connections(_self):
+    # @st.cache_data()  
+    def _init_connections(_self, userId):
 
-        if user_status=="User":
-            if "db_client" not in st.session_state:
-                st.session_state["db_client"] = session.client('dynamodb', region_name='us-west-2')
+        if _self.userId is not None:
             if "dnm_table" not in st.session_state:
                 dynamodb = session.resource('dynamodb', region_name='us-east-2') 
-                print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
+                # print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
                 print(session.client("dynamodb",'us-east-2').list_tables())
-                st.session_state["dnm_table"] = dynamodb.Table(table_name)
+                try:
+                    st.session_state["dnm_table"] = dynamodb.Table(_self.userId)
+                except Exception as e:
+                    st.session_state["dnm_table"] = create_table(_self.userId)
         if STORAGE=="LOCAL":
             st.session_state.s3_client=None
         elif STORAGE=="S3":
             if "s3_client" not in st.session_state:
                 st.session_state["s3_client"] = session.client('s3')
         
-    ## NOTE: when user refreshes page, all cached resources are gone 
-    # @st.cache_resource()
-    def _init_paths(_self):
+
+    @st.cache_resource()
+    def _init_paths(_self, sessionId):
 
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
@@ -160,45 +175,18 @@ class Chat():
             except Exception as e:
                 raise e
 
-                
-  
-    def _create_chatbot(self):
+    def _init_session_states(_self):
 
-        # textinput_styl = f"""
-        # <style>
-        #     .stTextInput {{
-        #     position: fixed;
-        #     bottom: 3rem;
-        #     }}
-        # </style>
-        # """
-        selectbox_styl = f"""
-        <style>
-            .stSelectbox {{
-            position: fixed;
-            bottom: 4.5rem;
-            right: 0;
-            }}
-        </style>
-        """
-
-        # st.markdown(textinput_styl, unsafe_allow_html=True)
-        st.markdown(selectbox_styl, unsafe_allow_html=True)
-
-
-        # with placeholder.container():
-        
         if "sessionId" not in st.session_state:
             # st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
-            welcome = my_component("welcome", key="welcome")
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
-            st.session_state["current_session"] = st.session_state["sessionId"]
+            # st.session_state["current_session"] = st.session_state["sessionId"]
             # super().__init__(st.session_state.userid)
-        if "resources" not in st.session_state:
-            self._init_connections()
-            self._init_paths()
-            st.session_state["resources"] = True
+        # if "resources" not in st.session_state:
+        #     _self._init_connections()
+        #     _self._init_paths()
+        #     st.session_state["resources"] = True
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
@@ -222,6 +210,52 @@ class Chat():
         ## hacky way to clear uploaded files once submitted
         if "file_counter" not in st.session_state:
             st.session_state["file_counter"] = 0
+
+    @st.cache_resource()
+    def _init_styles(_self, sessionId):
+
+         # textinput_styl = f"""
+        # <style>
+        #     .stTextInput {{
+        #     position: fixed;
+        #     bottom: 3rem;
+        #     }}
+        # </style>
+        # """
+        selectbox_styl = f"""
+        <style>
+            .stSelectbox {{
+            position: fixed;
+            bottom: 4.5rem;
+            right: 0;
+            }}
+        </style>
+        """
+
+        # st.markdown(textinput_styl, unsafe_allow_html=True)
+        st.markdown(selectbox_styl, unsafe_allow_html=True)
+
+
+
+    # @st.cache_data(experimental_allow_widgets=True)
+    def _init_memory(_self, userId):
+        # if _self.userId is not None:
+        #     if check_attribute_exists(st.session_state.dnm_table, key=_self.userId, attribute="about user")==False:
+        #         _self.about_me_popup()
+        #TODO init vector store
+        _self.about_me_popup()
+
+
+
+
+                
+  
+    def _create_chatbot(self):
+
+        # with placeholder.container():
+
+        self._init_memory(self.userId)
+        
         # Display conversation history
         if "conversation_placeholder" not in st.session_state:
             st.session_state["conversation_placeholder"]=st.empty()
@@ -263,7 +297,7 @@ class Chat():
                                 key= f"files_{str(st.session_state.file_counter)}",
                                 on_change=self.form_callback)
                 additional = st.radio(label="Additional information?", 
-                         options=["link", "self-description"], 
+                         options=["link", "job description"], 
                          key="select_options",
                          index=None,)
                 if additional=="link":
@@ -273,10 +307,10 @@ class Chat():
                             # label_visibility="hidden",
                             help="If the link failed, please try to save the content into a file and upload it.",
                         on_change=self.form_callback)
-                elif additional=="self-description":
+                elif additional=="job description":
                     st.text_area(label="About",
-                                key="about",
-                                placeholder="This can be your career goal or something unique about yourself",
+                                key="aboutJob",
+                                placeholder="What should I know about this job?",
                                 on_change=self.form_callback)
                   
             with st.expander("Download your files"):
@@ -284,13 +318,13 @@ class Chat():
                     st.session_state["download_placeholder"]=st.empty()
       
 
-            with st.expander("Past sessions"):
-                if "past_placeholder" not in st.session_state:
-                    st.session_state["past_placeholder"]=st.empty()
+            # with st.expander("Past sessions"):
+            #     if "past_placeholder" not in st.session_state:
+            #         st.session_state["past_placeholder"]=st.empty()
 
-            test = st.button("save session")
-            if test:
-               self.save_current_session()
+            # test = st.button("save session")
+            # if test:
+            #    self.save_current_session()
                 
 
             st.markdown('''
@@ -366,9 +400,9 @@ class Chat():
         #             )
 
         # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
-        self.display_past_sessions()
-        self.display_conversation()
-        self.display_downloads()      
+        # self.display_past_sessions()
+        self.save_display_conversation()
+        self.check_display_downloads()      
             # for i in range(len(st.session_state['responses'])):
             #     try:
             #         st.chat_message("human").write(st.session_state['questions'][i])
@@ -395,6 +429,7 @@ class Chat():
             st.session_state.questionInput=None
             st.chat_message("human").write(prompt)
             st.session_state.questions.append(prompt)
+            self.question = prompt
             # Note: new messages are saved to history automatically by Langchain during run
             # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
             # question = self.process_user_input(prompt)
@@ -404,7 +439,71 @@ class Chat():
             else:
                 st.chat_message("ai").write(response)
                 st.session_state.responses.append(response)
-                st.rerun()
+                self.response = response
+       
+ 
+
+
+
+  
+    def about_me_popup(self) -> None:
+    
+        """ Processes user's about me input. """
+
+        modal = Modal(title="Let me know you a little better", key="about_popup", max_width=800)
+        placeholder = st.empty()
+        if st.session_state.get("past", False) and st.session_state.get("present", False) and st.session_state.get("future", False) :
+            st.session_state.disabled=False
+        else:
+            st.session_state.disabled=True
+        with placeholder.container():
+            with modal.container():
+                selected = stx.stepper_bar(steps=["Self Description", "Now", "Career Goals"])
+                if selected==0:
+                    st.text_input(
+                    label="What can I know about you?", 
+                    placeholder="Tell me about yourself", 
+                    key = "about_past", 
+                    on_change=self.about_me_form_check
+                    )
+                elif selected==1:
+                    st.text_input(
+                    label="What takes you here?",
+                    placeholder = "Tell me about your present situation",
+                    key="about_present",
+                    on_change = self.about_me_form_check
+                    )
+                elif selected==2:
+                    st.text_input(
+                    label="What can I do for you?",
+                    placeholder = "Tell me about your career goals",
+                    key="about_future",
+                    on_change=self.about_me_form_check,
+                    )
+                st.button("Submit", on_click=self.form_callback, disabled=st.session_state.disabled)
+    
+    def about_me_form_check(self):
+
+        # Hacky way to save input text for stepper bar
+        try:
+            st.session_state["past"] = st.session_state.about_past
+        except AttributeError:
+            pass
+        try:
+            st.session_state["present"] = st.session_state.about_present
+        except AttributeError:
+            pass
+        try:
+            st.session_state["future"] = st.session_state.about_future
+        except AttributeError:
+            pass
+    
+   
+    
+
+
+
+
 
     # def question_callback(self, prompt):
         
@@ -510,30 +609,57 @@ class Chat():
     #                         )
     #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
-    def display_conversation(self):
+    def save_display_conversation(self):
 
         """ Displays a conversation on main screen. """
 
         with st.session_state.conversation_placeholder.container():
-            if st.session_state["current_session"] == st.session_state["sessionId"]:
-                ai = st.session_state["responses"]
-                human =  st.session_state["questions"]
+            if self.userId is not None:
+                print(f"{self.userId} logged in")
+                # save chat conversation if user logged in
+                try:
+                    save_current_conversation(st.session_state.dnm_table, self.userId, self.question, self.response)
+                except AttributeError:
+                    pass
+                if "past_human_sessions" not in st.session_state:
+                    # retrieve past conversation if user logged in
+                    human, ai, ids = retrieve_sessions(st.session_state.dnm_table, self.userId)
+                    print(human, ai)
+                    st.session_state["past_human_sessions"] = human
+                    st.session_state["past_ai_sessions"] = ai
+                if st.session_state.past_human_sessions:
+                    st.session_state.responses.extendleft(ai)
+                    st.session_state.questions.extendleft(human)
             else:
-                ai = st.session_state["past_responses"]
-                human = st.session_state["past_questions"]
-            if human:
-                for i in range(len(ai)):
-                    try:
-                        st.chat_message("human").write(human[i])
-                        st.chat_message("ai").write(ai[i])
-                    except Exception:
-                        pass  
+                print("not logged in")
+            # Display chat conversation 
+            for i in range(len(st.session_state['responses'])):
+                try:
+                    st.chat_message("human").write(st.session_state['questions'][i])
+                    st.chat_message("ai").write(st.session_state['responses'][i])
+                except Exception:
+                    pass  
+
+            # if st.session_state["current_session"] == st.session_state["sessionId"]:
+            #     ai = st.session_state["responses"]
+            #     human =  st.session_state["questions"]
+            # else:
+            #     ai = st.session_state["past_responses"]
+                # human = st.session_state["past_questions"]
+            # if human:
+            #     for i in range(len(ai)):
+            #         try:
+            #             st.chat_message("human").write(human[i])
+            #             st.chat_message("ai").write(ai[i])
+            #         except Exception:
+            #             pass  
         
-    def display_downloads(self):
+    def check_display_downloads(self):
 
         """ Displays AI generated files in sidebar downloads tab, if available, given the current session. """
         
-        files = self.check_user_downloads(st.session_state["current_session"])
+        # files = self.check_user_downloads(st.session_state["current_session"])
+        files = self.check_user_downloads(st.session_state.sessionId)
         with st.session_state.download_placeholder.container():
             if files:
                 for file in files:
@@ -541,33 +667,33 @@ class Chat():
             else:
                 st.write("AI generated files will be shown here")
 
-    def display_past_sessions(self):
+    # def display_past_sessions(self):
 
-        """ Displays past sessions in sidebar tab. """
+    #     """ Displays past sessions in sidebar tab. """
 
-        with st.session_state.past_placeholder.container():
-            if user_status=="User":
-                if "past_human_sessions" not in st.session_state:
-                    human, ai, ids = self.retrieve_sessions()
-                    st.session_state["past_human_sessions"] = human
-                    st.session_state["past_ai_sessions"] = ai
-                    st.session_state["session_displays"] = ",".join(ids)
-                if st.session_state.past_human_sessions is not None:
-                    selected_idx = my_component(st.session_state.session_displays, key=f"session")
-                    if selected_idx!=-1:
-                        st.session_state["current_session"]= st.session_state.session_displays.split(",")[selected_idx]
-                        print(st.session_state.current_session)
-                        st.session_state["past_responses"] = st.session_state.past_ai_sessions[selected_idx]
-                        print(st.session_state.past_responses)
-                        st.session_state["past_questions"] = st.session_state.past_human_sessions[selected_idx]
-                        if st.session_state["responses"]:
-                            self.save_current_session()
-                else:
-                    st.write("No past sessions")
-                    st.session_state["current_session"]=st.session_state.sessionId
-            else:
-                st.session_state["current_session"]=st.session_state.sessionId
-                st.write("Please sign in or sign up to see past sessions")
+    #     with st.session_state.past_placeholder.container():
+    #         if self.cookie is not None:
+    #             if "past_human_sessions" not in st.session_state:
+    #                 human, ai, ids = self.retrieve_sessions()
+    #                 st.session_state["past_human_sessions"] = human
+    #                 st.session_state["past_ai_sessions"] = ai
+    #                 st.session_state["session_displays"] = ",".join(ids)
+    #             if st.session_state.past_human_sessions:
+    #                 # replace the display of time of current session witht the word current
+    #                 st.session_state.session_displays.replace(st.session_state.sessionId, "current")
+    #                 selected_idx = my_component(st.session_state.session_displays, key=f"session")
+    #                 if selected_idx!=-1:
+    #                     st.session_state["current_session"]= st.session_state.session_displays.split(",")[selected_idx]
+    #                     print(st.session_state.current_session)
+    #                     st.session_state["past_responses"] = st.session_state.past_ai_sessions[selected_idx]
+    #                     print(st.session_state.past_responses)
+    #                     st.session_state["past_questions"] = st.session_state.past_human_sessions[selected_idx]
+    #             else:
+    #                 st.write("No past sessions")
+    #                 st.session_state["current_session"]=st.session_state.sessionId
+    #         else:
+    #             st.session_state["current_session"]=st.session_state.sessionId
+    #             st.write("Please sign in or sign up to see past sessions")
 
 
 
@@ -596,11 +722,21 @@ class Chat():
         except Exception:
             pass
         try:
-            about = st.session_state.about
-            if about:
-                self.new_chat.update_entities(f"about_me:{about} /n"+"###", '###')
-                st.session_state.about=""
+            about_job = st.session_state.aboutJob
+            if about_job:
+                self.new_chat.update_entities(f"about_job:{about_job} /n"+"###", '###')
+                st.session_state.aboutJob=""
                 st.toast("successfully submitted")
+        except Exception:
+            pass
+        try:
+            about_past = st.session_state.past
+            print("about past")
+        except Exception:
+            pass
+        try:
+            about_present = st.session_state.present
+            print("about present")
         except Exception:
             pass
         ## Passes the previous user question to the agent one more time after user uploads form
@@ -683,22 +819,21 @@ class Chat():
 
 
 
-    # def process_about_me(self, about_me: str) -> None:
+    def process_about_me(self, about_me: str) -> None:
     
         """ Processes user's about me input for content type and processes any links in the description. """
 
-        # content_type = """a job or study related user request. """
-        # user_request = evaluate_content(about_me, content_type)
-        # # about_me_summary = get_completion(f"""Summarize the following about me, if provided, and ignore all the links: {about_me}. """)
-        # self.new_chat.update_entities(f"about me:{about_me_summary} /n ###")
-        # if user_request:
-        #     self.question = about_me
-        # process any links in the about me
-        # urls = re.findall(r'(https?://\S+)', about_me)
-        # print(urls)
-        # if urls:
-        #     for url in urls:
-        #         self.process_link(url)
+        content_type = """a job or study related user request. """
+        user_request = evaluate_content(about_me, content_type)
+        # about_me_summary = get_completion(f"""Summarize the following about me, if provided, and ignore all the links: {about_me}. """)
+        self.new_chat.update_entities(f"about me:{about_me_summary} /n ###")
+        if user_request:
+            self.question = about_me
+        urls = re.findall(r'(https?://\S+)', about_me)
+        print(urls)
+        if urls:
+            for url in urls:
+                self.process_link(url)
 
 
 
@@ -807,88 +942,81 @@ class Chat():
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href
     
-    def save_current_session(self):
+    # def save_current_session(self):
 
-        """ Saves chat session. """
+    #     """ Saves chat session. """
   
-        chat = self.new_chat.conversation
-        downloads = self.check_user_downloads(st.session_state.sessionId)
-        user = st.session_state.dnm_table.get_item(
-            # TableName=table_name,
-            Key={'userId': st.session_state.userId},
+    #     chat = self.new_chat.conversation
+    #     user = st.session_state.dnm_table.get_item(
+    #         Key={'userId': st.session_state.userId},
 
-        )
-        if 'Item' in user:
-            # append session info
-            info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
-            st.session_state.dnm_table.update_item(
-                Key={"userId": st.session_state.userId},
-                UpdateExpression="set info = list_append(info, :n)",
-                ExpressionAttributeValues={
-                    ":n": info,
-                },
-                ReturnValues="UPDATED_NEW",
-            )
-            print("APPENDING OLD USER TO TABLE")
-        else:
-        # except Exception:
-            # put new user into table
-            info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
-            st.session_state.dnm_table.put_item(
-                Item = {
-                    "userId": st.session_state.userId,
-                    "info": info,
-                },
-            )
-            print("ADDING NEW USER TO TABLE")
-            # with st.session_state.dnm_table.batch_writer() as batch:
-            #     for i in range(len(chat["human"])):
-            #         batch.put_item(
-            #             Item={
-            #                 'userId': 
-            #                 {"S": st.session_state.userId},
-            #                 'info': 
-            #                 {"L":
-            #                     [{
-            #                         'sessionId':
-            #                         {"S":st.session_state.sessionId},
-            #                         'human': {"L": [{"S": chat["human"][i]}]},
-            #                         'ai': {"L": [{"S": chat["ai"][i]}]},
-            #                     }],
-            #                 }
-            #             },
-            #         )
+    #     )
+    #     if 'Item' in user:
+    #         # append session info
+    #         info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
+    #         # st.session_state.dnm_table.update_item(
+    #         #     Key={"userId": st.session_state.userId},
+    #         #     UpdateExpression="set info = list_append(info, :n)",
+    #         #     ExpressionAttributeValues={
+    #         #         ":n": info,
+    #         #     },
+    #         #     ReturnValues="UPDATED_NEW",
+    #         # )
+    #         st.session_state.dnm_table.update_item(
+    #             Key={"userId": st.session_state.userId},
+    #             UpdateExpression="set human = list_append(human, :n)",
+    #             ExpressionAttributeValues={
+    #                 ":n": chat["human"],
+    #             },
+    #             ReturnValues="UPDATED_NEW",
+    #         )
+    #         st.session_state.dnm_table.update_item(
+    #             Key={"userId": st.session_state.userId},
+    #             UpdateExpression="set ai = list_append(ai, :n)",
+    #             ExpressionAttributeValues={
+    #                 ":n": chat["ai"],
+    #             },
+    #             ReturnValues="UPDATED_NEW",
+    #         )
+    #         print("APPENDING OLD USER TO TABLE")
+    #     else:
+    #     # except Exception:
+    #         # put new user into table
+    #         # info = [{"sessionId": st.session_state.sessionId, "human":chat["human"], "ai":chat["ai"]}]
+    #         # st.session_state.dnm_table.put_item(
+    #         #     Item = {
+    #         #         "userId": st.session_state.userId,
+    #         #         "info": info,
+    #         #     },
+    #         # )
+    #         st.session_state.dnm_table.put_item(
+    #             Item = {
+    #                 "userId": st.session_state.userId,
+    #                 "human": chat["human"],
+    #                 "ai" : chat["ai"]
+    #             },
+    #         )
+    #         print("ADDING NEW USER TO TABLE")
 
-    def retrieve_sessions(self) -> Union[List[str], List[str], List[str]]: 
 
-        """ Returns past chat sessions associated with user"""
+    # def retrieve_sessions(self) -> Union[List[str], List[str], List[str]]: 
 
-        try:
-            # human = st.session_state.db_client.query(
-            #    ExpressionAttributeValues={
-            #     ':v1': {
-            #         'S': st.session_state.userId,
-            #     },
-            # },
-            # KeyConditionExpression='userId = :v1',
-            # ProjectionExpression='human',
-            # TableName=table_name,
-            # )
-            response = st.session_state.dnm_table.query(
-                KeyConditionExpression=Key('userId').eq(st.session_state.userId)),
-            print(response)
-        except Exception as e:
-            raise e
-        human, ai, ids = [], [], []
-        try:
-            session_info = response[0]['Items'][0]['info']
-            for item in session_info:
-                human.append(item["human"])
-                ai.append(item["ai"])
-                ids.append(item["sessionId"])
-        except Exception:
-            pass
-        return human, ai, ids
+    #     """ Returns past chat sessions associated with user"""
+
+    #     human, ai, ids = [], [], []
+    #     try:
+    #         response = st.session_state.dnm_table.query(
+    #             KeyConditionExpression=Key('userId').eq(st.session_state.userId)),
+    #         print(response)
+    #         # session_info = response[0]['Items'][0]['info']
+    #         session_info = response[0]['Items'][0]
+    #         for item in session_info:
+    #             human.append(item["human"])
+    #             ai.append(item["ai"])
+    #             # ids.append(item["sessionId"])
+    #     except Exception:
+    #         pass
+    #     return human, ai, ids
 
 
 
@@ -916,26 +1044,6 @@ class Chat():
                         generated_files.append(file)
             except Exception:
                 pass
-        # if not generated_files:
-        #     # retrieve session downloads
-        #     try: 
-        #         response1 = st.session_state.db_client.query(
-        #         ExpressionAttributeValues={
-        #             ':v1': {
-        #                 'S': st.session_state.userId,
-        #             },
-        #             ':v2': {
-        #                 'S': sessionId,
-        #             }
-        #         },
-        #         KeyConditionExpression='userId = :v1 & sessionId =  :v2',
-        #         ProjectionExpression='downloads',
-        #         TableName='chatSession',
-        #         )
-        #         generated_files = response1["Items"]
-        #     except Exception as e:
-        #         raise e
-
         return generated_files
 
     

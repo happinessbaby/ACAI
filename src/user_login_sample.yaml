@@ -11,7 +11,7 @@ credentials:
 cookie:
   expiry_days: 30
   key: random_signature_key # Must be string
-  name: random_cookie_name
+  name: userInfo
 preauthorized:
   emails:
   - melsby@gmail.com
