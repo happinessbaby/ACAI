@@ -635,8 +635,31 @@ class CustomOutputParser(AgentOutputParser):
         action_input = match.group(2)
         # Return the action and action input
         return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)
-    
 
+job_done = object() # signals the processing is done  
+
+class CustomStreamingCallbackHandler(BaseCallbackHandler):
+    """Callback Handler that Stream LLM response."""
+
+    def __init__(self, queue):
+        self.queue = queue
+
+    def on_llm_start(
+        self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
+    ) -> None:
+        """Run when LLM starts running. Clean the queue."""
+        while not self.q.empty():
+            try:
+                self.q.get(block=False)
+            except Empty:
+                continue
+    def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
+        """Run on new LLM token. Only available when streaming is enabled."""
+        self.queue.put(token)
+
+    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+        """Run when LLM ends running."""
+        self.q.put(job_done)
 
 class MyCustomAsyncHandler(AsyncCallbackHandler):
     

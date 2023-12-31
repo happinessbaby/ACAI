@@ -29,7 +29,7 @@ import requests
 from functools import lru_cache
 from typing import Any, List, Union
 import multiprocessing as mp
-from utils.langchain_utils import merge_faiss_vectorstore, create_tag_chain
+from utils.langchain_utils import merge_faiss_vectorstore, create_tag_chain, CustomStreamingCallbackHandler
 import openai
 import json
 from st_pages import show_pages_from_config, add_page_title, show_pages, Page
@@ -60,6 +60,7 @@ from st_multimodal_chatinput import multimodal_chatinput
 from streamlit_datalist import stDatalist
 import time
 import re
+from langchain.schema import ChatMessage
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -114,6 +115,7 @@ class Chat():
         self._init_session_states(st.session_state.sessionId)
         self._init_display()
         self._create_chatbot()
+
         
 
     
@@ -135,7 +137,8 @@ class Chat():
                 st.session_state["s3_client"] = _self.aws_session.client('s3') 
 
         if "basechat" not in st.session_state:
-            new_chat = ChatController(st.session_state.sessionId)
+            streamHandler = StreamHandler(st.empty())
+            new_chat = ChatController(st.session_state.sessionId, streamHandler)
             st.session_state["basechat"] = new_chat
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
@@ -145,12 +148,16 @@ class Chat():
         ## responses stores AI generated responses
         if 'responses' not in st.session_state:
             st.session_state['responses'] = list()
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
         # hack to clear text after user input
         if 'questionInput' not in st.session_state:
             st.session_state["questionInput"] = None  
         ## hacky way to clear uploaded files once submitted
         if "file_counter" not in st.session_state:
             st.session_state["file_counter"] = 0
+        if "input_counter" not in st.session_state:
+            st.session_state["input_counter"] = 0
         if "template_path" not in st.session_state:
             st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         if STORAGE == "LOCAL":
@@ -208,8 +215,6 @@ class Chat():
         # </style>
         # """
 
-        if "conversation_placeholder" not in st.session_state:
-            st.session_state["conversation_placeholder"]=st.empty()   
         if 'spinner_placeholder' not in st.session_state:
             st.session_state["spinner_placeholder"] = st.empty()
 
@@ -308,7 +313,7 @@ class Chat():
 
                 
   
-    def _create_chatbot(self):
+    def _create_chatbot(self,):
 
         # with placeholder.container():
     
@@ -317,6 +322,7 @@ class Chat():
             # self.msgs = st.session_state.message_history
         except AttributeError as e:
             raise e
+        # streamHandler = StreamHandler([st.empty()])
     
         # Initialize chat history
         # msgs = StreamlitChatMessageHistory(key="langchain_messages")
@@ -486,23 +492,36 @@ class Chat():
       
         # chat_input = st.chat_input(placeholder="Chat with me:",
                                     # key="input",)
-        chat_input = stDatalist("Chat with me...", sample_questions)
-        if prompt := chat_input or st.session_state.questionInput:
+        chat_input = stDatalist("Chat with me...", sample_questions, key=f"input_{str(st.session_state.input_counter)}")
+        # if prompt := chat_input or st.session_state.questionInput:
+        if prompt := chat_input:
             # self.question_callback(prompt)
-            st.session_state.questionInput=None
+            st.session_state.messages.append(ChatMessage(role="user", content=prompt))
+            # st.session_state.questionInput=None
             st.chat_message("human").write(prompt)
             st.session_state.questions.append(prompt)
             self.question = prompt
             # Note: new messages are saved to history automatically by Langchain during run
             # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
             # question = self.process_user_input(prompt)
-            response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
+            # queue = Queue()
+            # task = threading.Thread(
+            #     target=self.new_chat.askAI,
+            #     args=(st.session_state.sessionId,prompt)
+            # )
+            # task.start()
+            response = self.new_chat.askAI(st.session_state.sessionId, prompt, )
+
+            # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
             if response == "functional" or response == "chronological" or response == "student":
                 self.resume_template_popup(response)
             else:
                 st.chat_message("ai").write(response)
-                st.session_state.responses.append(response)
+                # st.session_state.responses.append(response)
+                st.session_state.messages.append(ChatMessage(role="assistant", content=response))
                 self.response = response
+            st.session_state["input_counter"] += 1
+
        
  
 
@@ -681,32 +700,37 @@ class Chat():
 
         """ Displays a conversation on main screen. """
 
-        with st.session_state.conversation_placeholder.container():
-            if self.userId is not None:
-                print(f"{self.userId} logged in")
-                # save chat conversation if user logged in
-                try:
-                    save_current_conversation(st.session_state.dnm_table, self.userId, self.question, self.response)
-                except AttributeError:
-                    pass
-                if "past_human_sessions" not in st.session_state:
-                    # retrieve past conversation if user logged in
-                    human, ai, ids = retrieve_sessions(st.session_state.dnm_table, self.userId)
-                    print(human, ai)
-                    st.session_state["past_human_sessions"] = human
-                    st.session_state["past_ai_sessions"] = ai
-                if st.session_state.past_human_sessions:
-                    st.session_state.responses.extendleft(ai)
-                    st.session_state.questions.extendleft(human)
-            else:
-                print("not logged in")
+
+        if self.userId is not None:
+            print(f"{self.userId} logged in")
+            # save chat conversation if user logged in
+            try:
+                save_current_conversation(st.session_state.dnm_table, self.userId, self.question, self.response)
+            except AttributeError:
+                pass
+            if "past_human_sessions" not in st.session_state:
+                # retrieve past conversation if user logged in
+                human, ai, ids = retrieve_sessions(st.session_state.dnm_table, self.userId)
+                print(human, ai)
+                st.session_state["past_human_sessions"] = human
+                st.session_state["past_ai_sessions"] = ai
+            if st.session_state.past_human_sessions:
+                st.session_state.messages.extendleft(ChatMessage(role="assistant", content=ai))
+                st.session_state.messages.extendleft(ChatMessage(role="user", content=human))
+                # st.session_state.responses.extendleft(ai)
+                # st.session_state.questions.extendleft(human)
+        else:
+            print("not logged in")
             # Display chat conversation 
-            for i in range(len(st.session_state['responses'])):
-                try:
-                    st.chat_message("human").write(st.session_state['questions'][i])
-                    st.chat_message("ai").write(st.session_state['responses'][i])
-                except Exception:
-                    pass  
+            # for i in range(len(st.session_state['responses'])):
+            #     try:
+            #         st.chat_message("human").write(st.session_state['questions'][i])
+            #         st.chat_message("ai").write(st.session_state['responses'][i])
+            #     except Exception:
+            #         pass  
+        for msg in st.session_state.messages:
+            st.chat_message(msg.role).write(msg.content)
+
 
             # if st.session_state["current_session"] == st.session_state["sessionId"]:
             #     ai = st.session_state["responses"]
@@ -1106,14 +1130,14 @@ class Chat():
         return generated_files
 
     
-# class StreamHandler(BaseCallbackHandler):
-#     def __init__(self, container, initial_text=""):
-#         self.container = container
-#         self.text = initial_text
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container, initial_text=""):
+        self.container = container
+        self.text = initial_text
 
-#     def on_llm_new_token(self, token: str, **kwargs) -> None:
-#         self.text += token
-#         self.container.markdown(self.text)
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.text += token
+        self.container.markdown(self.text)
 
 
 

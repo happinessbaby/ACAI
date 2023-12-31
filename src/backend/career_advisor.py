@@ -10,7 +10,7 @@ from langchain.embeddings import OpenAIEmbeddings
 # from langchain.agents import ConversationalChatAgent, Tool, AgentExecutor
 from utils.common_utils import check_content
 from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
-from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler,
+from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler, CustomStreamingCallbackHandler,
                              retrieve_redis_vectorstore, split_doc, CustomOutputParser, CustomPromptTemplate,
                              retrieve_faiss_vectorstore, merge_faiss_vectorstore, )
 # from langchain.prompts import BaseChatPromptTemplate
@@ -101,11 +101,12 @@ class ChatController():
     set_llm_cache(InMemoryCache())
 
 
-    def __init__(self, userid):
+    def __init__(self, userid, streamHandler):
         self.userid = userid
         # message_history = DynamoDBChatMessageHistory(table_name="SessionTable", session_id=userid)
         # self.chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, chat_memory=message_history, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
-        self.llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
+        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,)
+        self.llm.callback_manager = [streamHandler]
         embeddings = OpenAIEmbeddings()
         self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key,  return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
         self._initialize_log()
@@ -436,7 +437,7 @@ class ChatController():
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
     @retry(wait=wait_fixed(5))
-    def askAI(self, userid:str, user_input:str, callbacks=None) -> str:
+    def askAI(self, userid:str, user_input:str) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
