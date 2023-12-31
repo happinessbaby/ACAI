@@ -8,13 +8,19 @@ from boto3.dynamodb.conditions import Key, Attr
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
-session = boto3.Session(         
-                aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-            )
-dynamodb = session.resource('dynamodb', region_name='us-east-2')
 
-def create_table(name):
+
+def init_table(session, userId):
+
+    dynamodb = session.resource('dynamodb', region_name='us-east-2') 
+    # print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
+    print(session.client("dynamodb",'us-east-2').list_tables())
+    try:
+        return dynamodb.Table(userId)
+    except Exception as e:
+        return create_table(dynamodb, userId)
+
+def create_table(dynamodb, name):
     table = dynamodb.create_table(
         TableName=name,
         KeySchema=[
@@ -114,7 +120,7 @@ def save_current_conversation(table, userId, human, ai):
         )
         print("ADDING NEW USER TO TABLE")
 
-def save_user_info(table, userId, career_goals, self_description):
+def save_user_info(table, userId, key, value):
 
     """ Saves user's career goals and self description to table """
 
@@ -125,8 +131,7 @@ def save_user_info(table, userId, career_goals, self_description):
         table.put_item(
             Item= {
                 "about user": {
-                "career goals": career_goals,
-                "self description": self_description,
+                key: value,
                 }
             }
         )

@@ -56,3 +56,4 @@ streamlit-authenticator
 extra-streamlit-components
 localstoragePy
 hydralit-components
+streamlit-datalist

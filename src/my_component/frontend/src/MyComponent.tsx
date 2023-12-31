@@ -15,11 +15,15 @@ import ReactFancyBox from 'react-fancybox'
 import 'react-fancybox/lib/fancybox.css'
 import Fancybox from './Fancybox'
 import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
 import DisplayTemplate from "./DisplayTemplate"
+import ReactDOM from "react-dom"
+
 
 interface State {
   // numClicks: number
@@ -107,12 +111,12 @@ class MyComponent extends StreamlitComponentBase<State> {
     }
     else if (name=="functional") { 
       const funcThumbnails = functionalTemplates.map(mappingFunction);
-      return (<Templates thumbnails={funcThumbnails} templates={functionalTemplates}/>)
+      return (<Popup><Templates thumbnails={funcThumbnails} templates={functionalTemplates}/></Popup>)
 
     }
     else if (name=="chronological") {
       const chronoThumbnails = chronologicalTemplates.map(mappingFunction);
-      return (<Templates thumbnails={chronoThumbnails} templates={chronologicalTemplates}/>)
+      return (<Popup><Templates thumbnails={chronoThumbnails} templates={chronologicalTemplates}/></Popup>)
     }
   //       return (
   //         <div>
@@ -159,9 +163,7 @@ class MyComponent extends StreamlitComponentBase<State> {
     //   style.border = borderStyling
     //   style.outline = borderStyling
     // }
-
-      
-      return <Signin />
+      return < Signin/>
     }
     else if (name =="signout") { 
       localStorage.removeItem("accessTokenKey");

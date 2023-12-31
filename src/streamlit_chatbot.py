@@ -54,7 +54,10 @@ import yaml
 import decimal
 import time
 from cookie_manager import get_cookie, get_all_cookies
-from dynamodb_manager import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists
+from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
+from aws_manager import get_aws_session 
+from st_multimodal_chatinput import multimodal_chatinput
+from streamlit_datalist import stDatalist
 import time
 import re
 
@@ -71,18 +74,8 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # should be
 
 
-
-
-session = boto3.Session(         
-                aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-            )
-
-
-
 show_pages(
     [
-        # Page("streamlit_about.py", "About"),
         Page("streamlit_user.py", f"User"),
         Page("streamlit_chatbot.py", "Career Help", "🏠"),
         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
@@ -103,7 +96,8 @@ class Chat():
 
     ctx = get_script_run_ctx()
     cookie = get_cookie("userInfo")
-    # time.sleep(1)
+    aws_session = get_aws_session()
+    # chatinput = multimodal_chatinput()
 
     
     def __init__(self):
@@ -114,86 +108,35 @@ class Chat():
             print(self.userId)
         else:
             self.userId = None
-        self._init_session_states()
-        self._init_styles(st.session_state.sessionId)
-        self._init_paths(st.session_state.sessionId)
-        self._init_connections(self.userId)
+        if "sessionId" not in st.session_state:
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
+        self._init_session_states(st.session_state.sessionId)
+        self._init_display()
         self._create_chatbot()
         
 
-    # @st.cache_data()  
-    def _init_connections(_self, userId):
+    
+    # @st.cache_data()
+    def _init_session_states(_self, sessionId):
 
-        if _self.userId is not None:
-            if "dnm_table" not in st.session_state:
-                dynamodb = session.resource('dynamodb', region_name='us-east-2') 
-                # print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
-                print(session.client("dynamodb",'us-east-2').list_tables())
-                try:
-                    st.session_state["dnm_table"] = dynamodb.Table(_self.userId)
-                except Exception as e:
-                    st.session_state["dnm_table"] = create_table(_self.userId)
-        if STORAGE=="LOCAL":
-            st.session_state.s3_client=None
-        elif STORAGE=="S3":
-            if "s3_client" not in st.session_state:
-                st.session_state["s3_client"] = session.client('s3')
-        
-
-    @st.cache_resource()
-    def _init_paths(_self, sessionId):
-
-        if "template_path" not in st.session_state:
-            st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
-        if STORAGE == "LOCAL":
-            if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["SAVE_PATH"]
-            if "temp_path" not in st.session_state:
-                st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-            try: 
-                temp_dir = os.path.join(st.session_state.temp_path, st.session_state.sessionId)
-                os.mkdir(temp_dir)
-                user_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId)
-                os.mkdir(user_dir)
-                download_dir = os.path.join(user_dir, "downloads")
-                os.mkdir(download_dir)
-                chat_dir = os.path.join(user_dir, "chat")
-                os.mkdir(chat_dir)
-            except FileExistsError:
-                pass
-        elif STORAGE=="S3":
-            if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
-            if "temp_path" not in st.session_state:
-                st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-            try:
-                # create "directories" in S3 bucket
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat"))
-            except Exception as e:
-                raise e
-
-    def _init_session_states(_self):
-
-        if "sessionId" not in st.session_state:
-            # st.title("""Hi, I'm Acai, an AI assistant on your career advancement journey""")
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
-            # st.session_state["current_session"] = st.session_state["sessionId"]
-            # super().__init__(st.session_state.userid)
-        # if "resources" not in st.session_state:
-        #     _self._init_connections()
-        #     _self._init_paths()
-        #     st.session_state["resources"] = True
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
             # st.write(tip)
+        if _self.userId is not None:
+            if "dnm_table" not in st.session_state:
+                st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
+                print('successfully initiated dnm_table')
+        if "s3_client" not in st.session_state:
+            if STORAGE=="LOCAL":
+                st.session_state["s3_client"]=None
+            elif STORAGE=="S3":
+                st.session_state["s3_client"] = _self.aws_session.client('s3') 
+
         if "basechat" not in st.session_state:
             new_chat = ChatController(st.session_state.sessionId)
-            st.session_state["basechat"] = new_chat 
+            st.session_state["basechat"] = new_chat
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
         ## questions stores User's questions
@@ -204,15 +147,48 @@ class Chat():
             st.session_state['responses'] = list()
         # hack to clear text after user input
         if 'questionInput' not in st.session_state:
-            st.session_state["questionInput"] = None     
-        if 'spinner_placeholder' not in st.session_state:
-            st.session_state["spinner_placeholder"] = st.empty()
+            st.session_state["questionInput"] = None  
         ## hacky way to clear uploaded files once submitted
         if "file_counter" not in st.session_state:
             st.session_state["file_counter"] = 0
+        if "template_path" not in st.session_state:
+            st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
+        if STORAGE == "LOCAL":
+            if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["SAVE_PATH"]
+            if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+            if "directory_made" not in st.session_state:
+                try: 
+                    temp_dir = os.path.join(st.session_state.temp_path, st.session_state.sessionId)
+                    os.mkdir(temp_dir)
+                    user_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId)
+                    os.mkdir(user_dir)
+                    download_dir = os.path.join(user_dir, "downloads")
+                    os.mkdir(download_dir)
+                    chat_dir = os.path.join(user_dir, "chat")
+                    os.mkdir(chat_dir)
+                    st.session_state["directory_made"] = True
+                except FileExistsError:
+                    pass
+        elif STORAGE=="S3":
+            if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
+            if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+            if "directory_made" not in st.session_state: 
+                try:
+                    # create "directories" in S3 bucket
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat"))
+                    st.session_state["directory_made"] = True
+                except Exception as e:
+                    raise e
 
-    @st.cache_resource()
-    def _init_styles(_self, sessionId):
+    # @st.cache_data()
+    def _init_display(_self):
 
          # textinput_styl = f"""
         # <style>
@@ -222,64 +198,39 @@ class Chat():
         #     }}
         # </style>
         # """
-        selectbox_styl = f"""
-        <style>
-            .stSelectbox {{
-            position: fixed;
-            bottom: 4.5rem;
-            right: 0;
-            }}
-        </style>
-        """
+        # selectbox_styl = f"""
+        # <style>
+        #     .stSelectbox {{
+        #     position: fixed;
+        #     bottom: 4.5rem;
+        #     right: 0;
+        #     }}
+        # </style>
+        # """
 
-        # st.markdown(textinput_styl, unsafe_allow_html=True)
-        st.markdown(selectbox_styl, unsafe_allow_html=True)
-
-
-
-    # @st.cache_data(experimental_allow_widgets=True)
-    def _init_memory(_self, userId):
-        # if _self.userId is not None:
-        #     if check_attribute_exists(st.session_state.dnm_table, key=_self.userId, attribute="about user")==False:
-        #         _self.about_me_popup()
-        #TODO init vector store
-        _self.about_me_popup()
-
-
-
-
-                
-  
-    def _create_chatbot(self):
-
-        # with placeholder.container():
-
-        self._init_memory(self.userId)
-        
-        # Display conversation history
         if "conversation_placeholder" not in st.session_state:
-            st.session_state["conversation_placeholder"]=st.empty()
-            
-        try:
-            self.new_chat = st.session_state.basechat
-            # self.msgs = st.session_state.message_history
-        except AttributeError as e:
-            raise e
-    
-        # Initialize chat history
-        # msgs = StreamlitChatMessageHistory(key="langchain_messages")
-        # view_messages = st.expander("View the message contents in session state")
-        SAMPLE_QUESTIONS = {
-            "":"",
-            # "upload my files": "upload",
-            "help me generate a cover letter": "generate",
-            "Evaluate my resume": "evaluate",
-            "rewrite my resume using a new template": "reformat",
-            "tailor my document to a job position": "tailor",
-        }
+            st.session_state["conversation_placeholder"]=st.empty()   
+        if 'spinner_placeholder' not in st.session_state:
+            st.session_state["spinner_placeholder"] = st.empty()
 
+        # sample_questions = [
+        #     "help me generate a cover letter", 
+        #     "Evaluate my resume",
+        #     "rewrite my resume using a new template",
+        #     "tailor my document to a job position",
+        # ]
+        # selected_questions = st.multiselect(
+        #     label="Job Titles",
+        #     options=sample_questions,
+        #     default=None,
+        #     placeholder="Choose an option",
+        # )
+        # chat_input = st.chat_input(placeholder="Chat with me:",
+        #                             key="input",)
+        # selected_questions.append(chat_input)
+        # st.markdown(textinput_styl, unsafe_allow_html=True)
+        # st.markdown(selectbox_styl, unsafe_allow_html=True)
 
-        # Sidebar section
         with st.sidebar:
             add_vertical_space(1)
             st.markdown('''
@@ -295,23 +246,37 @@ class Chat():
                                 accept_multiple_files=True,
                                 help = "This can be a resume, cover letter, job posting, study material, etc.",
                                 key= f"files_{str(st.session_state.file_counter)}",
-                                on_change=self.form_callback)
-                additional = st.radio(label="Additional information?", 
-                         options=["link", "job description"], 
-                         key="select_options",
-                         index=None,)
-                if additional=="link":
+                                on_change=_self.form_callback)
+                link = st.checkbox("job link")
+                description = st.checkbox("job description")
+                if link:
                     st.text_area(label="Links", 
                             placeholder="This can be a job posting site for example", 
                             key = "links", 
                             # label_visibility="hidden",
                             help="If the link failed, please try to save the content into a file and upload it.",
-                        on_change=self.form_callback)
-                elif additional=="job description":
+                        on_change=_self.form_callback)
+                if description:
                     st.text_area(label="About",
                                 key="aboutJob",
                                 placeholder="What should I know about this job?",
-                                on_change=self.form_callback)
+                                on_change=_self.form_callback)
+                # additional = st.radio(label="Additional information?", 
+                #          options=["link", "job description"], 
+                #          key="select_options",
+                #          index=None,)
+                # if additional=="link":
+                #     st.text_area(label="Links", 
+                #             placeholder="This can be a job posting site for example", 
+                #             key = "links", 
+                #             # label_visibility="hidden",
+                #             help="If the link failed, please try to save the content into a file and upload it.",
+                #         on_change=_self.form_callback)
+                # elif additional=="job description":
+                #     st.text_area(label="About",
+                #                 key="aboutJob",
+                #                 placeholder="What should I know about this job?",
+                #                 on_change=_self.form_callback)
                   
             with st.expander("Download your files"):
                 if "download_placeholder" not in st.session_state:
@@ -327,15 +292,102 @@ class Chat():
             #    self.save_current_session()
                 
 
-            st.markdown('''
+            # st.markdown('''
                                                 
-            Note: 
+            # Note: 
                
-            Only the most recent uploaded files, links, and about me will be used.
+            # Only the most recent uploaded files, links, and about me will be used.
                         
-            If you refresh the page, your session conversation and downloads will be lost.
+            # If you refresh the page, your session conversation and downloads will be lost.
                                                 
-            ''')
+            # ''')
+        
+
+
+
+
+                
+  
+    def _create_chatbot(self):
+
+        # with placeholder.container():
+    
+        try:
+            self.new_chat = st.session_state.basechat
+            # self.msgs = st.session_state.message_history
+        except AttributeError as e:
+            raise e
+    
+        # Initialize chat history
+        # msgs = StreamlitChatMessageHistory(key="langchain_messages")
+        # view_messages = st.expander("View the message contents in session state")
+        # SAMPLE_QUESTIONS = {
+        #     "":"",
+        #     # "upload my files": "upload",
+        #     "help me generate a cover letter": "generate",
+        #     "Evaluate my resume": "evaluate",
+        #     "rewrite my resume using a new template": "reformat",
+        #     "tailor my document to a job position": "tailor",
+        # }
+
+
+        # Sidebar section
+        # with st.sidebar:
+        #     add_vertical_space(1)
+        #     st.markdown('''
+                                                
+        #     Chat with me, Upload & Share, or click on the Mock Interview tab above to try it out! 
+                                                
+        #     ''')
+
+        #     # st.button("Upload my files", key="upload_file_button", on_click=self.file_upload_popup)
+        #     # st.button("Share a link", key="link_button", on_click=self.link_share_popup)
+        #     with st.expander("Upload & Share"):
+        #         st.file_uploader(label="Files",
+        #                         accept_multiple_files=True,
+        #                         help = "This can be a resume, cover letter, job posting, study material, etc.",
+        #                         key= f"files_{str(st.session_state.file_counter)}",
+        #                         on_change=self.form_callback)
+        #         additional = st.radio(label="Additional information?", 
+        #                  options=["link", "job description"], 
+        #                  key="select_options",
+        #                  index=None,)
+        #         if additional=="link":
+        #             st.text_area(label="Links", 
+        #                     placeholder="This can be a job posting site for example", 
+        #                     key = "links", 
+        #                     # label_visibility="hidden",
+        #                     help="If the link failed, please try to save the content into a file and upload it.",
+        #                 on_change=self.form_callback)
+        #         elif additional=="job description":
+        #             st.text_area(label="About",
+        #                         key="aboutJob",
+        #                         placeholder="What should I know about this job?",
+        #                         on_change=self.form_callback)
+                  
+        #     with st.expander("Download your files"):
+        #         if "download_placeholder" not in st.session_state:
+        #             st.session_state["download_placeholder"]=st.empty()
+      
+
+        #     # with st.expander("Past sessions"):
+        #     #     if "past_placeholder" not in st.session_state:
+        #     #         st.session_state["past_placeholder"]=st.empty()
+
+        #     # test = st.button("save session")
+        #     # if test:
+        #     #    self.save_current_session()
+                
+
+        #     st.markdown('''
+                                                
+        #     Note: 
+               
+        #     Only the most recent uploaded files, links, and about me will be used.
+                        
+        #     If you refresh the page, your session conversation and downloads will be lost.
+                                                
+        #     ''')
         
 
         
@@ -401,8 +453,8 @@ class Chat():
 
         # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
         # self.display_past_sessions()
-        self.save_display_conversation()
-        self.check_display_downloads()      
+        self.retrieve_conversation()
+        self.retrieve_downloads()      
             # for i in range(len(st.session_state['responses'])):
             #     try:
             #         st.chat_message("human").write(st.session_state['questions'][i])
@@ -410,20 +462,31 @@ class Chat():
             #     except Exception:
             #         pass  
         # Chat input
-        chat_input = st.chat_input(placeholder="Chat with me:",
-                                    key="input",)
+        # chat_input = st.chat_input(placeholder="Chat with me:",
+        #                             key="input",)
         # Hacky way to clear selectbox below
-        def switch_input():
-            st.session_state.questionInput = st.session_state.prefilled
-            st.session_state.prefilled = None
+  
         # Select from sample questions
-        sample_questions=st.selectbox(label="Sample questions",
-                    options=sorted(SAMPLE_QUESTIONS.keys()), 
-                    key = "prefilled",
-                    format_func=lambda x: '-----sample questions-----' if x == '' else x,
-                    label_visibility= "hidden",
-                    on_change =switch_input, 
-                    )
+        # sample_questions=st.selectbo      # def switch_input():
+        #     st.session_state.questionInput = st.session_state.prefilled
+        #     st.session_state.prefilled = Nonex(label="Sample questions",
+        #             options=sorted(SAMPLE_QUESTIONS.keys()), 
+        #             key = "prefilled",
+        #             format_func=lambda x: '-----sample questions-----' if x == '' else x,
+        #             label_visibility= "hidden",
+        #             on_change =switch_input, 
+        #             )
+        #TODO sample questions will change to frequently asked questions
+        sample_questions = [
+            "help me generate a cover letter", 
+            "Evaluate my resume",
+            "rewrite my resume using a new template",
+            "tailor my document to a job position",
+        ]
+      
+        # chat_input = st.chat_input(placeholder="Chat with me:",
+                                    # key="input",)
+        chat_input = stDatalist("Chat with me...", sample_questions)
         if prompt := chat_input or st.session_state.questionInput:
             # self.question_callback(prompt)
             st.session_state.questionInput=None
@@ -445,58 +508,63 @@ class Chat():
 
 
 
-  
-    def about_me_popup(self) -> None:
+    # @st.cache_data(experimental_allow_widgets=True)
+    # def about_me_popup(_self) -> None:
     
-        """ Processes user's about me input. """
+    #     """ Processes user's about me input. """
 
-        modal = Modal(title="Let me know you a little better", key="about_popup", max_width=800)
-        placeholder = st.empty()
-        if st.session_state.get("past", False) and st.session_state.get("present", False) and st.session_state.get("future", False) :
-            st.session_state.disabled=False
-        else:
-            st.session_state.disabled=True
-        with placeholder.container():
-            with modal.container():
-                selected = stx.stepper_bar(steps=["Self Description", "Now", "Career Goals"])
-                if selected==0:
-                    st.text_input(
-                    label="What can I know about you?", 
-                    placeholder="Tell me about yourself", 
-                    key = "about_past", 
-                    on_change=self.about_me_form_check
-                    )
-                elif selected==1:
-                    st.text_input(
-                    label="What takes you here?",
-                    placeholder = "Tell me about your present situation",
-                    key="about_present",
-                    on_change = self.about_me_form_check
-                    )
-                elif selected==2:
-                    st.text_input(
-                    label="What can I do for you?",
-                    placeholder = "Tell me about your career goals",
-                    key="about_future",
-                    on_change=self.about_me_form_check,
-                    )
-                st.button("Submit", on_click=self.form_callback, disabled=st.session_state.disabled)
-    
-    def about_me_form_check(self):
+    #     modal = Modal(title="Let me know you a little better", key="about_popup", max_width=800)
+    #     placeholder = st.empty()
+    #     if st.session_state.get("past", False) and st.session_state.get("present", False) and st.session_state.get("future", False) :
+    #         st.session_state.disabled=False
+    #     else:
+    #         st.session_state.disabled=True
+    #     with placeholder.container():
+    #         with modal.container():
+    #             selected = stx.stepper_bar(steps=["Self Description", "Current Situation", "Career Goals"])
+    #             if selected==0:
+    #                 st.text_input(
+    #                 label="What can I know about you?", 
+    #                 placeholder="Tell me about yourself", 
+    #                 key = "about_past", 
+    #                 on_change=_self.about_me_form_check
+    #                 )
+    #             elif selected==1:
+    #                 st.text_input(
+    #                 label="What takes you here?",
+    #                 placeholder = "Tell me about your present situation",
+    #                 key="about_present",
+    #                 on_change = _self.about_me_form_check
+    #                 )
+    #             elif selected==2:
+    #                 st.text_input(
+    #                 label="What can I do for you?",
+    #                 placeholder = "Tell me about your career goals",
+    #                 key="about_future",
+    #                 on_change=_self.about_me_form_check,
+    #                 )
+    #             submitted = st.button("Submit", on_click=_self.form_callback, disabled=st.session_state.disabled)
+    #             if submitted:
+    #                  save_user_info(st.session_state.dnm_table, _self.userId, "self description", st.session_state.past)
+    #                  st.rerun()
 
-        # Hacky way to save input text for stepper bar
-        try:
-            st.session_state["past"] = st.session_state.about_past
-        except AttributeError:
-            pass
-        try:
-            st.session_state["present"] = st.session_state.about_present
-        except AttributeError:
-            pass
-        try:
-            st.session_state["future"] = st.session_state.about_future
-        except AttributeError:
-            pass
+                
+        
+    # def about_me_form_check(self):
+
+    #     # Hacky way to save input text for stepper bar for batch submission
+    #     try:
+    #         st.session_state["past"] = st.session_state.about_past
+    #     except AttributeError:
+    #         pass
+    #     try:
+    #         st.session_state["present"] = st.session_state.about_present
+    #     except AttributeError:
+    #         pass
+    #     try:
+    #         st.session_state["future"] = st.session_state.about_future
+    #     except AttributeError:
+    #         pass
     
    
     
@@ -609,7 +677,7 @@ class Chat():
     #                         )
     #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
-    def save_display_conversation(self):
+    def retrieve_conversation(self):
 
         """ Displays a conversation on main screen. """
 
@@ -654,7 +722,7 @@ class Chat():
             #         except Exception:
             #             pass  
         
-    def check_display_downloads(self):
+    def retrieve_downloads(self):
 
         """ Displays AI generated files in sidebar downloads tab, if available, given the current session. """
         
@@ -729,16 +797,7 @@ class Chat():
                 st.toast("successfully submitted")
         except Exception:
             pass
-        try:
-            about_past = st.session_state.past
-            print("about past")
-        except Exception:
-            pass
-        try:
-            about_present = st.session_state.present
-            print("about present")
-        except Exception:
-            pass
+
         ## Passes the previous user question to the agent one more time after user uploads form
         # try:
         #     # print(f"QUESTION INPUT: {st.session_state.questionInput}")
@@ -819,21 +878,21 @@ class Chat():
 
 
 
-    def process_about_me(self, about_me: str) -> None:
+    # def process_about_me(self, about_me: str) -> None:
     
-        """ Processes user's about me input for content type and processes any links in the description. """
+    #     """ Processes user's about me input for content type and processes any links in the description. """
 
-        content_type = """a job or study related user request. """
-        user_request = evaluate_content(about_me, content_type)
-        # about_me_summary = get_completion(f"""Summarize the following about me, if provided, and ignore all the links: {about_me}. """)
-        self.new_chat.update_entities(f"about me:{about_me_summary} /n ###")
-        if user_request:
-            self.question = about_me
-        urls = re.findall(r'(https?://\S+)', about_me)
-        print(urls)
-        if urls:
-            for url in urls:
-                self.process_link(url)
+    #     content_type = """a job or study related user request. """
+    #     user_request = evaluate_content(about_me, content_type)
+    #     # about_me_summary = get_completion(f"""Summarize the following about me, if provided, and ignore all the links: {about_me}. """)
+    #     self.new_chat.update_entities(f"about me:{about_me_summary} /n ###")
+    #     if user_request:
+    #         self.question = about_me
+    #     urls = re.findall(r'(https?://\S+)', about_me)
+    #     print(urls)
+    #     if urls:
+    #         for url in urls:
+    #             self.process_link(url)
 
 
 
@@ -1047,14 +1106,14 @@ class Chat():
         return generated_files
 
     
-class StreamHandler(BaseCallbackHandler):
-    def __init__(self, container, initial_text=""):
-        self.container = container
-        self.text = initial_text
+# class StreamHandler(BaseCallbackHandler):
+#     def __init__(self, container, initial_text=""):
+#         self.container = container
+#         self.text = initial_text
 
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        self.text += token
-        self.container.markdown(self.text)
+#     def on_llm_new_token(self, token: str, **kwargs) -> None:
+#         self.text += token
+#         self.container.markdown(self.text)
 
 
 

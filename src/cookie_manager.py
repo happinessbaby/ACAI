@@ -1,5 +1,6 @@
 import extra_streamlit_components as stx
 import streamlit as st
+import time
 
 @st.cache_resource(experimental_allow_widgets=True)
 def get_manager():
@@ -7,6 +8,7 @@ def get_manager():
 
 def get_cookie(name):
     cookie_manager = get_manager()
+    time.sleep(2)
     return cookie_manager.get(cookie=name)
 
 def set_cookie(cookie, value, key, path, expire_at):
