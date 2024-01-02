@@ -46,11 +46,11 @@ def create_table(dynamodb, name):
     return table
 
 
-def retrieve_sessions(table, userId) -> Union[List[str], List[str], List[str]]: 
+def retrieve_sessions(table, userId) -> Union[List[str], List[str]]: 
 
     """ Returns past chat sessions associated with user"""
 
-    human, ai, ids = [], [], []
+    human, ai= [], []
     try:
         response = table.query(
             KeyConditionExpression=Key('userId').eq(userId)),
@@ -63,7 +63,7 @@ def retrieve_sessions(table, userId) -> Union[List[str], List[str], List[str]]:
             # ids.append(item["sessionId"])
     except Exception:
         pass
-    return human, ai, ids
+    return human, ai
 
 
 def save_current_conversation(table, userId, human, ai):

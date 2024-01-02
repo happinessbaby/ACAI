@@ -10,7 +10,7 @@ from langchain.embeddings import OpenAIEmbeddings
 # from langchain.agents import ConversationalChatAgent, Tool, AgentExecutor
 from utils.common_utils import check_content
 from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
-from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler, CustomStreamingCallbackHandler,
+from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler,
                              retrieve_redis_vectorstore, split_doc, CustomOutputParser, CustomPromptTemplate,
                              retrieve_faiss_vectorstore, merge_faiss_vectorstore, )
 # from langchain.prompts import BaseChatPromptTemplate
@@ -61,6 +61,8 @@ from langchain.tools.file_management.read import ReadFileTool
 from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from langchain.globals import set_llm_cache
+from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
+
 
 
 
@@ -101,13 +103,15 @@ class ChatController():
     set_llm_cache(InMemoryCache())
 
 
-    def __init__(self, userid, streamHandler):
+    def __init__(self, userid):
         self.userid = userid
         # message_history = DynamoDBChatMessageHistory(table_name="SessionTable", session_id=userid)
         # self.chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, chat_memory=message_history, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
-        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,)
-        self.llm.callback_manager = [streamHandler]
-        embeddings = OpenAIEmbeddings()
+        self.logfile = log_path + f"{self.userid}.log"
+        self.Loghandler = FileCallbackHandler(self.logfile)
+        self.llm = ChatOpenAI(temperature=0, cache = False,streaming=True)
+        # self.llm.callbacks = [self.streamHandler]
+        self.embeddings = OpenAIEmbeddings()
         self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key,  return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
         self._initialize_log()
         self._initialize_chat_agent()
@@ -224,10 +228,12 @@ class ChatController():
                                             memory=self.chat_memory, 
                                             return_intermediate_steps = True,
                                             handle_parsing_errors="Check your output and make sure it conforms!",
-                                            callbacks = [self.handler])
+                                            callbacks = [self.Loghandler],
+                                            )
         # modify default agent prompt
         prompt = self.chat_agent.agent.create_prompt(system_message=template, input_variables=['chat_history', 'input', 'entities', 'instruction', 'agent_scratchpad'], tools=self.tools)
         self.chat_agent.agent.llm_chain.prompt = prompt
+
         # Option 2: structured chat agent for multi input tools, currently cannot get to use tools
         # suffix = """Begin! Reminder to ALWAYS respond with a valid json blob of a single action. 
         # Use tools if necessary. Respond directly if appropriate. 
@@ -416,10 +422,10 @@ class ChatController():
         """ Initializes log: https://python.langchain.com/docs/modules/callbacks/filecallbackhandler """
 
          # initialize file callback logging
-        logfile = log_path + f"{self.userid}.log"
-        self.handler = FileCallbackHandler(logfile)
+        # logfile = log_path + f"{self.userid}.log"
+        # self.Loghandler = FileCallbackHandler(logfile)
         #TODO: add log file to S3?
-        logger.add(logfile,  enqueue=True)
+        logger.add(self.logfile,  enqueue=True)
         # Upon start, all the .log files will be deleted and changed to .txt files
         for path in  Path(log_path).glob('**/*.log'):
             file = str(path)
@@ -437,7 +443,7 @@ class ChatController():
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
     @retry(wait=wait_fixed(5))
-    def askAI(self, userid:str, user_input:str) -> str:
+    def askAI(self, userid:str, user_input:str, callbacks=None) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
@@ -460,8 +466,11 @@ class ChatController():
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
             print([tools.name for tools in self.tools])
-            # response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks = callbacks)
-            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
+            # response = self.chat_agent.stream({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            # for res in response:
+            #     print(res.get("output", "Sorry, something happened, please try again."), flush=True)
+            #     return res.get("output", "Sorry, something happened, please try again.")
             # convert dict to string for chat output
             response = response.get("output", "sorry, something happened, try again.")
             if (update_instruction):
