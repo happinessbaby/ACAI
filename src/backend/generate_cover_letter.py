@@ -15,8 +15,6 @@ import json
 from json import JSONDecodeError
 from langchain.agents import AgentType, Tool, initialize_agent
 from multiprocessing import Process, Queue, Value
-from langchain.agents.agent_toolkits import create_python_agent
-from langchain.tools.python.tool import PythonREPLTool
 from typing import List
 from utils.langchain_utils import create_summary_chain, generate_multifunction_response, handle_tool_error
 from utils.agent_tools import create_search_tools, create_sample_tools
@@ -46,7 +44,7 @@ delimiter5 = '~~~~'
 
 local_save_path = os.environ["SAVE_PATH"]
 if STORAGE=="S3":
-    bucket_name = os.envrion["BUCKET_NAME"]
+    bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_SAVE_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],

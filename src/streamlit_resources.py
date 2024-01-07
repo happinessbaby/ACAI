@@ -11,11 +11,11 @@ from langchain.agents import load_tools
 from utils.basic_utils import ascrape_playwright
 from utils.langchain_utils import create_web_extraction_chain, create_babyagi_chain
 from typing import Any, List, Union, Dict
-from langchain.agents.agent_toolkits import PlayWrightBrowserToolkit
-from langchain.tools.playwright.utils import (
-    create_async_playwright_browser,
-    create_sync_playwright_browser,  # A synchronous browser is available, though it isn't compatible with jupyter.
-)
+# from langchain.agents.agent_toolkits import PlayWrightBrowserToolkit
+# from langchain.tools.playwright.utils import (
+#     create_async_playwright_browser,
+#     create_sync_playwright_browser,  # A synchronous browser is available, though it isn't compatible with jupyter.
+# )
 
 from utils.common_utils import get_web_resources
 from langchain.chat_models import ChatOpenAI

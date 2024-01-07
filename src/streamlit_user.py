@@ -12,17 +12,9 @@ import time
 import datetime
 from streamlit_modal import Modal
 from dynamodb_utils import save_user_info
-from langchain.utilities import SerpAPIWrapper
-from langchain.agents import Tool
-from langchain.tools.file_management.write import WriteFileTool
-from langchain.tools.file_management.read import ReadFileTool
-from langchain.vectorstores import FAISS
-from langchain.docstore import InMemoryDocstore
-from langchain.embeddings import OpenAIEmbeddings
-from langchain_experimental.autonomous_agents import AutoGPT
-from langchain.chat_models import ChatOpenAI
 from aws_manager import get_aws_session
 from dynamodb_utils import init_table, check_attribute_exists
+from streamlit_plannerbot import Planner
 import faiss
 import re
 import uuid
@@ -33,6 +25,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 login_file = os.environ["LOGIN_FILE"]
 STORAGE = os.environ['STORAGE']
+save_path = os.environ["SAVE_PATH"]
 
 
 class User():
@@ -43,19 +36,20 @@ class User():
 
     def __init__(self):
              # self.userId = self.cookie.split("###")[1]
+        time.sleep(2)
         if self.cookie:
             self.userId = re.split("###|@", self.cookie)[1]
             print(self.userId)
         else:
-            self.userId = None
-        if "sessionId" not in st.session_state:
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
+            self.userId = None 
         self._init_session_states()
         self._init_user()
 
     def _init_session_states(_self):
 
+        if "sessionId" not in st.session_state:
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
         if _self.userId is not None:
             if "dnm_table" not in st.session_state:
                 st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
@@ -68,11 +62,6 @@ class User():
                 except KeyError:
                     st.session_state["about_me_modal"]=True
                     _self.about_me_popup()
-
-                # if _self.about_me_popup():
-                #     st.session_state["init_user"]=True
-                # else:
-                #     st.session_state["init_user"]=False
         if "s3_client" not in st.session_state:
             if STORAGE=="LOCAL":
                 st.session_state["s3_client"]=None
@@ -105,7 +94,12 @@ class User():
                     print(get_all_cookies())
                     delete_cookie(get_cookie("userInfo"), key="deleteCookie")
                     _ = my_component("signout", key="signout")
-            self._create_user_page()
+            if "plannerbot" not in st.session_state:
+                st.session_state["plannerbot"]=Planner(self.userId)
+            try:
+                st.session_state.plannerbot._create_user_page()
+            except Exception as e:
+                raise e
     
 
 
@@ -247,31 +241,16 @@ class User():
         except AttributeError:
             pass
 
-    def _create_user_page(self):
-        chosen_id = stx.tab_bar(data=[
-                stx.TabBarItemData(id=1, title="ToDo", description="Tasks to take care of"),
-                stx.TabBarItemData(id=2, title="Done", description="Tasks taken care of"),
-                stx.TabBarItemData(id=3, title="Overdue", description="Tasks missed out"),
-            ], default=1)
-        st.info(f"{chosen_id=}")
-        #TODO ADD USER PERSONALIZED PAGE HERE
+  
 
     def form_callback(self):
 
         try:
-            about_past = st.session_state.past
-            save_user_info(st.session_state.dnm_table, self.userId, "self description", about_past)
+            about_past, about_present, about_future = st.session_state.past, st.session_state.present, st.session_state.future
+            # save_user_info(st.session_state.dnm_table, self.userId, "self description", about_past)
+            if STORAGE=="LOCAL":
+                return ""
             print("successfully saved about past")
-        except Exception:
-            pass
-        try:
-            about_present = st.session_state.present
-            save_user_info(st.session_state.dnm_table, self.userId, "current situation", about_present)
-        except Exception:
-            pass
-        try:
-            about_future = st.session_state.future
-            save_user_info(st.session_state.dnm_table, self.userId, "career goal", about_future)
         except Exception:
             pass
 

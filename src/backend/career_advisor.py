@@ -48,15 +48,15 @@ from multiprocessing import Process, Queue, Value
 from backend.generate_cover_letter import  create_cover_letter_generator_tool
 from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
 from backend.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
-from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
-from langchain.agents.agent_toolkits import create_retriever_tool
+# from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
+# from langchain.agents.agent_toolkits import create_retriever_tool
 from typing import List, Dict
 from json import JSONDecodeError
 from langchain.tools import tool
 import re
 import asyncio
 from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
-from langchain.agents.agent_toolkits import FileManagementToolkit
+# from langchain.agents.agent_toolkits import FileManagementToolkit
 from langchain.tools.file_management.read import ReadFileTool
 from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
@@ -72,17 +72,23 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 save_path = os.environ["SAVE_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
+endpoint_url = os.environ["ENDPOINT_URL"]
+message_key = {
+"PK": os.environ["PK"],
+"SK": os.environ["SK"],
+}
+memory_max_token_count=os.environ["MEMORY_MAX_TOKEN_COUNT"]
+memory_key = os.environ["CHAT_MEMORY_KEY"]
 # debugging langchain: very useful
 langchain.debug=True 
 # The result evaluation process slows down chat by a lot, unless necessary, set to false
 evaluate_result = False
 # The instruction update process is still being tested for effectiveness
-update_instruction = False
+update_instruction = True
 pickle_conversation = False
 delimiter = "####"
 word_count = 100
-memory_max_token = 500
-memory_key="chat_history"
+
 
 
 
@@ -103,16 +109,15 @@ class ChatController():
     set_llm_cache(InMemoryCache())
 
 
-    def __init__(self, userid):
-        self.userid = userid
-        # message_history = DynamoDBChatMessageHistory(table_name="SessionTable", session_id=userid)
-        # self.chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, chat_memory=message_history, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
-        self.logfile = log_path + f"{self.userid}.log"
-        self.Loghandler = FileCallbackHandler(self.logfile)
+    def __init__(self, sessionId, chat_memory=None):
+        self.sessionId = sessionId
         self.llm = ChatOpenAI(temperature=0, cache = False,streaming=True)
         # self.llm.callbacks = [self.streamHandler]
         self.embeddings = OpenAIEmbeddings()
-        self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key,  return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
+        if chat_memory is not None:
+            self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key, chat_memory=chat_memory, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token_count)
+        else:
+            self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token_count)
         self._initialize_log()
         self._initialize_chat_agent()
         # initialize instructor
@@ -122,7 +127,7 @@ class ChatController():
         if (evaluate_result):
             self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
 
-        # self.conversation = {"human": [], "ai": []}
+
 
         
 
@@ -343,7 +348,7 @@ class ChatController():
         memory = ReadOnlySharedMemory(memory=self.chat_memory)
 
         # Whenver there's an error message, please use the "debug_error" tool.
-        system_msg = """You are a meta AI whose job is to provide the Instructions so that your colleague, the AI assistant, would quickly and correctly respond to Humans.
+        system_msg = """You are an instruction AI whose job is to provide the Instructions so that the AI assistant would quickly and correctly respond to Humans.
 
         You are provided with their Current Conversation. If the current conversation is going well, you don't need to provide any Instruction. 
         
@@ -422,15 +427,15 @@ class ChatController():
         """ Initializes log: https://python.langchain.com/docs/modules/callbacks/filecallbackhandler """
 
          # initialize file callback logging
-        # logfile = log_path + f"{self.userid}.log"
-        # self.Loghandler = FileCallbackHandler(logfile)
+        logfile = log_path + f"{self.sessionId}.log"
+        self.Loghandler = FileCallbackHandler(logfile)
         #TODO: add log file to S3?
-        logger.add(self.logfile,  enqueue=True)
+        logger.add(logfile,  enqueue=True)
         # Upon start, all the .log files will be deleted and changed to .txt files
         for path in  Path(log_path).glob('**/*.log'):
             file = str(path)
             file_name = path.stem
-            if file_name != self.userid: 
+            if file_name != self.sessionId: 
                 # convert all non-empty log from previous sessions to txt and delete the log
                 if os.stat(file).st_size != 0:  
                     convert_to_txt(file, log_path+f"{file_name}.txt")
@@ -443,13 +448,11 @@ class ChatController():
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
     @retry(wait=wait_fixed(5))
-    def askAI(self, userid:str, user_input:str, callbacks=None) -> str:
+    def askAI(self, user_input:str, callbacks=None) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
         Args:
-
-            userid (str): session id of user
 
             user_input (str): user question or response
 
@@ -614,7 +617,7 @@ class ChatController():
         
         """ Adds custom data to log. """
 
-        with open(log_path+f"{self.userid}.log", "a") as f:
+        with open(log_path+f"{self.sessionId}.log", "a") as f:
             f.write(str(data))
             print(f"Successfully updated meta data: {data}")
 

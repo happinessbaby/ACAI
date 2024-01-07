@@ -8,11 +8,12 @@ from boto3.dynamodb.conditions import Key, Attr
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
+endpoint_url = os.environ["ENDPOINT_URL"]
 
 
 def init_table(session, userId):
 
-    dynamodb = session.resource('dynamodb', region_name='us-east-2') 
+    dynamodb = session.resource('dynamodb') 
     # print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
     print(session.client("dynamodb",'us-east-2').list_tables())
     try:
@@ -21,27 +22,40 @@ def init_table(session, userId):
         return create_table(dynamodb, userId)
 
 def create_table(dynamodb, name):
+    # table = dynamodb.create_table(
+    #     TableName=name,
+    #     KeySchema=[
+    #         {
+    #             'AttributeName': 'userId',
+    #             'KeyType': 'HASH'  #Partition_key
+    #         },
+    #     ],
+    #     AttributeDefinitions=[
+    #         {
+    #             'AttributeName': 'userId',
+    #             'AttributeType': 'S'
+    #         },
+
+    #     ],
+    #     ProvisionedThroughput={
+    #         'ReadCapacityUnits': 10,
+    #         'WriteCapacityUnits': 10
+    #     }
+    # )
+    print("CREATE TABLE")
     table = dynamodb.create_table(
-        TableName=name,
-        KeySchema=[
-            {
-                'AttributeName': 'userId',
-                'KeyType': 'HASH'  #Partition_key
-            },
-        ],
-        AttributeDefinitions=[
-            {
-                'AttributeName': 'userId',
-                'AttributeType': 'S'
-            },
-
-        ],
-        ProvisionedThroughput={
-            'ReadCapacityUnits': 10,
-            'WriteCapacityUnits': 10
-        }
+    TableName=name,
+    KeySchema=[
+        {"AttributeName": "PK", "KeyType": "HASH"},
+        {"AttributeName": "SK", "KeyType": "RANGE"},
+    ],
+    AttributeDefinitions=[
+        {"AttributeName": "PK", "AttributeType": "S"},
+        {"AttributeName": "SK", "AttributeType": "S"},
+    ],
+    BillingMode="PAY_PER_REQUEST",
     )
-
+    table.meta.client.get_waiter("table_exists").wait(TableName=name)
     print("Table status:", table.table_status)
     return table
 

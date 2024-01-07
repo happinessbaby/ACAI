@@ -11,7 +11,7 @@ from io import StringIO
 from langchain.agents import AgentType, Tool, load_tools
 from langchain.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
-from backend.mock_interview import InterviewController
+from backend.mock_interviewer import InterviewController
 from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text
 from utils.openai_api import check_content_safety, get_completion

@@ -1,6 +1,5 @@
 from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
 from langchain.vectorstores import DocArrayInMemorySearch
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.agents import AgentType
 from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
@@ -24,18 +23,17 @@ import base64
 from langchain.agents.react.base import DocstoreExplorer
 from langchain.document_loaders import TextLoader, DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.chains import RetrievalQA,  LLMChain
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.agents.agent_toolkits import (
-    create_vectorstore_agent,
-    VectorStoreToolkit,
-    create_vectorstore_router_agent,
-    VectorStoreRouterToolkit,
-    VectorStoreInfo,
-)
+# from langchain.agents.agent_toolkits import create_retriever_tool
+# from langchain.agents.agent_toolkits import (
+#     create_vectorstore_agent,
+#     VectorStoreToolkit,
+#     create_vectorstore_router_agent,
+#     VectorStoreRouterToolkit,
+#     VectorStoreInfo,
+# )
 from utils.langchain_utils import create_ensemble_retriever
 from typing import List, Union, Any, Optional, Dict
 from langchain.tools.base import ToolException
@@ -208,20 +206,20 @@ def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description
 
     return tool
 
-def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
+# def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
 
-    """ See: https://python.langchain.com/docs/integrations/toolkits/vectorstore"""
+#     """ See: https://python.langchain.com/docs/integrations/toolkits/vectorstore"""
 
-    store = retrieve_faiss_vectorstore(embeddings,index_name)
-    vectorstore_info = VectorStoreInfo(
-        name=vs_name,
-        description=vs_description,
-        vectorstore=store,
-        )
-    router_toolkit = VectorStoreRouterToolkit(
-    vectorstores=[vectorstore_info,], llm=llm
-        )  
-    return router_toolkit
+#     store = retrieve_faiss_vectorstore(embeddings,index_name)
+#     vectorstore_info = VectorStoreInfo(
+#         name=vs_name,
+#         description=vs_description,
+#         vectorstore=store,
+#         )
+#     router_toolkit = VectorStoreRouterToolkit(
+#     vectorstores=[vectorstore_info,], llm=llm
+#         )  
+#     return router_toolkit
 
 def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
 

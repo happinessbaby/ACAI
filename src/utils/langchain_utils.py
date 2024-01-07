@@ -5,7 +5,6 @@ from langchain.docstore.wikipedia import Wikipedia
 # from langchain.indexes import VectorstoreIndexCreator
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 # from langchain import ElasticVectorSearch
@@ -38,18 +37,9 @@ from typing import List, Union, Any, Optional, Dict
 import re
 import docx
 from langchain.tools import tool
-from langchain.agents.agent_toolkits import create_retriever_tool
 from langchain.agents.agent_types import AgentType
-from langchain.agents.agent_toolkits import create_python_agent
 from langchain.vectorstores import FAISS,  DocArrayInMemorySearch
 from pydantic import BaseModel, Field
-from langchain.agents.agent_toolkits import (
-    create_vectorstore_agent,
-    VectorStoreToolkit,
-    create_vectorstore_router_agent,
-    VectorStoreRouterToolkit,
-    VectorStoreInfo,
-)
 from langchain.document_transformers import EmbeddingsRedundantFilter
 from langchain.retrievers.document_compressors import DocumentCompressorPipeline
 from langchain.text_splitter import CharacterTextSplitter
@@ -635,8 +625,6 @@ class CustomOutputParser(AgentOutputParser):
         action_input = match.group(2)
         # Return the action and action input
         return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)
-
-job_done = object() # signals the processing is done  
 
 
 class MyCustomAsyncHandler(AsyncCallbackHandler):

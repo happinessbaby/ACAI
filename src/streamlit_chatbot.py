@@ -11,7 +11,6 @@ import uuid
 from io import StringIO
 from langchain.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
-from backend.mock_interview import InterviewController
 from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
@@ -62,6 +61,7 @@ import time
 import re
 from langchain.schema import ChatMessage
 from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler,  StreamingStdOutCallbackHandler 
+from langchain.memory.chat_message_histories import DynamoDBChatMessageHistory
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -87,9 +87,12 @@ show_pages(
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']
-table_name = os.environ["TABLE_NAME"]
 openai.api_key = os.environ['OPENAI_API_KEY']
 max_token_count = os.environ['MAX_TOKEN_COUNT']
+message_key = {
+"PK": os.environ["PK"],
+"SK": os.environ["SK"],
+}
 topic = "jobs"
 # st.write(get_all_cookies())
 
@@ -110,10 +113,7 @@ class Chat():
             print(self.userId)
         else:
             self.userId = None
-        if "sessionId" not in st.session_state:
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
-        self._init_session_states(st.session_state.sessionId)
+        self._init_session_states()
         self._init_display()
         self._create_chatbot()
 
@@ -121,27 +121,30 @@ class Chat():
 
     
     # @st.cache_data()
-    def _init_session_states(_self, sessionId):
+    def _init_session_states(_self,):
 
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
             # st.write(tip)
+        if "sessionId" not in st.session_state:
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
         if "messages" not in st.session_state:
             st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
         if _self.userId is not None:
             if "dnm_table" not in st.session_state:
                 st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
-                print('successfully initiated dnm_table')
-            if "past_human_sessions" not in st.session_state:
-                # retrieve past conversation if user logged in
-                human, ai = retrieve_sessions(st.session_state.dnm_table, _self.userId)
-                print(human, ai)
-                st.session_state["past_human_sessions"] = human
-                st.session_state["past_ai_sessions"] = ai
-            if st.session_state.past_human_sessions:
-                st.session_state.messages.extendleft(ChatMessage(role="assistant", content=ai))
-                st.session_state.messages.extendleft(ChatMessage(role="user", content=human))
+                
+            # if "past_human_sessions" not in st.session_state:
+            #     # retrieve past conversation if user logged in
+            #     human, ai = retrieve_sessions(st.session_state.dnm_table, _self.userId)
+            #     print(human, ai)
+            #     st.session_state["past_human_sessions"] = human
+            #     st.session_state["past_ai_sessions"] = ai
+            # if st.session_state.past_human_sessions:
+            #     st.session_state.messages.extendleft(ChatMessage(role="assistant", content=ai))
+            #     st.session_state.messages.extendleft(ChatMessage(role="user", content=human))
         if "s3_client" not in st.session_state:
             if STORAGE=="LOCAL":
                 st.session_state["s3_client"]=None
@@ -149,7 +152,8 @@ class Chat():
                 st.session_state["s3_client"] = _self.aws_session.client('s3') 
 
         if "basechat" not in st.session_state:
-            new_chat = ChatController(st.session_state.sessionId)
+            message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
+            new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
             st.session_state["basechat"] = new_chat
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
@@ -468,7 +472,9 @@ class Chat():
 
         # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
         # self.display_past_sessions()
-        self.retrieve_conversation()
+        # self.retrieve_conversation()
+        for msg in st.session_state.messages:
+            st.chat_message(msg.role).write(msg.content)
         self.retrieve_downloads()      
             # for i in range(len(st.session_state['responses'])):
             #     try:
@@ -521,7 +527,7 @@ class Chat():
             # task.start()
             container = st.empty()
             streamHandler = StreamHandler(container)
-            response = self.new_chat.askAI(st.session_state.sessionId, prompt, callbacks=streamHandler)
+            response = self.new_chat.askAI(prompt, callbacks=streamHandler)
 
             # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
             if response == "functional" or response == "chronological" or response == "student":
@@ -707,21 +713,21 @@ class Chat():
     #                         )
     #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
-    def retrieve_conversation(self):
+    # def retrieve_conversation(self):
 
-        """ Displays a conversation on main screen. """
+    #     """ Displays a conversation on main screen. """
 
-        if self.userId is not None:
-            print(f"{self.userId} logged in")
-            # save chat conversation if user logged in
-            try:
-                save_current_conversation(st.session_state.dnm_table, self.userId, self.question, self.response)
-            except AttributeError:
-                pass
-                # st.session_state.responses.extendleft(ai)
-                # st.session_state.questions.extendleft(human)
-        for msg in st.session_state.messages:
-            st.chat_message(msg.role).write(msg.content)
+    #     if self.userId is not None:
+    #         print(f"{self.userId} logged in")
+    #         # save chat conversation if user logged in
+    #         try:
+    #             save_current_conversation(st.session_state.dnm_table, self.userId, self.question, self.response)
+    #         except AttributeError:
+    #             pass
+    #             # st.session_state.responses.extendleft(ai)
+    #             # st.session_state.questions.extendleft(human)
+    #     for msg in st.session_state.messages:
+    #         st.chat_message(msg.role).write(msg.content)
 
 
             # if st.session_state["current_session"] == st.session_state["sessionId"]:
@@ -987,7 +993,8 @@ class Chat():
             self.new_chat.update_entities(entity, delimiter)
         if content_type=="learning material" :
             # update user material, to be used for "search_user_material" tool
-            self.update_vectorstore(end_path)
+            if STORAGE=="LOCAL":
+                self.update_vectorstore(end_path)
 
 
     def update_vectorstore(self, end_path: str) -> None:
