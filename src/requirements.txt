@@ -57,3 +57,5 @@ extra-streamlit-components
 localstoragePy
 hydralit-components
 streamlit-datalist
+opensearch-py
+requests-aws4auth

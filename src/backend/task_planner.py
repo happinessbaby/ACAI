@@ -8,7 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain_experimental.autonomous_agents import AutoGPT
 from langchain.chat_models import ChatOpenAI
 from utils.agent_tools import search_user_material, create_search_tools
-from utils.langchain_utils import retrieve_faiss_vectorstore, create_compression_retriever
+from utils.langchain_utils import retrieve_vectorstore, create_compression_retriever
 import os
 
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
@@ -23,7 +23,7 @@ class PlannerController():
 
         # tools = [search_user_material]
         tools = create_search_tools("google", 5)
-        vectorstore = retrieve_faiss_vectorstore(faiss_web_data)
+        vectorstore = retrieve_vectorstore("faiss", faiss_web_data)
         ai_name = "career planner"
         ai_role = "Plans daily goals and todo lists to Human can achieve their dream career life"
         planner = AutoGPT.from_llm_and_tools(
@@ -40,3 +40,8 @@ class PlannerController():
             self.planner.run([query])
         except Exception as e:
             raise e
+        
+    ### TO be used with feature store updates of job application status
+    
+    autoGPT_sample1 = """ For every job applied, search for a similar job to apply. 
+    For every job applied with no hearing back, list some areas of improvement with application."""

@@ -1,6 +1,7 @@
 import os
 import boto3
 import streamlit as st
+from requests_aws4auth import AWS4Auth
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -13,4 +14,13 @@ def get_aws_session():
                     region_name='us-east-2'
                 )
     return session
+
+
+def request_aws4auth(session: boto3.Session, service="aoss", region='us-east-2'):
+    credentials=session.get_credentials()
+    auth = AWS4Auth(credentials.access_key, credentials.secret_key, 
+                region, service, session_token=credentials.token)
+    print(auth)
+    return auth
+
     

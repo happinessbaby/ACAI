@@ -2,36 +2,23 @@
 import os
 import openai
 from pathlib import Path
-from typing import Any
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
-# from langchain.prompts import ChatPromptTemplate
-# from langchain.agents import ConversationalChatAgent, Tool, AgentExecutor
+from langchain_community.embeddings import OpenAIEmbeddings
 from utils.common_utils import check_content
 from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
-from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler,
-                             retrieve_redis_vectorstore, split_doc, CustomOutputParser, CustomPromptTemplate,
-                             retrieve_faiss_vectorstore, merge_faiss_vectorstore, )
-# from langchain.prompts import BaseChatPromptTemplate
-from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from utils.langchain_utils import (create_vectorstore, create_summary_chain,
+                             split_doc, CustomOutputParser, CustomPromptTemplate, retrieve_vectorstore )
 from langchain.chains import LLMChain
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
-from langchain.agents import initialize_agent
-from langchain.agents import AgentType, Tool, load_tools
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory,  ChatMessageHistory
+from langchain.agents import AgentType, Tool, load_tools, initialize_agent, Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
-from langchain.memory import ChatMessageHistory
 from langchain.schema import messages_from_dict, messages_to_dict, AgentAction
-from langchain.docstore import InMemoryDocstore
 from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.callbacks import get_openai_callback, StdOutCallbackHandler, FileCallbackHandler
+from langchain.callbacks import  StdOutCallbackHandler, FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
-from langchain.memory.chat_message_histories import DynamoDBChatMessageHistory
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain.schema.messages import SystemMessage
-from langchain.prompts import MessagesPlaceholder
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
 from langchain.vectorstores import FAISS
 # from feast import FeatureStore
 import pickle
@@ -48,9 +35,7 @@ from multiprocessing import Process, Queue, Value
 from backend.generate_cover_letter import  create_cover_letter_generator_tool
 from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
 from backend.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
-# from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
-# from langchain.agents.agent_toolkits import create_retriever_tool
-from typing import List, Dict
+from typing import List, Dict, Any
 from json import JSONDecodeError
 from langchain.tools import tool
 import re
@@ -162,7 +147,7 @@ class ChatController():
         requests_get = load_tools(["requests_get"])
         # link_download_tool = [binary_file_downloader_html]
         # general vector store tool
-        store = retrieve_faiss_vectorstore(faiss_web_data_path)
+        store = retrieve_vectorstore("faiss", faiss_web_data_path)
         retriever = store.as_retriever()
         general_tool_description = """This is a general purpose tool. Use it to answer general job related questions through searching database.
         Prioritize other tools over this tool. """

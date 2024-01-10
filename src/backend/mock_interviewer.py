@@ -17,7 +17,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
 from utils.common_utils import  check_content
-from utils.langchain_utils import retrieve_faiss_vectorstore
+from utils.langchain_utils import retrieve_vectorstore
 # from langchain.prompts import BaseChatPromptTemplate
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
@@ -125,7 +125,7 @@ class InterviewController():
 
         """
 
-        store = retrieve_faiss_vectorstore(faiss_interview_data_path)
+        store = retrieve_vectorstore("faiss", faiss_interview_data_path)
         retriever = store.as_retriever()
         general_tool_description = """Use this tool to generate general interview questions and answer.
         Prioritize other tools over this tool. """

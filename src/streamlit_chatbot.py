@@ -9,7 +9,7 @@ import openai
 import os
 import uuid
 from io import StringIO
-from langchain.callbacks import StreamlitCallbackHandler
+from langchain_community.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text
@@ -28,7 +28,7 @@ import requests
 from functools import lru_cache
 from typing import Any, List, Union
 import multiprocessing as mp
-from utils.langchain_utils import merge_faiss_vectorstore, create_tag_chain
+from utils.langchain_utils import merge_faiss_vectorstore, create_input_tagger, create_vectorstore
 import openai
 import json
 from st_pages import show_pages_from_config, add_page_title, show_pages, Page
@@ -54,14 +54,15 @@ import decimal
 import time
 from cookie_manager import get_cookie, get_all_cookies
 from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
-from aws_manager import get_aws_session 
+from aws_manager import get_aws_session, request_aws4auth
 from st_multimodal_chatinput import multimodal_chatinput
 from streamlit_datalist import stDatalist
 import time
 import re
 from langchain.schema import ChatMessage
-from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler,  StreamingStdOutCallbackHandler 
-from langchain.memory.chat_message_histories import DynamoDBChatMessageHistory
+
+
+
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -148,11 +149,13 @@ class Chat():
         if "s3_client" not in st.session_state:
             if STORAGE=="LOCAL":
                 st.session_state["s3_client"]=None
-            elif STORAGE=="S3":
+            elif STORAGE=="CLOUD":
                 st.session_state["s3_client"] = _self.aws_session.client('s3') 
-
+        if "awsauth" not in st.session_state:
+            st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
         if "basechat" not in st.session_state:
-            message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
+            # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
+            message_history=None
             new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
             st.session_state["basechat"] = new_chat
         # if "message_history" not in st.session_state:
@@ -186,12 +189,12 @@ class Chat():
                     os.mkdir(user_dir)
                     download_dir = os.path.join(user_dir, "downloads")
                     os.mkdir(download_dir)
-                    chat_dir = os.path.join(user_dir, "chat")
+                    chat_dir = os.path.join(user_dir, "chat", "uploads")
                     os.mkdir(chat_dir)
                     st.session_state["directory_made"] = True
                 except FileExistsError:
                     pass
-        elif STORAGE=="S3":
+        elif STORAGE=="CLOUD":
             if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
             if "temp_path" not in st.session_state:
@@ -202,8 +205,9 @@ class Chat():
                     st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
                     st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
                     st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat"))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads"))
                     st.session_state["directory_made"] = True
+                    print("Successfully created directories in S3")
                 except Exception as e:
                     raise e
 
@@ -887,7 +891,7 @@ class Chat():
             # "required": ["topic", "sentiment", "aggressiveness"],
             "required": ["topic"],
         }
-        response = create_tag_chain(tag_schema, user_input)
+        response = create_input_tagger(tag_schema, user_input)
         topic = response.get("topic", "")
         # if topic == "upload files":
         #     self.file_upload_popup()
@@ -923,28 +927,29 @@ class Chat():
 
         """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
         # with st.session_state.file_loading, st.spinner("Processing..."):
-        with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-            for uploaded_file in uploaded_files:
-                file_ext = Path(uploaded_file.name).suffix
-                filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
-                end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, Path(filename).stem+'.txt')
-                if STORAGE=="LOCAL":
-                    with open(tmp_save_path, 'wb') as f:
-                        f.write(uploaded_file.getvalue())
-                elif STORAGE=="S3":
-                    st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
-                # Convert file to txt and save it 
-                convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client) 
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
-                print(content_type, content_safe) 
-                if content_safe and content_type!="empty":
-                    self.update_entities(content_type, end_path)
-                    st.toast(f"your {content_type} is successfully submitted")
-                else:
-                    os.remove(end_path)
-                    st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
-                    # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
+        # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
+        for uploaded_file in uploaded_files:
+            file_ext = Path(uploaded_file.name).suffix
+            filename = str(uuid.uuid4())+file_ext
+            tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
+            end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads", Path(filename).stem+'.txt')
+            if STORAGE=="LOCAL":
+                with open(tmp_save_path, 'wb') as f:
+                    f.write(uploaded_file.getvalue())
+            elif STORAGE=="CLOUD":
+                st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
+                print("Successful written file to S3")
+            # Convert file to txt and save it 
+            convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client) 
+            content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
+            print(content_type, content_safe) 
+            if content_safe and content_type!="empty":
+                self.update_entities(content_type, end_path)
+                st.toast(f"your {content_type} is successfully submitted")
+            else:
+                os.remove(end_path)
+                st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
+                # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
         
         
 
@@ -952,24 +957,24 @@ class Chat():
 
         """ Processes user shared links including converting all format to txt, checking content safety, and categorizing content type """
         # with st.session_state.link_loading, st.spinner("Processing..."):
-        with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-            end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, str(uuid.uuid4())+".txt")
-            links = re.findall(r'(https?://\S+)', links)
-            if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client):
-                content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
-                print(content_type, content_safe) 
-                if (content_safe and content_type!="empty" and content_type!="browser error"):
-                    self.update_entities(content_type, end_path)
-                    st.toast(f"your {content_type} is successfully submitted")
-                else:
-                    #TODO: second browser reader for special links such as the OnlinePDFReader: https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf
-                    os.remove(end_path)
-                    st.toast(f"Failed processing {str(links)}. Please try another link!")
-                    # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
+        # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
+        end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads", str(uuid.uuid4())+".txt")
+        links = re.findall(r'(https?://\S+)', links)
+        if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client):
+            content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
+            print(content_type, content_safe) 
+            if (content_safe and content_type!="empty" and content_type!="browser error"):
+                self.update_entities(content_type, end_path)
+                st.toast(f"your {content_type} is successfully submitted")
             else:
+                #TODO: second browser reader for special links such as the OnlinePDFReader: https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf
                 os.remove(end_path)
                 st.toast(f"Failed processing {str(links)}. Please try another link!")
                 # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
+        else:
+            os.remove(end_path)
+            st.toast(f"Failed processing {str(links)}. Please try another link!")
+            # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
 
 
 
@@ -993,21 +998,34 @@ class Chat():
             self.new_chat.update_entities(entity, delimiter)
         if content_type=="learning material" :
             # update user material, to be used for "search_user_material" tool
-            if STORAGE=="LOCAL":
-                self.update_vectorstore(end_path)
+            self.update_vectorstore(end_path)
 
 
     def update_vectorstore(self, end_path: str) -> None:
 
         """ Update vector store for chat agent. """
 
-        vs_name = "user_material"
-        vs = merge_faiss_vectorstore(vs_name, end_path)
-        vs_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, vs_name)
-        #TODO: SAVE TO DYNAMODB BACKED FAISS RETRIEVAL VS
-        vs.save_local(vs_path)
+        if STORAGE=="LOCAL":
+            vs_name = "user_material"
+            vs = merge_faiss_vectorstore(vs_name, end_path)
+            vs_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, vs_name)
+            #TODO: SAVE TO DYNAMODB BACKED FAISS RETRIEVAL VS
+            vs.save_local(vs_path) 
+        elif STORAGE=="CLOUD":
+            index_name=f"user_material_{st.session_state.sessionId}"
+            create_vectorstore(vs_type="open_search", 
+                               file=end_path,  
+                               index_name=index_name, 
+                               storage=STORAGE, 
+                               bucket_name=bucket_name, 
+                               s3=st.session_state.s3_client, 
+                               awsauth=st.session_state.awsauth)
+            print("ertretretrete")
+            vs_path = index_name
         entity = f"""user_material_path: {vs_path} /n ###"""
         self.new_chat.update_entities(entity)
+
+
 
 
     def binary_file_downloader_html(self, file: str):
@@ -1017,7 +1035,7 @@ class Chat():
         if STORAGE=="LOCAL":
             with open(file, 'rb') as f:
                 data = f.read() 
-        elif STORAGE=="S3":
+        elif STORAGE=="CLOUD":
             object = st.session_state.s3_client.get_object(Bucket=bucket_name, Key=file)
             data = object['Body'].read()
         bin_str = base64.b64encode(data).decode() 
@@ -1117,7 +1135,7 @@ class Chat():
                     generated_files.append(file)
             except Exception:
                 pass
-        elif STORAGE=="S3":
+        elif STORAGE=="CLOUD":
             try:
                 response = st.session_state.s3_client.list_objects(Bucket=bucket_name, Prefix=download_dir)
                 for content in response.get('Contents', []):

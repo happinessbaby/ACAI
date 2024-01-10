@@ -28,7 +28,7 @@ from functools import lru_cache
 from typing import Any
 import multiprocessing as mp
 from langchain.embeddings import OpenAIEmbeddings
-from utils.langchain_utils import retrieve_faiss_vectorstore, create_vectorstore, merge_faiss_vectorstore
+from utils.langchain_utils import create_vectorstore, merge_faiss_vectorstore
 from pynput.keyboard import Key, Controller
 from pynput import keyboard
 import sounddevice as sd

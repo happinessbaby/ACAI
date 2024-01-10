@@ -40,36 +40,38 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
     """ Converts file to TXT file and move it to destination location. """
 
     file_ext = Path(file).suffix
-    if (file_ext)=='.txt' and file!=output_path:
-        move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-    else:
-        if storage=="LOCAL":
-            if (file_ext=='.pdf'): 
-                convert_pdf_to_txt(file, output_path)
-            elif (file_ext=='.odt' or file_ext=='.docx'):
-                convert_doc_to_txt(file, output_path)
-            elif (file_ext==".log"):
-                convert_log_to_txt(file, output_path)
-            elif (file_ext==".pptx"):
-                convert_pptx_to_txt(file, output_path)
-        elif storage=="S3":
-            loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-            text = loader.load()[0].page_content
-            s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
-
-
-
-def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
     if storage=="LOCAL":
-        os.rename(file, output_path)
-    elif storage=="S3":
-         # Copy object A as object B
-        copy_source = {'Bucket': bucket_name, 'Key': file}
-        s3.copy_object(
-            Bucket=bucket_name,
-            Key=output_path,
-            CopySource=copy_source,
-        )
+        if (file_ext)=='.txt' and file!=output_path:
+            os.rename(file, output_path)
+            # move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
+        if (file_ext=='.pdf'): 
+            convert_pdf_to_txt(file, output_path)
+        elif (file_ext=='.odt' or file_ext=='.docx'):
+            convert_doc_to_txt(file, output_path)
+        elif (file_ext==".log"):
+            convert_log_to_txt(file, output_path)
+        elif (file_ext==".pptx"):
+            convert_pptx_to_txt(file, output_path)
+    elif storage=="CLOUD":
+        loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        text = loader.load()[0].page_content
+        s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
+        print("Successfully converted file in S3 to TXT")
+
+
+
+# def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+#     if storage=="LOCAL":
+#         os.rename(file, output_path)
+#     elif storage=="CLOUD":
+#          # Copy object A as object B
+#         copy_source = {'Bucket': bucket_name, 'Key': file}
+#         s3.copy_object(
+#             Bucket=bucket_name,
+#             Key=output_path,
+#             CopySource=copy_source,
+#         )
+#     print("Successfully moved TXT to final destination")
         
 
 def convert_log_to_txt(file, output_path):
@@ -111,7 +113,7 @@ def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
             with open(file, 'r', errors='ignore') as f:
                 text = f.read()
                 return text
-        elif storage=="S3":
+        elif storage=="CLOUD":
             data = s3.get_object(Bucket=bucket_name, Key=file)
             contents = data['Body'].read()
             text = contents.decode("utf-8")

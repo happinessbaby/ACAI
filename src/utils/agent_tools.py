@@ -3,7 +3,7 @@ from langchain.vectorstores import DocArrayInMemorySearch
 from langchain.agents import AgentType
 from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
-                              split_doc, retrieve_faiss_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
+                              split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
 from langchain.tools import tool
@@ -40,6 +40,7 @@ from langchain.tools.base import ToolException
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
+STORAGE = os.environ['STORAGE']
 
 def create_wiki_tools() -> List[Tool]:
 
@@ -272,9 +273,15 @@ def search_user_material(json_request: str) -> str:
     vs_path = args["user_material_path"]
     query = args["user_query"]
     try:
+        if STORAGE=="LOCAL":
+            vs_type="faiss"
+            vs = retrieve_vectorstore("faiss", vs_path)
+        elif STORAGE=="CLOUD":
+            vs_type="open_search"
+            vs = retrieve_vectorstore("open_search", vs_path)
         # subquery_relevancy = "how to determine what's relevant in resume"
         # option 1: compression retriever
-        retriever = create_compression_retriever(vectorstore=vs_path)
+        retriever = create_compression_retriever(vs_type=vs_type, vectorstore=vs)
         # option 2: ensemble retriever
         # retriever = create_ensemble_retriever(split_doc())
         # option 3: vector store retriever
@@ -310,23 +317,7 @@ def file_loader(json_request: str) -> str:
     except Exception as e:
         return "file did not load successfully. try another tool"
     
-# @tool("get_download_link", return_direct=True)
-# def binary_file_downloader_html(json_request: str):
 
-#     """ Gets the download link from file. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
-    
-#     Input should be a strictly single string in the following JSON format: '{{"file path": "<file path>"}}' """
-
-#     try: 
-#         args = json.loads(json_request)
-#         file = args["file_path"]
-#     except JSONDecodeError:
-#         return """ Format in the following JSON and try again: '{{"file path": "<file path>"}}' """
-#     with open(file, 'rb') as f:
-#         data = f.read()
-#     bin_str = base64.b64encode(data).decode()
-#     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download the cover letter</a>'
-#     return href
 
 @tool("help and instruction")
 def provide_help_and_instruction(query:str) -> str:
@@ -344,7 +335,8 @@ def search_all_chat_history(query:str)-> str:
     """ Used when there's miscommunication in the current conversation and agent needs to reference chat history for a solution. """
 
     try:
-        db = retrieve_faiss_vectorstore("chat_debug")
+        if STORAGE=="LOCAL":
+            db = retrieve_vectorstore("faiss", "chat_debug")
         retriever=db.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":1})
         # docs = retriever.get_relevant_documents(query)
         # texts = [doc.page_content for doc in docs]

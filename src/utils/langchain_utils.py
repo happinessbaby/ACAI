@@ -27,7 +27,7 @@ from langchain.chains.mapreduce import MapReduceChain
 from langchain.chains import RetrievalQAWithSourcesChain, StuffDocumentsChain
 from langchain.chains import ReduceDocumentsChain, MapReduceDocumentsChain
 from langchain.vectorstores.redis import Redis
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import OpenAIEmbeddings
 import redis
 import langchain
 from langchain.cache import RedisCache
@@ -38,21 +38,20 @@ import re
 import docx
 from langchain.tools import tool
 from langchain.agents.agent_types import AgentType
-from langchain.vectorstores import FAISS,  DocArrayInMemorySearch
 from pydantic import BaseModel, Field
-from langchain.document_transformers import EmbeddingsRedundantFilter
-from langchain.retrievers.document_compressors import DocumentCompressorPipeline
+from langchain_community.document_transformers import EmbeddingsRedundantFilter, LongContextReorder
+from langchain.retrievers.document_compressors import DocumentCompressorPipeline, EmbeddingsFilter, CohereRerank
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.docstore.document import Document
 from utils.basic_utils import read_txt, timing, timeout
 from json import JSONDecodeError
-from langchain.document_transformers import LongContextReorder
 from langchain.retrievers import BM25Retriever, EnsembleRetriever
-from langchain.chains import LLMMathChain
-from langchain.chains import (create_extraction_chain,
+from langchain.chains import (create_extraction_chain, LLMMathChain,
                               create_extraction_chain_pydantic)
+from langchain_community.document_transformers.openai_functions import (
+    create_metadata_tagger,
+)
 from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
 from langchain.vectorstores import FAISS
@@ -62,6 +61,10 @@ from langchain.schema import LLMResult, HumanMessage
 from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
 from langchain.tools.base import ToolException
+from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, Faiss, DocArrayInMemorySearch
+import elasticsearch
+from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
+from opensearchpy import RequestsHttpConnection
 import asyncio
 import errno
 
@@ -76,6 +79,7 @@ aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 redis_password=os.getenv('REDIS_PASSWORD')
 redis_url = f"redis://:{redis_password}@localhost:6379"
 redis_client = redis.Redis.from_url(redis_url)
+threshold_bytes=15000
 
 
 
@@ -99,7 +103,7 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
 
     Returns:
 
-        List[Documents]
+        a list of LangChain Document
     
     """
     if storage=="LOCAL":
@@ -107,7 +111,7 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
             loader = TextLoader(path)
         elif (path_type=="dir"):
             loader = DirectoryLoader(path, glob="*.txt", recursive=True)
-    elif storage=="S3":
+    elif storage=="CLOUD":
         if (path_type=="file"):
             loader = S3FileLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
         elif (path_type=="dir"):
@@ -126,17 +130,46 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
     docs = text_splitter.split_documents(documents)
     return docs
 
-def split_doc_file_size(path: str, storage="LOCAL", bucket_name=None, s3=None,  splitter_type = "tiktoken", chunk_size=2000) -> List[Document]:
+def split_doc_file_size(path: str, file_type="file", threshold_bytes=threshold_bytes, storage="LOCAL", splitter_type = "tiktoken", chunk_size=2000,  bucket_name=None, s3=None, ) -> List[Document]:
+
+    """ Splits files into LangChain Document according to file size. If less than threshold bytes, file is not split. Otherwise, calls "split_doc" function to split the file. 
+    
+    Args:
+
+        path: file or directory path
+
+    Keyword Args:
+
+        file_type (str): "file" or "dir"
+
+        threshold_bytes (int): default is 15000
+
+        storage (str): "LOCAL" or "CLOUD"
+
+        splitter_type (str): "tiktoken" or "recursive"
+
+        chunk_size (int)
+
+        bucket_name (str): name of the S3 bucket that contains the files, None is storage is local
+
+        s3 (Any): instance of boto3's S3 client for connecting to the bucket
+
+    Returns:
+
+        a list of LangChain Document
+        
+    """
     
     if storage=="LOCAL":
         bytes = os.path.getsize(path)
-    elif storage=="S3":
+    elif storage=="CLOUD":
         response = s3.head_object(Bucket=bucket_name, Key=path)
         bytes = response['ContentLength']
+    print(f"File size is {bytes} bytes")
     docs: List[Document] = []
     # if file is small, don't split
     # 1 byte ~= 1 character, and 1 token ~= 4 characters, so 1 byte ~= 0.25 tokens. Max length is about 4000 tokens for gpt3.5, so if file is less than 15000 bytes, don't need to split. 
-    if bytes<15000:
+    if bytes<threshold_bytes:
         docs.extend([Document(
             page_content = read_txt(path, storage=storage, bucket_name=bucket_name, s3=s3)
         )])
@@ -145,28 +178,27 @@ def split_doc_file_size(path: str, storage="LOCAL", bucket_name=None, s3=None,  
     return docs
 
 
-# def get_index(path = ".", path_type="file"):
+def get_index(path = ".", path_type="file"):
 
-#     if (path_type=="file"):
-#         loader = TextLoader(path, encoding='utf8')
-#     elif (path_type=="dir"):
-#         loader = DirectoryLoader(path, glob="*.txt")
-#     # loader = TextLoader(file, encoding='utf8')
-#     index = VectorstoreIndexCreator(
-#         vectorstore_cls=DocArrayInMemorySearch
-#     ).from_loaders([loader])
-#     return index
+    if (path_type=="file"):
+        loader = TextLoader(path, encoding='utf8')
+    elif (path_type=="dir"):
+        loader = DirectoryLoader(path, glob="*.txt")
+    # loader = TextLoader(file, encoding='utf8')
+    index = VectorstoreIndexCreator(
+        vectorstore_cls=DocArrayInMemorySearch
+    ).from_loaders([loader])
+    return index
 
     
 def reorder_docs(docs: List[Document]) -> List[Document]:
 
     """ Reorders documents so that most relevant documents are at the beginning and the end, as in long context, the middle text tend to be ignored.
-
      See: https://python.langchain.com/docs/modules/data_connection/document_transformers/post_retrieval/long_context_reorder
 
      Args: 
 
-        docs (List[Document]): a list of Langchain Documents
+        docs: a list of Langchain Documents
 
     Returns:
 
@@ -181,7 +213,16 @@ def reorder_docs(docs: List[Document]) -> List[Document]:
 
 def create_ensemble_retriever(docs: List[Document]) -> Any:
 
-    """See purpose and usage: https://python.langchain.com/docs/modules/data_connection/retrievers/ensemble"""
+    """See purpose and usage: https://python.langchain.com/docs/modules/data_connection/retrievers/ensemble
+    
+    Args:
+
+        docs: a list of LangChain Document class
+
+    returns:
+
+        vector store retriever
+    """
 
     bm25_retriever = BM25Retriever.from_documents(docs)
     bm25_retriever.k = 2
@@ -199,63 +240,51 @@ def create_QASource_chain(chat, vectorstore, docs=None, chain_type="stuff", inde
                                      return_source_documents=True)
     return qa
 
-
-def create_compression_retriever(vectorstore: str) -> ContextualCompressionRetriever:
+""
+def create_compression_retriever(vs_type: str, vectorstore: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
 
     """ Creates a compression retriever given a vector store path. 
-    
-    TO see its purpose: https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
+    For redundant filter compressor: https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
+    For cohere rerank compressor: https://python.langchain.com/docs/integrations/retrievers/cohere-reranker
+
+    Args:
+
+        vs_type: faiss, redis, or open_search
+
+        vectorstore: vector store
 
     Keyword Args:
 
-        vectorstore: default is "index_web_advice", files contained in "web_data" directory
+        compressor_type (str): redundant_filter or cohere_rerank
+
+        search_type (str): mmr, similar_score_threshold, etc.
+
+        search_kwargs (str): depends on search_type
+
+    Returns:
+
+        vector store retriever
 
     """
 
     embeddings = OpenAIEmbeddings()
     splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=0, separator=". ")
-    redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
-    relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
-    pipeline_compressor = DocumentCompressorPipeline(
-        transformers=[splitter, redundant_filter, relevant_filter]
-    )
-    store = retrieve_faiss_vectorstore(vectorstore)
-    retriever = store.as_retriever(search_type="mmr",  search_kwargs={"k":1})
+    if compressor_type=="redundant_filter":
+        redundant_filter = EmbeddingsRedundantFilter(embeddings=embeddings)
+        relevant_filter = EmbeddingsFilter(embeddings=embeddings, similarity_threshold=0.76)
+        compressor = DocumentCompressorPipeline(
+            transformers=[splitter, redundant_filter, relevant_filter]
+        )
+    elif compressor_type=="cohere_rerank":
+        compressor = CohereRerank()
+    store = retrieve_vectorstore(vs_type, vectorstore)
+    retriever = store.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
     # retriever = store.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":3})
 
-    compression_retriever = ContextualCompressionRetriever(base_compressor=pipeline_compressor, base_retriever=retriever)
+    compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever)
 
     return compression_retriever
 
-
-
-# def create_elastic_knn():
-#     # Define the model ID
-#     model_id = "mymodel"
-#   # Create Elasticsearch connection
-#     context = create_default_context(cafile="/home/tebblespc/Downloads/certs.pem")
-#     es_connection = Elasticsearch(
-#     hosts=["https://127.0.0.1:9200"], basic_auth=("elastic", "changeme"), ssl_context = context)   
-
-#  # Instantiate ElasticsearchEmbeddings using es_connection
-#     embeddings = ElasticsearchEmbeddings.from_es_connection(
-#         model_id,
-#         es_connection,
-#     )
-
-#     query = "Hello"
-#     knn_result = knn_search.knn_search(query=query, model_id="mymodel", k=2)
-#     print(f"kNN search results for query '{query}': {knn_result}")
-#     print(
-#         f"The 'text' field value from the top hit is: '{knn_result['hits']['hits'][0]['_source']['text']}'"
-#     )
-
-#     # Initialize ElasticKnnSearch
-#     knn_search = ElasticKnnSearch(
-#         es_connection=es_connection, index_name="elastic-index", embedding=embeddings
-#     )
-    
-#     return knn_search
 
 def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI()) -> str:
 
@@ -263,15 +292,18 @@ def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", 
     
     Args:
 
-        file (str): file path
+        file: file path
 
-        prompt_template (str): prompt with input variable "text"
+        prompt_template: for example
+            "Write a concise summary of the following:
+            "{text}"
+            CONCISE SUMMARY:"
 
     Keyword Args:
 
-        chain_type (str): default is "stuff
+        chain_type (str): stuff, map_reduce, refine
 
-        llm (BaseModel): default is OpenAI()
+        llm (BaseModel)
 
     Returns:
     
@@ -291,15 +323,28 @@ def create_refine_chain(files: List[str], prompt_template:str, refine_template:s
 
         Args: 
 
-            files (List[str]): a list of file paths 
+            files: a list of file paths 
 
-            prompt_template (str): main prompt
+            prompt_template: for example 
+             "Write a concise summary of the following:
+                {text}
+                CONCISE SUMMARY:"
+            
+            refine_template: for example
+                "Your job is to produce a final summary\n"
+                "We have provided an existing summary up to a certain point: {existing_answer}\n"
+                "We have the opportunity to refine the existing summary"
+                "(only if needed) with some more context below.\n"
+                "------------\n"
+                "{text}\n"
+                "------------\n"
+                "Given the new context, refine the original summary in Italian"
+                "If the context isn't useful, return the original summary."
+            )
 
-            refine_template (str): refine prompt at each intermediate step
-        
         Keyword Args:
 
-            llm (Basemodel): default is ChatOpenAI()
+            llm (Basemodel)
 
         Returns:
 
@@ -330,16 +375,16 @@ def create_mapreduce_chain(files: List[str], map_template:str, reduce_template:s
     
         Args: 
 
-            files (List[str]): a list of file paths 
+            files: a list of file paths 
 
-            map_template (str): mapping stage prompt
+            map_template: mapping stage prompt
 
-            reduce_template (str): reducing stage prompt
+            reduce_template: reducing stage prompt
 
         
         Keyword Args:
 
-            llm (Basemodel): default is OpenAI()
+            llm (Basemodel)
 
         Returns:
 
@@ -391,11 +436,74 @@ def create_mapreduce_chain(files: List[str], map_template:str, reduce_template:s
 
     print(map_reduce_chain.run(docs))
 
-def create_tag_chain(schema, user_input, llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")):
+def create_input_tagger(schema:Dict[str, Any], user_input:str, llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")) -> Dict[str, Any]:
+
+    """ Tags input text according to schema: https://python.langchain.com/docs/use_cases/tagging
+
+     Args:
+
+      schema: for example
+       {
+    "properties": {
+        "aggressiveness": {
+            "type": "integer",
+            "enum": [1, 2, 3, 4, 5],
+            "description": "describes how aggressive the statement is, the higher the number the more aggressive",
+        },
+        "language": {
+            "type": "string",
+            "enum": ["spanish", "english", "french", "german", "italian"],
+        },
+    },
+    "required": ["language", "sentiment", "aggressiveness"],
+    }
+
+    user_input: usually a query
+
+    Keyword Args:
+
+        llm (BaseModel)
+       
+    Returns:
+
+        dictionary of metadata
+
+    """
 
     chain = create_tagging_chain(schema, llm)
     response = chain.run(user_input)
     return response
+
+def create_document_tagger(schema:Dict[str, Any], doc:Document, llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")) -> Dict[str, Any]:
+
+    """ Tags a document according to schema: https://python.langchain.com/docs/integrations/document_transformers/openai_metadata_tagger
+
+    Args:
+        schema: for example  
+            {
+                "properties": {
+                    "movie_title": {"type": "string"},
+                    "critic": {"type": "string"},
+                    "tone": {"type": "string", "enum": ["positive", "negative"]},
+                },
+                "required": ["movie_title", "critic", "tone"],
+            }
+        doc: for example
+            Document(
+                page_content="TEST"
+            )
+
+    Keyword Args:
+
+        llm (BaseModel)
+
+    Returns:
+
+        dictionary of metadata
+    """
+    document_transformer = create_metadata_tagger(metadata_schema=schema, llm=llm)
+    enhanced_document = document_transformer.transform_documents([doc])
+    return enhanced_document[0].metadata
 
 
 def create_web_extraction_chain(content:str, schema, schema_type="dict", llm=ChatOpenAI(temperature=0, cache = False)):
@@ -427,15 +535,15 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
 
     Args:
 
-        query (str)
+        query
 
-        tools (List[Tool]): all agents must have at least one tool
+        tools: all agents must have at least one tool
 
     Keyworkd Args:
 
-        max_iter (int): maximum iteration for early stopping, default is 2
+        max_iter (int): maximum iteration for early stopping
 
-        llm (BaseModel): default is ChatOpenAI(model="gpt-3.5-turbo-0613")
+        llm (BaseModel)
 
     Returns:
 
@@ -464,19 +572,35 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
     return response
 
 
-def create_vectorstore(vs_type: str, file: str, file_type: str, index_name: str, embeddings = OpenAIEmbeddings()) -> FAISS or Redis:
+
+def create_vectorstore(vs_type: str, file: str, index_name: str, file_type="file", storage="LOCAL", bucket_name=None, s3=None, awsauth=None, embeddings = OpenAIEmbeddings()) -> Any:
 
     """ Main function used to create any types of vector stores.
+    Redis: https://python.langchain.com/docs/integrations/vectorstores/redis
+    Faiss: https://python.langchain.com/docs/integrations/vectorstores/faiss
+    OpenSearch: https://python.langchain.com/docs/integrations/vectorstores/opensearch#using-aoss-amazon-opensearch-service-serverless
 
     Args:
 
-        vs_type (str): vector store type, "faiss" or "redis"
+        vs_type: faiss, redis, or open_search
 
-        file (str): file or directory path
+        file: file or directory path
 
-        file_type (str): "dir" or "file"
+        index_name: name or path of the index
+    
+    Keyword Args:
 
-        index_name (str): name of vector store 
+        file_type (str):  "dir" or "file"
+
+        storage (str):  LOCAL or CLOUD
+
+        bucket_name (str): name of the S3 bucket, None if local storage
+
+        s3 (Any): instance of a boto3 S3 client, None if local storage
+
+        awsauth (AWS4Auth): instance of an AWS4Auth, None if local storage
+
+        embeddings (Any)
 
     Returns:
 
@@ -486,7 +610,7 @@ def create_vectorstore(vs_type: str, file: str, file_type: str, index_name: str,
     """
 
     try: 
-        docs = split_doc(file, file_type, splitter_type="tiktoken")
+        docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
         if (vs_type=="faiss"):
             db=FAISS.from_documents(docs, embeddings)
             # db.save_local(index_name)
@@ -497,24 +621,96 @@ def create_vectorstore(vs_type: str, file: str, file_type: str, index_name: str,
             )
             print("Successfully created Redis vector store.")
                 # db=create_redis_index(docs, embeddings, index_name, source)
+        elif (vs_type=="open_search"):
+            print("before open search")
+            # db = OpenSearchVectorSearch.from_documents(
+            #     docs,
+            #     embeddings,
+            #     opensearch_url="http://localhost:9200",
+            #     http_auth=awsauth,
+            #     timeout=300,
+            #     use_ssl=True,
+            #     verify_certs=True,
+            #     connection_class=RequestsHttpConnection,
+            #     index_name=index_name,
+            #     engine="faiss",
+            # )
+            db= OpenSearchVectorSearch.from_documents(
+                docs,
+                embeddings,
+                opensearch_url="http://localhost:9200",
+                # engine="faiss",
+                # space_type="innerproduct",
+                # ef_construction=256,
+                # m=48,
+            )
+            docs = db.similarity_search("what is a set in tableau")
+            print(docs[0].page_content)
+            # db = ElasticsearchStore.from_documents(
+            # docs,
+            # embeddings,
+            # es_url="http://localhost:9200",
+            # index_name=index_name,
+            # )
+            # embeddings = ElasticsearchEmbeddings.from_credentials(
+            #     model_id,
+            #     es_cloud_id='your_cloud_id',
+            #     es_user='your_user',
+            #     es_password='your_password'
+            #     )
+            # document_embeddings = embeddings.embed_documents(docs)
+            print("Successfully created OpenSearch vector store.")
+
     except Exception as e:
         raise e
     return db
 
+def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddings(), ) -> Any:
+
+    """ Retrieves vector store according to the index name.
+     
+      Args:
+
+        vs_type: faiss, redis, or open_search
+
+        index_name: name or path
+    
+    Keyword Args:
+
+        embeddings (Any)
+    
+    Returns:
+
+        vector store
         
+    """
+
+    if vs_type=="redis":
+        try:
+            rds = Redis.from_existing_index(
+            embeddings, redis_url=redis_url, index_name=index_name
+            )
+            return rds
+        except Exception as e:
+            return None
+    elif vs_type=="faiss":
+        try:
+            db = FAISS.load_local(index_name, embeddings)
+            return db
+        except Exception as e:
+            return None
+    elif vs_type=="open_search":
+        try:
+            db = OpenSearchVectorSearch(
+                index_name=index_name,
+                embedding_function=embeddings,
+                opensearch_url="http://localhost:9200",
+            )
+        except Exception as e:
+            return None
 
 
-def retrieve_redis_vectorstore(index_name, embeddings=OpenAIEmbeddings()) -> Redis or None:
 
-    """ Retrieves the Redis vector store if exists, else returns None  """
-
-    try:
-        rds = Redis.from_existing_index(
-        embeddings, redis_url=redis_url, index_name=index_name
-        )
-        return rds
-    except Exception as e:
-        raise e
     
 
 
@@ -534,9 +730,13 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
 
     Args:
 
-        index_name_main (str): name of the main Faiss vector store where others would merge into
+        index_name_main: name of the main Faiss vector store where others would merge into
 
-        file (str): file path 
+        file: file path 
+
+    Keyword Args:
+
+        embeddings (Any)
 
     Returns:
 
@@ -544,7 +744,7 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
     
     """
     
-    main_db = retrieve_faiss_vectorstore( index_name_main)
+    main_db = retrieve_vectorstore("faiss", index_name_main)
     if main_db is None:
         main_db = create_vectorstore("faiss", file, "file", index_name_main)
         print(f"Successfully created vectorstore: {index_name_main}")
@@ -555,17 +755,7 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
     return main_db
     
 
-
-def retrieve_faiss_vectorstore(path: str, embeddings = OpenAIEmbeddings()) -> FAISS or None:
-
-    """ Retrieves the Faiss vector store if exists, else returns None  """
-    
-    try:
-        db = FAISS.load_local(path, embeddings)
-        return db
-    except Exception as e:
-        return None
-    
+        
 def handle_tool_error(error: ToolException) -> str:
 
     """ Handles tool exceptions. """
@@ -627,48 +817,48 @@ class CustomOutputParser(AgentOutputParser):
         return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)
 
 
-class MyCustomAsyncHandler(AsyncCallbackHandler):
+# class MyCustomAsyncHandler(AsyncCallbackHandler):
     
-    """Async callback handler that can be used to handle callbacks from langchain."""
+#     """Async callback handler that can be used to handle callbacks from langchain."""
 
-    async def on_llm_start(
-        self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
-    ) -> None:
-        """Run when chain starts running."""
-        print("zzzz....")
-        await asyncio.sleep(0.3)
-        class_name = serialized["name"]
-        print("Hi! I just woke up. Your llm is starting")
+#     async def on_llm_start(
+#         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
+#     ) -> None:
+#         """Run when chain starts running."""
+#         print("zzzz....")
+#         await asyncio.sleep(0.3)
+#         class_name = serialized["name"]
+#         print("Hi! I just woke up. Your llm is starting")
 
-    async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
-        """Run when chain ends running."""
-        print("zzzz....")
-        await asyncio.sleep(0.3)
-        print("Hi! I just woke up. Your llm is ending")
-
-
-class MyCustomSyncHandler(BaseCallbackHandler):
-
-    """Callback handler that can be used to handle callbacks from langchain."""
-
-    @timeout(5, os.strerror(errno.ETIMEDOUT))
-    def on_llm_start(
-        self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
-    ) -> None:
-        """Run when chain starts running."""
-        print("zzzz....")
-        print("Hi! I just woke up. Your llm is starting")
-
-    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
-        """Run when chain ends running."""
-        print("zzzz....")
-        print("Hi! I just woke up. Your llm is ending")
+#     async def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+#         """Run when chain ends running."""
+#         print("zzzz....")
+#         await asyncio.sleep(0.3)
+#         print("Hi! I just woke up. Your llm is ending")
 
 
-    def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> Any:
-        """Run when chain ends running."""
-        print("zzzz....")
-        print("Hi! I just woke up. Your chain is ending")
+# class MyCustomSyncHandler(BaseCallbackHandler):
+
+#     """Callback handler that can be used to handle callbacks from langchain."""
+
+#     @timeout(5, os.strerror(errno.ETIMEDOUT))
+#     def on_llm_start(
+#         self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
+#     ) -> None:
+#         """Run when chain starts running."""
+#         print("zzzz....")
+#         print("Hi! I just woke up. Your llm is starting")
+
+#     def on_llm_end(self, response: LLMResult, **kwargs: Any) -> None:
+#         """Run when chain ends running."""
+#         print("zzzz....")
+#         print("Hi! I just woke up. Your llm is ending")
+
+
+#     def on_chain_end(self, outputs: Dict[str, Any], **kwargs: Any) -> Any:
+#         """Run when chain ends running."""
+#         print("zzzz....")
+#         print("Hi! I just woke up. Your chain is ending")
 
 
 if __name__ == '__main__':
