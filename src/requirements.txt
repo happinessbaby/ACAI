@@ -59,3 +59,4 @@ hydralit-components
 streamlit-datalist
 opensearch-py
 requests-aws4auth
+lancedb

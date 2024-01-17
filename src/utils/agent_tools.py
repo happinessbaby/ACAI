@@ -44,14 +44,8 @@ STORAGE = os.environ['STORAGE']
 
 def create_wiki_tools() -> List[Tool]:
 
-    """
-    Creates wikipedia tool used to lookup and search in wikipedia
-
-    Args: None
-
-    Returns: List[Tool]
+    """ Creates wikipedia tool used to lookup and search in wikipedia """
     
-    """
     docstore = DocstoreExplorer(Wikipedia())
     tools = [
         Tool(

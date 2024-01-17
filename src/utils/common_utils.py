@@ -839,6 +839,14 @@ def search_related_samples(job_title: str, directory: str) -> List[str]:
 #     return tools, tool_names
 
 
+def generate_user_info(content):
+
+    """ Extract user information from content to be saved and used in profile page. """
+
+    
+
+
+
 
 
 
@@ -902,6 +910,12 @@ def get_generated_responses(resume_content="",about_me="", posting_path="", prog
         generated_responses.update({"work experience level": work_experience})
 
     generated_responses.update(pursuit_info_dict)
+    return generated_responses
+
+def generate_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
+
+    """ These are generated job specific, case speciifc information for downstream purposes. """
+     
     job = generated_responses["job"]
     company = generated_responses["company"]
     institution = generated_responses["institution"]
@@ -938,11 +952,11 @@ def get_generated_responses(resume_content="",about_me="", posting_path="", prog
         If institution is -1, research the general program itself.
         """
         program_description = get_web_resources(program_query)   
-        generated_responses.update({"program description": program_description}) 
+        generated_responses.update({"program description": program_description})
 
-    print(generated_responses)
-    return generated_responses
+    return generated_responses 
 
+    
     
 # class FeastPromptTemplate(StringPromptTemplate):
 #     def format(self, **kwargs) -> str:

@@ -12,14 +12,10 @@ from io import StringIO
 from langchain_community.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content
-import asyncio
-import concurrent.futures
-import subprocess
-import sys
+from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content, generate_user_info
 import re
 from json import JSONDecodeError
 from multiprocessing import Process, Queue, Value
@@ -108,35 +104,53 @@ class Chat():
     
     def __init__(self):
 
+        # NOTE: userId is retrieved from browser cookie
         if self.cookie:
             # self.userId = self.cookie.split("###")[1]
             self.userId = re.split("###|@", self.cookie)[1]
             print(self.userId)
         else:
             self.userId = None
-        self._init_session_states()
+        if "sessionId" not in st.session_state:
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
+        self._init_session_states(self.userId, st.session_state.sessionId)
         self._init_display()
         self._create_chatbot()
 
         
 
-    
-    # @st.cache_data()
-    def _init_session_states(_self,):
+    # NOTE: Cache differently depending on if user is logged in and re-caches for each new session
+    @st.cache_data()
+    def _init_session_states(_self, userId, sessionId):
 
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
             # st.write(tip)
-        if "sessionId" not in st.session_state:
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
-        if "messages" not in st.session_state:
-            st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
+        # if "sessionId" not in st.session_state:
+        #     st.session_state["sessionId"] = str(uuid.uuid4())
+        # #     print(f"Session: {st.session_state.sessionId}")
+        # if "messages" not in st.session_state:
+        st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
+        # if "basechat" not in st.session_state:
+            # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
+        message_history=None
+        new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
+        st.session_state["basechat"] = new_chat
+        ## hacky way to clear uploaded files once submitted
+        # if "file_counter" not in st.session_state:
+        st.session_state["file_counter"] = 0
+        # if "input_counter" not in st.session_state:
+        st.session_state["input_counter"] = 0
+        # if "template_path" not in st.session_state:
+        st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
+        ## NOTE: for logged in users, paths will be different
         if _self.userId is not None:
-            if "dnm_table" not in st.session_state:
-                st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
-                
+            # if "dnm_table" not in st.session_state:
+            st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
+           
+
             # if "past_human_sessions" not in st.session_state:
             #     # retrieve past conversation if user logged in
             #     human, ai = retrieve_sessions(st.session_state.dnm_table, _self.userId)
@@ -146,18 +160,7 @@ class Chat():
             # if st.session_state.past_human_sessions:
             #     st.session_state.messages.extendleft(ChatMessage(role="assistant", content=ai))
             #     st.session_state.messages.extendleft(ChatMessage(role="user", content=human))
-        if "s3_client" not in st.session_state:
-            if STORAGE=="LOCAL":
-                st.session_state["s3_client"]=None
-            elif STORAGE=="CLOUD":
-                st.session_state["s3_client"] = _self.aws_session.client('s3') 
-        if "awsauth" not in st.session_state:
-            st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
-        if "basechat" not in st.session_state:
-            # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
-            message_history=None
-            new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
-            st.session_state["basechat"] = new_chat
+
         # if "message_history" not in st.session_state:
         #     st.session_state["message_history"] = StreamlitChatMessageHistory(key="langchain_messages")
         ## questions stores User's questions
@@ -169,47 +172,45 @@ class Chat():
         # # hack to clear text after user input
         # if 'questionInput' not in st.session_state:
         #     st.session_state["questionInput"] = None  
-        ## hacky way to clear uploaded files once submitted
-        if "file_counter" not in st.session_state:
-            st.session_state["file_counter"] = 0
-        if "input_counter" not in st.session_state:
-            st.session_state["input_counter"] = 0
-        if "template_path" not in st.session_state:
-            st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         if STORAGE == "LOCAL":
-            if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["SAVE_PATH"]
-            if "temp_path" not in st.session_state:
-                st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-            if "directory_made" not in st.session_state:
-                try: 
-                    temp_dir = os.path.join(st.session_state.temp_path, st.session_state.sessionId)
-                    os.mkdir(temp_dir)
-                    user_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId)
-                    os.mkdir(user_dir)
-                    download_dir = os.path.join(user_dir, "downloads")
-                    os.mkdir(download_dir)
-                    chat_dir = os.path.join(user_dir, "chat", "uploads")
-                    os.mkdir(chat_dir)
-                    st.session_state["directory_made"] = True
-                except FileExistsError:
-                    pass
+            st.session_state["storage"]="LOCAL"
+            st.session_state["bucket_name"]=None
+            st.session_state["s3_client"]= None
+            # if "save_path" not in st.session_state:
+            st.session_state["save_path"] = os.environ["SAVE_PATH"]
+            # if "temp_path" not in st.session_state:
+            st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+            # if "directory_made" not in st.session_state:
+            try: 
+                temp_dir = os.path.join(st.session_state.temp_path, st.session_state.sessionId)
+                os.mkdir(temp_dir)
+                user_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId)
+                os.mkdir(user_dir)
+                download_dir = os.path.join(user_dir, "downloads")
+                os.mkdir(download_dir)
+                chat_dir = os.path.join(user_dir, "chat", "uploads")
+                os.mkdir(chat_dir)
+                # st.session_state["directory_made"] = True
+            except FileExistsError:
+                pass
         elif STORAGE=="CLOUD":
-            if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
-            if "temp_path" not in st.session_state:
-                st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-            if "directory_made" not in st.session_state: 
-                try:
-                    # create "directories" in S3 bucket
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads"))
-                    st.session_state["directory_made"] = True
-                    print("Successfully created directories in S3")
-                except Exception as e:
-                    raise e
+            st.session_state["storage"]="CLOUD"
+            st.session_state["bucket_name"]=bucket_name
+            st.session_state["s3_client"]= _self.aws_session.client('s3') 
+            st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
+            # if "save_path" not in st.session_state:
+            st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
+            # if "temp_path" not in st.session_state:
+            st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+            try:
+                # create "directories" in S3 bucket
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
+                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads"))
+                print("Successfully created directories in S3")
+            except Exception as e:
+                raise e
 
     # @st.cache_data()
     def _init_display(_self):
@@ -937,17 +938,18 @@ class Chat():
                 with open(tmp_save_path, 'wb') as f:
                     f.write(uploaded_file.getvalue())
             elif STORAGE=="CLOUD":
-                st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=tmp_save_path)
+                st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
                 print("Successful written file to S3")
             # Convert file to txt and save it 
-            convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client) 
-            content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
+            convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client) 
+            content_safe, content_type = check_content(end_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
             print(content_type, content_safe) 
             if content_safe and content_type!="empty":
                 self.update_entities(content_type, end_path)
                 st.toast(f"your {content_type} is successfully submitted")
             else:
-                os.remove(end_path)
+                delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+                delete_file(tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
                 # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
         
@@ -960,19 +962,18 @@ class Chat():
         # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
         end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads", str(uuid.uuid4())+".txt")
         links = re.findall(r'(https?://\S+)', links)
-        if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client):
-            content_safe, content_type = check_content(end_path, storage=STORAGE, bucket_name=bucket_name, s3=st.session_state.s3_client)
+        if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
+            content_safe, content_type = check_content(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
             print(content_type, content_safe) 
             if (content_safe and content_type!="empty" and content_type!="browser error"):
                 self.update_entities(content_type, end_path)
                 st.toast(f"your {content_type} is successfully submitted")
             else:
                 #TODO: second browser reader for special links such as the OnlinePDFReader: https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf
-                os.remove(end_path)
+                delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 st.toast(f"Failed processing {str(links)}. Please try another link!")
                 # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
         else:
-            os.remove(end_path)
             st.toast(f"Failed processing {str(links)}. Please try another link!")
             # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
 
@@ -980,7 +981,7 @@ class Chat():
 
     def update_entities(self, content_type:str, end_path:str) -> str:
 
-        """ Update entities for chat agent. """
+        """ Update entities for chat agent and save user information, if provided. """
 
         if content_type!="other" and content_type!="learning material":
             delimiter=""
@@ -989,7 +990,7 @@ class Chat():
             elif content_type=="resume":
                 delimiter = "$$$"    
             if content_type=="job posting":
-                content = read_txt(end_path, storage=STORAGE, bucket_name=bucket_name,s3=st.session_state.s3_client)
+                content = read_txt(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name,s3=st.session_state.s3_client)
                 token_count = num_tokens_from_text(content)
                 if token_count>max_token_count:
                     shorten_content(end_path, content_type) 
@@ -1005,38 +1006,37 @@ class Chat():
 
         """ Update vector store for chat agent. """
 
-        if STORAGE=="LOCAL":
+        if st.session_state.storage=="LOCAL":
             vs_name = "user_material"
             vs = merge_faiss_vectorstore(vs_name, end_path)
             vs_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, vs_name)
             #TODO: SAVE TO DYNAMODB BACKED FAISS RETRIEVAL VS
             vs.save_local(vs_path) 
-        elif STORAGE=="CLOUD":
+        elif st.session_state.storage=="CLOUD":
             index_name=f"user_material_{st.session_state.sessionId}"
-            create_vectorstore(vs_type="open_search", 
+            create_vectorstore(vs_type="lancedb", 
                                file=end_path,  
                                index_name=index_name, 
-                               storage=STORAGE, 
-                               bucket_name=bucket_name, 
+                               storage=st.session_state.storage, 
+                               bucket_name=st.session_state.bucket_name, 
                                s3=st.session_state.s3_client, 
-                               awsauth=st.session_state.awsauth)
+                            #    awsauth=st.session_state.awsauth
+                               )
             print("ertretretrete")
             vs_path = index_name
         entity = f"""user_material_path: {vs_path} /n ###"""
         self.new_chat.update_entities(entity)
 
 
-
-
     def binary_file_downloader_html(self, file: str):
 
         """ Gets the download link for generated file. """
 
-        if STORAGE=="LOCAL":
+        if st.session_state.storage=="LOCAL":
             with open(file, 'rb') as f:
                 data = f.read() 
-        elif STORAGE=="CLOUD":
-            object = st.session_state.s3_client.get_object(Bucket=bucket_name, Key=file)
+        elif st.session_state.storage=="CLOUD":
+            object = st.session_state.s3_client.get_object(Bucket=st.session_state.bucket_name, Key=file)
             data = object['Body'].read()
         bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
@@ -1127,7 +1127,7 @@ class Chat():
 
         download_dir = os.path.join(st.session_state.save_path, sessionId, "downloads")
         generated_files = []
-        if STORAGE=="LOCAL":
+        if st.session_state.storage=="LOCAL":
             try:
                 for path in Path(download_dir).glob('**/*.docx*'):
                     file=str(path)
@@ -1135,9 +1135,9 @@ class Chat():
                     generated_files.append(file)
             except Exception:
                 pass
-        elif STORAGE=="CLOUD":
+        elif st.session_state.storage=="CLOUD":
             try:
-                response = st.session_state.s3_client.list_objects(Bucket=bucket_name, Prefix=download_dir)
+                response = st.session_state.s3_client.list_objects(Bucket=st.session_state.bucket_name, Prefix=download_dir)
                 for content in response.get('Contents', []):
                     file=content.get['Key']
                     if Path(file).suffix==".docx":

@@ -1,6 +1,6 @@
 import openai
 from langchain.agents.react.base import DocstoreExplorer
-from langchain.document_loaders import TextLoader, DirectoryLoader, S3FileLoader, S3DirectoryLoader
+from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3FileLoader, S3DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
 # from langchain.indexes import VectorstoreIndexCreator
 from langchain.chat_models import ChatOpenAI
@@ -55,16 +55,20 @@ from langchain_community.document_transformers.openai_functions import (
 from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
 from langchain.vectorstores import FAISS
-from langchain.docstore import InMemoryDocstore
+# from langchain.docstore import InMemoryDocstore
+from langchain.indexes import SQLRecordManager, index
 from langchain.chains import create_tagging_chain, create_tagging_chain_pydantic
 from langchain.schema import LLMResult, HumanMessage
 from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
 from langchain.tools.base import ToolException
-from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, Faiss, DocArrayInMemorySearch
+from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, FAISS, DocArrayInMemorySearch, LanceDB
 import elasticsearch
 from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
+from langchain.indexes import SQLRecordManager, index
+from langchain.schema import Document
+from lancedb_utils import create_table
 import asyncio
 import errno
 
@@ -85,7 +89,7 @@ threshold_bytes=15000
 
 def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_name=None, splitter_type = "recursive", chunk_size=200, chunk_overlap=10) -> List[Document]:
 
-    """Splits file or files in directory into different sized chunks with different text splitters.
+    """ Splits file or files in directory into different sized chunks with different text splitters.
     
     For the purpose of splitting text and text splitter types, reference: https://python.langchain.com/docs/modules/data_connection/document_transformers/
     
@@ -127,8 +131,9 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
             length_function = len,
             chunk_overlap=chunk_overlap,
             separators=[" ", ",", "\n"])
-    docs = text_splitter.split_documents(documents)
-    return docs
+    yield from text_splitter.split_documents(documents)
+    # docs = text_splitter.split_documents(documents)
+    # return docs
 
 def split_doc_file_size(path: str, file_type="file", threshold_bytes=threshold_bytes, storage="LOCAL", splitter_type = "tiktoken", chunk_size=2000,  bucket_name=None, s3=None, ) -> List[Document]:
 
@@ -178,17 +183,54 @@ def split_doc_file_size(path: str, file_type="file", threshold_bytes=threshold_b
     return docs
 
 
-def get_index(path = ".", path_type="file"):
+# def get_index(path = ".", path_type="file"):
 
-    if (path_type=="file"):
-        loader = TextLoader(path, encoding='utf8')
-    elif (path_type=="dir"):
-        loader = DirectoryLoader(path, glob="*.txt")
-    # loader = TextLoader(file, encoding='utf8')
-    index = VectorstoreIndexCreator(
-        vectorstore_cls=DocArrayInMemorySearch
-    ).from_loaders([loader])
-    return index
+#     if (path_type=="file"):
+#         loader = TextLoader(path, encoding='utf8')
+#     elif (path_type=="dir"):
+#         loader = DirectoryLoader(path, glob="*.txt")
+#     # loader = TextLoader(file, encoding='utf8')
+#     index = VectorstoreIndexCreator(
+#         vectorstore_cls=DocArrayInMemorySearch
+#     ).from_loaders([loader])
+#     return index
+
+def create_record_manager(name: str):
+    """LangChain indexing makes use of a record manager (RecordManager) that keeps track of document writes into the vector store."""
+    namespace = f"elasticsearch/{name}"
+    record_manager = SQLRecordManager(
+    namespace, db_url="sqlite:///record_manager_cache.sql" )
+    record_manager.create_schema()
+    return record_manager
+
+    
+def update_index(docs: List[Document], record_manager: SQLRecordManager, vectorstore: Any, cleanup_mode="full"):
+
+    """ See: https://python.langchain.com/docs/modules/data_connection/indexing """
+
+    indexing_stats = index(docs,
+        record_manager, 
+        vectorstore,
+        cleanup=cleanup_mode,
+        source_id_key="source",
+        force_update=os.environ.get("FORCE_UPDATE") or "false")
+    print(f"Indexing stats: {indexing_stats}")
+    
+
+def clear_index(record_manager: SQLRecordManager, vectorstore:Any, cleanup_mode="full"):
+
+    """ See: https://python.langchain.com/docs/modules/data_connection/indexing """
+
+    indexing_stats = index(
+        [],
+        record_manager,
+        vectorstore,
+        cleanup=cleanup_mode,
+        source_id_key="source",
+    )
+    print(f"Indexing stats: {indexing_stats}")
+
+
 
     
 def reorder_docs(docs: List[Document]) -> List[Document]:
@@ -434,7 +476,7 @@ def create_mapreduce_chain(files: List[str], map_template:str, reduce_template:s
     # )
     # split_docs = text_splitter.split_documents(docs)
 
-    print(map_reduce_chain.run(docs))
+    return map_reduce_chain.run(docs)
 
 def create_input_tagger(schema:Dict[str, Any], user_input:str, llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")) -> Dict[str, Any]:
 
@@ -506,19 +548,46 @@ def create_document_tagger(schema:Dict[str, Any], doc:Document, llm = ChatOpenAI
     return enhanced_document[0].metadata
 
 
-def create_web_extraction_chain(content:str, schema, schema_type="dict", llm=ChatOpenAI(temperature=0, cache = False)):
+def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=ChatOpenAI(temperature=0, cache = False)):
 
-    if schema_type=="dict":
-        chain = create_extraction_chain(schema, llm)
-        response = chain.run(content)
-        return response
+    """ For structured output according to a schema, see: https://python.langchain.com/docs/use_cases/extraction.
+     
+      Args:
+       
+        content: for example  "Alex is 5 feet tall. Claudia is 1 feet taller Alex and jumps higher than him. Claudia is a brunette and Alex is blonde."
+         
+        schema: for example
 
-def create_babyagi_chain(OBJECTIVE: str, llm = OpenAI(temperature=0)):
+                {
+            "properties": {
+                "name": {"type": "string"},
+                "height": {"type": "integer"},
+                "hair_color": {"type": "string"},
+            },
+            "required": ["name", "height"] ,
+        }
+
+        Keyword Args:
+
+            llm (BaseModel)
+
+        Returns:
+
+            for example [{'name': 'Alex', 'height': 5, 'hair_color': 'blonde'},
+                        {'name': 'Claudia', 'height': 6, 'hair_color': 'brunette'}]
+
+          """
+
+    chain = create_extraction_chain(schema, llm)
+    response = chain.run(content)
+    return response
+
+def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperature=0)):
     
     embeddings = OpenAIEmbeddings()
     embedding_size = 1536
     index = faiss.IndexFlatL2(embedding_size)
-    vectorstore = FAISS(embeddings.embed_query, index, InMemoryDocstore({}), {})
+    # vectorstore = FAISS(embeddings.embed_query, index, InMemoryDocstore({}), {})
     # Logging of LLMChains
     # If None, will keep on going forever
     max_iterations: Optional[int] = 3
@@ -526,6 +595,7 @@ def create_babyagi_chain(OBJECTIVE: str, llm = OpenAI(temperature=0)):
         llm=llm, vectorstore=vectorstore, verbose=True, max_iterations=max_iterations
     )
     response = baby_agi({"objective": OBJECTIVE})
+    return response
 
 def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=False, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0613", cache=False)) -> str:
 
@@ -573,7 +643,7 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
 
 
 
-def create_vectorstore(vs_type: str, file: str, index_name: str, file_type="file", storage="LOCAL", bucket_name=None, s3=None, awsauth=None, embeddings = OpenAIEmbeddings()) -> Any:
+def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file", storage="LOCAL", bucket_name=None, s3=None, awsauth=None, embeddings = OpenAIEmbeddings()) -> Any:
 
     """ Main function used to create any types of vector stores.
     Redis: https://python.langchain.com/docs/integrations/vectorstores/redis
@@ -604,13 +674,11 @@ def create_vectorstore(vs_type: str, file: str, index_name: str, file_type="file
 
     Returns:
 
-        Faiss or Redis vector store
-
-
-    """
+        Faiss or Redis vector store """
 
     try: 
-        docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
+        if (file!=""):
+            docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
         if (vs_type=="faiss"):
             db=FAISS.from_documents(docs, embeddings)
             # db.save_local(index_name)
@@ -621,6 +689,16 @@ def create_vectorstore(vs_type: str, file: str, index_name: str, file_type="file
             )
             print("Successfully created Redis vector store.")
                 # db=create_redis_index(docs, embeddings, index_name, source)
+        elif (vs_type=="lancedb"):
+            table = create_table()
+            db= LanceDB.from_documents(docs, embeddings, connection=table)
+            # query = "What did a set in Tableau"
+            # docs = db.similarity_search(query)
+            # print(docs[0].page_content)
+        elif (vs_type=="elasticsearch"):
+            db= ElasticsearchStore(
+                es_url="http://localhost:9200", index_name=index_name, embedding=embeddings
+            )
         elif (vs_type=="open_search"):
             print("before open search")
             # db = OpenSearchVectorSearch.from_documents(
@@ -699,6 +777,15 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
             return db
         except Exception as e:
             return None
+    elif vs_type=="elasticsearch":
+        try:
+            db = ElasticsearchStore(
+                es_url="http://localhost:9200",
+                index_name=index_name,
+                embedding=embeddings
+            )
+        except Exception as e:
+            raise e
     elif vs_type=="open_search":
         try:
             db = OpenSearchVectorSearch(
@@ -749,7 +836,7 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
         main_db = create_vectorstore("faiss", file, "file", index_name_main)
         print(f"Successfully created vectorstore: {index_name_main}")
     else:
-        db = create_vectorstore("faiss", file, "file", "temp")
+        db = create_vectorstore("faiss", index_name="temp", file=file, file_type="file",)
         main_db.merge_from(db)
         print(f"Successfully merged vectorestore {index_name_main}")
     return main_db

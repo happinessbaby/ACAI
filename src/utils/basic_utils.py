@@ -107,7 +107,10 @@ def convert_pdf_to_txt(pdf_file, output_path):
 def convert_doc_to_txt(doc_file, output_path):
     pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
 
-def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
+def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
+
+    """ Reads TXT file into string. """
+
     try:
         if storage=="LOCAL":
             with open(file, 'r', errors='ignore') as f:
@@ -120,6 +123,20 @@ def read_txt(file, storage="LOCAL", bucket_name=None, s3=None):
             return text
     except Exception as e:
         return ""
+    
+def delete_file(file, storage="LOCAL", bucket_name=None, s3=None):
+    
+    """ Deletes file. """
+    
+    try:
+        if storage=="LOCAL":
+            os.remove(file)
+        elif storage=="CLOUD":
+            s3.delete_object(Bucket=bucket_name, Key=file)
+    except Exception as e:
+        raise e
+        
+
 
 # def output_path(file:str, file_type:str, storage="LOCAL"):
 
