@@ -59,6 +59,7 @@ from langchain.tools import StructuredTool
 from urllib import request
 from langchain.globals import set_llm_cache
 from utils.agent_tools import create_retriever_tools, create_vs_retriever_tools
+from langchain.tools.retriever import create_retriever_tool
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -95,6 +96,8 @@ class InterviewController():
         self._initialize_interview_agent()
         self._initialize_interview_grader()
 
+
+
     def _initialize_log(self) -> None:
          
         """ Initializes log: https://python.langchain.com/docs/modules/callbacks/filecallbackhandler """
@@ -129,7 +132,12 @@ class InterviewController():
         retriever = store.as_retriever()
         general_tool_description = """Use this tool to generate general interview questions and answer.
         Prioritize other tools over this tool. """
-        general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
+        # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
+        general_tool = [create_retriever_tool(
+            retriever,
+            "search_general_database",
+            general_tool_description,
+        )]
         self.interview_tools = general_tool
 
         # create vector store retriever tool for interview material
@@ -138,13 +146,14 @@ class InterviewController():
             subfolders= [f.path for f in os.scandir(vs_directory) if f.is_dir()]
             for dirname in list(subfolders):
                 vs = FAISS.load_local(dirname, self.embeddings)
+                retriever = vs.as_retriever()
                 # suffix = dirname.rfind("_")
                 # tool_name = "search_" + dirname[:suffix].removeprefix(vs_directory)
                 tool_name = "search_" + dirname.removeprefix(vs_directory).removesuffix(f"_{self.userid}")
                 tool_description =  """Useful for generating interview questions and answers. 
                     Use this tool more than any other tool during a mock interview session to generate interview questions.
                     Do not use this tool to load any files or documents.  """ 
-                tools = create_vs_retriever_tools(vs, tool_name, tool_description)
+                tools = create_retriever_tool(retriever, tool_name, tool_description)
                 self.interview_tools+=tools
         except FileNotFoundError:
             pass  

@@ -131,7 +131,6 @@ def create_search_tools(name: str, top_n: int) -> List[Tool]:
 
 class DocumentInput(BaseModel):
     question: str = Field()
-
 def create_retriever_tools(retriever: Any, name: str, description: str, llm=OpenAI(), chain_type="stuff") -> List[Tool]:
 
     """
@@ -171,35 +170,35 @@ def create_retriever_tools(retriever: Any, name: str, description: str, llm=Open
     return tool
 
 
-def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description: str) -> List[Tool]:   
+# def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description: str) -> List[Tool]:   
 
-    """Create retriever tools from vector store for conversational retrieval agent
+#     """Create retriever tools from vector store for conversational retrieval agent
     
-    See: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
+#     See: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
     
-    Args:
+#     Args:
 
-        vectorstore (Any): vector store to be used as retriever
+#         vectorstore (Any): vector store to be used as retriever
 
-        tool_name: name of the tool
+#         tool_name: name of the tool
 
-        tool_description: description of the tool's usage
+#         tool_description: description of the tool's usage
 
-    Returns:
+#     Returns:
 
-        List[Tool]
+#         List[Tool]
 
-    """   
+#     """   
 
-    retriever = vectorstore.as_retriever()
-    tool = [create_retriever_tool(
-        retriever,
-        tool_name,
-        tool_description
-        )]
-    print(f"Succesfully created retriever tool: {tool_name}")
+#     retriever = vectorstore.as_retriever()
+#     tool = [create_retriever_tool(
+#         retriever,
+#         tool_name,
+#         tool_description
+#         )]
+#     print(f"Succesfully created retriever tool: {tool_name}")
 
-    return tool
+#     return tool
 
 # def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
 
@@ -254,9 +253,11 @@ def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[
 @tool()
 def search_user_material(json_request: str) -> str:
 
-    """Searches and looks up user uploaded material, if available.
+    """Searches and looks up user uploaded material.
 
-      Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>" \n"""
+    Use this tool more than other tools when user question is relevant in user_material_topics.
+
+    Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>"}}' """
 
     try:
         args = json.loads(process_json(json_request))
@@ -269,13 +270,12 @@ def search_user_material(json_request: str) -> str:
     try:
         if STORAGE=="LOCAL":
             vs_type="faiss"
-            vs = retrieve_vectorstore("faiss", vs_path)
         elif STORAGE=="CLOUD":
-            vs_type="open_search"
-            vs = retrieve_vectorstore("open_search", vs_path)
+            vs_type="elasticsearch"
+        vs = retrieve_vectorstore(vs_type=vs_type, index_name=vs_path)
         # subquery_relevancy = "how to determine what's relevant in resume"
         # option 1: compression retriever
-        retriever = create_compression_retriever(vs_type=vs_type, vectorstore=vs)
+        retriever = create_compression_retriever(vectorstore=vs)
         # option 2: ensemble retriever
         # retriever = create_ensemble_retriever(split_doc())
         # option 3: vector store retriever
@@ -285,8 +285,10 @@ def search_user_material(json_request: str) -> str:
         # reordered_docs = reorder_docs(retriever.get_relevant_documents(subquery_relevancy))
         texts = [doc.page_content for doc in docs]
         texts_merged = "\n\n".join(texts)
+        print(f"SEARCH USER MATERIAL TOOL RESPONSE: {texts_merged}")
         return texts_merged
-    except Exception:
+    except Exception as e:
+        raise e
         return "Stop using the search_user_material tool. There is no user material or query to look up. Use another tool."
 
 

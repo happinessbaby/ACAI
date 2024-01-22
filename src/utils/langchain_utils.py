@@ -63,6 +63,7 @@ from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
 from langchain.tools.base import ToolException
 from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, FAISS, DocArrayInMemorySearch, LanceDB
+from feast import FeatureStore
 import elasticsearch
 from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
@@ -212,8 +213,9 @@ def update_index(docs: List[Document], record_manager: SQLRecordManager, vectors
         record_manager, 
         vectorstore,
         cleanup=cleanup_mode,
-        source_id_key="source",
-        force_update=os.environ.get("FORCE_UPDATE") or "false")
+        # source_id_key="source",
+        # force_update=os.environ.get("FORCE_UPDATE") or "false"
+        )
     print(f"Indexing stats: {indexing_stats}")
     
 
@@ -226,10 +228,17 @@ def clear_index(record_manager: SQLRecordManager, vectorstore:Any, cleanup_mode=
         record_manager,
         vectorstore,
         cleanup=cleanup_mode,
-        source_id_key="source",
+        # source_id_key="source",
     )
     print(f"Indexing stats: {indexing_stats}")
 
+def add_metadata(doc: Document, field_name, field_value) -> Document:
+
+    """ Adds metadata to document. 
+    See example on adding and filtering metadata: https://python.langchain.com/docs/integrations/vectorstores/elasticsearch#basic-example """
+
+    doc.metadata[field_name] = field_value
+    return doc
 
 
     
@@ -283,7 +292,7 @@ def create_QASource_chain(chat, vectorstore, docs=None, chain_type="stuff", inde
     return qa
 
 ""
-def create_compression_retriever(vs_type: str, vectorstore: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
+def create_compression_retriever(vectorstore: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
 
     """ Creates a compression retriever given a vector store path. 
     For redundant filter compressor: https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
@@ -319,8 +328,8 @@ def create_compression_retriever(vs_type: str, vectorstore: Any, compressor_type
         )
     elif compressor_type=="cohere_rerank":
         compressor = CohereRerank()
-    store = retrieve_vectorstore(vs_type, vectorstore)
-    retriever = store.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
+    # store = retrieve_vectorstore(vs_type, vectorstore)
+    retriever = vectorstore.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
     # retriever = store.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":3})
 
     compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever)
@@ -697,7 +706,8 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             # print(docs[0].page_content)
         elif (vs_type=="elasticsearch"):
             db= ElasticsearchStore(
-                es_url="http://localhost:9200", index_name=index_name, embedding=embeddings
+                es_url="http://localhost:9200", index_name=index_name, embedding=embeddings,
+                #  strategy=ElasticsearchStore.ApproxRetrievalStrategy(),
             )
         elif (vs_type=="open_search"):
             print("before open search")
@@ -741,6 +751,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
 
     except Exception as e:
         raise e
+    print(f"Successfully created vector store {index_name}")
     return db
 
 def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddings(), ) -> Any:
@@ -784,6 +795,7 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
                 index_name=index_name,
                 embedding=embeddings
             )
+            return db
         except Exception as e:
             raise e
     elif vs_type=="open_search":
@@ -793,12 +805,47 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
                 embedding_function=embeddings,
                 opensearch_url="http://localhost:9200",
             )
+            return db
         except Exception as e:
             return None
 
 
+def update_vectorstore(end_path: str, vs_path:str, index_name: str, record_name=None, storage="LOCAL", bucket_name=None, s3=None) -> None:
 
+    """ Creates and updates vector store for AI agent to be used as RAG. 
     
+    Args:
+    
+        end_path: path to file
+
+        index_name: name of the vector store
+
+        vs_path: path where vector store is saved
+
+    Keyword Args:
+
+        record_name: name of the record manager for the vector store, if using record manager
+
+        storage: LOCAL or CLOUD
+
+        bucket_name: S3 bucket name
+
+        s3: BOTO3's S3 client instance
+        
+    """
+    if storage=="LOCAL":
+        vs = merge_faiss_vectorstore(index_name, end_path)
+        vs.save_local(vs_path) 
+    elif storage=="CLOUD":
+        docs = split_doc_file_size(end_path, "file", storage=storage, bucket_name=bucket_name, s3=s3)
+        vectorstore = retrieve_vectorstore("elasticsearch", index_name=index_name)
+        record_manager=create_record_manager(record_name)
+        if vectorstore is None:
+            vectorstore = create_vectorstore(vs_type="elasticsearch", 
+                            index_name=index_name, 
+                            )
+        update_index(docs=docs, record_manager=record_manager, vectorstore=vectorstore, cleanup_mode=None)
+
 
 
 def drop_redis_index(index_name: str) -> None:
@@ -833,10 +880,10 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
     
     main_db = retrieve_vectorstore("faiss", index_name_main)
     if main_db is None:
-        main_db = create_vectorstore("faiss", file, "file", index_name_main)
+        main_db = create_vectorstore(vs_type="faiss", file=file, file_type="file", index_name=index_name_main)
         print(f"Successfully created vectorstore: {index_name_main}")
     else:
-        db = create_vectorstore("faiss", index_name="temp", file=file, file_type="file",)
+        db = create_vectorstore(vs_type="faiss", index_name="temp", file=file, file_type="file",)
         main_db.merge_from(db)
         print(f"Successfully merged vectorestore {index_name_main}")
     return main_db

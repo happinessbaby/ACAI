@@ -43,6 +43,7 @@ import asyncio
 from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
 # from langchain.agents.agent_toolkits import FileManagementToolkit
 from langchain.tools.file_management.read import ReadFileTool
+from langchain.tools.retriever import create_retriever_tool
 from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from langchain.globals import set_llm_cache
@@ -69,7 +70,7 @@ langchain.debug=True
 # The result evaluation process slows down chat by a lot, unless necessary, set to false
 evaluate_result = False
 # The instruction update process is still being tested for effectiveness
-update_instruction = True
+update_instruction = False
 pickle_conversation = False
 delimiter = "####"
 word_count = 100
@@ -96,7 +97,7 @@ class ChatController():
 
     def __init__(self, sessionId, chat_memory=None):
         self.sessionId = sessionId
-        self.llm = ChatOpenAI(temperature=0, cache = False,streaming=True)
+        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,streaming=True)
         # self.llm.callbacks = [self.streamHandler]
         self.embeddings = OpenAIEmbeddings()
         if chat_memory is not None:
@@ -149,9 +150,14 @@ class ChatController():
         # general vector store tool
         store = retrieve_vectorstore("faiss", faiss_web_data_path)
         retriever = store.as_retriever()
-        general_tool_description = """This is a general purpose tool. Use it to answer general job related questions through searching database.
-        Prioritize other tools over this tool. """
-        general_tool= create_retriever_tools(retriever, "search_general_database", general_tool_description)
+        general_tool_description = """This is a general purpose tool that helps answer questions through searching a general knowledge database.
+        Prioritize other tools over this tool! """
+        # general_tool= create_retriever_tools(retriever, "search_general_database", general_tool_description)
+        general_tool = [create_retriever_tool(
+            retriever,
+            "search_general_database",
+            general_tool_description,
+        )]
         # web reserach: https://python.langchain.com/docs/modules/data_connection/retrievers/web_research
         # search = GoogleSearchAPIWrapper()
         # embedding_size = 1536  
@@ -575,8 +581,8 @@ class ChatController():
         """ Updates entities list for main chat agent. Entities are files user loads or topics of the files. """
 
         entity_type = text.split(":")[0]
-        print(f"Entity type: {entity_type}")
-        self.delete_entities(entity_type, delimiter)
+        if entity_type!="user_material_topics":
+            self.delete_entities(entity_type, delimiter)
         self.entities += f"\n{text}\n"
         self.entities.strip()
         print(f"Successfully added entities {self.entities}.")
@@ -587,9 +593,11 @@ class ChatController():
 
         starting_indices = [m.start() for m in re.finditer(type, self.entities)]
         end_indices = [m.start() for m in re.finditer(delimiter, self.entities)]
-        print(type, starting_indices, end_indices)
-        for i in range(len(starting_indices)):
-            self.entities = self.entities.replace(self.entities[starting_indices[i]:end_indices[i]+len(delimiter)], "")
+        # print(type, starting_indices, end_indices)
+        if starting_indices and end_indices:
+            for i in range(len(starting_indices)):
+                self.entities = self.entities.replace(self.entities[starting_indices[i]:end_indices[i]+len(delimiter)], "")
+
 
     # def update_instructions(self, meta_output:str) -> None:
     #     delimiter = "Instructions: "

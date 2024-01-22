@@ -38,25 +38,28 @@ aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
 
     """ Converts file to TXT file and move it to destination location. """
-
-    file_ext = Path(file).suffix
-    if storage=="LOCAL":
-        if (file_ext)=='.txt' and file!=output_path:
-            os.rename(file, output_path)
-            # move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-        if (file_ext=='.pdf'): 
-            convert_pdf_to_txt(file, output_path)
-        elif (file_ext=='.odt' or file_ext=='.docx'):
-            convert_doc_to_txt(file, output_path)
-        elif (file_ext==".log"):
-            convert_log_to_txt(file, output_path)
-        elif (file_ext==".pptx"):
-            convert_pptx_to_txt(file, output_path)
-    elif storage=="CLOUD":
-        loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        text = loader.load()[0].page_content
-        s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
-        print("Successfully converted file in S3 to TXT")
+    try:
+        file_ext = Path(file).suffix
+        if storage=="LOCAL":
+            if (file_ext)=='.txt' and file!=output_path:
+                os.rename(file, output_path)
+                # move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
+            if (file_ext=='.pdf'): 
+                convert_pdf_to_txt(file, output_path)
+            elif (file_ext=='.odt' or file_ext=='.docx'):
+                convert_doc_to_txt(file, output_path)
+            elif (file_ext==".log"):
+                convert_log_to_txt(file, output_path)
+            elif (file_ext==".pptx"):
+                convert_pptx_to_txt(file, output_path)
+        elif storage=="CLOUD":
+            loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            text = loader.load()[0].page_content
+            s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
+            print("Successfully converted file in S3 to TXT")
+        return True
+    except Exception:
+        return False
 
 
 
@@ -217,10 +220,9 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
                 file.write(content)
                 file.close()
                 print('Content retrieved and written to file.')
-                return True
         elif storage=="S3":
             s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
-            return True
+        return True
     except Exception:
         return False
 
