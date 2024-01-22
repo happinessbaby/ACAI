@@ -36,7 +36,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 STORAGE = os.environ["STORAGE"]
-local_save_path = os.environ["SAVE_PATH"]
+local_save_path = os.environ["CHAT_PATH"]
 # TODO: caching and serialization of llm
 llm = ChatOpenAI(temperature=0.9)
 embeddings = OpenAIEmbeddings()
@@ -49,7 +49,7 @@ delimiter4 = "****"
 
 if STORAGE=="S3":
     bucket_name = os.envrion["BUCKET_NAME"]
-    s3_save_path = os.environ["S3_SAVE_PATH"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],

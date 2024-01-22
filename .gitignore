@@ -175,6 +175,7 @@ src/session/
 src/log/
 src/uploads/
 src/streamlit_custom_components/
+src/recording
 
 
 

@@ -56,7 +56,7 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
-save_path = os.environ["SAVE_PATH"]
+save_path = os.environ["CHAT_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
 endpoint_url = os.environ["ENDPOINT_URL"]
 message_key = {

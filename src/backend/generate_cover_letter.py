@@ -42,10 +42,10 @@ delimiter3 = '---'
 delimiter4 = '////'
 delimiter5 = '~~~~'
 
-local_save_path = os.environ["SAVE_PATH"]
+local_save_path = os.environ["CHAT_PATH"]
 if STORAGE=="S3":
     bucket_name = os.environ["BUCKET_NAME"]
-    s3_save_path = os.environ["S3_SAVE_PATH"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],

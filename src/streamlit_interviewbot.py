@@ -54,6 +54,7 @@ import base64
 from cookie_manager import get_cookie, get_all_cookies
 from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
 from aws_manager import get_aws_session, request_aws4auth
+import pywinctl as pwc
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ['OPENAI_API_KEY']
@@ -81,7 +82,7 @@ device = 4
 
 class Interview():
 
-    COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.KeyCode.from_char('s'), keyboard.Key.space}]
+    COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.Key.enter}]
     currently_pressed = set()
     # placeholder = st.empty()
     q = queue.Queue()
@@ -144,12 +145,13 @@ class Interview():
             #     pass
         
             # initialize submitted form variables
-            if "about" not in st.session_state:
-                st.session_state["about"]=""
-            if "job_posting" not in st.session_state:
-                st.session_state["job_posting"] = ""
-            if "resume_file" not in st.session_state:
-                st.session_state["resume_file"] = ""
+            # if "about" not in st.session_state:
+            st.session_state["about"]=""
+            # if "job_posting" not in st.session_state:
+            st.session_state["job_posting"] = ""
+            # if "resume_file" not in st.session_state:
+            st.session_state["resume_file"] = ""
+            st.session_state["window_title"] = pwc.getActiveWindowTitle()
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
@@ -291,9 +293,14 @@ class Interview():
     #         future = executor.submit(self._create_interviewbot)
     #         future.result()
 
+    # def _init_listener(self, q:Queue):
+    #     new_listener = keyboard.Listener(
+    #             on_press=self.on_press,
+    #             on_release=self.on_release)
+    #     # st.session_state["listener"] = new_listener   
+    #     q.put(new_listener)
 
     def _create_interviewbot(self):
-
 
 
         if "init_interview" not in st.session_state:
@@ -303,11 +310,18 @@ class Interview():
             if "listener" not in st.session_state:
                 self.file=None
                 self.record=True
+                self.interview_sessionId = st.session_state.interview_sessionId
+                self.window_title = st.session_state.window_title
                 new_listener = keyboard.Listener(
                 on_press=self.on_press,
+                # on_press=lambda event: self.on_press(event, st.session_state.interview_sessionId, st.session_state.window_title),
                 on_release=self.on_release)
-                st.session_state["listener"] = new_listener
-                
+                # thread = threading.Thread(target=self._init_listener, args=[self.q])
+                # add_script_run_ctx(thread, self.ctx)
+                # thread.start()
+                # thread.join()
+                # st.session_state["listener"]=self.q.get()
+                st.session_state["listener"] = new_listener          
             if "baseinterview" not in st.session_state:
                 # update interview agents prompts from form variables
                 if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
@@ -430,14 +444,14 @@ class Interview():
     
      
 
-    def on_press(self, key):
+    def on_press(self, key,):
 
         """ Listens when a keyboards is pressed. """
 
         print("listener key pressed")
-        if any([key in comb for comb in self.COMBINATION]):
+        if any([key in comb for comb in self.COMBINATION]) and pwc.getActiveWindowTitle()==self.window_title:
             self.currently_pressed.add(key)
-        if self.currently_pressed == self.COMBINATION[0]:
+        if self.currently_pressed == self.COMBINATION[0] and pwc.getActiveWindowTitle()==self.window_title:
             print("on press: recording")
             filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             #TODO check this path: st.session_state.interview_sessionId not initialized here b/c different thread
@@ -446,13 +460,13 @@ class Interview():
             add_script_run_ctx(thread, self.ctx)
             thread.start()
             # self.record_audio2()
-        if self.currently_pressed == self.COMBINATION[1]:
+        if self.currently_pressed == self.COMBINATION[1] and pwc.getActiveWindowTitle()==self.window_title:
             self.listener.stop()
             print("on press: quitting")
             thread = threading.Thread(target=self.interview_feedback)
             add_script_run_ctx(thread, self.ctx)
             thread.start()
-        if self.currently_pressed == self.COMBINATION[2]:
+        if self.currently_pressed == self.COMBINATION[2] and pwc.getActiveWindowTitle()==self.window_title:
             self.record = False
             print("on press: stopping")
             try:
@@ -561,7 +575,6 @@ class Interview():
                 self.process_about_interview(about)      
         except Exception:
             pass
-        st.session_state["init_interview"]=True
 
 
     def text_session(self):
