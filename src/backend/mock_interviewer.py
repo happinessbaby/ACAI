@@ -58,7 +58,6 @@ from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from urllib import request
 from langchain.globals import set_llm_cache
-from utils.agent_tools import create_retriever_tools, create_vs_retriever_tools
 from langchain.tools.retriever import create_retriever_tool
 
 
@@ -69,7 +68,7 @@ memory_key="chat_history"
 memory_max_token = 500
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
-save_path = os.environ["SAVE_PATH"]
+save_path = os.environ["INTERVIEW_PATH"]
 faiss_interview_data_path= os.environ["FAISS_INTERVIEW_DATA_PATH"]
 # set recording parameters
 duration = 5 # duration of each recording in seconds

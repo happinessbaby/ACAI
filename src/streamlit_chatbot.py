@@ -138,11 +138,11 @@ class Chat():
         # #     print(f"Session: {st.session_state.sessionId}")
         # if "messages" not in st.session_state:
         st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
-        # if "basechat" not in st.session_state:
-            # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
-        message_history=None
-        new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
-        st.session_state["basechat"] = new_chat
+        #TODO, get dynamodb message history to work
+        # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
+        st.session_state["message_history"]=None
+        # new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
+        # st.session_state["basechat"] = new_chat
         ## hacky way to clear uploaded files once submitted
         # if "file_counter" not in st.session_state:
         st.session_state["file_counter"] = 0
@@ -200,7 +200,7 @@ class Chat():
             st.session_state["s3_client"]= _self.aws_session.client('s3') 
             st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
             # if "save_path" not in st.session_state:
-            st.session_state["save_path"] = os.environ["S3_SAVE_PATH"]
+            st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
             try:
@@ -339,7 +339,11 @@ class Chat():
         """ Creates the main chat interface. """
 
         # with placeholder.container():
-    
+
+        if "basechat" not in st.session_state:
+            new_chat = ChatController(st.session_state.sessionId, chat_memory=st.session_state.message_history)
+            st.session_state["basechat"] = new_chat
+
         try:
             self.new_chat = st.session_state.basechat
             # self.msgs = st.session_state.message_history

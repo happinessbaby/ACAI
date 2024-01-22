@@ -60,6 +60,7 @@ openai.api_key = os.environ['OPENAI_API_KEY']
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']
 user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
+png_file = os.environ["INTERVIEW_BG"]
 # set_api_key(os.environ["11LABS_API_KEY"])
 # save_path = os.environ["SAVE_PATH"]
 # temp_path = os.environ["TEMP_PATH"]
@@ -75,11 +76,7 @@ channels = 1 # number of channel
 device = 4
 # keyboard = Controller()
 # keyboard_event = Keyboard()
-try:
-    st.session_state["signed_in"]
-    user_status="User"
-except Exception:
-    user_status="Sign in"
+
 
 
 class Interview():
@@ -100,21 +97,19 @@ class Interview():
             print(self.userId)
         else:
             self.userId = None
-        self._init_session_states(st.session_state.interview_sessionId, self.userId)
-        self._init_display()
         if "interview_sessionId" not in st.session_state:
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
             print(f"Interview Session: {st.session_state.interview_sessionId}")
-            self._init_interview_preform
-        else:
-            self._create_interviewbot()
+        self._init_session_states(st.session_state.interview_sessionId, self.userId)
+        self._init_display()
+        self._create_interviewbot()
         # self.thread_run()
         # thread = threading.Thread(target=self._create_interviewbot)
         # add_script_run_ctx(thread)
         # thread.start()
 
     
-    @st.cache_data
+    @st.cache_data()
     def _init_session_states(_self, sessionId, userId):
 
         # if "interview_sessionId" not in st.session_state:
@@ -140,13 +135,13 @@ class Interview():
 
 
 
-            try: 
-                temp_dir = temp_path+st.session_state.userid
-                user_dir = save_path+st.session_state.userid
-                os.mkdir(temp_dir)
-                os.mkdir(user_dir)
-            except FileExistsError:
-                pass
+            # try: 
+            #     temp_dir = temp_path+st.session_state.userid
+            #     user_dir = save_path+st.session_state.userid
+            #     os.mkdir(temp_dir)
+            #     os.mkdir(user_dir)
+            # except FileExistsError:
+            #     pass
         
             # initialize submitted form variables
             if "about" not in st.session_state:
@@ -155,33 +150,65 @@ class Interview():
                 st.session_state["job_posting"] = ""
             if "resume_file" not in st.session_state:
                 st.session_state["resume_file"] = ""
-            # initialize keyboard listener
-            if "listener" not in st.session_state:
-                self.file=None
-                self.record=True
-                new_listener = keyboard.Listener(
-                on_press=self.on_press,
-                on_release=self.on_release)
-                st.session_state["listener"] = new_listener
+            if STORAGE == "LOCAL":
+                st.session_state["storage"]="LOCAL"
+                st.session_state["bucket_name"]=None
+                st.session_state["s3_client"]= None
+                # if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["INTERVIEW_PATH"]
+                # if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+                # if "directory_made" not in st.session_state:
+                try: 
+                    os.mkdir(os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId))
+                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId))
+                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"))
+                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"))
+                    # st.session_state["directory_made"] = True
+                except FileExistsError:
+                    pass
+            elif STORAGE=="CLOUD":
+                st.session_state["storage"]="CLOUD"
+                st.session_state["bucket_name"]=bucket_name
+                st.session_state["s3_client"]= _self.aws_session.client('s3') 
+                # if "save_path" not in st.session_state:
+                st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
+                # if "temp_path" not in st.session_state:
+                st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+                try:
+                    # create "directories" in S3 bucket
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"))
+                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"))
+                    print("Successfully created directories in S3")
+                except Exception as e:
+                    raise e
+                # initialize keyboard listener
+            # if "listener" not in st.session_state:
+            #     _self.file=None
+            #     _self.record=True
+            #     new_listener = keyboard.Listener(
+            #     on_press=_self.on_press,
+            #     on_release=_self.on_release)
+            #     st.session_state["listener"] = new_listener
             # initialize backup text session
-            if "text_session" not in st.session_state:
-                st.session_state["text_session"] = False
+            # if "text_session" not in st.session_state:
+            #     st.session_state["text_session"] = False
             # initialize main session interview agents
-            if "baseinterview" not in st.session_state:
-                # update interview agents prompts from form variables
-                if  st.session_state.about!="":
-                    additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
-                else:
-                    additional_prompt_info = ""
-                    generated_dict = {}
-                new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
-                st.session_state["baseinterview"] = new_interview     
+            # if "baseinterview" not in st.session_state:
+            #     # update interview agents prompts from form variables
+            #     if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
+            #         additional_prompt_info, generated_dict = _self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
+            #     else:
+            #         additional_prompt_info = ""
+            #         generated_dict = {}
+            #     new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
+            #     st.session_state["baseinterview"] = new_interview     
 
 
-    @st.cache_data()
     def _init_display(_self):
 
-        png_file = os.environ["INTERVIEW_BG"]
 
         """
         function to display png as bg
@@ -220,9 +247,6 @@ class Interview():
 
             add_vertical_space(5)
 
-            if user_status=="User":
-                st.write("PAST SESSION RECORDING HERE.")
-                #TODO
             st.markdown('''
 
             Troubleshooting:
@@ -253,7 +277,8 @@ class Interview():
                                                 key = "interview_files",
                                                 accept_multiple_files=True)
                 add_vertical_space(1)
-                st.form_submit_button(label='Submit', on_click=self.form_callback)  
+                st.form_submit_button(label='Submit', on_click=self.form_callback)
+                  
 
 
     # def thread_run(self):
@@ -271,7 +296,27 @@ class Interview():
 
 
 
-        with placeholder.container():
+        if "init_interview" not in st.session_state:
+            self._init_interview_preform()
+            st.session_state["init_interview"]=True
+        else:
+            if "listener" not in st.session_state:
+                self.file=None
+                self.record=True
+                new_listener = keyboard.Listener(
+                on_press=self.on_press,
+                on_release=self.on_release)
+                st.session_state["listener"] = new_listener
+                
+            if "baseinterview" not in st.session_state:
+                # update interview agents prompts from form variables
+                if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
+                    additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
+                else:
+                    additional_prompt_info = ""
+                    generated_dict = {}
+                new_interview = InterviewController(st.session_state.interview_sessionId, additional_prompt_info, generated_dict)
+                st.session_state["baseinterview"] = new_interview    
 
             # with st.sidebar:
                 
@@ -332,47 +377,47 @@ class Interview():
             # else:  
 
                 # initialize submitted form variables
-                if "about" not in st.session_state:
-                    st.session_state["about"]=""
-                if "job_posting" not in st.session_state:
-                    st.session_state["job_posting"] = ""
-                if "resume_file" not in st.session_state:
-                    st.session_state["resume_file"] = ""
-                # initialize keyboard listener
-                if "listener" not in st.session_state:
-                    self.file=None
-                    self.record=True
-                    new_listener = keyboard.Listener(
-                    on_press=self.on_press,
-                    on_release=self.on_release)
-                    st.session_state["listener"] = new_listener
-                # initialize backup text session
-                if "text_session" not in st.session_state:
-                    st.session_state["text_session"] = False
-                # initialize main session interview agents
-                if "baseinterview" not in st.session_state:
-                    # update interview agents prompts from form variables
-                    if  st.session_state.about!="":
-                        additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
-                    else:
-                        additional_prompt_info = ""
-                        generated_dict = {}
-                    new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
-                    st.session_state["baseinterview"] = new_interview     
+                # if "about" not in st.session_state:
+                #     st.session_state["about"]=""
+                # if "job_posting" not in st.session_state:
+                #     st.session_state["job_posting"] = ""
+                # if "resume_file" not in st.session_state:
+                #     st.session_state["resume_file"] = ""
+                # # initialize keyboard listener
+                # if "listener" not in st.session_state:
+                #     self.file=None
+                #     self.record=True
+                #     new_listener = keyboard.Listener(
+                #     on_press=self.on_press,
+                #     on_release=self.on_release)
+                #     st.session_state["listener"] = new_listener
+                # # initialize backup text session
+                # if "text_session" not in st.session_state:
+                #     st.session_state["text_session"] = False
+                # # initialize main session interview agents
+                # if "baseinterview" not in st.session_state:
+                #     # update interview agents prompts from form variables
+                #     if  st.session_state.about!="":
+                #         additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
+                #     else:
+                #         additional_prompt_info = ""
+                #         generated_dict = {}
+                #     new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
+                #     st.session_state["baseinterview"] = new_interview     
                     # welcome_msg = "Welcome to your mock interview session. I will begin conducting the interview now. Please review the sidebar for instructions. "
                     # message(welcome_msg, avatar_style="initials", seed="AI_Interviewer", allow_html=True)
 
+            try:
+                self.new_interview = st.session_state.baseinterview  
+                self.listener = st.session_state.listener
                 try:
-                    self.new_interview = st.session_state.baseinterview  
-                    self.listener = st.session_state.listener
-                    try:
-                        self.listener.start()
-                    # RuntimeError: threads can only be started once  
-                    except RuntimeError as e:
-                        pass
-                except AttributeError as e:
-                    # if for some reason session ended in the middle, may need to do something different from raise exception
-                    raise e
+                    self.listener.start()
+                # RuntimeError: threads can only be started once  
+                except RuntimeError as e:
+                    pass
+            except AttributeError as e:
+                # if for some reason session ended in the middle, may need to do something different from raise exception
+                raise e
                 # make directory for session recordings
 
                 # if switch:
@@ -395,7 +440,8 @@ class Interview():
         if self.currently_pressed == self.COMBINATION[0]:
             print("on press: recording")
             filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-            self.file = f"./recording/{self.userid}/{filename}.wav"
+            #TODO check this path: st.session_state.interview_sessionId not initialized here b/c different thread
+            self.file = f"./recording/{filename}.wav"
             thread = threading.Thread(target = self.record_audio2)
             add_script_run_ctx(thread, self.ctx)
             thread.start()
@@ -515,6 +561,7 @@ class Interview():
                 self.process_about_interview(about)      
         except Exception:
             pass
+        st.session_state["init_interview"]=True
 
 
     def text_session(self):
@@ -641,7 +688,7 @@ class Interview():
         """
 
         print(f"about: {about}")
-        print(f"job psoting: {job_posting}")
+        print(f"job posting: {job_posting}")
         additional_interview_info = about
         try:
             resume_content = read_txt(resume_file)
@@ -678,7 +725,7 @@ class Interview():
             for uploaded_file in uploads:
                 file_ext = Path(uploaded_file.name).suffix
                 filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(temp_path, st.session_state.interview_sessionId, filename)
+                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId, filename)
                 if st.session_state.storage=="LOCAL":
                     with open(tmp_save_path, 'wb') as f:
                         f.write(uploaded_file.getvalue())
