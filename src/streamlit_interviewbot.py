@@ -55,6 +55,7 @@ from cookie_manager import get_cookie, get_all_cookies
 from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
 from aws_manager import get_aws_session, request_aws4auth
 import pywinctl as pwc
+from my_component import my_component
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ['OPENAI_API_KEY']
@@ -479,10 +480,7 @@ class Interview():
             user_input = self.transcribe_audio2()
             response = self.new_interview.askAI(user_input)
             print(response)
-            # tts = ElevenLabsText2SpeechTool()
-            # speech_file = tts.run(response)
-            # tts.play(speech_file)
-            # st.session_state.tts.play(response)
+            self.play_response()
             self.record = True
 
          
@@ -525,6 +523,19 @@ class Interview():
         except Exception as e:
             raise e
         return transcript["text"].strip()
+    
+    def play_response(self, response: str) -> None:
+
+        tts = ElevenLabsText2SpeechTool()
+        speech_file = tts.run(response)
+        tts.play(speech_file)
+        # st.session_state.tts.play(response)
+    
+    def display_response(self, response:str) -> None:
+
+        return None
+
+
 
     
     # def play_generated_audio(self, text, voice="Bella", model="eleven_monolingual_v1"):
@@ -572,7 +583,7 @@ class Interview():
         try:
             about = st.session_state.interview_about
             if about:
-                self.process_about_interview(about)      
+                self.process_uploads(about, "description")     
         except Exception:
             pass
 
@@ -605,12 +616,14 @@ class Interview():
             # if 'interview_questions' not in st.session_state:
             #     st.session_state['interview_questions'] = list()
 
+            col1, col2= st.columns(2)
             if 'interview_response' not in st.session_state:
                 st.session_state['interview_response'] = ""
             if 'interview_question' not in st.session_state:
                 st.session_state['interview_question'] = ""
+                with col1:
+                    message("Hello, welcome to your mock interview session. With whom am I speaking to?")
 
-            col1, col2= st.columns(2)
             # with col1:
             #     if "question_container" not in st.session_state:
             #         st.session_state["question_container"] = st.container()
@@ -670,6 +683,7 @@ class Interview():
         """ Processes user input from chatbox and prefilled question selection after submission. """
           
         response = self.new_interview.askAI(st.session_state.interview_input, callbacks = None)
+        self.display_response(response)
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
         st.session_state.interview_response = st.session_state.interview_input
@@ -747,11 +761,16 @@ class Interview():
                     print("Successful written file to S3")
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)
-        elif upload_type=="links":
+        if upload_type=="links":
             end_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads", str(uuid.uuid4())+".txt")
             links = re.findall(r'(https?://\S+)', uploads)
             if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                 end_paths.append(end_path)
+        if upload_type=="descripton":
+            about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {about_interview} \n
+            If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
+            if "about" not in st.session_state:
+                st.session_state["about"] = about_interview_summary
         for end_path in end_paths:
             content_safe, content_type, content_topics = check_content(end_path)
             print(content_type, content_safe, content_topics) 
@@ -774,20 +793,20 @@ class Interview():
                 st.toast(f"Failed processing your material. Please try again!")
 
 
-    def process_about_interview(self, about_interview:str) -> None:
+    # def process_about_interview(self, about_interview:str) -> None:
 
-        """ Processes user's about interview text input, including any links in the description."""
+    #     """ Processes user's about interview text input, including any links in the description."""
         
-        about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {about_interview} \n
-            If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
-        if "about" not in st.session_state:
-            st.session_state["about"] = about_interview_summary
+    #     about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {about_interview} \n
+    #         If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
+    #     if "about" not in st.session_state:
+    #         st.session_state["about"] = about_interview_summary
         # process any links in the about me
-        urls = re.findall(r'(https?://\S+)', about_interview)
-        print(urls)
-        if urls:
-            for url in urls:
-                self.process_uploads(url, "links")
+        # urls = re.findall(r'(https?://\S+)', about_interview)
+        # print(urls)
+        # if urls:
+        #     for url in urls:
+        #         self.process_uploads(url, "links")
 
     # def process_file(self, uploaded_files: Any) -> None:
 
