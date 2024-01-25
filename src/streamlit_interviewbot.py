@@ -13,7 +13,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from backend.mock_interviewer import InterviewController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs
 from utils.openai_api import check_content_safety, get_completion
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, get_generated_responses, get_web_resources
@@ -40,11 +40,11 @@ import tempfile
 import openai
 # from elevenlabs import generate, play, set_api_key
 from time import gmtime, strftime
-from playsound import playsound
+import playsound
 from streamlit_modal import Modal
 import json
 from threading import Thread
-from langchain.tools import ElevenLabsText2SpeechTool
+from langchain.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -56,13 +56,16 @@ from dynamodb_utils import create_table, retrieve_sessions, save_current_convers
 from aws_manager import get_aws_session, request_aws4auth
 import pywinctl as pwc
 from my_component import my_component
+from google.cloud import texttospeech
 
 _ = load_dotenv(find_dotenv()) # read local .env file
+st.set_page_config(layout="wide")
 openai.api_key = os.environ['OPENAI_API_KEY']
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']
 user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 png_file = os.environ["INTERVIEW_BG"]
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/tebblespc/Documents/acai-412122-dd69ac33da42.json"
 # set_api_key(os.environ["11LABS_API_KEY"])
 # save_path = os.environ["SAVE_PATH"]
 # temp_path = os.environ["TEMP_PATH"]
@@ -85,8 +88,8 @@ class Interview():
 
     COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.Key.enter}]
     currently_pressed = set()
-    # placeholder = st.empty()
     q = queue.Queue()
+    ai_col, human_col = st.columns(2, gap="large")
     ctx = get_script_run_ctx()
     cookie = get_cookie("userInfo")
     aws_session = get_aws_session()
@@ -144,7 +147,9 @@ class Interview():
             #     os.mkdir(user_dir)
             # except FileExistsError:
             #     pass
-        
+            st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
+
+            st.session_state["mode"]="regular"
             # initialize submitted form variables
             # if "about" not in st.session_state:
             st.session_state["about"]=""
@@ -162,14 +167,6 @@ class Interview():
                 # if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
                 # if "directory_made" not in st.session_state:
-                try: 
-                    os.mkdir(os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId))
-                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId))
-                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"))
-                    os.mkdir(os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"))
-                    # st.session_state["directory_made"] = True
-                except FileExistsError:
-                    pass
             elif STORAGE=="CLOUD":
                 st.session_state["storage"]="CLOUD"
                 st.session_state["bucket_name"]=bucket_name
@@ -178,15 +175,14 @@ class Interview():
                 st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-                try:
-                    # create "directories" in S3 bucket
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"))
-                    st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"))
-                    print("Successfully created directories in S3")
-                except Exception as e:
-                    raise e
+
+            paths = [os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
+                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
+                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"),
+                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"),
+                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
+                    ]
+            mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 # initialize keyboard listener
             # if "listener" not in st.session_state:
             #     _self.file=None
@@ -233,10 +229,8 @@ class Interview():
          unsafe_allow_html=True
         )
 
-        with st.sidebar:
-                
+        with st.sidebar:          
             add_vertical_space(3)
-
             st.markdown('''
                         
             How the mock interview works: 
@@ -247,9 +241,7 @@ class Interview():
             - press Shift + Esc to end the session
                         
             ''')
-
             add_vertical_space(5)
-
             st.markdown('''
 
             Troubleshooting:
@@ -258,10 +250,11 @@ class Interview():
             2. you can switch to the text only session by clicking on the button below
 
                         ''')
+            if st.session_state["mode"]=="regular":
+                st.button("switch to text only session", key="switch_button", on_click=_self._init_text_session)
+            if st.session_state["mode"]=="text":
+                st.button("end session",  key="end_session", on_click=_self.interview_feedback)
 
-            switch = st.button("switch to text only session", key="switch_button", on_click=_self.text_session)
-            #temporary button
-            feedback =st.button("end session", key="feedback", on_click=_self.interview_feedback)
             
     def _init_interview_preform(self):
 
@@ -270,11 +263,8 @@ class Interview():
             with st.form( key='interview_form', clear_on_submit=True):
                 add_vertical_space(1)
                 # st.markdown("Please fill out the form below before we begin")
-
                 st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
-
                 st.text_input("links (this can be a job posting)", "", key = "interview_links", )
-
                 st.file_uploader(label="Upload your interview material or resume",
                                                 type=["pdf","odt", "docx","txt", "zip", "pptx"], 
                                                 key = "interview_files",
@@ -308,21 +298,37 @@ class Interview():
             self._init_interview_preform()
             st.session_state["init_interview"]=True
         else:
-            if "listener" not in st.session_state:
-                self.file=None
-                self.record=True
-                self.interview_sessionId = st.session_state.interview_sessionId
-                self.window_title = st.session_state.window_title
-                new_listener = keyboard.Listener(
-                on_press=self.on_press,
-                # on_press=lambda event: self.on_press(event, st.session_state.interview_sessionId, st.session_state.window_title),
-                on_release=self.on_release)
-                # thread = threading.Thread(target=self._init_listener, args=[self.q])
-                # add_script_run_ctx(thread, self.ctx)
-                # thread.start()
-                # thread.join()
-                # st.session_state["listener"]=self.q.get()
-                st.session_state["listener"] = new_listener          
+            if st.session_state.mode=="regular":
+                if "listener" not in st.session_state:
+                    ##NOTE: due to listener running on different thread, none of the session states can be accessed thru listener
+                    ## therefore, all needed variables will be saved and accessed thru self
+                    self.file=None
+                    self.record=True
+                    self.interview_sessionId = st.session_state.interview_sessionId
+                    self.window_title = st.session_state.window_title
+                    self.tts_client = st.session_state.tts_client
+                    self.rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
+                    self.s3=st.session_state.s3_client
+                    self.bucket_name=st.session_state.bucket_name
+                    self.storage=st.session_state.storage
+                    new_listener = keyboard.Listener(
+                    on_press=self.on_press,
+                    # on_press=lambda event: sef.on_press(event, st.session_state.interview_sessionId, st.session_state.window_title),
+                    on_release=self.on_release)
+                    # thread = threading.Thread(target=self._init_listener, args=[self.q])
+                    # add_script_run_ctx(thread, self.ctx)
+                    # thread.start()
+                    # thread.join()
+                    # st.session_state["listener"]=self.q.get()
+                    st.session_state["listener"] = new_listener
+                self.listener = st.session_state.listener
+                try:
+                    self.listener.start()
+                # RuntimeError: threads can only be started once  
+                except RuntimeError as e:
+                    pass
+            elif st.session_state.mode=="text":
+                self._init_text_session()          
             if "baseinterview" not in st.session_state:
                 # update interview agents prompts from form variables
                 if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
@@ -424,12 +430,12 @@ class Interview():
 
             try:
                 self.new_interview = st.session_state.baseinterview  
-                self.listener = st.session_state.listener
-                try:
-                    self.listener.start()
-                # RuntimeError: threads can only be started once  
-                except RuntimeError as e:
-                    pass
+                # self.listener = st.session_state.listener
+                # try:
+                #     self.listener.start()
+                # # RuntimeError: threads can only be started once  
+                # except RuntimeError as e:
+                #     pass
             except AttributeError as e:
                 # if for some reason session ended in the middle, may need to do something different from raise exception
                 raise e
@@ -456,7 +462,7 @@ class Interview():
             print("on press: recording")
             filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
             #TODO check this path: st.session_state.interview_sessionId not initialized here b/c different thread
-            self.file = f"./recording/{filename}.wav"
+            self.file =os.path.join(self.rec_path, filename+".wav")
             thread = threading.Thread(target = self.record_audio2)
             add_script_run_ctx(thread, self.ctx)
             thread.start()
@@ -476,11 +482,13 @@ class Interview():
                     f.close()
             except RuntimeError as e:
                 raise e
-            print("Recorded file closed")
+            print("Recorded Human and written to file.")
             user_input = self.transcribe_audio2()
             response = self.new_interview.askAI(user_input)
-            print(response)
-            self.play_response()
+            # print(response)
+            # with self.ai_col: 
+            #     self.typewriter(response, speed=2)           
+            self.play_response2(response)
             self.record = True
 
          
@@ -500,14 +508,14 @@ class Interview():
 
         def callback(indata, frame_count, time_info, status):
             self.q.put(indata.copy())
-
         with sf.SoundFile(self.file, mode='x', samplerate=fs,
                 channels=channels) as file:
             with sd.InputStream(samplerate=fs, device=device,
                         channels=channels, callback=callback):
                 while self.record:
-                    print('recording')
                     file.write(self.q.get())
+        
+                    
 
 
     # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
@@ -522,20 +530,44 @@ class Interview():
             # os.remove(temp_audio.name)
         except Exception as e:
             raise e
-        return transcript["text"].strip()
+        question = transcript["text"].strip()
+        # with self.human_col:
+        #     self.typewriter(question)
+        return question
     
-    def play_response(self, response: str) -> None:
+    def play_response2(self, response: str) -> None:
 
-        tts = ElevenLabsText2SpeechTool()
-        speech_file = tts.run(response)
-        tts.play(speech_file)
+        # tts = ElevenLabsText2SpeechTool()
+        # tts= GoogleCloudTextToSpeechTool()
+        # speech_file = tts.run(response)
+        # tts.play(speech_file)
         # st.session_state.tts.play(response)
-    
-    def display_response(self, response:str) -> None:
-
-        return None
-
-
+        # Set the text input to be synthesized
+        #NOTE: can be switched to AWS boto3 POLLY, outputs mp3 file
+        synthesis_input = texttospeech.SynthesisInput(text=response)
+        # Build the voice request, select the language code ("en-US") and the ssml
+        # voice gender ("neutral")
+        voice = texttospeech.VoiceSelectionParams(
+            language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+        )
+        # Select the type of audio file you want returned
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3
+        )
+        # Perform the text-to-speech request on the text input with the selected
+        # voice parameters and audio file type
+        response = self.tts_client.synthesize_speech(
+            input=synthesis_input, voice=voice, audio_config=audio_config
+        )
+        # The response's audio_content is binary.
+        filename=strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        #NOTE: try S3 with CloudFront to stream out the audio
+        end_path=os.path.join(self.rec_path,  filename, ".mp3")
+        with open(end_path, "wb") as out:
+            # Write the response to the output file.
+            out.write(response.audio_content)
+            print(f'Audio content written to file {end_path}')
+        playsound.playsound(end_path, True)
 
     
     # def play_generated_audio(self, text, voice="Bella", model="eleven_monolingual_v1"):
@@ -588,7 +620,7 @@ class Interview():
             pass
 
 
-    def text_session(self):
+    def _init_text_session(self):
 
         """ Creates text only interview session. """
 
@@ -608,91 +640,117 @@ class Interview():
         </style>
         """
         st.markdown(styl, unsafe_allow_html=True)
+        st.session_state["mode"]="text"
+
+        # if "interview_dict" not in st.session_state:
+        #     st.session_state["interview_dict"] = {"ai":[], "human":[]}
+        # # if 'interview_responses' not in st.session_state:
+        # #     st.session_state['interview_responses'] = list()
+        # # if 'interview_questions' not in st.session_state:
+        #     greeting = "Welcome to your mock interview! Are you ready to get started?"
+        #     # st.session_state['interview_questions'] = [greeting]
+        #     st.session_state["interview_dict"]["ai"].append(greeting)
+        # with self.ai_col:
+        #     self.typewriter(r"$\textsf{\Large Welcome to your mock interview! Are you ready to get started? $")
     
-        with placeholder.container():
+            
+            
+        # # col1,  col2= st.columns(2, gap="large")
+        # if 'interview_response' not in st.session_state:
+        #     st.session_state['interview_response'] = ""
+        # if 'interview_question' not in st.session_state:
+                
 
-            # if 'interview_responses' not in st.session_state:
-            #     st.session_state['interview_responses'] = list()
-            # if 'interview_questions' not in st.session_state:
-            #     st.session_state['interview_questions'] = list()
+                
+        # with col1:
+        #     if "question_container" not in st.session_state:
+        #         st.session_state["question_container"] = st.container()
+        # with col2:
+        #     if "response_container" not in st.session_state:
+        #         st.session_state["response_container"] = st.container()
+        # response_container = st.container()
 
-            col1, col2= st.columns(2)
-            if 'interview_response' not in st.session_state:
-                st.session_state['interview_response'] = ""
-            if 'interview_question' not in st.session_state:
-                st.session_state['interview_question'] = ""
-                with col1:
-                    message("Hello, welcome to your mock interview session. With whom am I speaking to?")
-
-            # with col1:
-            #     if "question_container" not in st.session_state:
-            #         st.session_state["question_container"] = st.container()
-            # with col2:
-            #     if "response_container" not in st.session_state:
-            #         st.session_state["response_container"] = st.container()
-            # response_container = st.container()
-
-            if 'responseInput' not in st.session_state:
-                st.session_state.responseInput = ''
-            # def submit():
-            #     st.session_state.responseInput = st.session_state.interview_input
-            #     st.session_state.interview_input = ''    
-            # # User input
-            # ## Function for taking user provided prompt as input
-            # def get_text():
-            #     st.text_input("Your response: ", "", key="interview_input", on_change = submit)
-            #     return st.session_state.responseInput
-            # ## Applying the user input box
-            # with response_container:
-            #     user_input = get_text()
-            #     response_container = st.empty()
-            #     st.session_state.responseInput='' 
+        if 'responseInput' not in st.session_state:
+            st.session_state.responseInput = ''
+        # def submit():
+        #     st.session_state.responseInput = st.session_state.interview_input
+        #     st.session_state.interview_input = ''    
+        # # User input
+        # ## Function for taking user provided prompt as input
+        # def get_text():
+        #     st.text_input("Your response: ", "", key="interview_input", on_change = submit)
+        #     return st.session_state.responseInput
+        # ## Applying the user input box
+        # with response_container:
+        #     user_input = get_text()
+        #     response_container = st.empty()
+        #     st.session_state.responseInput='' 
 
 
-            # if user_input:
+        # if user_input:
 
-            #     # res = question_container.container()
-            #     # streamlit_handler = StreamlitCallbackHandler(
-            #     #     parent_container=res,
-            #     #     # max_thought_containers=int(max_thought_containers),
-            #     #     # expand_new_thoughts=expand_new_thoughts,
-            #     #     # collapse_completed_thoughts=collapse_completed_thoughts,
-            #     # )
-            #     user_answer = user_input
-            #     # answer = chat_agent.run(mrkl_input, callbacks=[streamlit_handler])
-            #     ai_question = self.new_interview.askAI(user_answer, callbacks = None)
-            #     st.session_state.interview_questions.append(ai_question)
-            #     st.session_state.interview_responses.append(user_answer)
-            # if st.session_state['interview_responses']:
-            #     for i in range(len(st.session_state['interview_responses'])):
-            #         with col1:
-            #             message(st.session_state['interview_questions'][i], key=str(i), avatar_style="initials", seed="AI_Interviewer", allow_html=True)
-            #         with col2:
-            #             message(st.session_state['interview_responses'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
-            if st.session_state["interview_response"]:
-                with col1:
-                    message(st.session_state.interview_question)
-                with col2:
-                    message(st.session_state.interview_response)
+        #     # res = question_container.container()
+        #     # streamlit_handler = StreamlitCallbackHandler(
+        #     #     parent_container=res,
+        #     #     # max_thought_containers=int(max_thought_containers),
+        #     #     # expand_new_thoughts=expand_new_thoughts,
+        #     #     # collapse_completed_thoughts=collapse_completed_thoughts,
+        #     # )
+        #     user_answer = user_input
+        #     # answer = chat_agent.run(mrkl_input, callbacks=[streamlit_handler])
+        #     ai_question = self.new_interview.askAI(user_answer, callbacks = None)
+        #     st.session_state.interview_questions.append(ai_question)
+        #     st.session_state.interview_responses.append(user_answer)
+        # if st.session_state['interview_responses']:
+        #     for i in range(len(st.session_state['interview_responses'])):
+        #         with col1:
+        #             message(st.session_state['interview_questions'][i], key=str(i), avatar_style="initials", seed="AI_Interviewer", allow_html=True)
+        #         with col2:
+        #             message(st.session_state['interview_responses'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
+        # try:
+        #     with self.ai_col:
+        #         # message(st.session_state.interview_questions[-1])
+        #         # st.markdown(st.session_state.interview_questions[-1])
+        #         st.markdown(st.session_state["interview_dict"]["ai"][-1])
+        #     with self.human_col:
+        #         # message(st.session_state.interview_responses[-1])
+        #         # st.markdown(st.session_state.interview_responses[-1])
+        #         st.markdown(st.session_state["interview_dict"]["human"][-1])
+        # except Exception:
+        #     pass
+        
+        st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
+        # st.chat_input(key="interview_input", on_submit = self.chatbox_callback)
 
-            st.text_input("Your response: ", "", key="interview_input", on_change = self.chatbox_callback)
 
 
     def chatbox_callback(self):
 
         """ Processes user input from chatbox and prefilled question selection after submission. """
-          
-        response = self.new_interview.askAI(st.session_state.interview_input, callbacks = None)
-        self.display_response(response)
-        # st.session_state.interview_responses.append(st.session_state.interview_input)
-        # st.session_state.interview_questions.append(response)
-        st.session_state.interview_response = st.session_state.interview_input
-        st.session_state.interview_question = response
+        
         st.session_state.responseInput = st.session_state.interview_input
         st.session_state.interview_input = ''    
+        with self.human_col:
+            st.markdown(st.session_state.responseInput)
+        response = self.new_interview.askAI(st.session_state.responseInput, 
+                                            callbacks = None)
+        # st.session_state.interview_responses.append(st.session_state.interview_input)
+        # st.session_state.interview_questions.append(response)
+        with self.ai_col:
+            self.typewriter(response, speed=3)
+        # st.session_state.interview_responses.append(st.session_state.interview_input)
+        # st.session_state.interview_questions.append(response)
+        # st.session_state["interview_dict"]["human"].append(st.session_state.interview_input)
+        # st.session_state["interview_dict"]["ai"].append(response)
 
 
-        
+    def typewriter(self, text: str, speed=1):
+        tokens = text.split()
+        container = st.empty()
+        for index in range(len(tokens) + 1):
+            curr_full_text = " ".join(tokens[:index])
+            container.markdown(curr_full_text)
+            time.sleep(1 / speed)
 
     
 

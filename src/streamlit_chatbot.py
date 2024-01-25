@@ -12,7 +12,7 @@ from io import StringIO
 from langchain_community.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content, generate_user_info
@@ -185,15 +185,6 @@ class Chat():
             st.session_state["save_path"] = os.environ["CHAT_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-            # if "directory_made" not in st.session_state:
-            try: 
-                os.mkdir(os.path.join(st.session_state.temp_path, st.session_state.sessionId))
-                os.mkdir(os.path.join(st.session_state.save_path, st.session_state.sessionId))
-                os.mkdir(os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
-                os.mkdir(os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"))
-                # st.session_state["directory_made"] = True
-            except FileExistsError:
-                pass
         elif STORAGE=="CLOUD":
             st.session_state["storage"]="CLOUD"
             st.session_state["bucket_name"]=bucket_name
@@ -203,15 +194,12 @@ class Chat():
             st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-            try:
-                # create "directories" in S3 bucket
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.temp_path, st.session_state.sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"))
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"))
-                print("Successfully created directories in S3")
-            except Exception as e:
-                raise e
+        paths = [os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
+                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
+                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"),
+                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"),
+                ]
+        mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
     # @st.cache_data()
     def _init_display(_self):

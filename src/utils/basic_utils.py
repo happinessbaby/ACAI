@@ -35,7 +35,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
-def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None) -> bool:
 
     """ Converts file to TXT file and move it to destination location. """
     try:
@@ -127,7 +127,7 @@ def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
     except Exception as e:
         return ""
     
-def delete_file(file, storage="LOCAL", bucket_name=None, s3=None):
+def delete_file(file, storage="LOCAL", bucket_name=None, s3=None) -> bool:
     
     """ Deletes file. """
     
@@ -136,8 +136,25 @@ def delete_file(file, storage="LOCAL", bucket_name=None, s3=None):
             os.remove(file)
         elif storage=="CLOUD":
             s3.delete_object(Bucket=bucket_name, Key=file)
+        return True
     except Exception as e:
-        raise e
+        return False
+    
+def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
+
+    """ Creates directories given a list of paths"""
+
+    if storage=="LOCAL":
+        for path in paths:
+            try: 
+                os.mkdir(path)
+            except FileExistsError:
+                pass
+    elif storage=="CLOUD":
+        try:
+            s3.put_object(Bucket=bucket_name,Body='', Key=path)
+        except Exception as e:
+            raise e
         
 
 

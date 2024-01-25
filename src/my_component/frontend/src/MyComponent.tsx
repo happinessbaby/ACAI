@@ -23,7 +23,8 @@ import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
 import DisplayTemplate from "./DisplayTemplate"
 import ReactDOM from "react-dom"
-
+// const Readable = require('stream').Readable;
+// const s = new Readable();
 
 interface State {
   // numClicks: number
@@ -170,6 +171,10 @@ class MyComponent extends StreamlitComponentBase<State> {
       return <div></div>
       // googleLogout(); // what does this do??
     }
+
+    // else if (name=="stream") {
+    //   s.push(name)
+    // }
     else {
       return (< Sessions datetimes={name} />)
     }

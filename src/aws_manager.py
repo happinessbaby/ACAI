@@ -23,4 +23,5 @@ def request_aws4auth(session: boto3.Session, service="aoss", region='us-east-2')
     print(auth)
     return auth
 
+
     
