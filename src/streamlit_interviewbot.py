@@ -65,6 +65,7 @@ from pydub import AudioSegment
 import io
 import wave
 from audio_recorder_streamlit import audio_recorder
+from st_audiorec import st_audiorec
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 st.set_page_config(layout="wide")
@@ -338,19 +339,23 @@ class Interview():
                         raise e 
             if st.session_state.mode=="regular":
                 with self.human_col:
-                    audio_bytes = audio_recorder(
-                        text="Click to record",
-                        recording_color="#e8b62c",
-                        neutral_color="#6aa36f",
-                        icon_name="user",
-                        icon_size="6x",
-                    )
-                    if audio_bytes:
+                    # audio_bytes = audio_recorder(
+                    #     text="Click to record",
+                    #     recording_color="#e8b62c",
+                    #     neutral_color="#6aa36f",
+                    #     icon_name="user",
+                    #     icon_size="6x",
+                    # )
+                    wav_audio_data = st_audiorec()
+                    if wav_audio_data:
+                    # if audio_bytes:
                         # self.write_audio_bytes_to_mp3(audio_bytes, "test.mp3")
                         if st.session_state.storage=="LOCAL":
                             filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-                            user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
-                            write_file(audio_bytes, user_rec_path)
+                            # user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
+                            # write_file(audio_bytes, user_rec_path)
+                            user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".wav")
+                            write_file(wav_audio_data, user_rec_path)
                             user_input=self.transcribe_audio(user_rec_path)
                             if user_input:
                                 ai_response = self.new_interview.askAI(user_input)
@@ -362,9 +367,11 @@ class Interview():
                                     self.autoplay_audio(ai_rec_path)
                         elif st.session_state.storage=="CLOUD":
                             filename = strftime("%Y-%m-%d", gmtime())
-                            write_path = os.path.join(st.session_state.interview_sessionId, filename+".mp3")
-                            write_file(audio_bytes, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
-                            payload = {"object_url": f"s3://{st.session_state.transcribe_bucket_name}/{write_path}", "prompt_info":self.additional_prompt_info}
+                            write_path = os.path.join(st.session_state.interview_sessionId, filename+".wav")
+                            write_file(wav_audio_data, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
+                            # write_path = os.path.join(st.session_state.interview_sessionId, filename+".mp3")
+                            # write_file(audio_bytes, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
+                            payload = {"sessionId":st.session_state.interview_sessionId,  "object_url": f"s3://{st.session_state.transcribe_bucket_name}/{write_path}", "prompt_info":self.additional_prompt_info}
                             # payload = {"sessionId":st.session_state.sessionId, "prompt_info":self.additional_prompt_info}
                             ai_output = self.invoke_lambda(payload)
                             if ai_output:
@@ -448,7 +455,6 @@ class Interview():
                     ai_output = data["body"]
                     return ai_output
                 else:
-                    print("FAILED TO GET RECORDING")
                     return None
 
 
@@ -565,11 +571,14 @@ class Interview():
 
 
     def autoplay_audio(self, file_path: str):
-        # data = read_file(file_path, storage=st.session_state.storage, bucket_name=st.session_state.polly_bucket_name, s3=st.session_state.s3_client)
-        # with open(file_path, "rb") as f:
-        #     data = f.read()
-        data = file_path
-        b64 = base64.b64encode(data).decode()
+
+        """Playback for AI response """
+        
+        if st.session_state.storage=="LOCAL":
+            data = read_file(file_path)
+            b64 = base64.b64encode(data).decode()
+        elif st.session_state.storage=="CLOUD":
+            b64 = file_path
         md = f"""
             <audio controls autoplay="true">
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
@@ -909,7 +918,7 @@ class Interview():
             response = self.new_interview.askAI(st.session_state.responseInput, 
                                                 callbacks = None)
         elif st.session_state.storage=="CLOUD":
-            payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput, "prompt_info":self.additional_prompt_info}
+            payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput,  "prompt_info":self.additional_prompt_info}
             response = self.invoke_lambda(payload)
 
         # st.session_state.interview_responses.append(st.session_state.interview_input)

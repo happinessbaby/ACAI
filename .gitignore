@@ -176,6 +176,7 @@ src/log/
 src/uploads/
 src/streamlit_custom_components/
 src/recording
+create_lambda_layers
 
 
 
