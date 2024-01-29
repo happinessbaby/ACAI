@@ -12,7 +12,7 @@ from io import StringIO
 from langchain_community.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content, generate_user_info
@@ -194,11 +194,18 @@ class Chat():
             st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        paths = [os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
-                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
-                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"),
-                os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"),
-                ]
+        if _self.userId is None:
+            paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId),
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                    ]
+        else:
+            paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                     ]
         mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
     # @st.cache_data()
@@ -937,12 +944,13 @@ class Chat():
                 filename = str(uuid.uuid4())+file_ext
                 tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
                 end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", Path(filename).stem+'.txt')
-                if st.session_state.storage=="LOCAL":
-                    with open(tmp_save_path, 'wb') as f:
-                        f.write(uploaded_file.getvalue())
-                elif st.session_state.storage=="CLOUD":
-                    st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-                    print("Successful written file to S3")
+                # if st.session_state.storage=="LOCAL":
+                #     with open(tmp_save_path, 'wb') as f:
+                #         f.write(uploaded_file.getvalue())
+                # elif st.session_state.storage=="CLOUD":
+                #     st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
+                #     print("Successful written file to S3")
+                write_file(uploaded_file.getvalue(), tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)
         elif upload_type=="links":
@@ -1106,12 +1114,13 @@ class Chat():
 
         """
 
-        if st.session_state.storage=="LOCAL":
-            with open(file, 'rb') as f:
-                data = f.read() 
-        elif st.session_state.storage=="CLOUD":
-            object = st.session_state.s3_client.get_object(Bucket=st.session_state.bucket_name, Key=file)
-            data = object['Body'].read()
+        # if st.session_state.storage=="LOCAL":
+        #     with open(file, 'rb') as f:
+        #         data = f.read() 
+        # elif st.session_state.storage=="CLOUD":
+        #     object = st.session_state.s3_client.get_object(Bucket=st.session_state.bucket_name, Key=file)
+        #     data = object['Body'].read()
+        data = read_file(file, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
         bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
         return href

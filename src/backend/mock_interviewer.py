@@ -60,9 +60,9 @@ from urllib import request
 from langchain.globals import set_llm_cache
 from langchain.tools.retriever import create_retriever_tool
 
-
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
+
 
 memory_key="chat_history"
 memory_max_token = 500

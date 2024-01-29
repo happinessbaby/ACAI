@@ -13,7 +13,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from backend.mock_interviewer import InterviewController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import check_content_safety, get_completion
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, get_generated_responses, get_web_resources
@@ -51,18 +51,25 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import queue
 import re
 import base64
+from botocore.errorfactory import ClientError
+import boto3
+import botocore
+from botocore.errorfactory import ClientError
 from cookie_manager import get_cookie, get_all_cookies
 from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
 from aws_manager import get_aws_session, request_aws4auth
 import pywinctl as pwc
 from my_component import my_component
 from google.cloud import texttospeech
+from pydub import AudioSegment
+import io
+import wave
+from audio_recorder_streamlit import audio_recorder
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 st.set_page_config(layout="wide")
 openai.api_key = os.environ['OPENAI_API_KEY']
 STORAGE = os.environ['STORAGE']
-bucket_name = os.environ['BUCKET_NAME']
 user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 png_file = os.environ["INTERVIEW_BG"]
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/tebblespc/Documents/acai-412122-dd69ac33da42.json"
@@ -147,7 +154,6 @@ class Interview():
             #     os.mkdir(user_dir)
             # except FileExistsError:
             #     pass
-            st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
 
             st.session_state["mode"]="regular"
             # initialize submitted form variables
@@ -157,31 +163,42 @@ class Interview():
             st.session_state["job_posting"] = ""
             # if "resume_file" not in st.session_state:
             st.session_state["resume_file"] = ""
-            st.session_state["window_title"] = pwc.getActiveWindowTitle()
+            # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
                 st.session_state["s3_client"]= None
+                # st.session_state["window_title"] = pwc.getActiveWindowTitle()
+                st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
                 # if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
                 # if "directory_made" not in st.session_state:
             elif STORAGE=="CLOUD":
+                st.session_state["lambda_client"] = _self.aws_session.client('lambda')
                 st.session_state["storage"]="CLOUD"
-                st.session_state["bucket_name"]=bucket_name
+                st.session_state["bucket_name"]= os.environ['BUCKET_NAME']
+                st.session_state["transcribe_bucket_name"] = os.environ['TRANSCRIBE_BUCKET_NAME']
+                st.session_state["polly_bucket_name"] = os.environ['POLLY_BUCKET_NAME']
                 st.session_state["s3_client"]= _self.aws_session.client('s3') 
                 # if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
                 st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-
-            paths = [os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
-                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
-                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"),
-                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"),
-                    os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
-                    ]
+            if _self.userId is None:
+                paths = [os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
+                        os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
+                        os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "downloads"),
+                        os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "uploads"),
+                        os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
+                        ]
+            else:
+                 paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                 ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 # initialize keyboard listener
             # if "listener" not in st.session_state:
@@ -215,33 +232,33 @@ class Interview():
         png_file: png -> the background image in local folder
         """
 
-        main_bg_ext = "png"
+        # main_bg_ext = "png"
         
-        st.markdown(
-         f"""
-         <style>
-         .stApp {{
-             background: url(data:image/{main_bg_ext};base64,{base64.b64encode(open(png_file, "rb").read()).decode()});
-             background-size: cover
-         }}
-         </style>
-         """,
-         unsafe_allow_html=True
-        )
+        # st.markdown(
+        #  f"""
+        #  <style>
+        #  .stApp {{
+        #      background: url(data:image/{main_bg_ext};base64,{base64.b64encode(open(png_file, "rb").read()).decode()});
+        #      background-size: cover
+        #  }}
+        #  </style>
+        #  """,
+        #  unsafe_allow_html=True
+        # )
 
         with st.sidebar:          
             add_vertical_space(3)
-            st.markdown('''
+            # st.markdown('''
                         
-            How the mock interview works: 
+            # How the mock interview works: 
 
-            - refresh the page to start a new session   
-            - press R + Space to start recording
-            - press S + Space to stop recording
-            - press Shift + Esc to end the session
+            # - refresh the page to start a new session   
+            # - press R + Space to start recording
+            # - press S + Space to stop recording
+            # - press Shift + Esc to end the session
                         
-            ''')
-            add_vertical_space(5)
+            # ''')
+            # add_vertical_space(5)
             st.markdown('''
 
             Troubleshooting:
@@ -298,46 +315,143 @@ class Interview():
             self._init_interview_preform()
             st.session_state["init_interview"]=True
         else:
-            if st.session_state.mode=="regular":
-                if "listener" not in st.session_state:
-                    ##NOTE: due to listener running on different thread, none of the session states can be accessed thru listener
-                    ## therefore, all needed variables will be saved and accessed thru self
-                    self.file=None
-                    self.record=True
-                    self.interview_sessionId = st.session_state.interview_sessionId
-                    self.window_title = st.session_state.window_title
-                    self.tts_client = st.session_state.tts_client
-                    self.rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
-                    self.s3=st.session_state.s3_client
-                    self.bucket_name=st.session_state.bucket_name
-                    self.storage=st.session_state.storage
-                    new_listener = keyboard.Listener(
-                    on_press=self.on_press,
-                    # on_press=lambda event: sef.on_press(event, st.session_state.interview_sessionId, st.session_state.window_title),
-                    on_release=self.on_release)
-                    # thread = threading.Thread(target=self._init_listener, args=[self.q])
-                    # add_script_run_ctx(thread, self.ctx)
-                    # thread.start()
-                    # thread.join()
-                    # st.session_state["listener"]=self.q.get()
-                    st.session_state["listener"] = new_listener
-                self.listener = st.session_state.listener
-                try:
-                    self.listener.start()
-                # RuntimeError: threads can only be started once  
-                except RuntimeError as e:
-                    pass
-            elif st.session_state.mode=="text":
-                self._init_text_session()          
             if "baseinterview" not in st.session_state:
                 # update interview agents prompts from form variables
                 if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
-                    additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
+                    self.additional_prompt_info, self.generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
                 else:
-                    additional_prompt_info = ""
-                    generated_dict = {}
-                new_interview = InterviewController(st.session_state.interview_sessionId, additional_prompt_info, generated_dict)
-                st.session_state["baseinterview"] = new_interview    
+                    self.additional_prompt_info = ""
+                    self.generated_dict = {}
+                if st.session_state.storage == "LOCAL":
+                    new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
+                    st.session_state["baseinterview"] = new_interview   
+                    try:
+                        self.new_interview = st.session_state.baseinterview  
+                        # self.listener = st.sesssion_state.listener
+                        # try:
+                        #     self.listener.start()
+                        # # RuntimeError: threads can only be started once  
+                        # except RuntimeError as e:
+                        #     pass
+                    except AttributeError as e:
+                        # if for some reason session ended in the middle, may need to do something different from raise exception
+                        raise e 
+            if st.session_state.mode=="regular":
+                with self.human_col:
+                    audio_bytes = audio_recorder(
+                        text="Click to record",
+                        recording_color="#e8b62c",
+                        neutral_color="#6aa36f",
+                        icon_name="user",
+                        icon_size="6x",
+                    )
+                    if audio_bytes:
+                        # self.write_audio_bytes_to_mp3(audio_bytes, "test.mp3")
+                        if st.session_state.storage=="LOCAL":
+                            filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                            user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
+                            write_file(audio_bytes, user_rec_path)
+                            user_input=self.transcribe_audio(user_rec_path)
+                            if user_input:
+                                ai_response = self.new_interview.askAI(user_input)
+                                filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                                ai_rec_path =  os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
+                                resp_bytes=self.synthesize_ai_response(ai_response)
+                                write_file(resp_bytes,ai_rec_path)
+                                with self.ai_col:
+                                    self.autoplay_audio(ai_rec_path)
+                        elif st.session_state.storage=="CLOUD":
+                            filename = strftime("%Y-%m-%d", gmtime())
+                            write_path = os.path.join(st.session_state.interview_sessionId, filename+".mp3")
+                            write_file(audio_bytes, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
+                            payload = {"object_url": f"s3://{st.session_state.transcribe_bucket_name}/{write_path}", "prompt_info":self.additional_prompt_info}
+                            # payload = {"sessionId":st.session_state.sessionId, "prompt_info":self.additional_prompt_info}
+                            ai_output = self.invoke_lambda(payload)
+                            if ai_output:
+                                with self.ai_col:
+                                    self.autoplay_audio(ai_output)
+                               
+                            #NOTE: this uses AWS Transcribe and Polly with Lambda trigger
+                            # ai_response = None
+                            # response = st.session_state.lambda_client.invoke(
+                            #     FunctionName='transcribe',
+                            #     Payload=json.dumps(payload),
+                            #     InvocationType= "RequestResponse", 
+                            # )
+                            # if response:
+                            #     data = json.loads(response["Payload"].read().decode("utf-8"))
+                            #     print(data)
+                            #     if data["statusCode"]==200:
+                            #         user_input = data["body"]
+                            #         ai_response = self.new_interview.askAI(user_input)
+                            # if ai_response is not None:
+                            #     payload = {"transcript": ai_response}
+                            #     response=st.session_state.lambda_client.invoke(
+                            #         FunctionName="tts",
+                            #         Payload = payload,
+                            #         Invocationtype="RequestResponse",
+                            #     )
+                            #     if response:
+                            #         data = json.loads(response["Payload"].read().decode("utf-8"))
+                            #         print(data)
+                            #         if data["statusCode"]==200:
+                            #             ai_output = data["body"]
+                            #             with self.ai_col:
+                            #                 self.autoplay_audio(ai_output)
+                            #         else:
+                            #             print("FAILED TO GET RECORDING")
+
+                      
+                # if "listener" not in st.session_state:
+                #     ##NOTE: due to listener running on different thread, none of the session states can be accessed thru listener
+                #     ## therefore, all needed variables will be saved and accessed thru self
+                #     self.file=None
+                #     self.record=True
+                #     self.interview_sessionId = st.session_state.interview_sessionId
+                #     self.window_title = st.session_state.window_title
+                #     self.tts_client = st.session_state.tts_client
+                #     self.rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings")
+                #     self.s3=st.session_state.s3_client
+                #     self.bucket_name=st.session_state.bucket_name
+                #     self.storage=st.session_state.storage
+                #     new_listener = keyboard.Listener(
+                #     on_press=self.on_press,
+                #     # on_press=lambda event: sef.on_press(event, st.session_state.interview_sessionId, st.session_state.window_title),
+                #     on_release=self.on_release)
+                #     # thread = threading.Thread(target=self._init_listener, args=[self.q])
+                #     # add_script_run_ctx(thread, self.ctx)
+                #     # thread.start()
+                #     # thread.join()
+                #     # st.session_state["listener"]=self.q.get()
+                #     st.session_state["listener"] = new_listener
+                # self.listener = st.session_state.listener
+                # try:
+                #     self.listener.start()
+                # # RuntimeError: threads can only be started once  
+                # except RuntimeError as e:
+                #     pass
+            elif st.session_state.mode=="text":
+                self._init_text_session() 
+
+    def invoke_lambda(self, payload, ):
+
+        response = st.session_state.lambda_client.invoke(
+            FunctionName='transcribe',
+            Payload=json.dumps(payload),
+            InvocationType= "RequestResponse", 
+        )
+        if response:
+            data = json.loads(response["Payload"].read().decode("utf-8"))
+            print(data)
+            if "statusCode" in data:
+                if data["statusCode"]==200:
+                    ai_output = data["body"]
+                    return ai_output
+                else:
+                    print("FAILED TO GET RECORDING")
+                    return None
+
+
 
             # with st.sidebar:
                 
@@ -428,17 +542,17 @@ class Interview():
                     # welcome_msg = "Welcome to your mock interview session. I will begin conducting the interview now. Please review the sidebar for instructions. "
                     # message(welcome_msg, avatar_style="initials", seed="AI_Interviewer", allow_html=True)
 
-            try:
-                self.new_interview = st.session_state.baseinterview  
-                # self.listener = st.session_state.listener
-                # try:
-                #     self.listener.start()
-                # # RuntimeError: threads can only be started once  
-                # except RuntimeError as e:
-                #     pass
-            except AttributeError as e:
-                # if for some reason session ended in the middle, may need to do something different from raise exception
-                raise e
+            # try:
+            #     self.new_interview = st.session_state.baseinterview  
+            #     # self.listener = st.session_state.listener
+            #     # try:
+            #     #     self.listener.start()
+            #     # # RuntimeError: threads can only be started once  
+            #     # except RuntimeError as e:
+            #     #     pass
+            # except AttributeError as e:
+            #     # if for some reason session ended in the middle, may need to do something different from raise exception
+            #     raise e
                 # make directory for session recordings
 
                 # if switch:
@@ -448,94 +562,108 @@ class Interview():
         
                 # self.listener.join()
 
+
+
+    def autoplay_audio(self, file_path: str):
+        # data = read_file(file_path, storage=st.session_state.storage, bucket_name=st.session_state.polly_bucket_name, s3=st.session_state.s3_client)
+        # with open(file_path, "rb") as f:
+        #     data = f.read()
+        data = file_path
+        b64 = base64.b64encode(data).decode()
+        md = f"""
+            <audio controls autoplay="true">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+            """
+        st.markdown(
+            md,
+            unsafe_allow_html=True,
+        )
     
-     
 
-    def on_press(self, key,):
+    # def on_press(self, key,):
 
-        """ Listens when a keyboards is pressed. """
+    #     """ Listens when a keyboards is pressed. """
 
-        print("listener key pressed")
-        if any([key in comb for comb in self.COMBINATION]) and pwc.getActiveWindowTitle()==self.window_title:
-            self.currently_pressed.add(key)
-        if self.currently_pressed == self.COMBINATION[0] and pwc.getActiveWindowTitle()==self.window_title:
-            print("on press: recording")
-            filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-            #TODO check this path: st.session_state.interview_sessionId not initialized here b/c different thread
-            self.file =os.path.join(self.rec_path, filename+".wav")
-            thread = threading.Thread(target = self.record_audio2)
-            add_script_run_ctx(thread, self.ctx)
-            thread.start()
-            # self.record_audio2()
-        if self.currently_pressed == self.COMBINATION[1] and pwc.getActiveWindowTitle()==self.window_title:
-            self.listener.stop()
-            print("on press: quitting")
-            thread = threading.Thread(target=self.interview_feedback)
-            add_script_run_ctx(thread, self.ctx)
-            thread.start()
-        if self.currently_pressed == self.COMBINATION[2] and pwc.getActiveWindowTitle()==self.window_title:
-            self.record = False
-            print("on press: stopping")
-            try:
-                with open(self.file) as f:
-                    f.flush()
-                    f.close()
-            except RuntimeError as e:
-                raise e
-            print("Recorded Human and written to file.")
-            user_input = self.transcribe_audio2()
-            response = self.new_interview.askAI(user_input)
-            # print(response)
-            # with self.ai_col: 
-            #     self.typewriter(response, speed=2)           
-            self.play_response2(response)
-            self.record = True
+    #     print("listener key pressed")
+    #     if any([key in comb for comb in self.COMBINATION]) and pwc.getActiveWindowTitle()==self.window_title:
+    #         self.currently_pressed.add(key)
+    #     if self.currently_pressed == self.COMBINATION[0] and pwc.getActiveWindowTitle()==self.window_title:
+    #         print("on press: recording")
+    #         filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    #         #TODO check this path: st.session_state.interview_sessionId not initialized here b/c different thread
+    #         self.file =os.path.join(self.rec_path, filename+".wav")
+    #         thread = threading.Thread(target = self.record_audio2)
+    #         add_script_run_ctx(thread, self.ctx)
+    #         thread.start()
+    #         # self.record_audio2()
+    #     if self.currently_pressed == self.COMBINATION[1] and pwc.getActiveWindowTitle()==self.window_title:
+    #         self.listener.stop()
+    #         print("on press: quitting")
+    #         thread = threading.Thread(target=self.interview_feedback)
+    #         add_script_run_ctx(thread, self.ctx)
+    #         thread.start()
+    #     if self.currently_pressed == self.COMBINATION[2] and pwc.getActiveWindowTitle()==self.window_title:
+    #         self.record = False
+    #         print("on press: stopping")
+    #         try:
+    #             with open(self.file) as f:
+    #                 f.flush()
+    #                 f.close()
+    #         except RuntimeError as e:
+    #             raise e
+    #         print("Recorded Human and written to file.")
+    #         user_input = self.transcribe_audio2()
+    #         response = self.new_interview.askAI(user_input)
+    #         # print(response)
+    #         # with self.ai_col: 
+    #         #     self.typewriter(response, speed=2)           
+    #         self.play_response2(response)
+    #         self.record = True
 
          
-    def on_release(self, key):
+    # def on_release(self, key):
 
-        """ Listens when a keyboard is released. """
+    #     """ Listens when a keyboard is released. """
         
-        try:
-            self.currently_pressed.remove(key)
-        except KeyError:
-            pass
+    #     try:
+    #         self.currently_pressed.remove(key)
+    #     except KeyError:
+    #         pass
             
 
-    def record_audio2(self):
+    # def record_audio2(self):
 
-        """ Records audio and write it to file. """
+    #     """ Records audio and write it to file. """
 
-        def callback(indata, frame_count, time_info, status):
-            self.q.put(indata.copy())
-        with sf.SoundFile(self.file, mode='x', samplerate=fs,
-                channels=channels) as file:
-            with sd.InputStream(samplerate=fs, device=device,
-                        channels=channels, callback=callback):
-                while self.record:
-                    file.write(self.q.get())
+    #     def callback(indata, frame_count, time_info, status):
+    #         self.q.put(indata.copy())
+    #     with sf.SoundFile(self.file, mode='x', samplerate=fs,
+    #             channels=channels) as file:
+    #         with sd.InputStream(samplerate=fs, device=device,
+    #                     channels=channels, callback=callback):
+    #             while self.record:
+    #                 file.write(self.q.get())
         
-                    
-
-
-    # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
-    def transcribe_audio2(self) -> str:
+                
+     # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
+    def transcribe_audio(self, file) -> str or None:
 
         """ Sends audio file to OpenAI's Whisper model for trasncription and response """
         try:
-            with open(self.file, "rb") as audio_file:
+            with open(file, "rb") as audio_file:
             # with open(temp_audio.name, "rb") as audio_file:
                 transcript = openai.Audio.transcribe("whisper-1", audio_file)
-                print(f"Successfully transcribed file from openai whisper: {transcript}")
+            print(f"Successfully transcribed file from openai whisper: {transcript}")
             # os.remove(temp_audio.name)
+            question = transcript["text"].strip()
+            return question
         except Exception as e:
-            raise e
-        question = transcript["text"].strip()
-        # with self.human_col:
-        #     self.typewriter(question)
-        return question
+            st.info("oops, someething happened, please record again.")
+            return None
+
     
-    def play_response2(self, response: str) -> None:
+    def synthesize_ai_response(self, response: str) -> Any:
 
         # tts = ElevenLabsText2SpeechTool()
         # tts= GoogleCloudTextToSpeechTool()
@@ -556,18 +684,63 @@ class Interview():
         )
         # Perform the text-to-speech request on the text input with the selected
         # voice parameters and audio file type
-        response = self.tts_client.synthesize_speech(
+        response = st.session_state.tts_client.synthesize_speech(
             input=synthesis_input, voice=voice, audio_config=audio_config
         )
         # The response's audio_content is binary.
-        filename=strftime("%Y-%m-%d %H:%M:%S", gmtime())
-        #NOTE: try S3 with CloudFront to stream out the audio
-        end_path=os.path.join(self.rec_path,  filename, ".mp3")
-        with open(end_path, "wb") as out:
-            # Write the response to the output file.
-            out.write(response.audio_content)
-            print(f'Audio content written to file {end_path}')
-        playsound.playsound(end_path, True)
+        return response.audio_content
+
+
+    # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
+    # def transcribe_audio2(self) -> str:
+
+    #     """ Sends audio file to OpenAI's Whisper model for trasncription and response """
+    #     try:
+    #         with open(self.file, "rb") as audio_file:
+    #         # with open(temp_audio.name, "rb") as audio_file:
+    #             transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    #             print(f"Successfully transcribed file from openai whisper: {transcript}")
+    #         # os.remove(temp_audio.name)
+    #     except Exception as e:
+    #         raise e
+    #     question = transcript["text"].strip()
+    #     # with self.human_col:
+    #     #     self.typewriter(question)
+    #     return question
+    
+    # def play_response2(self, response: str) -> None:
+
+    #     # tts = ElevenLabsText2SpeechTool()
+    #     # tts= GoogleCloudTextToSpeechTool()
+    #     # speech_file = tts.run(response)
+    #     # tts.play(speech_file)
+    #     # st.session_state.tts.play(response)
+    #     # Set the text input to be synthesized
+    #     #NOTE: can be switched to AWS boto3 POLLY, outputs mp3 file
+    #     synthesis_input = texttospeech.SynthesisInput(text=response)
+    #     # Build the voice request, select the language code ("en-US") and the ssml
+    #     # voice gender ("neutral")
+    #     voice = texttospeech.VoiceSelectionParams(
+    #         language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+    #     )
+    #     # Select the type of audio file you want returned
+    #     audio_config = texttospeech.AudioConfig(
+    #         audio_encoding=texttospeech.AudioEncoding.MP3
+    #     )
+    #     # Perform the text-to-speech request on the text input with the selected
+    #     # voice parameters and audio file type
+    #     response = self.tts_client.synthesize_speech(
+    #         input=synthesis_input, voice=voice, audio_config=audio_config
+    #     )
+    #     # The response's audio_content is binary.
+    #     filename=strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    #     #NOTE: try S3 with CloudFront to stream out the audio
+    #     end_path=os.path.join(self.rec_path,  filename, ".mp3")
+    #     with open(end_path, "wb") as out:
+    #         # Write the response to the output file.
+    #         out.write(response.audio_content)
+    #         print(f'Audio content written to file {end_path}')
+    #     playsound.playsound(end_path, True)
 
     
     # def play_generated_audio(self, text, voice="Bella", model="eleven_monolingual_v1"):
@@ -732,12 +905,18 @@ class Interview():
         st.session_state.interview_input = ''    
         with self.human_col:
             st.markdown(st.session_state.responseInput)
-        response = self.new_interview.askAI(st.session_state.responseInput, 
-                                            callbacks = None)
+        if st.session_state.storage=="LOCAL":
+            response = self.new_interview.askAI(st.session_state.responseInput, 
+                                                callbacks = None)
+        elif st.session_state.storage=="CLOUD":
+            payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput, "prompt_info":self.additional_prompt_info}
+            response = self.invoke_lambda(payload)
+
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
-        with self.ai_col:
-            self.typewriter(response, speed=3)
+        if response:
+            with self.ai_col:
+                self.typewriter(response, speed=3)
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
         # st.session_state["interview_dict"]["human"].append(st.session_state.interview_input)
@@ -811,12 +990,13 @@ class Interview():
                 file_ext = Path(uploaded_file.name).suffix
                 filename = str(uuid.uuid4())+file_ext
                 tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId, filename)
-                if st.session_state.storage=="LOCAL":
-                    with open(tmp_save_path, 'wb') as f:
-                        f.write(uploaded_file.getvalue())
-                elif st.session_state.storage=="CLOUD":
-                    st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-                    print("Successful written file to S3")
+                # if st.session_state.storage=="LOCAL":
+                #     with open(tmp_save_path, 'wb') as f:
+                #         f.write(uploaded_file.getvalue())
+                # elif st.session_state.storage=="CLOUD":
+                #     st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
+                #     print("Successful written file to S3")
+                write_file(uploaded_file.getvalue(), tmp_save_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)
         if upload_type=="links":
@@ -825,7 +1005,7 @@ class Interview():
             if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                 end_paths.append(end_path)
         if upload_type=="descripton":
-            about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {about_interview} \n
+            about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {st.session_state.interview_about} \n
             If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
             if "about" not in st.session_state:
                 st.session_state["about"] = about_interview_summary

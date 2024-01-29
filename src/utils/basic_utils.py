@@ -151,10 +151,34 @@ def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
             except FileExistsError:
                 pass
     elif storage=="CLOUD":
-        try:
-            s3.put_object(Bucket=bucket_name,Body='', Key=path)
-        except Exception as e:
-            raise e
+        for path in paths:
+            try:
+                s3.put_object(Bucket=bucket_name,Body='', Key=path)
+            except Exception as e:
+                raise e
+            
+
+def write_file(file_content:Any, end_path: str, mode="wb", storage="LOCAL", bucket_name=None, s3=None,):
+
+    """ Writes content to file. """
+
+    if storage=="LOCAL":
+        with open(end_path, mode) as f:
+            f.write(file_content)
+    elif storage=="CLOUD":
+        s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+
+
+def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=None):
+    
+    if storage=="LOCAL":
+        with open(file_path, mode) as f:
+            data = f.read()
+    elif storage=="CLOUD":
+        object = s3.get_object(Bucket=bucket_name, Key=file_path)
+        data = object['Body'].read()
+    return data
+
         
 
 
