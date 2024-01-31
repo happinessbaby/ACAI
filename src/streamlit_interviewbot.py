@@ -66,6 +66,8 @@ import io
 import wave
 from audio_recorder_streamlit import audio_recorder
 from st_audiorec import st_audiorec
+from streamlit_mic_recorder import mic_recorder,speech_to_text
+from speech_recognition import Recognizer, AudioData
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 st.set_page_config(layout="wide")
@@ -165,12 +167,12 @@ class Interview():
             # if "resume_file" not in st.session_state:
             st.session_state["resume_file"] = ""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
+            st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
                 st.session_state["s3_client"]= None
                 # st.session_state["window_title"] = pwc.getActiveWindowTitle()
-                st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
                 # if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
@@ -323,22 +325,22 @@ class Interview():
                 else:
                     self.additional_prompt_info = ""
                     self.generated_dict = {}
-                if st.session_state.storage == "LOCAL":
-                    new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
-                    st.session_state["baseinterview"] = new_interview   
-                    try:
-                        self.new_interview = st.session_state.baseinterview  
-                        # self.listener = st.sesssion_state.listener
-                        # try:
-                        #     self.listener.start()
-                        # # RuntimeError: threads can only be started once  
-                        # except RuntimeError as e:
-                        #     pass
-                    except AttributeError as e:
-                        # if for some reason session ended in the middle, may need to do something different from raise exception
-                        raise e 
+                new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
+                st.session_state["baseinterview"] = new_interview   
+                try:
+                    self.new_interview = st.session_state.baseinterview  
+                    # self.listener = st.sesssion_state.listener
+                    # try:
+                    #     self.listener.start()
+                    # # RuntimeError: threads can only be started once  
+                    # except RuntimeError as e:
+                    #     pass
+                except AttributeError as e:
+                    # if for some reason session ended in the middle, may need to do something different from raise exception
+                    raise e 
             if st.session_state.mode=="regular":
                 with self.human_col:
+                    user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
                     # audio_bytes = audio_recorder(
                     #     text="Click to record",
                     #     recording_color="#e8b62c",
@@ -346,37 +348,58 @@ class Interview():
                     #     icon_name="user",
                     #     icon_size="6x",
                     # )
-                    wav_audio_data = st_audiorec()
-                    if wav_audio_data:
-                    # if audio_bytes:
-                        # self.write_audio_bytes_to_mp3(audio_bytes, "test.mp3")
-                        if st.session_state.storage=="LOCAL":
-                            filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-                            # user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
-                            # write_file(audio_bytes, user_rec_path)
-                            user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".wav")
-                            write_file(wav_audio_data, user_rec_path)
-                            user_input=self.transcribe_audio(user_rec_path)
-                            if user_input:
-                                ai_response = self.new_interview.askAI(user_input)
-                                filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-                                ai_rec_path =  os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
-                                resp_bytes=self.synthesize_ai_response(ai_response)
-                                write_file(resp_bytes,ai_rec_path)
-                                with self.ai_col:
-                                    self.autoplay_audio(ai_rec_path)
-                        elif st.session_state.storage=="CLOUD":
-                            filename = strftime("%Y-%m-%d", gmtime())
-                            write_path = os.path.join(st.session_state.interview_sessionId, filename+".wav")
-                            write_file(wav_audio_data, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
-                            # write_path = os.path.join(st.session_state.interview_sessionId, filename+".mp3")
-                            # write_file(audio_bytes, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
-                            payload = {"sessionId":st.session_state.interview_sessionId,  "object_url": f"s3://{st.session_state.transcribe_bucket_name}/{write_path}", "prompt_info":self.additional_prompt_info}
-                            # payload = {"sessionId":st.session_state.sessionId, "prompt_info":self.additional_prompt_info}
-                            ai_output = self.invoke_lambda(payload)
-                            if ai_output:
-                                with self.ai_col:
-                                    self.autoplay_audio(ai_output)
+                    # wav_audio_data = st_audiorec()
+                    # if "text_received" not in st.session_state:
+                    #     st.session_state["text_received"]=""
+                    if user_input:       
+                        # st.session_state["text_received"]=text
+                        st.markdown(user_input)
+                        ai_response = st.session_state.baseinterview.askAI(user_input)
+                        # resp_bytes = self.synthesize_ai_response(ai_response)
+                        payload={"text":ai_response}
+                        data = self.invoke_lambda(payload)
+                        resp_bytes = data["audio"]
+                        if resp_bytes:
+                            with self.ai_col:
+                                print("before calling autoplay")
+                                self.autoplay_audio(resp_bytes)
+                                # st.audio(resp_bytes)
+                        # st.audio(resp_bytes)
+                               
+                    # audio=mic_recorder(start_prompt="⏺️",stop_prompt="⏹️",key='recorder')
+                    # wav_audio_data=None
+                    # # if audio:
+                    # #     wav_audio_data=audio["bytes"]
+                    # if wav_audio_data:
+                    # # if audio_bytes:
+                    #     # self.write_audio_bytes_to_mp3(audio_bytes, "test.mp3")
+                    #     if st.session_state.storage=="LOCAL":
+                    #         filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                    #         # user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
+                    #         # write_file(audio_bytes, user_rec_path)
+                    #         user_rec_path = os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".wav")
+                    #         write_file(wav_audio_data, user_rec_path)
+                    #         user_input=self.transcribe_audio(user_rec_path)
+                    #         if user_input:
+                    #             ai_response = self.new_interview.askAI(user_input)
+                    #             filename = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                    #             ai_rec_path =  os.path.join(st.session_state.save_path, st.session_state.interview_sessionId, "recordings", filename, ".mp3")
+                    #             resp_bytes=self.synthesize_ai_response(ai_response)
+                    #             with self.ai_col:
+                    #                 self.autoplay_audio(resp_bytes)
+                    #     elif st.session_state.storage=="CLOUD":
+                    #         filename = strftime("%Y-%m-%d", gmtime())
+                    #         write_path = os.path.join(st.session_state.interview_sessionId, filename+".wav")
+                    #         write_file(wav_audio_data, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
+                    #         # write_path = os.path.join(st.session_state.interview_sessionId, filename+".mp3")
+                    #         # write_file(audio_bytes, write_path, storage=st.session_state.storage, bucket_name=st.session_state.transcribe_bucket_name, s3=st.session_state.s3_client)
+                    #         payload = {"sessionId":st.session_state.interview_sessionId,  "object_url": f"s3://{st.session_state.transcribe_bucket_name}/{write_path}", "prompt_info":self.additional_prompt_info}
+                    #         # payload = {"sessionId":st.session_state.sessionId, "prompt_info":self.additional_prompt_info}
+                    #         ai_output = self.invoke_lambda(payload)
+                    #         if ai_output:
+                    #             with self.ai_col:
+                    #                 # self.autoplay_audio(ai_output)
+                    #                 st.audio(ai_output)
                                
                             #NOTE: this uses AWS Transcribe and Polly with Lambda trigger
                             # ai_response = None
@@ -443,7 +466,7 @@ class Interview():
     def invoke_lambda(self, payload, ):
 
         response = st.session_state.lambda_client.invoke(
-            FunctionName='transcribe',
+            FunctionName='tts',
             Payload=json.dumps(payload),
             InvocationType= "RequestResponse", 
         )
@@ -452,8 +475,8 @@ class Interview():
             print(data)
             if "statusCode" in data:
                 if data["statusCode"]==200:
-                    ai_output = data["body"]
-                    return ai_output
+                    output = data["body"]
+                    return output
                 else:
                     return None
 
@@ -570,15 +593,13 @@ class Interview():
 
 
 
-    def autoplay_audio(self, file_path: str):
+    def autoplay_audio(self, data: str):
 
         """Playback for AI response """
         
-        if st.session_state.storage=="LOCAL":
-            data = read_file(file_path)
-            b64 = base64.b64encode(data).decode()
-        elif st.session_state.storage=="CLOUD":
-            b64 = file_path
+        # b64 = base64.b64encode(data).decode('utf-8')
+        b64=data
+
         md = f"""
             <audio controls autoplay="true">
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
@@ -588,6 +609,11 @@ class Interview():
             md,
             unsafe_allow_html=True,
         )
+        # r=Recognizer()
+        # audio_data=AudioData(data)
+        # output = r.recognize_google(audio_data,language="en")
+        # if output:
+        #     st.write(output)
     
 
     # def on_press(self, key,):

@@ -62,3 +62,4 @@ requests-aws4auth
 lancedb
 pywinctl
 streamlit-audiorec
+streamlit-mic-recorder

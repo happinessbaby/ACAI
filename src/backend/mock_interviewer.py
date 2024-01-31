@@ -70,6 +70,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 save_path = os.environ["INTERVIEW_PATH"]
 faiss_interview_data_path= os.environ["FAISS_INTERVIEW_DATA_PATH"]
+user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 # set recording parameters
 duration = 5 # duration of each recording in seconds
 fs = 44100 # sample rate
@@ -140,22 +141,37 @@ class InterviewController():
         self.interview_tools = general_tool
 
         # create vector store retriever tool for interview material
-        vs_directory = os.path.join(save_path, self.userid, "interview_material")
-        try:
-            subfolders= [f.path for f in os.scandir(vs_directory) if f.is_dir()]
-            for dirname in list(subfolders):
-                vs = FAISS.load_local(dirname, self.embeddings)
-                retriever = vs.as_retriever()
-                # suffix = dirname.rfind("_")
-                # tool_name = "search_" + dirname[:suffix].removeprefix(vs_directory)
-                tool_name = "search_" + dirname.removeprefix(vs_directory).removesuffix(f"_{self.userid}")
-                tool_description =  """Useful for generating interview questions and answers. 
+        # vs_directory = os.path.join(save_path, self.userid, "interview_material")
+        # try:
+        #     subfolders= [f.path for f in os.scandir(vs_directory) if f.is_dir()]
+        #     for dirname in list(subfolders):
+        #         vs = FAISS.load_local(dirname, self.embeddings)
+        #         retriever = vs.as_retriever()
+        #         # suffix = dirname.rfind("_")
+        #         # tool_name = "search_" + dirname[:suffix].removeprefix(vs_directory)
+        #         tool_name = "search_" + dirname.removeprefix(vs_directory).removesuffix(f"_{self.userid}")
+        #         tool_description =  """Useful for generating interview questions and answers. 
+        #             Use this tool more than any other tool during a mock interview session to generate interview questions.
+        #             Do not use this tool to load any files or documents.  """ 
+        #         tools = create_retriever_tool(retriever, tool_name, tool_description)
+        #         self.interview_tools+=tools
+        # except FileNotFoundError:
+        #     pass  
+        tool_description =  """Useful for generating interview questions and answers. 
                     Use this tool more than any other tool during a mock interview session to generate interview questions.
                     Do not use this tool to load any files or documents.  """ 
-                tools = create_retriever_tool(retriever, tool_name, tool_description)
-                self.interview_tools+=tools
-        except FileNotFoundError:
-            pass  
+        try:
+            vs = retrieve_vectorstore(vs_type="elasticsearch", index_name=user_vs_name,)
+            if vs is not None:
+                self.interview_tools += [create_retriever_tool(
+                    vs.as_retriever(),
+                    "search_interview_material",
+                    tool_description,
+                )
+                ]
+        except Exception as e:
+            print("NO INTERVIEW MATERIAL FOR VECTOR STORE")
+            pass
 
 
             # Human may also have asked for a specific interview topic: {topic}
