@@ -178,29 +178,31 @@ class InterviewController():
         #initialize interviewer agent
 
         template =   f"""
-            You are an AI job interviewer. The following, if available, are things pertaining to the interview. Generate your interview questions from them. 
+            You are a job interviewer. The following, if available, are things pertaining to the interview that you are conducting. 
             
            {self.additional_interview_info}
 
             The main interview content is contained in the tool "search_interview_material", if available. Generate your interview questions from this tool.
 
-            If you have other tools, use them as well to generate interview questions. Please don't skip using the tools if you have any. 
-
             As an interviewer, you do not need to assess Human's response to your questions. Their response will be sent to a professional grader.         
-
-            Sometimes you will be provided with the professional grader's feedback. They will be handed out to the Human at the end of the session. You should ignore them. 
 
             Always remember your role as an interviewer. Unless you're told to stop interviewing, you should not stop asking interview questions.
 
             If the Human is asking about other things instead of answering an interview question, please steer them back to the interview process.
 
-            You do not need to provide any sort of feedbacks. 
+            You do not need to provide any sort of feedbacks. Please always keep your rold as a job interviewer in mind. You should not act otherwise. 
 
-            Remember to ask one interview question at a time!
+            Remember to ask one interview question at a time and do not repeat the same type of questions. 
+
+            Please end the session after you have asked about 10 questions. Do not go over 10 questions.
+
+            If there are no user input or previous questions asked, this means it's the start of the interview session. Please greet the interviewee properly. 
 
             Please ask your interview question now:
 
            """
+            # Sometimes you will be provided with the professional grader's feedback. They will be handed out to the Human at the end of the session. You should ignore them. 
+            # If you have other tools, use them as well to generate interview questions. Please don't skip using the tools if you have any. 
         
         system_message = SystemMessage(
         content=(
@@ -259,8 +261,6 @@ class InterviewController():
            {self.additional_interview_info}
 
            The main interview content is contained in the tool "search_interview_material", if available.
-
-           If you have other tools, they may also be helpful to you as a grader. 
         
            Remember to use these tools to search for the correct answer.
 

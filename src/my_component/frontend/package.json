@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@amazon-sumerian-hosts/core": "^2.0.0",
+    "@amazon-sumerian-hosts/three": "^2.0.6",
     "@fancyapps/fancybox": "^3.5.7",
     "@fancyapps/ui": "^5.0.28",
     "@react-oauth/google": "^0.12.1",
+    "aws-sdk": "^2.1551.0",
+    "babylonjs": "^6.41.0",
     "lightbox.js-react": "^0.9.8",
     "react": "^16.13.1",
     "react-dom": "^16.14.0",
@@ -16,6 +20,13 @@
     "reactjs-popup": "^2.0.6",
     "streamlit-component-lib": "^2.0.0",
     "yet-another-react-lightbox": "^3.15.6"
+  },
+  "peerDependencies": {
+    "three": "=0.127.0"
+  },
+  "main": "./src/MyComponent.tsx",
+  "exports": {
+    "require": "./dist/host.three.js"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -42,7 +53,7 @@
   "devDependencies": {
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.0",
-    "@types/react-dom": "^16.9.0",
+    "@types/react-dom": "^16.9.24",
     "react-scripts": "^5.0.1",
     "typescript": "^4.2.0"
   }

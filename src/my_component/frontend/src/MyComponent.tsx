@@ -22,7 +22,9 @@ import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
 import DisplayTemplate from "./DisplayTemplate"
-import ReactDOM from "react-dom"
+// import {HostObject} from '@amazon-sumerian-hosts/babylon';
+// import {PointOfInterestFeature, TextToSpeechFeature} from '@amazon-sumerian-hosts/core';
+import { Engine, Scene } from 'babylonjs'
 // const Readable = require('stream').Readable;
 // const s = new Readable();
 
@@ -71,8 +73,50 @@ function Signin() {
   return < GoogleSignin signinCallback = {streamlitCallback}/>
 }
 
+var aiSpeechOutput = document.getElementById("speech Alien")
+
+
+
 
 const mappingFunction = (img:any, index:any) => ({index, src: img.source, sizes: ["(min-width: 480px) 20vw,(min-width: 1024px) 25vw,25vw"], width: 4, height: 3});
+
+// var AWS = require('aws-sdk'); 
+
+// var HOST = require('@amazon-sumerian-hosts/core')
+// var BABYLON= require('babylonjs')
+// var HOST = require('@amazon-sumerian-hosts/babylon')
+
+// Initialize AWS and create Polly service objects
+// AWS.config.region = 'us-east-1';
+// AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+//   IdentityPoolId: 'us-east-1:1af97f5a-3988-4abc-bb7d-19fc2005de7a',
+// });
+
+// const polly = new AWS.Polly();
+// const presigner = new AWS.Polly.Presigner();
+// const speechInit = HOST.TextToSpeechFeature.initializeService(
+//   polly,
+//   presigner,
+//   AWS.VERSION
+// );
+
+
+// const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
+
+// const engine = new Engine(canvas, true);
+// // Create our first scene.
+// var scene = new Scene(engine);
+
+
+// const characterId = 'Maya';
+// const characterConfig = HostObject.getCharacterConfig(
+//   './character-assets',
+//   characterId
+//   );
+// const pollyConfig = {pollyVoice: 'Joanna', pollyEngine: 'standard'};
+// const host = await HostObject.createHost(scene, characterConfig, pollyConfig);  
+// host.PointOfInterestFeature.setTarget(scene.activeCamera);
+
 
 /**
  * This is a React-based component template. The `render()` function is called
@@ -105,6 +149,10 @@ class MyComponent extends StreamlitComponentBase<State> {
     // Arguments that are passed to the plugin in Python are accessible
     // via `this.props.args`. Here, we access the "name" arg.
     const name = this.props.args["name"];
+  //   document.getElementById('speakButton')!.onclick = () => {
+  //   const speech = (document.getElementById('speechText')!as HTMLInputElement).value;
+  //   host.TextToSpeechFeature.play(speech);
+  // }
     // const closeLightbox = this.closeLightbox
     // const openLightbox =this.openLightbox
     if (name=="welcome") {
@@ -175,8 +223,13 @@ class MyComponent extends StreamlitComponentBase<State> {
     // else if (name=="stream") {
     //   s.push(name)
     // }
+    // else {
+    //   return (< Sessions datetimes={name} />)
+    // }
     else {
-      return (< Sessions datetimes={name} />)
+      aiSpeechOutput = name
+      return null
+    
     }
 
   }

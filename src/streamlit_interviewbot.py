@@ -69,6 +69,7 @@ from st_audiorec import st_audiorec
 from streamlit_mic_recorder import mic_recorder,speech_to_text
 from speech_recognition import Recognizer, AudioData
 
+
 _ = load_dotenv(find_dotenv()) # read local .env file
 st.set_page_config(layout="wide")
 openai.api_key = os.environ['OPENAI_API_KEY']
@@ -160,6 +161,7 @@ class Interview():
 
             st.session_state["mode"]="regular"
             # initialize submitted form variables
+            st.session_state["subtitles"]= False
             # if "about" not in st.session_state:
             st.session_state["about"]=""
             # if "job_posting" not in st.session_state:
@@ -274,6 +276,11 @@ class Interview():
                 st.button("switch to text only session", key="switch_button", on_click=_self._init_text_session)
             if st.session_state["mode"]=="text":
                 st.button("end session",  key="end_session", on_click=_self.interview_feedback)
+            with _self.ai_col:
+                subtitles = st.button("subtitles",key="turnon_subtitles")
+                if subtitles:
+                    st.session_state.subtitles=True
+
 
             
     def _init_interview_preform(self):
@@ -326,18 +333,20 @@ class Interview():
                     self.additional_prompt_info = ""
                     self.generated_dict = {}
                 new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
-                st.session_state["baseinterview"] = new_interview   
-                try:
-                    self.new_interview = st.session_state.baseinterview  
-                    # self.listener = st.sesssion_state.listener
-                    # try:
-                    #     self.listener.start()
-                    # # RuntimeError: threads can only be started once  
-                    # except RuntimeError as e:
-                    #     pass
-                except AttributeError as e:
-                    # if for some reason session ended in the middle, may need to do something different from raise exception
-                    raise e 
+                st.session_state["baseinterview"] = new_interview
+                ai_response = st.session_state.baseinterview.askAI("")
+                self.synthesize_ai_response(ai_response)
+                # try:
+                #     self.new_interview = st.session_state.baseinterview  
+                #     # self.listener = st.sesssion_state.listener
+                #     # try:
+                #     #     self.listener.start()
+                #     # # RuntimeError: threads can only be started once  
+                #     # except RuntimeError as e:
+                #     #     pass
+                # except AttributeError as e:
+                #     # if for some reason session ended in the middle, may need to do something different from raise exception
+                #     raise e 
             if st.session_state.mode=="regular":
                 with self.human_col:
                     user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
@@ -355,14 +364,7 @@ class Interview():
                         # st.session_state["text_received"]=text
                         st.markdown(user_input)
                         ai_response = st.session_state.baseinterview.askAI(user_input)
-                        # resp_bytes = self.synthesize_ai_response(ai_response)
-                        payload={"text":ai_response}
-                        data = self.invoke_lambda(payload)
-                        resp_bytes = data["audio"]
-                        if resp_bytes:
-                            with self.ai_col:
-                                print("before calling autoplay")
-                                self.autoplay_audio(resp_bytes)
+                        self.synthesize_ai_response(ai_response)
                                 # st.audio(resp_bytes)
                         # st.audio(resp_bytes)
                                
@@ -682,48 +684,66 @@ class Interview():
         
                 
      # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
-    def transcribe_audio(self, file) -> str or None:
+    # def transcribe_audio(self, file) -> str or None:
 
-        """ Sends audio file to OpenAI's Whisper model for trasncription and response """
-        try:
-            with open(file, "rb") as audio_file:
-            # with open(temp_audio.name, "rb") as audio_file:
-                transcript = openai.Audio.transcribe("whisper-1", audio_file)
-            print(f"Successfully transcribed file from openai whisper: {transcript}")
-            # os.remove(temp_audio.name)
-            question = transcript["text"].strip()
-            return question
-        except Exception as e:
-            st.info("oops, someething happened, please record again.")
-            return None
+    #     """ Sends audio file to OpenAI's Whisper model for trasncription and response """
+    #     try:
+    #         with open(file, "rb") as audio_file:
+    #         # with open(temp_audio.name, "rb") as audio_file:
+    #             transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    #         print(f"Successfully transcribed file from openai whisper: {transcript}")
+    #         # os.remove(temp_audio.name)
+    #         question = transcript["text"].strip()
+    #         return question
+    #     except Exception as e:
+    #         st.info("oops, someething happened, please record again.")
+    #         return None
 
     
-    def synthesize_ai_response(self, response: str) -> Any:
+    def synthesize_ai_response(self, ai_response: str,) -> Any:
 
-        # tts = ElevenLabsText2SpeechTool()
-        # tts= GoogleCloudTextToSpeechTool()
-        # speech_file = tts.run(response)
-        # tts.play(speech_file)
-        # st.session_state.tts.play(response)
-        # Set the text input to be synthesized
-        #NOTE: can be switched to AWS boto3 POLLY, outputs mp3 file
-        synthesis_input = texttospeech.SynthesisInput(text=response)
-        # Build the voice request, select the language code ("en-US") and the ssml
-        # voice gender ("neutral")
-        voice = texttospeech.VoiceSelectionParams(
-            language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
-        )
-        # Select the type of audio file you want returned
-        audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        )
-        # Perform the text-to-speech request on the text input with the selected
-        # voice parameters and audio file type
-        response = st.session_state.tts_client.synthesize_speech(
-            input=synthesis_input, voice=voice, audio_config=audio_config
-        )
-        # The response's audio_content is binary.
-        return response.audio_content
+        response = my_component(ai_response)
+
+
+        
+        # payload={"text":ai_response}
+        # data = self.invoke_lambda(payload)
+        # resp_bytes = data["audio"]
+        # if resp_bytes:
+        #     with self.ai_col:
+        #         print("before calling autoplay")
+        #         self.autoplay_audio(resp_bytes)
+        #         if st.session_state.subtitles:
+        #             self.typewriter(ai_response, speed=3)
+
+
+
+
+    # def tts(self, response:str) -> Any:
+    #     # tts = ElevenLabsText2SpeechTool()
+    #     # tts= GoogleCloudTextToSpeechTool()
+    #     # speech_file = tts.run(response)
+    #     # tts.play(speech_file)
+    #     # st.session_state.tts.play(response)
+    #     # Set the text input to be synthesized
+    #     synthesis_input = texttospeech.SynthesisInput(text=response)
+    #     # Build the voice request, select the language code ("en-US") and the ssml
+    #     # voice gender ("neutral")
+    #     voice = texttospeech.VoiceSelectionParams(
+    #         language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+    #     )
+    #     # Select the type of audio file you want returned
+    #     audio_config = texttospeech.AudioConfig(
+    #         audio_encoding=texttospeech.AudioEncoding.MP3
+    #     )
+    #     # Perform the text-to-speech request on the text input with the selected
+    #     # voice parameters and audio file type
+    #     response = st.session_state.tts_client.synthesize_speech(
+    #         input=synthesis_input, voice=voice, audio_config=audio_config
+    #     )
+    #     # The response's audio_content is binary.
+    #     return response.audio_content
+    
 
 
     # inspired by: https://github.com/VRSEN/langchain-agents-tutorial
@@ -940,18 +960,21 @@ class Interview():
         st.session_state.interview_input = ''    
         with self.human_col:
             st.markdown(st.session_state.responseInput)
-        if st.session_state.storage=="LOCAL":
-            response = self.new_interview.askAI(st.session_state.responseInput, 
-                                                callbacks = None)
-        elif st.session_state.storage=="CLOUD":
-            payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput,  "prompt_info":self.additional_prompt_info}
-            response = self.invoke_lambda(payload)
+        # if st.session_state.storage=="LOCAL":
+        #     response = self.new_interview.askAI(st.session_state.responseInput, 
+        #                                         callbacks = None)
+        # elif st.session_state.storage=="CLOUD":
+        #     payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput,  "prompt_info":self.additional_prompt_info}
+        #     response = self.invoke_lambda(payload)
+        ai_response = st.session_state.baseinterview.askAI(st.session_state.responseInput, 
+                                           callbacks = None)
+        self.synthesize_ai_response(ai_response,)
 
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
-        if response:
-            with self.ai_col:
-                self.typewriter(response, speed=3)
+        # if response:
+        #     with self.ai_col:
+        #         self.typewriter(response, speed=3)
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
         # st.session_state["interview_dict"]["human"].append(st.session_state.interview_input)
