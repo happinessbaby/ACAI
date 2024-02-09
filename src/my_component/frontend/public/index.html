@@ -17,7 +17,7 @@
     <!-- <script type="text/javascript" src="../node_module/@amazon-sumerian-hosts/three/dist/host.three.js"></script> -->
     <script type="text/javascript" src="host.three.js"></script>
     <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
-    <script type = "text/javascript" src="../src/AudioRecorder.js"></script>
+    <!-- <script type = "module" src="AudioProcessor.js"></script> -->
     <!--Host build file-->
     <!-- <script type="text/javascript" src="../dist/host.babylon.js"></script> -->
     <style>
@@ -131,10 +131,8 @@
     </style>
   </head>
   <body>
- 
     <div id="root"></div>
-    <!-- <button onclick="openFullscreen();">Fullscreen</button> -->
-      
+
  <!--Loading screen-->
  <div id="loadScreen">
   <div id="loader"></div>
@@ -182,22 +180,22 @@
     <button id="playEmote" class="gestureButton">Play Emote</button>
   </div>
   <div>
-    <button id="record" onclick="startAudioRecording()">Start Recording</button> 
+    <button id="record">Start Recording</button> 
   </div>
 </div>
-
-
 <script type="module">
+
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js'
   import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
+  import {startAudioRecording, stopAudioRecording} from "./AudioRecorder.js"
 
   const renderFn = [];
   const speakers = new Map([
     ['Luke', undefined],
     ['Alien', undefined],
   ]);
+  
 
-  // main();
   /* When the openFullscreen() function is executed, open the video in fullscreen.
 Note that we must include prefixes for different browsers, as they don't support the requestFullscreen property yet */
 function openFullscreen() {
@@ -213,7 +211,7 @@ function openFullscreen() {
 
 document.onkeypress = function (e) {
     e = e || window.event;
-    if (event.keyCode == 13) {
+    if (e.keyCode == 13) {
          openFullscreen();
          main();
          return true;
@@ -221,15 +219,6 @@ document.onkeypress = function (e) {
          return false;
       }
 }
-// function enterKeyPressed(event) {
-//       if (event.keyCode == 13) {
-//          oepnFullScreen();
-//          main();
-//          return true;
-//       } else {
-//          return false;
-//       }
-//    }
 
   async function main() {
 
@@ -977,6 +966,17 @@ document.onkeypress = function (e) {
       tab.onclick = evt => { toggleHost(evt); }
     });
 
+    const button = document.getElementById('record');
+    button.onclick = () => {
+      if (button.innerHTML=="Start Recording") {
+        button.innerHTML ="Stop Recording";
+        startAudioRecording();
+      }
+      else if (button.innerHTML=="Stop Recording") {
+        stopAudioRecording();
+        button.innerHTML = "Start Recording"
+      }
+    };
     // Play, pause, resume and stop the contents of the text input as speech
     // when buttons are clicked
     ['play', 'pause', 'resume', 'stop'].forEach(id => {

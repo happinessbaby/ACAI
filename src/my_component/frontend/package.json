@@ -9,10 +9,9 @@
     "@fancyapps/ui": "^5.0.28",
     "@react-oauth/google": "^0.12.1",
     "aws-sdk": "^2.1551.0",
-    "babylonjs": "^6.41.0",
     "lightbox.js-react": "^0.9.8",
     "react": "^16.13.1",
-    "react-dom": "^16.14.0",
+    "react-dom": "^16.13.1",
     "react-fancybox": "^0.2.5",
     "react-fetch-streams": "^1.1.2",
     "react-images": "^1.2.0-beta.7",
@@ -25,9 +24,6 @@
     "three": "=0.127.0"
   },
   "main": "./src/MyComponent.tsx",
-  "exports": {
-    "require": "./dist/host.three.js"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -53,7 +49,8 @@
   "devDependencies": {
     "@types/node": "^12.0.0",
     "@types/react": "^16.9.0",
-    "@types/react-dom": "^16.9.24",
+    "@types/react-dom": "^16.9.0",
+    "@types/ws": "^8.5.10",
     "react-scripts": "^5.0.1",
     "typescript": "^4.2.0"
   }

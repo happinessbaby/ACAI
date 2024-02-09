@@ -22,11 +22,7 @@ import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
 import DisplayTemplate from "./DisplayTemplate"
-// import {HostObject} from '@amazon-sumerian-hosts/babylon';
-// import {PointOfInterestFeature, TextToSpeechFeature} from '@amazon-sumerian-hosts/core';
-import { Engine, Scene } from 'babylonjs'
-// const Readable = require('stream').Readable;
-// const s = new Readable();
+
 
 interface State {
   // numClicks: number
