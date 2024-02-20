@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Streamlit Component" />
+    <base href="http://localhost:3001/">
     <link rel="stylesheet" href="bootstrap.min.css" />
     <script
     type="text/javascript"
@@ -17,6 +18,7 @@
     <!-- <script type="text/javascript" src="../node_module/@amazon-sumerian-hosts/three/dist/host.three.js"></script> -->
     <script type="text/javascript" src="host.three.js"></script>
     <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
+    <!-- <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js", data-main="../src/AudioStreaming.js"></script> -->
     <!-- <script type = "module" src="AudioProcessor.js"></script> -->
     <!--Host build file-->
     <!-- <script type="text/javascript" src="../dist/host.babylon.js"></script> -->
@@ -93,7 +95,7 @@
         justify-content: center;
         width: 100%;
         height: 100%;
-        background-image: url('assets/images/load_screen.png');
+        background-image: url('assets/images/load_screen2.png');
         background-color: gray;
         background-repeat: no-repeat;
         background-attachment: fixed;
@@ -183,18 +185,22 @@
     <button id="record">Start Recording</button> 
   </div>
 </div>
+<!-- <script type="modeul" src = "./src/AudioRecorder.js"></script> -->
+<!-- <script src="dist/bundle.js"></script> -->
 <script type="module">
 
-  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js'
-  import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
-  import {startAudioRecording, stopAudioRecording} from "./AudioRecorder.js"
+  import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
+  import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
+  import { init_audioRecorder} from "./AudioRecorder.mjs";
 
   const renderFn = [];
   const speakers = new Map([
     ['Luke', undefined],
     ['Alien', undefined],
   ]);
-  
+
+  const audioR = init_audioRecorder()
+ 
 
   /* When the openFullscreen() function is executed, open the video in fullscreen.
 Note that we must include prefixes for different browsers, as they don't support the requestFullscreen property yet */
@@ -240,6 +246,24 @@ document.onkeypress = function (e) {
       presigner,
       window.AWS.VERSION
     );
+     // initialize stt parameters
+  // need a 16-bit, 16KHz raw PCM audio 
+    // const encoding = 'LINEAR16';
+    // const sampleRateHertz = 16000;
+    // const languageCode = 'en-US';
+    // const request = {
+    //   config: {
+    //     encoding: encoding,
+    //     sampleRateHertz: sampleRateHertz,
+    //     languageCode: languageCode,
+    //   },
+    //   interimResults: false // If you want interim results, set this to true
+    // };
+      // init SpeechClient
+    // const client = new speech.v1p1beta1.SpeechClient();
+    // await client.initialize();
+    // // Stream the audio to the Google Cloud Speech API
+    // const stream = client.streamingRecognize(request);
 
     // Define the glTF assets that will represent the host
     const characterFile1 =
@@ -422,6 +446,7 @@ document.onkeypress = function (e) {
     document.getElementById('loadScreen').style.display = 'none';
 
     await speechInit;
+    // await client.initialize();
 
     speakers.set('Luke', host1);
     speakers.set('Alien', host2);
@@ -970,11 +995,14 @@ document.onkeypress = function (e) {
     button.onclick = () => {
       if (button.innerHTML=="Start Recording") {
         button.innerHTML ="Stop Recording";
-        startAudioRecording();
+        audioR.startRecording();
+        //require(["AudioStreaming"], function(AudioStreaming) {
+        //   AudioStreaming.mainstream();
+        // })
       }
       else if (button.innerHTML=="Stop Recording") {
-        stopAudioRecording();
-        button.innerHTML = "Start Recording"
+        audioR.stopRecording();
+        button.innerHTML = "Start Recording";
       }
     };
     // Play, pause, resume and stop the contents of the text input as speech

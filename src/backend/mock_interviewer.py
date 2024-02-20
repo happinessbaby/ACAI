@@ -290,10 +290,10 @@ class InterviewController():
                                         callbacks = [self.handler])
         
 
-    @retry(
-        wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries
-        stop=stop_after_attempt(5)  # Maximum number of retry attempts
-    )
+    # @retry(
+    #     wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries
+    #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
+    # )
     def askAI(self, user_input: str, callbacks=None,) -> str:
 
         """ Main function that processes all agents' conversation with user.
@@ -347,7 +347,7 @@ class InterviewController():
                 # self.update_instructions(feedback)
             # if evaluate_result:
             #     self.update_meta_data(error_msg)
-            self.askAI(user_input, callbacks)        
+            raise e       
 
         # pickle memory (sanity check)
         # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:

@@ -68,6 +68,19 @@ from audio_recorder_streamlit import audio_recorder
 from st_audiorec import st_audiorec
 from streamlit_mic_recorder import mic_recorder,speech_to_text
 from speech_recognition import Recognizer, AudioData
+import asyncio
+import websockets
+import json
+import threading
+# from six.moves import queue
+import queue
+from google.cloud import speech
+from backend.socket import Socket, Transcoder
+from utils.async_utils import asyncio_run
+import nest_asyncio
+
+# from test import YourDataProcessor
+
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -93,6 +106,9 @@ device = 4
 # keyboard = Controller()
 # keyboard_event = Keyboard()
 
+IP = '0.0.0.0'
+PORT = 8000
+
 
 
 class Interview():
@@ -104,9 +120,11 @@ class Interview():
     ctx = get_script_run_ctx()
     cookie = get_cookie("userInfo")
     aws_session = get_aws_session()
+    ip="0.0.0.0"
+    port=8000
     
 
-    def __init__(self):
+    def __init__(self, data_queue):
         if self.cookie:
             # self.userId = self.cookie.split("###")[1]
             self.userId = re.split("###|@", self.cookie)[1]
@@ -116,9 +134,14 @@ class Interview():
         if "interview_sessionId" not in st.session_state:
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
             print(f"Interview Session: {st.session_state.interview_sessionId}")
+        self.data_queue=data_queue
+        self.response = None
         self._init_session_states(st.session_state.interview_sessionId, self.userId)
         self._init_display()
         self._create_interviewbot()
+        # self.run(event_loop)
+        # asyncio_run(self._create_interviewbot(), as_task=False)
+        # self.task = asyncio.ensure_future(self._create_interviewbot())
         # self.thread_run()
         # thread = threading.Thread(target=self._create_interviewbot)
         # add_script_run_ctx(thread)
@@ -318,6 +341,80 @@ class Interview():
     #     # st.session_state["listener"] = new_listener   
     #     q.put(new_listener)
 
+    # def _initialize_socket(self):
+
+    #     try:
+    #         start_server = websockets.serve(self.audio_processor, IP, PORT)
+    #         asyncio_run(start_server, as_task=False)
+    #         print("SUCCESSFULLY INITIALIZED SOCKET")
+    #     except OSError as e:
+    #         print("websocket already started")
+    #     ## address already in use error
+    #         pass 
+
+
+    # async def audio_processor(self, websocket, path,):
+    #     """
+    #     Collects audio from the stream, writes it to buffer and return the output of Google speech to text
+    #     """
+
+    #     print("INSIDE AUDIO PROCESSOR")
+    #     config = await websocket.recv()
+    #     if not isinstance(config, str):
+    #         print("ERROR, no config")
+    #         return
+    #     else:
+    #         print("CONFIG RECEIVED")
+    #         print(config)
+    #     config = json.loads(config)
+    #     transcoder = Transcoder(
+    #         encoding=config["format"],
+    #         rate=config["rate"],
+    #         language=config["language"]
+    #     )
+    #     transcoder.start()
+    #     while True:
+    #         try:
+    #             data = await websocket.recv()
+    #         except websockets.ConnectionClosed:
+    #             print("Connection closed")
+    #             break
+    #         transcoder.write(data)
+    #         transcoder.closed = False
+    #         if transcoder.transcript:
+    #             print(transcoder.transcript)
+    #             ##send it to ai
+    #             await websocket.send(transcoder.transcript)
+    #             # await self.data_queue.put(transcoder.transcript)
+        
+    #             print("sent to data queue")
+    #             transcoder.transcript = None             
+
+
+
+    async def receive_transcript(self,):
+
+        while True:
+            print("asdcdscdacdsa")
+            # transcript = await st.session_state.web_socket.data_queue.get()
+            self.transcript = await self.data_queue.get()
+            print(f"received from data queue: {self.transcript}")
+            st.session_state["transcript"] = self.transcript
+            # st.rerun()
+            #     print("asdfda:", st.session_state.transcript)
+                # try:
+                #     print("now this is:",st.session_state.baseinterview)
+                # except Exception as e:
+                #     raise e
+
+                  
+
+          
+
+
+
+
+            
     def _create_interviewbot(self):
 
 
@@ -326,6 +423,7 @@ class Interview():
             st.session_state["init_interview"]=True
         else:
             if "baseinterview" not in st.session_state:
+                print("inside create interviewboy")
                 # update interview agents prompts from form variables
                 if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
                     self.additional_prompt_info, self.generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
@@ -334,8 +432,17 @@ class Interview():
                     self.generated_dict = {}
                 new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
                 st.session_state["baseinterview"] = new_interview
-                ai_response = st.session_state.baseinterview.askAI("")
-                self.synthesize_ai_response(ai_response)
+                # ai_response = st.session_state.baseinterview.askAI("")
+                _ = my_component("HI")
+            # try:
+            #     transcript = st.session_state["transcript"]
+            #     # response = st.session_state.baseinterview.askAI(transcript)
+            #     # print(response)
+            # except Exception as e:
+            #     print(e)
+            if st.session_state.mode=="text":
+                self._init_text_session() 
+
                 # try:
                 #     self.new_interview = st.session_state.baseinterview  
                 #     # self.listener = st.sesssion_state.listener
@@ -347,24 +454,55 @@ class Interview():
                 # except AttributeError as e:
                 #     # if for some reason session ended in the middle, may need to do something different from raise exception
                 #     raise e 
-            if st.session_state.mode=="regular":
-                with self.human_col:
-                    user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
-                    # audio_bytes = audio_recorder(
-                    #     text="Click to record",
-                    #     recording_color="#e8b62c",
-                    #     neutral_color="#6aa36f",
-                    #     icon_name="user",
-                    #     icon_size="6x",
-                    # )
-                    # wav_audio_data = st_audiorec()
-                    # if "text_received" not in st.session_state:
-                    #     st.session_state["text_received"]=""
-                    if user_input:       
-                        # st.session_state["text_received"]=text
-                        st.markdown(user_input)
-                        ai_response = st.session_state.baseinterview.askAI(user_input)
-                        self.synthesize_ai_response(ai_response)
+            # if st.session_state.mode=="regular":
+            #     self.receive_transcript()
+                # new_socket = Socket()
+                # new_socket.run()
+                # while True:
+                #     print("SCDSCDSCDCDS")
+                #     transcript = await new_socket.data_queue.get()
+                #     print(transcript)
+
+
+            #     while True:
+            #         print("asdcdscdacdsa")
+            #         _ = await asyncio.sleep(0)
+            #         # transcript = await st.session_state.web_socket.data_queue.get()
+            #         transcript = await self.data_queue.get()
+            #         print(f"received from data queue: {transcript}")
+            #         ai_response = st.session_state.baseinterview.askAI(transcript)
+            #         print("SUCCESFULLY RECEIVED AI_RESPONSE BASED ON TRANSCRIPT")
+       
+                    # start_server = websockets.serve(audio_processor, IP, PORT)
+                    # asyncio_run(start_server, as_task=False)
+                    # try:
+                    #     start_server = websockets.serve(audio_processor, IP, PORT)
+                    # except RuntimeError as e:
+                    #     if str(e).startswith('There is no current event loop in thread'):
+                    #         loop = asyncio.new_event_loop()
+                    #         asyncio.set_event_loop(loop)
+                    #     else:
+                    #         nest_asyncio.apply(loop)
+                    #     start_server = websockets.serve(audio_processor, IP, PORT)
+                    # asyncio.get_event_loop().run_until_complete(start_server)
+                    # asyncio.get_event_loop().run_forever()
+                # with self.human_col:
+                #     user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
+                #     # audio_bytes = audio_recorder(
+                #     #     text="Click to record",
+                #     #     recording_color="#e8b62c",
+                #     #     neutral_color="#6aa36f",
+                #     #     icon_name="user",
+                #     #     icon_size="6x",
+                #     # )
+                #     # wav_audio_data = st_audiorec()
+                #     # if "text_received" not in st.session_state:
+                #     #     st.session_state["text_received"]=""
+                #     if user_input:       
+                #         # st.session_state["text_received"]=text
+                #         st.markdown(user_input)
+                #         ai_response = st.session_state.baseinterview.askAI(user_input)
+                #         self.synthesize_ai_response(ai_response)
                                 # st.audio(resp_bytes)
                         # st.audio(resp_bytes)
                                
@@ -462,8 +600,8 @@ class Interview():
                 # # RuntimeError: threads can only be started once  
                 # except RuntimeError as e:
                 #     pass
-            elif st.session_state.mode=="text":
-                self._init_text_session() 
+            # elif st.session_state.mode=="text":
+            #     self._init_text_session() 
 
     def invoke_lambda(self, payload, ):
 
@@ -702,19 +840,16 @@ class Interview():
     
     def synthesize_ai_response(self, ai_response: str,) -> Any:
 
-        response = my_component(ai_response)
 
-
-        
-        # payload={"text":ai_response}
-        # data = self.invoke_lambda(payload)
-        # resp_bytes = data["audio"]
-        # if resp_bytes:
-        #     with self.ai_col:
-        #         print("before calling autoplay")
-        #         self.autoplay_audio(resp_bytes)
-        #         if st.session_state.subtitles:
-        #             self.typewriter(ai_response, speed=3)
+        payload={"text":ai_response}
+        data = self.invoke_lambda(payload)
+        resp_bytes = data["audio"]
+        if resp_bytes:
+            with self.ai_col:
+                print("before calling autoplay")
+                self.autoplay_audio(resp_bytes)
+                if st.session_state.subtitles:
+                    self.typewriter(ai_response, speed=3)
 
 
 
@@ -1269,11 +1404,65 @@ class Interview():
 #         await audio_task
 #     except asyncio.CancelledError:
 #         print('\nwire was cancelled')
+# async def run():
+#         # empty list of tasks (from previous streamlit session) 
+# # and make sure that every is cancelled
+#     print("IM BEING RAN")
+#     while st.session_state['tasks']:
+#         t = st.session_state['tasks'].pop()
+#         t.cancel()
+#         del t # not sure whether this is needed
 
-if __name__ == '__main__':
+#     tasks = []
+#     # now reschedule coroutines
+#     for cor in coroutines:
+#         tasks.append(asyncio.ensure_future(cor))
 
-    advisor = Interview()
-    # try:
-    #     asyncio.run(main(blocksize=1024))
-    # except KeyboardInterrupt:
-    #     sys.exit('\nInterrupted by user')
+#     # store in st.session_state to access them after a rerun 
+#     st.session_state['tasks'] = tasks
+    
+#     # let them run
+#     _ = await asyncio.gather(*tasks, return_exceptions=False)
+#         # Thread(target=lambda: asyncio_run(self._create_interviewbot(), daemon=True).start())
+#     # asyncio.run_coroutine_threadsafe(self._create_interviewbot(), event_loop)
+
+# if __name__ == '__main__':
+
+#     event_loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(event_loop)
+#     nest_asyncio.apply()
+#     web_socket_server = Socket()
+#     interviewer = Interview(data_queue=web_socket_server.data_queue)
+#     # data = YourDataProcessor(data_queue=web_socket_server.data_queue)
+
+#     tasks = [
+#         asyncio.ensure_future(web_socket_server._initialize_socket()),
+#         asyncio.ensure_future(interviewer.receive_transcript()),
+#         # asyncio.ensure_future( data.process_data())
+#     ]
+
+#     event_loop.run_until_complete(asyncio.gather(*tasks))
+
+
+# if __name__=="__main__":
+#     # Interview()
+#     event_loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(event_loop)
+#     nest_asyncio.apply()
+#     interviewer = Interview()
+
+
+event_loop = asyncio.new_event_loop()
+asyncio.set_event_loop(event_loop)
+nest_asyncio.apply()
+web_socket_server = Socket()
+interviewer = Interview(data_queue=web_socket_server.data_queue)
+
+
+tasks = [
+    asyncio.ensure_future(web_socket_server._initialize_socket()),
+    asyncio.ensure_future(interviewer.receive_transcript()),
+]
+
+event_loop.run_until_complete(asyncio.gather(*tasks))
+event_loop.run_forever()

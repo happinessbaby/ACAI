@@ -4,24 +4,24 @@ import {
   withStreamlitConnection,
 } from "streamlit-component-lib"
 import React, { PropsWithChildren, ReactNode } from "react"
-import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
-import { GoogleLogin } from '@react-oauth/google';
-import Gallery from 'react-photo-gallery'
-import axios from 'axios';
+// import Lightbox from "yet-another-react-lightbox";
+// import "yet-another-react-lightbox/styles.css";
+// import { GoogleLogin } from '@react-oauth/google';
+// import Gallery from 'react-photo-gallery'
+// import axios from 'axios';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-import ReactFancyBox from 'react-fancybox'
-import 'react-fancybox/lib/fancybox.css'
-import Fancybox from './Fancybox'
+// import { googleLogout, useGoogleLogin } from '@react-oauth/google';
+// import ReactFancyBox from 'react-fancybox'
+// import 'react-fancybox/lib/fancybox.css'
+// import Fancybox from './Fancybox'
 import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
-import Popup from 'reactjs-popup';
-import 'reactjs-popup/dist/index.css';
+// import Popup from 'reactjs-popup';
+// import 'reactjs-popup/dist/index.css';
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
-import DisplayTemplate from "./DisplayTemplate"
+import DisplayTemplate from "./DisplayTemplate"  
 
 
 interface State {
@@ -29,36 +29,45 @@ interface State {
   // isFocused: boolean
   // modalIsOpen: boolean
   // imgSelected: number
-}
-
-interface LightboxProps {
-  thumbnails?: any
+  // datetimes: string
+  thumbnails: {
+    index: any;
+    src: any;
+    sizes: string[];
+    width: number;
+    height: number;
+  }[]
   templates: ViewType[]
+}
+
+// interface LightboxProps {
+//   thumbnails?: any
+//   templates: ViewType[]
   
-}
+// }
 
-interface SessionProps {  
-  datetimes: string
-}
+// interface SessionProps {  
+//   datetimes: string
+// }
 
 
 
-function Templates(props: LightboxProps) {
+function Templates(props: State) {
   const streamlitCallback = (args: any) => { 
     Streamlit.setComponentValue(args)
   }
   return <DisplayTemplate lightboxCallback = {streamlitCallback} thumbnails={props.thumbnails} templates={props.templates}/>
 }
 
-function Sessions(props: SessionProps) {
-  const onSelection = (args:number) => {
-    console.log(args)
-    Streamlit.setComponentValue(args);
-  }
-  const datetimes = props.datetimes.split(",")
-  const [pastSessions] = useState(datetimes)
-  return < DisplaySession msgs={pastSessions} onSelection={onSelection}/>
-}
+// function Sessions(props: State) {
+//   const onSelection = (args:number) => {
+//     console.log(args)
+//     Streamlit.setComponentValue(args);
+//   }
+//   const datetimes = props.datetimes.split(",")
+//   const [pastSessions] = useState(datetimes)
+//   return < DisplaySession msgs={pastSessions} onSelection={onSelection}/>
+// }
 
 function Signin() {
   const streamlitCallback = (token: any, data:any) => {
@@ -69,7 +78,7 @@ function Signin() {
   return < GoogleSignin signinCallback = {streamlitCallback}/>
 }
 
-var aiSpeechOutput = document.getElementById("speech Alien")
+// var aiSpeechOutput = document.getElementById("speech Alien")
 
 
 
@@ -156,12 +165,12 @@ class MyComponent extends StreamlitComponentBase<State> {
     }
     else if (name=="functional") { 
       const funcThumbnails = functionalTemplates.map(mappingFunction);
-      return (<Popup><Templates thumbnails={funcThumbnails} templates={functionalTemplates}/></Popup>)
+      return (<Templates thumbnails={funcThumbnails} templates={functionalTemplates}/>)
 
     }
     else if (name=="chronological") {
       const chronoThumbnails = chronologicalTemplates.map(mappingFunction);
-      return (<Popup><Templates thumbnails={chronoThumbnails} templates={chronologicalTemplates}/></Popup>)
+      return (<Templates thumbnails={chronoThumbnails} templates={chronologicalTemplates}/>)
     }
   //       return (
   //         <div>
@@ -219,13 +228,8 @@ class MyComponent extends StreamlitComponentBase<State> {
     // else if (name=="stream") {
     //   s.push(name)
     // }
-    // else {
-    //   return (< Sessions datetimes={name} />)
-    // }
     else {
-      aiSpeechOutput = name
-      return null
-    
+      return  <div></div>
     }
 
   }
