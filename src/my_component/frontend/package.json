@@ -22,14 +22,16 @@
     "reactjs-popup": "^2.0.6",
     "stream": "^0.0.2",
     "streamlit-component-lib": "^2.0.0",
+    "websocket": "^1.0.34",
     "yet-another-react-lightbox": "^3.15.6"
   },
   "peerDependencies": {
     "three": "=0.127.0"
   },
-  "main": "./src/MyComponent.tsx",
+  "main": "./src/index.tsx",
   "scripts": {
     "start": "react-scripts start",
+    "start:both": "concurrently \"npm start\" \"node public/MsgReceiver.js\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

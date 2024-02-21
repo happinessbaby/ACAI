@@ -113,14 +113,14 @@ class Socket():
         self.data_queue = asyncio.Queue()
 
 
-    async def _initialize_socket(self, ):
+    async def _init_socket_server(self, ):
 
         try:
-            start_server = websockets.serve(self.audio_processor, self.IP, self.PORT)
+            socket_server = websockets.serve(self.audio_processor, self.IP, self.PORT)
             # start_server = websockets.serve(functools.partial(self.audio_processor, conn = conn), self.IP, self.PORT)
-            asyncio_run(start_server, as_task=False)
+            asyncio_run(socket_server, as_task=False)
         except OSError as e:
-            print("Socket: websocket already exists")
+            print("Socket server already exists")
         ## address already in use error
             pass 
 

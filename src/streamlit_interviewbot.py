@@ -78,6 +78,7 @@ from google.cloud import speech
 from backend.socket import Socket, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
+import websocket
 
 # from test import YourDataProcessor
 
@@ -105,7 +106,7 @@ channels = 1 # number of channel
 device = 4
 # keyboard = Controller()
 # keyboard_event = Keyboard()
-
+uri = "ws://127.0.0.1:8765"
 IP = '0.0.0.0'
 PORT = 8000
 
@@ -124,7 +125,7 @@ class Interview():
     port=8000
     
 
-    def __init__(self, data_queue):
+    def __init__(self, data_queue, socket_client):
         if self.cookie:
             # self.userId = self.cookie.split("###")[1]
             self.userId = re.split("###|@", self.cookie)[1]
@@ -135,6 +136,7 @@ class Interview():
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
             print(f"Interview Session: {st.session_state.interview_sessionId}")
         self.data_queue=data_queue
+        self.socket_client = socket_client
         self.response = None
         self._init_session_states(st.session_state.interview_sessionId, self.userId)
         self._init_display()
@@ -390,8 +392,7 @@ class Interview():
     #             print("sent to data queue")
     #             transcoder.transcript = None             
 
-
-
+    # websocket server
     async def receive_transcript(self,):
 
         while True:
@@ -399,7 +400,9 @@ class Interview():
             # transcript = await st.session_state.web_socket.data_queue.get()
             self.transcript = await self.data_queue.get()
             print(f"received from data queue: {self.transcript}")
-            st.session_state["transcript"] = self.transcript
+            self.send_response(self.transcript)
+            # st.session_state["transcript"] = self.transcript
+            # asyncio_run(self.send_response)
             # st.rerun()
             #     print("asdfda:", st.session_state.transcript)
                 # try:
@@ -407,7 +410,18 @@ class Interview():
                 # except Exception as e:
                 #     raise e
 
-                  
+    # websocket client
+    def send_response(self, transcript):
+        
+        while self.socket_client.sock.connected:
+            # Send a message to the server
+            message = transcript
+            self.socket_client.send(message)
+            print(f"Sent message: {message}")
+            
+            # Receive and print the response from the server
+            # response = await websocket.recv()
+            # print(f"Received response: {response}")        
 
           
 
@@ -1450,19 +1464,67 @@ class Interview():
 #     asyncio.set_event_loop(event_loop)
 #     nest_asyncio.apply()
 #     interviewer = Interview()
+class SocketClient():
 
+    def __init__(self):
+
+        if "socket_client" not in st.session_state:
+            # self.socket_client=None
+            self._init_socket_client()
+        else:
+            self.socket_client = st.session_state.socket_client
+
+    def _init_socket_client(self):
+        # if "socket_client" not in st.session_state:
+        def on_message(ws, message):
+            print(message)
+
+        def on_error(ws, error):
+            print("error:", error)
+
+        def on_close(ws, close_status_code, close_msg):
+            print("### closed ### ")
+            if close_status_code or close_msg:
+                print("close status code: " + str(close_status_code))
+                print("close message: " + str(close_msg))
+
+        def on_open(ws):
+            print("Opened connection")
+
+        def run_websocket():
+            self.socket_client.run_forever()
+
+        # if self.socket_client is None:
+        st.session_state["socket_client"] = websocket.WebSocketApp(uri,
+                            on_open=on_open,
+                            on_message=on_message,
+                            on_error=on_error,
+                            on_close=on_close)
+        self.socket_client = st.session_state.socket_client
+        thread = threading.Thread(target=run_websocket)
+        thread.daemon = True
+        thread.start()
+            # asyncio_run(st.session_state.socket_client)
+        # else
+        #     print("Socket client already running")
 
 event_loop = asyncio.new_event_loop()
 asyncio.set_event_loop(event_loop)
 nest_asyncio.apply()
 web_socket_server = Socket()
-interviewer = Interview(data_queue=web_socket_server.data_queue)
+web_socket_client = SocketClient()
+print(st.session_state.socket_client)
+print(web_socket_client.socket_client)
+interviewer = Interview(data_queue=web_socket_server.data_queue, socket_client=web_socket_client.socket_client)
 
 
 tasks = [
-    asyncio.ensure_future(web_socket_server._initialize_socket()),
+    asyncio.ensure_future(web_socket_server._init_socket_server()),
+    # asyncio.ensure_future(web_socket_client._init_socket_client()),
     asyncio.ensure_future(interviewer.receive_transcript()),
+    # asyncio.ensure_future(interviewer.send_response())
 ]
 
 event_loop.run_until_complete(asyncio.gather(*tasks))
 event_loop.run_forever()
+# st.session_state.socket_client.run_forever()

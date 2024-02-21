@@ -22,7 +22,7 @@ def asyncio_run(future, as_task=True):
         nest_asyncio.apply(loop)
     finally:
         loop.run_until_complete(_to_task(future, as_task, loop))
-        loop.run_forever()
+        # loop.close()
         
         # return asyncio.run(_to_task(future, as_task, loop))
 

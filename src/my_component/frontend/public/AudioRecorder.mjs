@@ -1,11 +1,3 @@
-//API to handle audio recording
-// import {speech} from './@google-cloud/speech';
-// import * as AudioProcessor from "./AudioProcessor.js";
-// import sendAudio from "./AudioProcessor2.js";
-// const {ProcessAudio} = require("./AudioProcessor.js")
-// const AudioProcessor = require("./AudioProcessor.js").default;
-// console.log(typeof ProcessAudio); // Should output "function" if loaded successfully
-
 // let audioRecorder = {
 //     audioBlobs: [],
 //     mediaRecorder: null,
