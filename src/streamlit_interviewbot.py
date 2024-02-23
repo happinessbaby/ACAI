@@ -24,7 +24,7 @@ import sys
 from multiprocessing import Process, Queue, Value
 import pickle
 import requests
-from functools import lru_cache
+import functools
 from typing import Any
 import multiprocessing as mp
 from langchain.embeddings import OpenAIEmbeddings
@@ -75,7 +75,7 @@ import threading
 # from six.moves import queue
 import queue
 from google.cloud import speech
-from backend.socket import Socket, Transcoder
+from backend.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
@@ -91,10 +91,6 @@ STORAGE = os.environ['STORAGE']
 user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 png_file = os.environ["INTERVIEW_BG"]
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/tebblespc/Documents/acai-412122-dd69ac33da42.json"
-# set_api_key(os.environ["11LABS_API_KEY"])
-# save_path = os.environ["SAVE_PATH"]
-# temp_path = os.environ["TEMP_PATH"]
-# static_path = os.environ["STATIC_PATH"]
 placeholder = st.empty()
 # sd.default.samplerate=48000
 sd.default.channels = 1, 2
@@ -114,15 +110,17 @@ PORT = 8000
 
 class Interview():
 
+
     COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.Key.enter}]
+    ctx = get_script_run_ctx()
     currently_pressed = set()
     q = queue.Queue()
     ai_col, human_col = st.columns(2, gap="large")
-    ctx = get_script_run_ctx()
     cookie = get_cookie("userInfo")
     aws_session = get_aws_session()
     ip="0.0.0.0"
     port=8000
+
     
 
     def __init__(self, data_queue, socket_client):
@@ -134,55 +132,26 @@ class Interview():
             self.userId = None
         if "interview_sessionId" not in st.session_state:
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
+            self.interview_sessionId = st.session_state.interview_sessionId
             print(f"Interview Session: {st.session_state.interview_sessionId}")
         self.data_queue=data_queue
         self.socket_client = socket_client
-        self.response = None
         self._init_session_states(st.session_state.interview_sessionId, self.userId)
         self._init_display()
         self._create_interviewbot()
-        # self.run(event_loop)
-        # asyncio_run(self._create_interviewbot(), as_task=False)
-        # self.task = asyncio.ensure_future(self._create_interviewbot())
-        # self.thread_run()
-        # thread = threading.Thread(target=self._create_interviewbot)
-        # add_script_run_ctx(thread)
-        # thread.start()
+        try:
+            self.interviewer = st.session_state["baseinterview"]
+            print("self interviewer exists")
+        except KeyError:
+            # have not filled not the form
+            print("self interviewer doesnt exists yet")
+            pass
+
+
 
     
     @st.cache_data()
     def _init_session_states(_self, sessionId, userId):
-
-        # if "interview_sessionId" not in st.session_state:
-        #     _self._init_interview_preform()
-        #     st.session_state["interview_session_id"] = str(uuid.uuid4())
-        #     print(f"INTERVIEW Session: {st.session_state.interview_session_id}")
-        #     modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
-        #     with modal.container():
-        #         with st.form( key='interview_form', clear_on_submit=True):
-        #             add_vertical_space(1)
-        #             # st.markdown("Please fill out the form below before we begin")
-
-        #             st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
-
-        #             st.text_input("links (this can be a job posting)", "", key = "interview_links", )
-
-        #             st.file_uploader(label="Upload your interview material or resume",
-        #                                             type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-        #                                             key = "interview_files",
-        #                                             accept_multiple_files=True)
-        #             add_vertical_space(1)
-        #             st.form_submit_button(label='Submit', on_click=self.form_callback)  
-
-
-
-            # try: 
-            #     temp_dir = temp_path+st.session_state.userid
-            #     user_dir = save_path+st.session_state.userid
-            #     os.mkdir(temp_dir)
-            #     os.mkdir(user_dir)
-            # except FileExistsError:
-            #     pass
 
             st.session_state["mode"]="regular"
             # initialize submitted form variables
@@ -194,7 +163,7 @@ class Interview():
             # if "resume_file" not in st.session_state:
             st.session_state["resume_file"] = ""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
-            st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
+            # st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
@@ -241,16 +210,7 @@ class Interview():
             # initialize backup text session
             # if "text_session" not in st.session_state:
             #     st.session_state["text_session"] = False
-            # initialize main session interview agents
-            # if "baseinterview" not in st.session_state:
-            #     # update interview agents prompts from form variables
-            #     if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
-            #         additional_prompt_info, generated_dict = _self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
-            #     else:
-            #         additional_prompt_info = ""
-            #         generated_dict = {}
-            #     new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
-            #     st.session_state["baseinterview"] = new_interview     
+ 
 
 
     def _init_display(_self):
@@ -301,29 +261,32 @@ class Interview():
                 st.button("switch to text only session", key="switch_button", on_click=_self._init_text_session)
             if st.session_state["mode"]=="text":
                 st.button("end session",  key="end_session", on_click=_self.interview_feedback)
-            with _self.ai_col:
-                subtitles = st.button("subtitles",key="turnon_subtitles")
-                if subtitles:
-                    st.session_state.subtitles=True
+            # with _self.ai_col:
+            #     subtitles = st.button("subtitles",key="turnon_subtitles")
+            #     if subtitles:
+            #         st.session_state.subtitles=True
 
 
             
     def _init_interview_preform(self):
 
-        modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
-        with modal.container():
-            with st.form( key='interview_form', clear_on_submit=True):
-                add_vertical_space(1)
-                # st.markdown("Please fill out the form below before we begin")
-                st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
-                st.text_input("links (this can be a job posting)", "", key = "interview_links", )
-                st.file_uploader(label="Upload your interview material or resume",
-                                                type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                                                key = "interview_files",
-                                                accept_multiple_files=True)
-                add_vertical_space(1)
-                st.form_submit_button(label='Submit', on_click=self.form_callback)
-                  
+        if "init_interview" not in st.session_state:
+            st.session_state["init_interview"]=True
+            modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
+            with modal.container():
+                with st.form( key='interview_form', clear_on_submit=True):
+                    add_vertical_space(1)
+                    # st.markdown("Please fill out the form below before we begin")
+                    st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
+                    st.text_input("links (this can be a job posting)", "", key = "interview_links", )
+                    st.file_uploader(label="Upload your interview material or resume",
+                                                    type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                                                    key = "interview_files",
+                                                    accept_multiple_files=True)
+                    add_vertical_space(1)
+                    if st.form_submit_button(label='Submit', on_click=self.form_callback):
+                        print("interview preform submitted")
+                    
 
 
     # def thread_run(self):
@@ -393,43 +356,40 @@ class Interview():
     #             transcoder.transcript = None             
 
     # websocket server
-    async def receive_transcript(self,):
+    async def receive_transcript(self, interviewer, loop):
 
         while True:
-            print("asdcdscdacdsa")
-            # transcript = await st.session_state.web_socket.data_queue.get()
-            self.transcript = await self.data_queue.get()
-            print(f"received from data queue: {self.transcript}")
-            self.send_response(self.transcript)
-            # st.session_state["transcript"] = self.transcript
-            # asyncio_run(self.send_response)
-            # st.rerun()
-            #     print("asdfda:", st.session_state.transcript)
-                # try:
-                #     print("now this is:",st.session_state.baseinterview)
-                # except Exception as e:
-                #     raise e
+            print("inside receive transcript")
+            transcript = await self.data_queue.get()
+            print(f"received transcript from data queue: {transcript}")
+            # print("interviewer:", interviewer.interviewer)
+            # this sends the function to a different blocking thread
+            # response = await loop.run_in_executor(None, interviewer.interviewer.askAI(transcript))
+            # threading.Thread(interviewer.interviewer.askAI(transcript)).start()
+            # response = interviewer.interviewer.askAI(transcript)
+            # self.send_response(response)
+            # this sends the task to the same event loop
+            asyncio.create_task(self.send_response(transcript))
+  
+
 
     # websocket client
-    def send_response(self, transcript):
+    async def send_response(self, response):
         
         while self.socket_client.sock.connected:
             # Send a message to the server
-            message = transcript
-            self.socket_client.send(message)
-            print(f"Sent message: {message}")
-            
-            # Receive and print the response from the server
-            # response = await websocket.recv()
-            # print(f"Received response: {response}")        
+            self.socket_client.send(response)
+            print(f"Sent message from socket client: {response}")
+            await asyncio.sleep(0)
+            break
+    
+             
 
           
 
 
-
-
             
-    def _create_interviewbot(self):
+    def _create_interviewbot(self, ):
 
 
         if "init_interview" not in st.session_state:
@@ -437,25 +397,28 @@ class Interview():
             st.session_state["init_interview"]=True
         else:
             if "baseinterview" not in st.session_state:
-                print("inside create interviewboy")
+                print("inside create interviewbot")
                 # update interview agents prompts from form variables
                 if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
                     self.additional_prompt_info, self.generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
                 else:
                     self.additional_prompt_info = ""
                     self.generated_dict = {}
-                new_interview = InterviewController(st.session_state.interview_sessionId, self.additional_prompt_info, self.generated_dict)
+                # self.additional_prompt_info= ""
+                # self.generated_dict = {}
+                new_interview = InterviewController(st.session_state["interview_sessionId"], self.additional_prompt_info, self.generated_dict)
                 st.session_state["baseinterview"] = new_interview
                 # ai_response = st.session_state.baseinterview.askAI("")
                 _ = my_component("HI")
+
             # try:
             #     transcript = st.session_state["transcript"]
             #     # response = st.session_state.baseinterview.askAI(transcript)
             #     # print(response)
             # except Exception as e:
             #     print(e)
-            if st.session_state.mode=="text":
-                self._init_text_session() 
+        # if st.session_state.mode=="text":
+        #     self._init_text_session() 
 
                 # try:
                 #     self.new_interview = st.session_state.baseinterview  
@@ -763,11 +726,7 @@ class Interview():
             md,
             unsafe_allow_html=True,
         )
-        # r=Recognizer()
-        # audio_data=AudioData(data)
-        # output = r.recognize_google(audio_data,language="en")
-        # if output:
-        #     st.write(output)
+
     
 
     # def on_press(self, key,):
@@ -1501,9 +1460,9 @@ class SocketClient():
                             on_error=on_error,
                             on_close=on_close)
         self.socket_client = st.session_state.socket_client
-        thread = threading.Thread(target=run_websocket)
-        thread.daemon = True
-        thread.start()
+        threading.Thread(target=run_websocket, daemon=True).start()
+        # thread.daemon = True
+        # thread.start()
             # asyncio_run(st.session_state.socket_client)
         # else
         #     print("Socket client already running")
@@ -1511,20 +1470,21 @@ class SocketClient():
 event_loop = asyncio.new_event_loop()
 asyncio.set_event_loop(event_loop)
 nest_asyncio.apply()
-web_socket_server = Socket()
+web_socket_server = SocketServer()
 web_socket_client = SocketClient()
-print(st.session_state.socket_client)
-print(web_socket_client.socket_client)
+# print(st.session_state.socket_client)
+# print(web_socket_client.socket_client)
 interviewer = Interview(data_queue=web_socket_server.data_queue, socket_client=web_socket_client.socket_client)
 
+# partial_create_interviewbot = functools.partial(interviewer._create_interviewbot, interviewer.interview_sessionId)
+# event_loop.run_in_executor(None, partial_create_interviewbot)
 
 tasks = [
     asyncio.ensure_future(web_socket_server._init_socket_server()),
+    asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop)),
     # asyncio.ensure_future(web_socket_client._init_socket_client()),
-    asyncio.ensure_future(interviewer.receive_transcript()),
     # asyncio.ensure_future(interviewer.send_response())
 ]
 
 event_loop.run_until_complete(asyncio.gather(*tasks))
 event_loop.run_forever()
-# st.session_state.socket_client.run_forever()

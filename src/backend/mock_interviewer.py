@@ -294,7 +294,7 @@ class InterviewController():
     #     wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
-    def askAI(self, user_input: str, callbacks=None,) -> str:
+    async def askAI(self, user_input: str, callbacks=None,) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
@@ -319,10 +319,10 @@ class InterviewController():
             # if (update_instruction):
             #     instruction = self.askMetaAgent()
             #     print(instruction) 
-            grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
+            grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
             # print(f"GRADER FEEDBACK: {grader_feedback}")
             print(f"User Voice Input: {user_input}")
-            response = self.interview_agent({"input":user_input})
+            response = await self.interview_agent.acall({"input":user_input})
             response = response.get("output", "sorry, something happened, try again.")        
             # response = self.interview_agent({"input":user_input})    
             # if (evaluate_result):

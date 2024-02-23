@@ -59,6 +59,8 @@ const loadPCMWorker = (audioContext) =>
 
 
 
+
+
 var audioRecorder = {
     /** Stores the recorded audio as Blob objects of audio data as the recording continues*/
     // audioBlobs: [], /*of type Blob[]*/
@@ -81,14 +83,16 @@ var audioRecorder = {
         //     return Promise.reject(new Error('mediaDevices API or getUserMedia method is not supported in this browser.'));
         // }
         audioRecorder.connect();
-            //Feature is supported in browser         
-            //create an audio stream
-            audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
-            // audioRecorder.audioContext = audioContext;
-            return Promise.all([loadPCMWorker(audioRecorder.audioContext), getMediaStream() ])
-                .then(([_, stream]) => audioRecorder.handleSuccess(audioRecorder.audioContext, stream, data => audioRecorder.connection.send(data)))
-                .catch(error=> {    console.error("Error in Promise.all:", error);})
-                ;
+
+        //Feature is supported in browser         
+        //create an audio stream
+        audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
+        // audioRecorder.createAudioContext();
+        // audioRecorder.audioContext = audioContext;
+        return Promise.all([loadPCMWorker(audioRecorder.audioContext), getMediaStream(), ])
+            .then(([_, stream, ]) => audioRecorder.handleSuccess(audioRecorder.audioContext, stream, data => audioRecorder.connection.send(data)))
+            .catch(error=> {    console.error("Error in Promise.all:", error);})
+            ;
                 //returns a promise that resolves to the audio stream
                 // .then(stream /*of type MediaStream*/ => {
               
@@ -162,23 +166,23 @@ var audioRecorder = {
               // connection.onmessage = event => speechRecognized(JSON.parse(event.data));
               audioRecorder.connection.onopen = event => {
                   // Send a JSON message to the server with specific parameters
-                  audioRecorder.connection.send(JSON.stringify({
-                      "rate": 16000,
-                      "format": 'LINEAR16',
-                      "language": 'en-US',
-                  }));
-                  // event.target.send(JSON.stringify({
+                  // audioRecorder.connection.send(JSON.stringify({
                   //     "rate": 16000,
                   //     "format": 'LINEAR16',
                   //     "language": 'en-US',
                   // }));
+                  this.send(JSON.stringify({
+                      "rate": 16000,
+                      "format": 'LINEAR16',
+                      "language": 'en-US',
+                  }));
               console.log("WebSocket connection state after sending message:", audioRecorder.connection.readyState);           
               }; 
               audioRecorder.connection.onerror = event => {
                   console.error("WebSocket error:", event.error);
               };
               audioRecorder.connection.onmessage = event => {
-                  console.log("websocket received msg", event.data)
+                  console.log("websocket received msg", event.data);
               }
             }
             else {
@@ -221,9 +225,9 @@ var audioRecorder = {
             audioRecorder.streamBeingCaptured.getTracks() //get all tracks from the stream
                     .forEach(track /*of type MediaStreamTrack*/ => track.stop()); //stop each one
             }
-            // if (audioRecorder.audioContext != null) {
-            //     audioRecorder.audioContext.close();
-            // }
+            if (audioRecorder.audioContext != null) {
+                audioRecorder.audioContext.close();
+            }
         },
         /** Reset all the recording properties including the media recorder and stream being captured*/
     resetRecordingProperties: function () {
@@ -236,28 +240,43 @@ var audioRecorder = {
             getEventListeners(audioRecorder.mediaRecorder) will return an empty array of events.*/
     },
 
-    checkWebSocket: function() {
+    createAudioContext: function () {
+      if (audioRecorder.audioContext==null) {
+        audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
+      }
+    },
+
+    sendConfig: function() {
         return new Promise((resolve, reject) => {
           if (audioRecorder.connection.readyState === WebSocket.OPEN) {
-            resolve(true);
-          } else if (
-            audioRecorder.connection.readyState === WebSocket.CONNECTING ||
-            audioRecorder.connection.readyState === WebSocket.CLOSING
-          ) {
-            audioRecorder.disconnect()
-            audioRecorder.connect()
-            console.log("websocket restarted")
-            // If the WebSocket is still connecting or closing, wait for it to be open
-            // websocket.addEventListener('open', () => {
-            //   resolve(true);
-            // });
-      
-            // If the WebSocket encounters an error, reject the promise
-            audioRecorder.connection.addEventListener('error', (error) => {
-              reject(error);
+            // resolve(true);
+            this.send(JSON.stringify({
+              "rate": 16000,
+              "format": 'LINEAR16',
+              "language": 'en-US',
+            }), (error) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve('JSON config sent successfully');
+              }
             });
+          // } else if (
+          //   audioRecorder.connection.readyState === WebSocket.CONNECTING ||
+          //   audioRecorder.connection.readyState === WebSocket.CLOSING
+          // ) {
+          //   // If the WebSocket is still connecting or closing, wait for it to be open
+          //   // websocket.addEventListener('open', () => {
+          //   //   resolve(true);
+          //   // });
+      
+          //   // If the WebSocket encounters an error, reject the promise
+          //   // audioRecorder.connection.addEventListener('error', (error) => {
+          //   //   reject(error);
+          //   // });
           } else {
-            resolve(false);
+            // resolve(false);
+            reject('WebSocket connection is not open.');
           }
         });
       },

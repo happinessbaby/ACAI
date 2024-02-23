@@ -32,13 +32,21 @@ class Transcoder():
         self.encoding = encoding
         self.language = language
         self.rate = rate
-        self.closed = True
+        # self.closed = True
+        self.closed_event = threading.Event()  # Event to signal when to stop the stream
         self.transcript = None
+        # self.loop = asyncio.get_event_loop()
 
     def start(self):
-        """Start up streaming speech call"""
+        """Start up streaming speech call.
+        
+        Note: self.process cannot be blocking since there's still code that comes after the call in AudioProcessor.
+        
+        """
         print("started Transcoder")
-        threading.Thread(target=self.process).start()
+        threading.Thread(target=self.process, daemon=True).start()
+        # self.loop.run_in_executor(None, self.process)
+
 
     def response_loop(self, responses):
         """
@@ -60,30 +68,37 @@ class Transcoder():
         """
         #You can add speech contexts for better recognition
         # cap_speech_context = types.SpeechContext(phrases=["Add your phrases here"])
-        client = speech.SpeechClient(credentials=credentials)
-        config = types.RecognitionConfig(
-            encoding=self.encoding,
-            sample_rate_hertz=self.rate,
-            language_code=self.language,
-            # speech_contexts=[cap_speech_context,],
-            model='command_and_search'
-        )
-        streaming_config = types.StreamingRecognitionConfig(
-            config=config,
-            interim_results=False,
-            single_utterance=False)
-        audio_generator = self.stream_generator()
-        requests = (types.StreamingRecognizeRequest(audio_content=content)
-                    for content in audio_generator)
-        responses = client.streaming_recognize(streaming_config, requests)
         try:
-            self.response_loop(responses)
+            while not self.closed_event.is_set():
+                client = speech.SpeechClient(credentials=credentials)
+                config = types.RecognitionConfig(
+                    encoding=self.encoding,
+                    sample_rate_hertz=self.rate,
+                    language_code=self.language,
+                    # speech_contexts=[cap_speech_context,],
+                    model='command_and_search'
+                )
+                streaming_config = types.StreamingRecognitionConfig(
+                    config=config,
+                    interim_results=False,
+                    single_utterance=False,
+                    enable_voice_activity_events=True,
+                    )
+                audio_generator = self.stream_generator()
+                requests = (types.StreamingRecognizeRequest(audio_content=content)
+                            for content in audio_generator)
+                responses = client.streaming_recognize(streaming_config, requests)
+                self.response_loop(responses)
         except Exception as e:
-            self.start()
+            print(e)
+        finally:
+            self.process()
+            print("Restarting audio processing loop")
+            # Optionally, you can handle any cleanup or finalize tasks here
       
 
     def stream_generator(self):
-        while not self.closed:
+        while not self.closed_event.is_set():
             chunk = self.buff.get()
             # print(f"CHUNK: {chunk}")
             if chunk is None:
@@ -99,13 +114,17 @@ class Transcoder():
                     break
             yield b''.join(data)
 
+
     def write(self, data):
         """
         Writes data to the buffer
         """
         self.buff.put(data)
 
-class Socket():
+    def stop(self):
+        self.closed_event.set()  # Set the event to signal the stream to stop
+
+class SocketServer():
 
     def __init__(self, ip="0.0.0.0", port=8000):
         self.IP= ip
@@ -142,36 +161,38 @@ class Socket():
             language=config["language"]
         )
         transcoder.start()
-        while True:
-            try:
+        try:
+            while True:
                 data = await websocket.recv()
-            except websockets.ConnectionClosed:
-                print("Connection closed")
-                break
-            transcoder.write(data)
-            transcoder.closed = False
-            if transcoder.transcript:
-                print(transcoder.transcript)
-                ##send it to ai
-                await websocket.send(transcoder.transcript)
-                print(f"transcript sent from socket")
-                await self.data_queue.put(transcoder.transcript)
-                print(f"transcript sent to data queue")
-                transcoder.transcript = None
+                asyncio.create_task(self.process_data(transcoder, data, websocket))
+        except websockets.ConnectionClosed:
+            print("Connection closed")
+
+    async def process_data(self, transcoder, data, websocket):
+        transcoder.write(data)
+        transcoder.closed_event.clear()
+        # transcoder.closed = False
+        if transcoder.transcript:
+            print(transcoder.transcript)
+            await websocket.send(transcoder.transcript)
+            print(f"transcript sent from socket")
+            await self.data_queue.put(transcoder.transcript)
+            print(f"transcript sent to data queue")
+            transcoder.transcript = None
 
            
 
     
         
 
-    def run(self):
-        self._initialize_socket()
-        try:
-            asyncio.get_event_loop().run_forever()
-        except KeyboardInterrupt:
-            print("Shutting down the server...")
-        finally:
-            asyncio.get_event_loop().close()
+    # def run(self):
+    #     self._initialize_socket()
+    #     try:
+    #         asyncio.get_event_loop().run_forever()
+    #     except KeyboardInterrupt:
+    #         print("Shutting down the server...")
+    #     finally:
+    #         asyncio.get_event_loop().close()
 
 
 

@@ -1,7 +1,7 @@
 import asyncio
 import nest_asyncio
 import streamlit as st
-from backend.socket import Socket
+from backend.socket_server import Socket
 # from streamlit_interviewbot import Interview
 from test import YourDataProcessor
 import multiprocessing as mp
