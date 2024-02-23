@@ -139,13 +139,15 @@ class Interview():
         self._init_session_states(st.session_state.interview_sessionId, self.userId)
         self._init_display()
         self._create_interviewbot()
-        try:
-            self.interviewer = st.session_state["baseinterview"]
-            print("self interviewer exists")
-        except KeyError:
-            # have not filled not the form
-            print("self interviewer doesnt exists yet")
-            pass
+        self.interviewer=st.session_state["baseinterview"] if "baseinterview" in st.session_state else None
+
+        # try:
+        #     self.interviewer = st.session_state["baseinterview"]
+        #     print("self interviewer exists")
+        # except KeyError:
+        #     # have not filled not the form
+        #     print("self interviewer doesnt exists yet")
+        #     pass
 
 
 
@@ -362,15 +364,18 @@ class Interview():
             print("inside receive transcript")
             transcript = await self.data_queue.get()
             print(f"received transcript from data queue: {transcript}")
-            # print("interviewer:", interviewer.interviewer)
-            # this sends the function to a different blocking thread
-            # response = await loop.run_in_executor(None, interviewer.interviewer.askAI(transcript))
-            # threading.Thread(interviewer.interviewer.askAI(transcript)).start()
-            # response = interviewer.interviewer.askAI(transcript)
-            # self.send_response(response)
-            # this sends the task to the same event loop
-            asyncio.create_task(self.send_response(transcript))
-  
+            try:
+                print("userid:", interviewer.userId)
+                # this sends the CPU intensive function to a different blocking thread
+                response = await loop.run_in_executor(None, functools.partial(interviewer.interviewer.askAI, user_input=transcript))
+                print("ai response:", response)
+                # threading.Thread(interviewer.interviewer.askAI(transcript)).start()
+                # response = interviewer.interviewer.askAI(transcript)
+                # this sends the task to the same event loop/
+                asyncio.create_task(self.send_response(response))
+            except Exception as e:
+                raise e
+    
 
 
     # websocket client
@@ -410,6 +415,13 @@ class Interview():
                 st.session_state["baseinterview"] = new_interview
                 # ai_response = st.session_state.baseinterview.askAI("")
                 _ = my_component("HI")
+        try:
+            self.interviewer = st.session_state["baseinterview"]
+            print("self interviewer exists")
+        except KeyError:
+            # have not filled not the form
+            print("self interviewer doesnt exists yet")
+            pass
 
             # try:
             #     transcript = st.session_state["transcript"]
@@ -1478,13 +1490,13 @@ interviewer = Interview(data_queue=web_socket_server.data_queue, socket_client=w
 
 # partial_create_interviewbot = functools.partial(interviewer._create_interviewbot, interviewer.interview_sessionId)
 # event_loop.run_in_executor(None, partial_create_interviewbot)
+if interviewer.interviewer is not None:
+    tasks = [
+        asyncio.ensure_future(web_socket_server._init_socket_server()),
+        asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop)),
+        # asyncio.ensure_future(web_socket_client._init_socket_client()),
+        # asyncio.ensure_future(interviewer.send_response())
+    ]
 
-tasks = [
-    asyncio.ensure_future(web_socket_server._init_socket_server()),
-    asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop)),
-    # asyncio.ensure_future(web_socket_client._init_socket_client()),
-    # asyncio.ensure_future(interviewer.send_response())
-]
-
-event_loop.run_until_complete(asyncio.gather(*tasks))
-event_loop.run_forever()
+    event_loop.run_until_complete(asyncio.gather(*tasks))
+    event_loop.run_forever()

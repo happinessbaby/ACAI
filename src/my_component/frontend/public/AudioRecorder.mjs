@@ -84,8 +84,7 @@ var audioRecorder = {
         // }
         audioRecorder.connect();
 
-        //Feature is supported in browser         
-        //create an audio stream
+        /** NOTE: for some reason audioContext needs to be recreated each time and closed each time for the websocket to receive more tha one msg in the backend */
         audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
         // audioRecorder.createAudioContext();
         // audioRecorder.audioContext = audioContext;
@@ -225,6 +224,7 @@ var audioRecorder = {
             audioRecorder.streamBeingCaptured.getTracks() //get all tracks from the stream
                     .forEach(track /*of type MediaStreamTrack*/ => track.stop()); //stop each one
             }
+             /** This needs to be closed for websocket to receive more than one message! */
             if (audioRecorder.audioContext != null) {
                 audioRecorder.audioContext.close();
             }

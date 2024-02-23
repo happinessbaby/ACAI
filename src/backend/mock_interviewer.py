@@ -288,13 +288,77 @@ class InterviewController():
                                         return_intermediate_steps=True, 
                                         handle_parsing_errors=True,
                                         callbacks = [self.handler])
-        
+
+
+
+
+
+    def askAI(self, user_input: str, callbacks=None,) -> str:
+
+        """ Main function that processes all agents' conversation with user.
+         
+        Args:
+
+            userid (str): session id of user
+
+            user_input (str): user question or response
+
+        Keyword Args:
+
+            callbacks: default is None
+
+        Returns:
+
+            Answer or response by AI (str)  
+            
+         """
+
+        try:    
+            # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
+            # if (update_instruction):
+            #     instruction = self.askMetaAgent()
+            #     print(instruction) 
+            grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
+            # print(f"GRADER FEEDBACK: {grader_feedback}")
+            print(f"User Voice Input: {user_input}")
+            response = self.interview_agent({"input":user_input})
+            response = response.get("output", "sorry, something happened, try again.")        
+            # response = self.interview_agent({"input":user_input})    
+            # if (evaluate_result):
+            #     evalagent_q = Queue()
+            #     evalagent_p = Process(target = self.askEvalAgent, args=(response, evalagent_q, ))
+            #     evalagent_p.start()
+            #     evalagent_p.join()
+            #     evaluation_result = evalagent_q.get()
+            #     # add evaluation and instruction to log
+            #     self.update_meta_data(evaluation_result)
+            
+            # convert dict to string for chat output
+        # let instruct agent handle all exceptions with feedback loop
+        except Exception as e:
+            print(f"ERROR HAS OCCURED IN ASKAI: {e}")
+            error_msg = str(e)
+            # needs to get action and action input before error and add it to error message
+            # if (update_instruction):
+            #     query = f""""Debug the error message and provide Instruction for the AI assistant: {error_msg}
+            #         """        
+            #     instruction = self.askMetaAgent(query)
+                # self.update_instructions(feedback)
+            # if evaluate_result:
+            #     self.update_meta_data(error_msg)
+            raise e       
+
+        # pickle memory (sanity check)
+        # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:
+        #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            # print(f"Sucessfully pickled conversation: {chat_history}")
+        return response 
 
     # @retry(
     #     wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
-    async def askAI(self, user_input: str, callbacks=None,) -> str:
+    async def askAI_async(self, user_input: str, callbacks=None,) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
