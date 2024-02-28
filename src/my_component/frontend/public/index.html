@@ -18,6 +18,7 @@
     <!-- <script type="text/javascript" src="../node_module/@amazon-sumerian-hosts/three/dist/host.three.js"></script> -->
     <script type="text/javascript" src="host.three.js"></script>
     <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <!-- <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js", data-main="../src/AudioStreaming.js"></script> -->
     <!-- <script type = "module" src="AudioProcessor.js"></script> -->
     <!--Host build file-->
@@ -30,16 +31,18 @@
         padding: 0;
         margin: 0;
         overflow: hidden;
+        /* position:relative; */
       }
       .tab {
-        background-color: rgb(219, 219, 219);
+        display:none;
+        /* background-color: rgb(219, 219, 219);
         padding-bottom: 0px;
         margin-bottom: -1px;
         border-width: 1px;
         border-style: solid;
         z-index: 2;
         position: relative;
-        outline: 0px;
+        outline: 0px; */
       }
 
       .current {
@@ -49,13 +52,56 @@
       }
 
       .textEntry {
+        /* display: none; */
         min-width: 305px;
         min-height: 200px;
         outline: 0px;
         padding: 10px;
         resize: both;
       }
+      /* .greeting {
+        display: none;
+      } */
+      button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        font-weight: bold;
+        color:white;
+        background-color: red;
+        border: 0;
+        border-radius: 35px;
+        margin: 18px;
+        position: fixed;
+        top: 70%; /* Center the loader vertically */
+        left: 50%; /* Center the loader horizontally */
+        margin-top: -60px; /* Adjust the negative margin to half of the loader height */
+        margin-left: -60px; /* Adjust the negative margin to half of the loader width */
+        outline:none
+      }
 
+      .notRec{
+        background-color: darkred;
+      }
+
+      .Rec{
+        animation-name: pulse;
+        animation-duration: 1.5s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+      }
+
+      @keyframes pulse{
+        0%{
+          box-shadow: 0px 0px 5px 0px rgba(173,0,0,.3);
+        }
+        65%{
+          box-shadow: 0px 0px 5px 13px rgba(173,0,0,.3);
+        }
+        90%{
+          box-shadow: 0px 0px 5px 13px rgba(173,0,0,0);
+        }
+      }
       .speechButton {
         width: 78.75px;
       }
@@ -95,8 +141,8 @@
         justify-content: center;
         width: 100%;
         height: 100%;
-        background-image: url('assets/images/load_screen2.png');
-        background-color: gray;
+        background-image: url('assets/images/teddy.jpeg');
+        background-color: white;
         background-repeat: no-repeat;
         background-attachment: fixed;
         background-position: center;
@@ -112,6 +158,10 @@
       -webkit-animation: spin 2s linear infinite;
       animation: spin 2s linear infinite;
       position: fixed;
+      top: 50%; /* Center the loader vertically */
+      left: 50%; /* Center the loader horizontally */
+      margin-top: -60px; /* Adjust the negative margin to half of the loader height */
+      margin-left: -60px; /* Adjust the negative margin to half of the loader width */
     }
       @-webkit-keyframes spin {
       0% {
@@ -139,11 +189,14 @@
  <div id="loadScreen">
   <div id="loader"></div>
 </div>
+<!-- <div id="greeting"></div> -->
 
 <!--Text to speech controls-->
 <div id="textToSpeech">
-  <button class="tab current">Luke</button>
-  <button class="tab">Alien</button>
+  <!-- <button class="tab current">Luke</button>
+  <button class="tab">Alien</button> -->
+  <div class="tab current">Luke</div>
+  <div class="tab">Alien</div>
   <div>
     <textarea autofocus size="23" type="text" class="textEntry Luke">
 <speak>
@@ -156,23 +209,17 @@
 </speak>
     </textarea>
     <textarea autofocus size="23" type="text" class="textEntry Alien">
-<speak id="speech Alien">
-    <!-- Hi there! As you can see I'm set up to be a host too, although I don't use
-    the same type of skeleton as any of the original Amazon Sumerian hosts. With
-    open source hosts, you can apply host functionality to any custom animated 
-    character you'd like. I'm excited to see what kinds of interesting host 
-    characters you'll bring to life! -->
-    <!-- Hi there, Tebbles like me a lot. He's all good. We wish you happy coding! -->
+<speak id="speech_Alien">
 </speak>
     </textarea>
   </div>
-  <div>
+  <!-- <div>
     <button id="play" class="speechButton">Play</button>
     <button id="pause" class="speechButton">Pause</button>
     <button id="resume" class="speechButton">Resume</button>
     <button id="stop" class="speechButton">Stop</button>
-  </div>
-  <div>
+  </div> -->
+  <!-- <div>
     <button id="gestures" class="gestureButton">Generate Gestures</button>
   </div>
   <div>
@@ -180,19 +227,19 @@
   </div>
   <div>
     <button id="playEmote" class="gestureButton">Play Emote</button>
-  </div>
+  </div> -->
   <div>
-    <button id="record">Start Recording</button> 
+    <button id="recButton">REC</button> 
   </div>
 </div>
-<!-- <script type="modeul" src = "./src/AudioRecorder.js"></script> -->
 <!-- <script src="dist/bundle.js"></script> -->
+<!-- <script src="AudioReceiver.mjs"></script> -->
 <script type="module">
 
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
   import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
   import { init_audioRecorder} from "./AudioRecorder.mjs";
-  // import {?} from "./MsgReceiver.js";
+  import {init_audioReceiver} from "./AudioReceiver.mjs"
 
   const renderFn = [];
   const speakers = new Map([
@@ -200,8 +247,11 @@
     ['Alien', undefined],
   ]);
 
-  const audioR = init_audioRecorder()
-
+  const audioRecorder = init_audioRecorder();
+  init_audioReceiver();
+  // document.addEventListener('DOMContentLoaded', function() {
+      // init_audioReceiver();
+    // });
 
  
 
@@ -217,6 +267,10 @@ function openFullscreen() {
     elem.msRequestFullscreen();
   }
 }
+// document.addEventListener('DOMContentLoaded', function() {
+//       openFullscreen();
+//       main();
+//     });
 
 document.onkeypress = function (e) {
     e = e || window.event;
@@ -228,6 +282,8 @@ document.onkeypress = function (e) {
          return false;
       }
 }
+
+
 
   async function main() {
 
@@ -249,24 +305,7 @@ document.onkeypress = function (e) {
       presigner,
       window.AWS.VERSION
     );
-     // initialize stt parameters
-  // need a 16-bit, 16KHz raw PCM audio 
-    // const encoding = 'LINEAR16';
-    // const sampleRateHertz = 16000;
-    // const languageCode = 'en-US';
-    // const request = {
-    //   config: {
-    //     encoding: encoding,
-    //     sampleRateHertz: sampleRateHertz,
-    //     languageCode: languageCode,
-    //   },
-    //   interimResults: false // If you want interim results, set this to true
-    // };
-      // init SpeechClient
-    // const client = new speech.v1p1beta1.SpeechClient();
-    // await client.initialize();
-    // // Stream the audio to the Google Cloud Speech API
-    // const stream = client.streamingRecognize(request);
+    
 
     // Define the glTF assets that will represent the host
     const characterFile1 =
@@ -456,6 +495,8 @@ document.onkeypress = function (e) {
 
     initializeUX();
   }
+
+  
 
   // Set up base scene
   function createScene() {
@@ -969,20 +1010,20 @@ document.onkeypress = function (e) {
     }
 
     // Update emote selector
-    const emoteSelect = document.getElementById('emotes');
-    emoteSelect.length = 0;
-    const emotes = host.AnimationFeature.getAnimations('Emote');
-    emotes.forEach((emote, i) => {
-      const emoteOption = document.createElement('option');
-      emoteOption.text = emote;
-      emoteOption.value = emote;
-      emoteSelect.add(emoteOption, 0);
+    // const emoteSelect = document.getElementById('emotes');
+    // emoteSelect.length = 0;
+    // const emotes = host.AnimationFeature.getAnimations('Emote');
+    // emotes.forEach((emote, i) => {
+    //   const emoteOption = document.createElement('option');
+    //   emoteOption.text = emote;
+    //   emoteOption.value = emote;
+    //   emoteSelect.add(emoteOption, 0);
 
-      // Set the current item to the first emote
-      if (!i) {
-        emoteSelect.value = emote;
-      }
-    });
+    //   // Set the current item to the first emote
+    //   if (!i) {
+    //     emoteSelect.value = emote;
+    //   }
+    // });
   }
 
   function initializeUX(speakers) {
@@ -990,67 +1031,118 @@ document.onkeypress = function (e) {
     enableDragDrop('textEntry');
 
     // Connect tab buttons to hosts
-    Array.from(document.getElementsByClassName('tab')).forEach(tab => {
-      tab.onclick = evt => { toggleHost(evt); }
-    });
+    // Array.from(document.getElementsByClassName('tab')).forEach(tab => {
+    //   tab.onclick = evt => { toggleHost(evt); }
+    // });
+    $('#recButton').addClass("notRec");
 
-    const button = document.getElementById('record');
-    button.onclick = () => {
-      if (button.innerHTML=="Start Recording") {
-        button.innerHTML ="Stop Recording";
-        audioR.startRecording();
-        //require(["AudioStreaming"], function(AudioStreaming) {
-        //   AudioStreaming.mainstream();
-        // })
+    $('#recButton').click(function(){
+      if($('#recButton').hasClass('notRec')){
+        $('#recButton').removeClass("notRec");
+        $('#recButton').addClass("Rec");
+        audioRecorder.startRecording();
       }
-      else if (button.innerHTML=="Stop Recording") {
-        audioR.stopRecording();
-        button.innerHTML = "Start Recording";
+      else{
+        $('#recButton').removeClass("Rec");
+        $('#recButton').addClass("notRec");
+        audioRecorder.stopRecording();
       }
-    };
+    });	
+    // const button = document.getElementById('recButton');
+    // button.onclick = () => {
+    //   if (button.innerHTML=="Start Recording") {
+    //     // button.innerHTML ="Stop Recording";
+    //     audioRecorder.startRecording();
+    //     //require(["AudioStreaming"], function(AudioStreaming) {
+    //     //   AudioStreaming.mainstream();
+    //     // })
+    //   }
+    //   else if (button.innerHTML=="Stop Recording") {
+    //     audioRecorder.stopRecording();
+    //     // button.innerHTML = "Start Recording";
+    //   }
+    // };
     // Play, pause, resume and stop the contents of the text input as speech
     // when buttons are clicked
-    ['play', 'pause', 'resume', 'stop'].forEach(id => {
-      const button = document.getElementById(id);
-      button.onclick = () => {
-        const {name, host} = getCurrentHost(speakers);
-        const speechInput = document.getElementsByClassName(
-          `textEntry ${name}`
+    // ['play', 'pause', 'resume', 'stop'].forEach(id => {
+    //   const button = document.getElementById(id);
+    //   button.onclick = () => {
+    //     const {name, host} = getCurrentHost(speakers);
+    //     const speechInput = document.getElementsByClassName(
+    //       `textEntry ${name}`
+    //     )[0];
+    //     host.TextToSpeechFeature[id](speechInput.value);
+    //   };
+    // });
+    const {name, host} = getCurrentHost(speakers);
+    // Play initial greeting
+    document.addEventListener('DOMContentLoaded', function() {
+      const textareaElement = document.getElementsByClassName(
+      `textEntry ${name}`
+        )[0];  
+        console.log("insdie dom content loaded")
+        host.TextToSpeechFeature.play(textareaElement.value);
+  });
+    // if (speechGreeting!="") {
+    // }
+    // document.getElementById("greeting").innerHTML = ""; // Clear the content
+    // Set up speech generation 
+    const textareaElement = document.getElementsByClassName(
+      `textEntry ${name}`
         )[0];
-        host.TextToSpeechFeature[id](speechInput.value);
-      };
+      // Listen for the custom event to trigger additional action
+      textareaElement.addEventListener("speechContentUpdated", evt => {
+        evt.stopPropagation();
+    // textareaElement.addEventListener("input", function() {
+        console.log("text area is changed:", textareaElement.value);
+        const gestureMap = host.GestureFeature.createGestureMap();
+        const gestureArray = host.GestureFeature.createGenericGestureArray([
+          'Gesture',
+        ]);
+        textareaElement.value = HOST.aws.TextToSpeechUtils.autoGenerateSSMLMarks(
+          textareaElement.value,
+          gestureMap,
+          gestureArray
+          );
+        host.TextToSpeechFeature.play(textareaElement.value);
     });
 
+    
+
     // Update the text area text with gesture SSML markup when clicked
-    const gestureButton = document.getElementById('gestures');
-    gestureButton.onclick = () => {
-      const {name, host} = getCurrentHost(speakers);
-      const speechInput = document.getElementsByClassName(
-        `textEntry ${name}`
-      )[0];
-      const gestureMap = host.GestureFeature.createGestureMap();
-      const gestureArray = host.GestureFeature.createGenericGestureArray([
-        'Gesture',
-      ]);
-      speechInput.value = HOST.aws.TextToSpeechUtils.autoGenerateSSMLMarks(
-        speechInput.value,
-        gestureMap,
-        gestureArray
-      );
-    };
+    // const gestureButton = document.getElementById('gestures');
+    // gestureButton.onclick = () => {
+    //   const {name, host} = getCurrentHost(speakers);
+    //   const speechInput = document.getElementsByClassName(
+    //     `textEntry ${name}`
+    //   )[0];
+    //   const gestureMap = host.GestureFeature.createGestureMap();
+    //   const gestureArray = host.GestureFeature.createGenericGestureArray([
+    //     'Gesture',
+    //   ]);
+    //   speechInput.value = HOST.aws.TextToSpeechUtils.autoGenerateSSMLMarks(
+    //     speechInput.value,
+    //     gestureMap,
+    //     gestureArray
+    //   );
+    // };
 
     // Play emote on demand with emote button
-    const emoteSelect = document.getElementById('emotes');
-    const emoteButton = document.getElementById('playEmote');
-    emoteButton.onclick = () => {
-      const {host} = getCurrentHost(speakers);
-      host.GestureFeature.playGesture('Emote', emoteSelect.value);
-    };
+    // const emoteSelect = document.getElementById('emotes');
+    // const emoteButton = document.getElementById('playEmote');
+    // emoteButton.onclick = () => {
+    //   const {host} = getCurrentHost(speakers);
+    //   host.GestureFeature.playGesture('Emote', emoteSelect.value);
+    // };
 
     // Initialize tab
     const tab = document.getElementsByClassName('tab current')[0];
     toggleHost({target: tab});
+    
+
   }
+
+
 
   function enableDragDrop(className) {
     const elements = document.getElementsByClassName(className);

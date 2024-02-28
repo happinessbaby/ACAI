@@ -140,6 +140,7 @@ var audioRecorder = {
         //stop the recording feature
         // audioRecorder.mediaRecorder.stop();
         // audioRecorder.disconnect();
+        audioRecorder.connection.send(JSON.stringify({'action': 'stopRecording'}));
  
         //stop all the tracks on the active stream in order to stop the stream
         audioRecorder.stopStream();

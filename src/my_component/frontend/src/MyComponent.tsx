@@ -21,7 +21,7 @@ import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
 import GoogleSignin from "./GoogleSignin";
-import DisplayTemplate from "./DisplayTemplate"  
+import DisplayTemplate from "./DisplayTemplate" 
 
 
 interface State {
@@ -50,6 +50,13 @@ interface State {
 //   datetimes: string
 // }
 
+// const updateGreeting = (greeting: string) => {
+//   const speechElement=document.getElementById('greeting')!
+//   speechElement.innerText =  `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
+//   // const speechElement = document.getElementsByClassName(`textEntry Luke`)[0] as HTMLTextAreaElement;
+//   // speechElement.value = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
+//   console.log("successfully updated greeting")
+// };
 
 
 function Templates(props: State) {
@@ -129,6 +136,11 @@ const mappingFunction = (img:any, index:any) => ({index, src: img.source, sizes:
 */
 
 class MyComponent extends StreamlitComponentBase<State> {
+  private greetingRef: React.RefObject<HTMLDivElement>;
+  constructor(props: any) {
+    super(props);
+    this.greetingRef = React.createRef();
+  }
   // public state = { numClicks: 0, isFocused: false }
   // public state= {imgSelected:0, modalIsOpen:false, datetimes:""}
 
@@ -137,8 +149,42 @@ class MyComponent extends StreamlitComponentBase<State> {
   // };
 
   // openLightbox= (e:any, { index }) => this.setState({ imgSelected: index, modalIsOpen:true})
+  // componentDidMount() {
+  //   const name = this.props.args["name"];
+
+  //   if (name != "welcome") {
+  //     // Call the JavaScript function to update the text
+  //     updateGreeting(name);
+  //   }
+  // }
+
+
+  // const updateGreeting = useCallback((greeting: string) => {
+  //   const speechElement = document.getElementById('greeting')!;
+  //   speechElement.innerText = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
+  //   console.log("successfully updated greeting");
+  // }, []); // The empty dependency array ensures that the callback is only created once
+
+  updateGreeting = (greeting:string) => {
+    // const speechElement = document.getElementById('greeting')!;
+    this.greetingRef.current!.innerHTML  = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
+     // Expose the ref to a global variable
+     (window as any).myGreetingRef = this.greetingRef.current;
+    console.log("successfully updated greeting");
+  };
+
+  componentDidMount() {
+    // Trigger updateGreeting automatically after the component is mounted
+    const greeting = this.props.args["name"];
+    if (this.greetingRef.current) {
+      console.log(`greeting from ai: ${greeting}`)
+      this.updateGreeting(greeting);
+    }
+  }
   
   public render = (): ReactNode => {
+
+  
     // const [currentImage, setCurrentImage] = useState(0);
     // const [viewerIsOpen, setViewerIsOpen] = useState(false);
     // const openLightbox = useCallback((event, { photo, index }) => {
@@ -228,8 +274,21 @@ class MyComponent extends StreamlitComponentBase<State> {
     // else if (name=="stream") {
     //   s.push(name)
     // }
+    // else {
+    //   useEffect(() => {
+    //     // Call the JavaScript function to update the text
+    //     updateGreeting(name);
+    //   }, []);
+    //   return <div></div>;
+    // }
     else {
-      return  <div></div>
+      // updateGreeting(name)
+      return (
+        <div>
+          {/* Use the ref to access the div element */}
+          <div id="greeting" ref={this.greetingRef}></div>
+        </div>
+      );
     }
 
   }

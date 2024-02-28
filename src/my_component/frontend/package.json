@@ -11,6 +11,7 @@
     "@react-oauth/google": "^0.12.1",
     "aws-sdk": "^2.1551.0",
     "express": "^4.18.2",
+    "http": "^0.0.1-security",
     "lightbox.js-react": "^0.9.8",
     "node-record-lpcm16": "^1.0.1",
     "react": "^16.13.1",
@@ -31,7 +32,8 @@
   "main": "./src/index.tsx",
   "scripts": {
     "start": "react-scripts start",
-    "start:both": "concurrently \"npm start\" \"node public/MsgReceiver.js\"",
+    "start-server": "node server/server.js",
+    "start:all": "concurrently \"npm start\" \"npm run start-server\" \"node server/socket_server.js\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

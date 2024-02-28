@@ -79,6 +79,7 @@ from backend.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
+import streamlit.components.v1 as components
 
 # from test import YourDataProcessor
 
@@ -141,6 +142,7 @@ class Interview():
         self._create_interviewbot()
         self.interviewer=st.session_state["baseinterview"] if "baseinterview" in st.session_state else None
 
+
         # try:
         #     self.interviewer = st.session_state["baseinterview"]
         #     print("self interviewer exists")
@@ -157,7 +159,6 @@ class Interview():
 
             st.session_state["mode"]="regular"
             # initialize submitted form variables
-            st.session_state["subtitles"]= False
             # if "about" not in st.session_state:
             st.session_state["about"]=""
             # if "job_posting" not in st.session_state:
@@ -166,6 +167,7 @@ class Interview():
             st.session_state["resume_file"] = ""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             # st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
+            
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
@@ -201,6 +203,8 @@ class Interview():
                     os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
                  ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+
+
                 # initialize keyboard listener
             # if "listener" not in st.session_state:
             #     _self.file=None
@@ -272,22 +276,22 @@ class Interview():
             
     def _init_interview_preform(self):
 
-        if "init_interview" not in st.session_state:
-            st.session_state["init_interview"]=True
-            modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
-            with modal.container():
-                with st.form( key='interview_form', clear_on_submit=True):
-                    add_vertical_space(1)
-                    # st.markdown("Please fill out the form below before we begin")
-                    st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
-                    st.text_input("links (this can be a job posting)", "", key = "interview_links", )
-                    st.file_uploader(label="Upload your interview material or resume",
-                                                    type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                                                    key = "interview_files",
-                                                    accept_multiple_files=True)
-                    add_vertical_space(1)
-                    if st.form_submit_button(label='Submit', on_click=self.form_callback):
-                        print("interview preform submitted")
+
+        st.session_state["modal"] = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
+        with st.session_state["modal"].container():
+            with st.form( key='interview_form', clear_on_submit=True):
+                add_vertical_space(1)
+                # st.markdown("Please fill out the form below before we begin")
+                st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
+                st.text_input("links (this can be a job posting)", "", key = "interview_links", )
+                st.file_uploader(label="Upload your interview material or resume",
+                                                type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                                                key = "interview_files",
+                                                accept_multiple_files=True)
+                add_vertical_space(1)
+                st.form_submit_button(label='Submit', on_click=self.form_callback)
+            
+             
                     
 
 
@@ -369,8 +373,6 @@ class Interview():
                 # this sends the CPU intensive function to a different blocking thread
                 response = await loop.run_in_executor(None, functools.partial(interviewer.interviewer.askAI, user_input=transcript))
                 print("ai response:", response)
-                # threading.Thread(interviewer.interviewer.askAI(transcript)).start()
-                # response = interviewer.interviewer.askAI(transcript)
                 # this sends the task to the same event loop/
                 asyncio.create_task(self.send_response(response))
             except Exception as e:
@@ -388,11 +390,16 @@ class Interview():
             await asyncio.sleep(0)
             break
     
-             
+    def load_component(self, greeting):
+
+        print("LOADING COMPONENT")
+        st.session_state["interview_ui"]=True
+        interview = my_component(greeting) 
+        # components.iframe("http://localhost:3001/")
+        st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
+
 
           
-
-
             
     def _create_interviewbot(self, ):
 
@@ -409,20 +416,23 @@ class Interview():
                 else:
                     self.additional_prompt_info = ""
                     self.generated_dict = {}
-                # self.additional_prompt_info= ""
-                # self.generated_dict = {}
                 new_interview = InterviewController(st.session_state["interview_sessionId"], self.additional_prompt_info, self.generated_dict)
                 st.session_state["baseinterview"] = new_interview
-                # ai_response = st.session_state.baseinterview.askAI("")
-                _ = my_component("HI")
-        try:
-            self.interviewer = st.session_state["baseinterview"]
-            print("self interviewer exists")
-        except KeyError:
-            # have not filled not the form
-            print("self interviewer doesnt exists yet")
-            pass
-
+                st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting()
+                st.session_state["modal"].close()
+            else:
+                if "interview_ui" not in st.session_state:
+                    self.load_component(st.session_state.greeting)
+                   
+              
+        # try:
+        #     self.interviewer = st.session_state["baseinterview"]
+        #     print("self interviewer exists")
+        # except KeyError:
+        #     # have not filled not the form
+        #     print("self interviewer doesnt exists yet")
+        #     pass
+ 
             # try:
             #     transcript = st.session_state["transcript"]
             #     # response = st.session_state.baseinterview.askAI(transcript)
@@ -963,7 +973,7 @@ class Interview():
         try:
             about = st.session_state.interview_about
             if about:
-                self.process_uploads(about, "description")     
+                self.process_uploads(about, "about")     
         except Exception:
             pass
 
@@ -1136,6 +1146,7 @@ class Interview():
             resume_content = read_txt(resume_file)
         except Exception:
             resume_content = ""
+        event_loop = asyncio.get_event_loop()
         generated_dict=get_generated_responses(about_me=about, posting_path=job_posting, resume_content = resume_content)
         job = generated_dict.get("job", "")
         job_description=generated_dict.get("job description", "")
@@ -1182,11 +1193,8 @@ class Interview():
             links = re.findall(r'(https?://\S+)', uploads)
             if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                 end_paths.append(end_path)
-        if upload_type=="descripton":
-            about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {st.session_state.interview_about} \n
-            If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
-            if "about" not in st.session_state:
-                st.session_state["about"] = about_interview_summary
+        if upload_type=="about":
+            st.session_state["about"] = uploads
         for end_path in end_paths:
             content_safe, content_type, content_topics = check_content(end_path)
             print(content_type, content_safe, content_topics) 
@@ -1197,12 +1205,10 @@ class Interview():
                 update_vectorstore(end_path=end_path, vs_path =vs_path,  index_name=user_vs_name, record_name=record_name, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if content_type=="resume":
                     print(f"user uploaded a resume file")
-                    if "resume_file" not in st.session_state:
-                        st.session_state["resume_file"]=end_path
+                    st.session_state["resume_file"]=end_path
                 if content_type=="job posting":
                     print(f"user uploaded job posting")
-                    if "job_posting" not in st.session_state:
-                        st.session_state["job_posting"]= end_path
+                    st.session_state["job_posting"]= end_path
                 st.toast(f"your {content_type} is successfully submitted")
             else:
                 delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
@@ -1478,9 +1484,11 @@ class SocketClient():
             # asyncio_run(st.session_state.socket_client)
         # else
         #     print("Socket client already running")
-
-event_loop = asyncio.new_event_loop()
-asyncio.set_event_loop(event_loop)
+try:
+    event_loop = asyncio.get_event_loop()
+except Exception:
+    event_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(event_loop)
 nest_asyncio.apply()
 web_socket_server = SocketServer()
 web_socket_client = SocketClient()

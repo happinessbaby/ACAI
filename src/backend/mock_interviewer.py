@@ -465,6 +465,23 @@ class InterviewController():
             f.write(response)
         print(f"Successfully retrieved interview feedback summary: {response}")
         return "./feedback.txt"
+    
+    def generate_greeting(self):
+
+        name = self.generated_dict.get("name", "")
+        job = self.generated_dict.get("job", "")
+        company=self.generated_dict.get("company", "")
+        greeting = get_completion(f"""Your role is a job interviewer at a company. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
+                                    interviewee name: {name} /n
+                                employer's company: {company} /n
+                                interview job position: {job} /n
+                                Please make your greeting about 2-3 sentences long. DO NOT HAVE PLACEHOLDERS.
+                                Generate a generic greeting instead if missing enough information. 
+                                    """)
+        print(f"Successfully generated greeting: {greeting}")
+        return greeting
+
+
 
     
     

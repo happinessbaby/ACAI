@@ -34,7 +34,7 @@ class Transcoder():
         self.rate = rate
         # self.closed = True
         self.closed_event = threading.Event()  # Event to signal when to stop the stream
-        self.transcript = None
+        self.transcript = ""
         # self.loop = asyncio.get_event_loop()
 
     def start(self):
@@ -60,7 +60,7 @@ class Transcoder():
                 continue
             transcript = result.alternatives[0].transcript
             if result.is_final:
-                self.transcript = transcript
+                self.transcript += transcript
 
     def process(self):
         """
@@ -169,16 +169,24 @@ class SocketServer():
             print("Connection closed")
 
     async def process_data(self, transcoder, data, websocket):
-        transcoder.write(data)
-        transcoder.closed_event.clear()
-        # transcoder.closed = False
-        if transcoder.transcript:
-            print(transcoder.transcript)
-            await websocket.send(transcoder.transcript)
-            print(f"transcript sent from socket")
-            await self.data_queue.put(transcoder.transcript)
-            print(f"transcript sent to data queue")
-            transcoder.transcript = None
+        if isinstance(data, (bytes, bytearray)):
+            transcoder.write(data)
+            transcoder.closed_event.clear()
+        else:
+            try:
+                data = json.loads(data)
+                if data.get('action', None) == 'stopRecording':
+         # transcoder.closed = False
+                    if transcoder.transcript:
+                        print(transcoder.transcript)
+                        await websocket.send(transcoder.transcript)
+                        print(f"transcript sent from socket")
+                        await self.data_queue.put(transcoder.transcript)
+                        print(f"transcript sent to data queue")
+                        transcoder.transcript = ""
+            except json.JSONDecodeError as e:
+                raise 
+
 
            
 
