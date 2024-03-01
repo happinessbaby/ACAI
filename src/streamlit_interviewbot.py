@@ -94,33 +94,30 @@ png_file = os.environ["INTERVIEW_BG"]
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/tebblespc/Documents/acai-412122-dd69ac33da42.json"
 placeholder = st.empty()
 # sd.default.samplerate=48000
-sd.default.channels = 1, 2
-sd.default.device = 1
-duration = 600 # duration of each recording in seconds
-fs = 44100 # sample rate
-channels = 1 # number of channel
-# COMBINATION = {keyboard.Key.r, keyboard.Key.ctrl}
-device = 4
+# sd.default.channels = 1, 2
+# sd.default.device = 1
+# duration = 600 # duration of each recording in seconds
+# fs = 44100 # sample rate
+# channels = 1 # number of channel
+# # COMBINATION = {keyboard.Key.r, keyboard.Key.ctrl}
+# device = 4
 # keyboard = Controller()
 # keyboard_event = Keyboard()
 uri = "ws://127.0.0.1:8765"
-IP = '0.0.0.0'
-PORT = 8000
+
 
 
 
 class Interview():
 
 
-    COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.Key.enter}]
+    # COMBINATION = [{keyboard.KeyCode.from_char('r'), keyboard.Key.space}, {keyboard.Key.shift, keyboard.Key.esc}, {keyboard.Key.enter}]
     ctx = get_script_run_ctx()
-    currently_pressed = set()
-    q = queue.Queue()
+    # currently_pressed = set()
+    # q = queue.Queue()
     ai_col, human_col = st.columns(2, gap="large")
     cookie = get_cookie("userInfo")
     aws_session = get_aws_session()
-    ip="0.0.0.0"
-    port=8000
 
     
 
@@ -143,15 +140,6 @@ class Interview():
         self.interviewer=st.session_state["baseinterview"] if "baseinterview" in st.session_state else None
 
 
-        # try:
-        #     self.interviewer = st.session_state["baseinterview"]
-        #     print("self interviewer exists")
-        # except KeyError:
-        #     # have not filled not the form
-        #     print("self interviewer doesnt exists yet")
-        #     pass
-
-
 
     
     @st.cache_data()
@@ -166,8 +154,11 @@ class Interview():
             # if "resume_file" not in st.session_state:
             st.session_state["resume_file"] = ""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
-            # st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
-            
+            st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
+            st.session_state["count"]=0
+            st.session_state["host"] = "Luke"
+
+            st.session_state["responseInput"] = ''
             if STORAGE == "LOCAL":
                 st.session_state["storage"]="LOCAL"
                 st.session_state["bucket_name"]=None
@@ -221,12 +212,7 @@ class Interview():
 
     def _init_display(_self):
 
-
-        """
-        function to display png as bg
-        ----------
-        png_file: png -> the background image in local folder
-        """
+        """ Initializes Streamlit UI. """
 
         # main_bg_ext = "png"
         
@@ -241,6 +227,44 @@ class Interview():
         #  """,
         #  unsafe_allow_html=True
         # )
+        st.markdown(
+            """
+            <style>
+            button[kind="primary"] {
+                background: none!important;
+                border: none;
+                padding: 0!important;
+                color: black !important;
+                text-decoration: none;
+                cursor: pointer;
+                border: none !important;
+            }
+            button[kind="primary"]:hover {
+                text-decoration: none;
+                color: blue !important;
+            }
+            button[kind="primary"]:focus {
+                outline: none !important;
+                box-shadow: none !important;
+                color: blue !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        # styl = f"""
+        # <style>
+        #     .stTextInput {{
+        #     position: fixed;
+        #     bottom: 3rem;
+        #     }}
+        # </style>
+        # """
+        # st.markdown(styl, unsafe_allow_html=True)
+        with st._main:
+            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
+                 # components.iframe("http://localhost:3001/")
+                st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
 
         with st.sidebar:          
             add_vertical_space(3)
@@ -255,17 +279,38 @@ class Interview():
                         
             # ''')
             # add_vertical_space(5)
-            st.markdown('''
+            if "init_interview" not in st.session_state:
+                st.markdown("Welcome to your mock interviewer session with an AI interviewer. Please fill out the interview pre-form first so your AI interviewer gets a better understanding of your interview. " )
+            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
+                st.markdown('''
+                Troubleshooting:
 
-            Troubleshooting:
+                1. if the AI cannot hear you, make sure your mic is turned on and enabled
+                2. you can switch to the audio only session 
 
-            1. if the AI cannot hear you, make sure your mic is turned on and enabled
-            2. you can switch to the text only session by clicking on the button below
+                            ''')
+                audio_switch = st.button("switch to audio session", key="switch_audio", type="primary")
+                if audio_switch:
+                    st.session_state["mode"]="audio"
+                    del st.session_state["greeting"]
+                    st.session_state["count"] = 0
+                    st.rerun()
+            if st.session_state["mode"]=="audio":
+                st.markdown('''
 
-                        ''')
-            if st.session_state["mode"]=="regular":
-                st.button("switch to text only session", key="switch_button", on_click=_self._init_text_session)
-            if st.session_state["mode"]=="text":
+                Troubleshooting:
+
+                1. if the AI cannot hear you, make sure your mic is turned on and enabled
+                2. you can switch to text-only session 
+
+                            ''')
+                text_switch = st.button("switch to text only session",  key="switch_text", type="primary")
+                if text_switch:
+                    st.session_state["mode"]="text"
+                    del st.session_state["greeting"]
+                    st.session_state["count"] = 0
+                    st.rerun()
+            if st.session_state["mode"]=="text" or st.session_state["mode"]=="audio":
                 st.button("end session",  key="end_session", on_click=_self.interview_feedback)
             # with _self.ai_col:
             #     subtitles = st.button("subtitles",key="turnon_subtitles")
@@ -276,6 +321,7 @@ class Interview():
             
     def _init_interview_preform(self):
 
+        """ Creates interview form at the beginning of the interview session. """
 
         st.session_state["modal"] = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
         with st.session_state["modal"].container():
@@ -364,8 +410,17 @@ class Interview():
     # websocket server
     async def receive_transcript(self, interviewer, loop):
 
+        """ Receives audio transcript from backend websocket server and sends it to AI agent. 
+        
+        Args:
+        
+            interviewer: Interview class instance
+            
+            loop: current event loop
+            
+        """
+
         while True:
-            print("inside receive transcript")
             transcript = await self.data_queue.get()
             print(f"received transcript from data queue: {transcript}")
             try:
@@ -382,26 +437,27 @@ class Interview():
 
     # websocket client
     async def send_response(self, response):
+
+        """ Sends AI response from backend socket client to frontend socket server.
+         
+          Args:
+           
+            response: AI generated response """
         
         while self.socket_client.sock.connected:
             # Send a message to the server
             self.socket_client.send(response)
-            print(f"Sent message from socket client: {response}")
+            print(f"Sent message to socket server: {response}")
             await asyncio.sleep(0)
             break
     
-    def load_component(self, greeting):
-
-        print("LOADING COMPONENT")
-        st.session_state["interview_ui"]=True
-        interview = my_component(greeting) 
-        # components.iframe("http://localhost:3001/")
-        st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
-
+       
 
           
             
     def _create_interviewbot(self, ):
+
+        """ Initializes the main interview session. """
 
 
         if "init_interview" not in st.session_state:
@@ -418,30 +474,31 @@ class Interview():
                     self.generated_dict = {}
                 new_interview = InterviewController(st.session_state["interview_sessionId"], self.additional_prompt_info, self.generated_dict)
                 st.session_state["baseinterview"] = new_interview
-                st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting()
-                st.session_state["modal"].close()
-            else:
+            if "greeting" not in st.session_state:
+                st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting(host=st.session_state["host"], mode=st.session_state["mode"])
+                # st.session_state["modal"].close()
+            # else:
+            if st.session_state.mode=="regular":
                 if "interview_ui" not in st.session_state:
-                    self.load_component(st.session_state.greeting)
-                   
-              
-        # try:
-        #     self.interviewer = st.session_state["baseinterview"]
-        #     print("self interviewer exists")
-        # except KeyError:
-        #     # have not filled not the form
-        #     print("self interviewer doesnt exists yet")
-        #     pass
- 
-            # try:
-            #     transcript = st.session_state["transcript"]
-            #     # response = st.session_state.baseinterview.askAI(transcript)
-            #     # print(response)
-            # except Exception as e:
-            #     print(e)
-        # if st.session_state.mode=="text":
-        #     self._init_text_session() 
+                    st.session_state["interview_ui"]=True
+                    greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
+                    interview = my_component(greeting_json) 
+            elif st.session_state.mode=="audio":
+                print("entering audio mode")
+                if "greeting" in st.session_state and st.session_state.count==0:
+                    self.synthesize_ai_response(st.session_state.greeting)
+                    st.session_state.count+=1
+                user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=self.audio_callback)
+            elif st.session_state.mode=="text":
+                print('entering text mode')
+                if "greeting" in st.session_state and st.session_state.count==0:
+                    self.synthesize_ai_response(st.session_state.greeting)
+                    st.session_state.count+=1
+                st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
+                       
 
+
+                
                 # try:
                 #     self.new_interview = st.session_state.baseinterview  
                 #     # self.listener = st.sesssion_state.listener
@@ -453,38 +510,7 @@ class Interview():
                 # except AttributeError as e:
                 #     # if for some reason session ended in the middle, may need to do something different from raise exception
                 #     raise e 
-            # if st.session_state.mode=="regular":
-            #     self.receive_transcript()
-                # new_socket = Socket()
-                # new_socket.run()
-                # while True:
-                #     print("SCDSCDSCDCDS")
-                #     transcript = await new_socket.data_queue.get()
-                #     print(transcript)
-
-
-            #     while True:
-            #         print("asdcdscdacdsa")
-            #         _ = await asyncio.sleep(0)
-            #         # transcript = await st.session_state.web_socket.data_queue.get()
-            #         transcript = await self.data_queue.get()
-            #         print(f"received from data queue: {transcript}")
-            #         ai_response = st.session_state.baseinterview.askAI(transcript)
-            #         print("SUCCESFULLY RECEIVED AI_RESPONSE BASED ON TRANSCRIPT")
-       
-                    # start_server = websockets.serve(audio_processor, IP, PORT)
-                    # asyncio_run(start_server, as_task=False)
-                    # try:
-                    #     start_server = websockets.serve(audio_processor, IP, PORT)
-                    # except RuntimeError as e:
-                    #     if str(e).startswith('There is no current event loop in thread'):
-                    #         loop = asyncio.new_event_loop()
-                    #         asyncio.set_event_loop(loop)
-                    #     else:
-                    #         nest_asyncio.apply(loop)
-                    #     start_server = websockets.serve(audio_processor, IP, PORT)
-                    # asyncio.get_event_loop().run_until_complete(start_server)
-                    # asyncio.get_event_loop().run_forever()
+               
                 # with self.human_col:
                 #     user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
                 #     # audio_bytes = audio_recorder(
@@ -604,6 +630,8 @@ class Interview():
 
     def invoke_lambda(self, payload, ):
 
+        """Invokes """
+
         response = st.session_state.lambda_client.invoke(
             FunctionName='tts',
             Payload=json.dumps(payload),
@@ -619,96 +647,6 @@ class Interview():
                 else:
                     return None
 
-
-
-            # with st.sidebar:
-                
-            #     add_vertical_space(3)
-        
-            #     st.markdown('''
-                            
-            #     How the mock interview works: 
-     
-            #     - refresh the page to start a new session   
-            #     - press R + Space to start recording
-            #     - press S + Space to stop recording
-            #     - press Shift + Esc to end the session
-                            
-            #     ''')
-
-            #     add_vertical_space(5)
-
-            #     if user_status=="User":
-            #         st.write("PAST SESSION RECORDING HERE.")
-            #         #TODO
-            #     st.markdown('''
-        
-            #     Troubleshooting:
-
-            #     1. if the AI cannot hear you, make sure your mic is turned on and enabled
-            #     2. you can switch to the text only session by clicking on the button below
-            
-            #                 ''')
- 
-            #     switch = st.button("switch to text only session", key="switch_button")
-            #     #temporary button
-            #     feedback =st.button("end session", key="feedback", on_click=self.interview_feedback)
-            
-
-
-            # if "interview_session_id" not in st.session_state:
-            #     st.session_state["interview_session_id"] = str(uuid.uuid4())
-            #     print(f"INTERVIEW Session: {st.session_state.interview_session_id}")
-            #     modal = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
-            #     with modal.container():
-            #         with st.form( key='my_form', clear_on_submit=True):
-            #             add_vertical_space(1)
-            #             # st.markdown("Please fill out the form below before we begin")
-
-            #             st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about")
-
-            #             # st.text_input("links (this can be a job posting)", "", key = "interview_links", )
-
-            #             st.file_uploader(label="Upload your interview material or resume",
-            #                                             type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-            #                                             key = "interview_files",
-            #                                             accept_multiple_files=True)
-            #             add_vertical_space(1)
-            #             st.form_submit_button(label='Submit', on_click=self.form_callback)  
-    
-
-            # else:  
-
-                # initialize submitted form variables
-                # if "about" not in st.session_state:
-                #     st.session_state["about"]=""
-                # if "job_posting" not in st.session_state:
-                #     st.session_state["job_posting"] = ""
-                # if "resume_file" not in st.session_state:
-                #     st.session_state["resume_file"] = ""
-                # # initialize keyboard listener
-                # if "listener" not in st.session_state:
-                #     self.file=None
-                #     self.record=True
-                #     new_listener = keyboard.Listener(
-                #     on_press=self.on_press,
-                #     on_release=self.on_release)
-                #     st.session_state["listener"] = new_listener
-                # # initialize backup text session
-                # if "text_session" not in st.session_state:
-                #     st.session_state["text_session"] = False
-                # # initialize main session interview agents
-                # if "baseinterview" not in st.session_state:
-                #     # update interview agents prompts from form variables
-                #     if  st.session_state.about!="":
-                #         additional_prompt_info, generated_dict = self.update_prompt(about=st.session_state.about, job_posting=st.session_state.job_posting, resume_file=st.session_state.resume_file)
-                #     else:
-                #         additional_prompt_info = ""
-                #         generated_dict = {}
-                #     new_interview = InterviewController(st.session_state.userid, additional_prompt_info, generated_dict)
-                #     st.session_state["baseinterview"] = new_interview     
-                    # welcome_msg = "Welcome to your mock interview session. I will begin conducting the interview now. Please review the sidebar for instructions. "
-                    # message(welcome_msg, avatar_style="initials", seed="AI_Interviewer", allow_html=True)
 
             # try:
             #     self.new_interview = st.session_state.baseinterview  
@@ -835,44 +773,45 @@ class Interview():
     
     def synthesize_ai_response(self, ai_response: str,) -> Any:
 
-
-        payload={"text":ai_response}
-        data = self.invoke_lambda(payload)
-        resp_bytes = data["audio"]
+        """ Generates Text-to-Speech using Polly by invoking AWS Lambda. If fails, resorts to calling Google Cloud Speech API. """
+        try:
+            payload={"text":ai_response}
+            data = self.invoke_lambda(payload)
+            resp_bytes = data["audio"]
+        except Exception:
+            resp_bytes=self.tts(ai_response)
         if resp_bytes:
             with self.ai_col:
                 print("before calling autoplay")
                 self.autoplay_audio(resp_bytes)
-                if st.session_state.subtitles:
-                    self.typewriter(ai_response, speed=3)
+                # if st.session_state.subtitles:
+                self.typewriter(ai_response, speed=3)
 
 
 
 
-    # def tts(self, response:str) -> Any:
-    #     # tts = ElevenLabsText2SpeechTool()
-    #     # tts= GoogleCloudTextToSpeechTool()
-    #     # speech_file = tts.run(response)
-    #     # tts.play(speech_file)
-    #     # st.session_state.tts.play(response)
-    #     # Set the text input to be synthesized
-    #     synthesis_input = texttospeech.SynthesisInput(text=response)
-    #     # Build the voice request, select the language code ("en-US") and the ssml
-    #     # voice gender ("neutral")
-    #     voice = texttospeech.VoiceSelectionParams(
-    #         language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
-    #     )
-    #     # Select the type of audio file you want returned
-    #     audio_config = texttospeech.AudioConfig(
-    #         audio_encoding=texttospeech.AudioEncoding.MP3
-    #     )
-    #     # Perform the text-to-speech request on the text input with the selected
-    #     # voice parameters and audio file type
-    #     response = st.session_state.tts_client.synthesize_speech(
-    #         input=synthesis_input, voice=voice, audio_config=audio_config
-    #     )
-    #     # The response's audio_content is binary.
-    #     return response.audio_content
+    def tts(self, response:str) -> Any:
+
+        """ Generates Text-to-Speech using Google Cloud Speech API. """
+
+        # Set the text input to be synthesized
+        synthesis_input = texttospeech.SynthesisInput(text=response)
+        # Build the voice request, select the language code ("en-US") and the ssml
+        # voice gender ("neutral")
+        voice = texttospeech.VoiceSelectionParams(
+            language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+        )
+        # Select the type of audio file you want returned
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3
+        )
+        # Perform the text-to-speech request on the text input with the selected
+        # voice parameters and audio file type
+        response = st.session_state.tts_client.synthesize_speech(
+            input=synthesis_input, voice=voice, audio_config=audio_config
+        )
+        # The response's audio_content is binary.
+        return response.audio_content
     
 
 
@@ -976,6 +915,28 @@ class Interview():
                 self.process_uploads(about, "about")     
         except Exception:
             pass
+    
+    def audio_callback(self):
+
+        """Creates audio only interview session. """
+
+        user_input = st.session_state.stt_output
+        if user_input:
+            with self.human_col:
+                st.markdown(user_input)
+                ai_response = st.session_state.baseinterview.askAI(user_input)
+                self.synthesize_ai_response(ai_response)
+ 
+            # audio_bytes = audio_recorder(
+            #     text="Click to record",
+            #     recording_color="#e8b62c",
+            #     neutral_color="#6aa36f",
+            #     icon_name="user",
+            #     icon_size="6x",
+            # )
+            # wav_audio_data = st_audiorec()       
+                # st.session_state["text_received"]=text
+
 
 
     def _init_text_session(self):
@@ -983,10 +944,10 @@ class Interview():
         """ Creates text only interview session. """
 
         # stop the keyboard listener
-        try:
-            st.session_state.listener.stop()
-        except Exception:
-            pass
+        # try:
+        #     st.session_state.listener.stop()
+        # except Exception:
+        #     pass
 
 
         styl = f"""
@@ -998,8 +959,8 @@ class Interview():
         </style>
         """
         st.markdown(styl, unsafe_allow_html=True)
-        st.session_state["mode"]="text"
 
+        st.session_state.count+=1
         # if "interview_dict" not in st.session_state:
         #     st.session_state["interview_dict"] = {"ai":[], "human":[]}
         # # if 'interview_responses' not in st.session_state:
@@ -1090,15 +1051,11 @@ class Interview():
         st.session_state.interview_input = ''    
         with self.human_col:
             st.markdown(st.session_state.responseInput)
-        # if st.session_state.storage=="LOCAL":
-        #     response = self.new_interview.askAI(st.session_state.responseInput, 
-        #                                         callbacks = None)
-        # elif st.session_state.storage=="CLOUD":
-        #     payload = {"sessionId":st.session_state.interview_sessionId, "user_input":st.session_state.responseInput,  "prompt_info":self.additional_prompt_info}
-        #     response = self.invoke_lambda(payload)
         ai_response = st.session_state.baseinterview.askAI(st.session_state.responseInput, 
                                            callbacks = None)
-        self.synthesize_ai_response(ai_response,)
+        # self.synthesize_ai_response(ai_response,)
+        with self.ai_col:
+            self.typewriter(ai_response, speed=3)
 
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
@@ -1111,7 +1068,10 @@ class Interview():
         # st.session_state["interview_dict"]["ai"].append(response)
 
 
-    def typewriter(self, text: str, speed=1):
+    def typewriter(self, text: str, speed=1): 
+
+        """ Displays AI response playback at a particular speed. """
+
         tokens = text.split()
         container = st.empty()
         for index in range(len(tokens) + 1):
@@ -1139,8 +1099,7 @@ class Interview():
         
         """
 
-        print(f"about: {about}")
-        print(f"job posting: {job_posting}")
+
         additional_interview_info = about
         try:
             resume_content = read_txt(resume_file)
@@ -1172,6 +1131,16 @@ class Interview():
     
 
     def process_uploads(self, uploads: Any, upload_type:str) -> None:
+
+        """ Processes user information. 
+        
+        Args:
+        
+            uploads: user upload
+            
+            upload_type: files, links or about
+            
+        """
 
         end_paths = []
         if upload_type=="files":
@@ -1215,78 +1184,9 @@ class Interview():
                 st.toast(f"Failed processing your material. Please try again!")
 
 
-    # def process_about_interview(self, about_interview:str) -> None:
 
-    #     """ Processes user's about interview text input, including any links in the description."""
-        
-    #     about_interview_summary = get_completion(f"""Summarize the following description, if provided, and ignore all the links: {about_interview} \n
-    #         If you are unable to summarize, ouput -1 only. Remember, ignore any links and output -1 if you can't summarize.""")
-    #     if "about" not in st.session_state:
-    #         st.session_state["about"] = about_interview_summary
-        # process any links in the about me
-        # urls = re.findall(r'(https?://\S+)', about_interview)
-        # print(urls)
-        # if urls:
-        #     for url in urls:
-        #         self.process_uploads(url, "links")
 
-    # def process_file(self, uploaded_files: Any) -> None:
-
-    #     """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
-
-    #     for uploaded_file in uploaded_files:
-    #         file_ext = Path(uploaded_file.name).suffix
-    #         filename = str(uuid.uuid4())+file_ext
-    #         tmp_save_path = os.path.join(temp_path, st.session_state.sessionId, filename)
-    #         end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", Path(filename).stem+'.txt')
-    #         with open(tmp_save_path, 'wb') as f:
-    #             f.write(uploaded_file.getvalue())
-    #         end_path =  os.path.join(save_path, st.session_state.userid, Path(filename).stem+'.txt')
-    #         # Convert file to txt and save it to uploads
-    #         convert_to_txt(tmp_save_path, end_path)
-    #         content_safe, content_type, content_topics = check_content(end_path)
-    #         print(content_type, content_safe, content_topics) 
-    #         if content_safe:
-    #             # EVERY CONTENT TYPE WILL BE USED AS INTERVIEW MATERIAL
-    #             self.update_vectorstore(content_type, end_path)
-    #             if content_type=="resume":
-    #                 print(f"user uploaded a resume file")
-    #                 if "resume_file" not in st.session_state:
-    #                     st.session_state["resume_file"]=end_path
-    #             if content_type=="job posting":
-    #                 print(f"user uploaded job posting")
-    #                 if "job_posting" not in st.session_state:
-    #                     st.session_state["job_posting"]= end_path
-    #         else:
-    #             print("file content unsafe")
-    #             os.remove(end_path)
-
-        
-
-    # def process_link(self, link: Any) -> None:
-
-    #     """ Processes user shared links including converting all format to txt, checking content safety, and categorizing content type """
-
-    #     end_path = os.path.join(save_path, st.session_state.userid, str(uuid.uuid4())+".txt")
-    #     if html_to_text([link], save_path=end_path):
-    #         content_safe, content_type, content_topics = check_content(end_path)
-    #         if content_safe:
-    #             if content_type=="browser error":
-    #                 st.write("Link content cannot be parsed, please try another link.")
-    #              # EVERY CONTENT TYPE WILL BE USED AS INTERVIEW MATERIAL
-    #             else:
-    #                 self.update_vectorstore(content_type, end_path)
-    #                 if content_type == "job posting":
-    #                     print(f"user uploaded job posting")
-    #                     if "job_posting" not in st.session_state:
-    #                         st.session_state["job_posting"]= end_path
-    #                 elif content_type=="resume":
-    #                     print(f"user uploaded a resume file")
-    #                     if "resume_file" not in st.session_state:
-    #                         st.session_state["resume_file"]=end_path
-    #         else:
-    #             print("link content unsafe")
-    #             os.remove(end_path)
+    
 
     
     # def update_vectorstore(self, content_type:str, end_path:str) -> None: 
@@ -1495,13 +1395,12 @@ web_socket_client = SocketClient()
 # print(st.session_state.socket_client)
 # print(web_socket_client.socket_client)
 interviewer = Interview(data_queue=web_socket_server.data_queue, socket_client=web_socket_client.socket_client)
-
 # partial_create_interviewbot = functools.partial(interviewer._create_interviewbot, interviewer.interview_sessionId)
 # event_loop.run_in_executor(None, partial_create_interviewbot)
 if interviewer.interviewer is not None:
     tasks = [
         asyncio.ensure_future(web_socket_server._init_socket_server()),
-        asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop)),
+        asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop,)),
         # asyncio.ensure_future(web_socket_client._init_socket_client()),
         # asyncio.ensure_future(interviewer.send_response())
     ]

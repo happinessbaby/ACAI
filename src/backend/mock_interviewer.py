@@ -466,18 +466,20 @@ class InterviewController():
         print(f"Successfully retrieved interview feedback summary: {response}")
         return "./feedback.txt"
     
-    def generate_greeting(self):
+    def generate_greeting(self, host="Luke", mode="regular"):
 
         name = self.generated_dict.get("name", "")
         job = self.generated_dict.get("job", "")
         company=self.generated_dict.get("company", "")
-        greeting = get_completion(f"""Your role is a job interviewer at a company. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
-                                    interviewee name: {name} /n
-                                employer's company: {company} /n
-                                interview job position: {job} /n
-                                Please make your greeting about 2-3 sentences long. DO NOT HAVE PLACEHOLDERS.
-                                Generate a generic greeting instead if missing enough information. 
-                                    """)
+        if mode=="regular":
+            greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
+                                        interviewee name: {name} /n
+                                    employer's company: {company} /n
+                                    interview job position: {job} /n
+                                    Please make your greeting about 2-3 sentences long. Remember to introduce yourself and an interview supervisor/grader named Ali.
+                                    YOu and Ali will be partnering together to help conduct the interview. 
+                                    If any part of the provided information is missing, skip it. Your greeting will be directly sent to the interviewee with no modifications.
+                                        """)
         print(f"Successfully generated greeting: {greeting}")
         return greeting
 

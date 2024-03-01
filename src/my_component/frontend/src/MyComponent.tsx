@@ -4,19 +4,8 @@ import {
   withStreamlitConnection,
 } from "streamlit-component-lib"
 import React, { PropsWithChildren, ReactNode } from "react"
-// import Lightbox from "yet-another-react-lightbox";
-// import "yet-another-react-lightbox/styles.css";
-// import { GoogleLogin } from '@react-oauth/google';
-// import Gallery from 'react-photo-gallery'
-// import axios from 'axios';
 import { useState, useEffect, useRef, useCallback } from 'react';
-// import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-// import ReactFancyBox from 'react-fancybox'
-// import 'react-fancybox/lib/fancybox.css'
-// import Fancybox from './Fancybox'
 import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
-// import Popup from 'reactjs-popup';
-// import 'reactjs-popup/dist/index.css';
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
@@ -50,14 +39,6 @@ interface State {
 //   datetimes: string
 // }
 
-// const updateGreeting = (greeting: string) => {
-//   const speechElement=document.getElementById('greeting')!
-//   speechElement.innerText =  `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
-//   // const speechElement = document.getElementsByClassName(`textEntry Luke`)[0] as HTMLTextAreaElement;
-//   // speechElement.value = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
-//   console.log("successfully updated greeting")
-// };
-
 
 function Templates(props: State) {
   const streamlitCallback = (args: any) => { 
@@ -85,7 +66,6 @@ function Signin() {
   return < GoogleSignin signinCallback = {streamlitCallback}/>
 }
 
-// var aiSpeechOutput = document.getElementById("speech Alien")
 
 
 
@@ -94,53 +74,13 @@ const mappingFunction = (img:any, index:any) => ({index, src: img.source, sizes:
 
 // var AWS = require('aws-sdk'); 
 
-// var HOST = require('@amazon-sumerian-hosts/core')
-// var BABYLON= require('babylonjs')
-// var HOST = require('@amazon-sumerian-hosts/babylon')
-
-// Initialize AWS and create Polly service objects
-// AWS.config.region = 'us-east-1';
-// AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-//   IdentityPoolId: 'us-east-1:1af97f5a-3988-4abc-bb7d-19fc2005de7a',
-// });
-
-// const polly = new AWS.Polly();
-// const presigner = new AWS.Polly.Presigner();
-// const speechInit = HOST.TextToSpeechFeature.initializeService(
-//   polly,
-//   presigner,
-//   AWS.VERSION
-// );
-
-
-// const canvas = document.getElementById("renderCanvas") as HTMLCanvasElement;
-
-// const engine = new Engine(canvas, true);
-// // Create our first scene.
-// var scene = new Scene(engine);
-
-
-// const characterId = 'Maya';
-// const characterConfig = HostObject.getCharacterConfig(
-//   './character-assets',
-//   characterId
-//   );
-// const pollyConfig = {pollyVoice: 'Joanna', pollyEngine: 'standard'};
-// const host = await HostObject.createHost(scene, characterConfig, pollyConfig);  
-// host.PointOfInterestFeature.setTarget(scene.activeCamera);
-
-
 /**
  * This is a React-based component template. The `render()` function is called
  * automatically when your component should be re-rendered.
 */
 
 class MyComponent extends StreamlitComponentBase<State> {
-  private greetingRef: React.RefObject<HTMLDivElement>;
-  constructor(props: any) {
-    super(props);
-    this.greetingRef = React.createRef();
-  }
+
   // public state = { numClicks: 0, isFocused: false }
   // public state= {imgSelected:0, modalIsOpen:false, datetimes:""}
 
@@ -159,26 +99,20 @@ class MyComponent extends StreamlitComponentBase<State> {
   // }
 
 
-  // const updateGreeting = useCallback((greeting: string) => {
-  //   const speechElement = document.getElementById('greeting')!;
-  //   speechElement.innerText = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
-  //   console.log("successfully updated greeting");
-  // }, []); // The empty dependency array ensures that the callback is only created once
-
-  updateGreeting = (greeting:string) => {
-    // const speechElement = document.getElementById('greeting')!;
-    this.greetingRef.current!.innerHTML  = `<amazon:domain name="conversational">${greeting}</amazon:domain>`;
-     // Expose the ref to a global variable
-     (window as any).myGreetingRef = this.greetingRef.current;
-    console.log("successfully updated greeting");
-  };
 
   componentDidMount() {
     // Trigger updateGreeting automatically after the component is mounted
-    const greeting = this.props.args["name"];
-    if (this.greetingRef.current) {
-      console.log(`greeting from ai: ${greeting}`)
-      this.updateGreeting(greeting);
+
+    try {
+      const obj = JSON.parse(this.props.args["name"]);
+      const greetingData = {
+        name: obj.name,
+        greeting: obj.greeting,    
+      }
+      localStorage.setItem('greetingData', JSON.stringify(greetingData));   
+    }
+    catch(err) {
+      console.log(err);
     }
   }
   
@@ -200,10 +134,6 @@ class MyComponent extends StreamlitComponentBase<State> {
     // Arguments that are passed to the plugin in Python are accessible
     // via `this.props.args`. Here, we access the "name" arg.
     const name = this.props.args["name"];
-  //   document.getElementById('speakButton')!.onclick = () => {
-  //   const speech = (document.getElementById('speechText')!as HTMLInputElement).value;
-  //   host.TextToSpeechFeature.play(speech);
-  // }
     // const closeLightbox = this.closeLightbox
     // const openLightbox =this.openLightbox
     if (name=="welcome") {
@@ -274,21 +204,16 @@ class MyComponent extends StreamlitComponentBase<State> {
     // else if (name=="stream") {
     //   s.push(name)
     // }
-    // else {
-    //   useEffect(() => {
-    //     // Call the JavaScript function to update the text
-    //     updateGreeting(name);
-    //   }, []);
-    //   return <div></div>;
-    // }
     else {
-      // updateGreeting(name)
-      return (
-        <div>
-          {/* Use the ref to access the div element */}
-          <div id="greeting" ref={this.greetingRef}></div>
-        </div>
-      );
+     
+      return <div></div>
+      // return (
+      //   <div>
+      //     Use the ref to access the div element
+      //     <div id="greeting" ref={this.greetingRef}></div>
+      //     <div id="greeting2" data-my-ref="myGreetingRef2"></div>
+      //   </div>
+      // );
     }
 
   }

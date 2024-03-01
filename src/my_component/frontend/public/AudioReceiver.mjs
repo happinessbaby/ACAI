@@ -1,16 +1,16 @@
 // Establish WebSocket connection
+const port = 'ws://localhost:8765'
 export function init_audioReceiver() {
-  const socket = new WebSocket('ws://localhost:8765');
+  const socket = new WebSocket(port);
 
   // WebSocket event handlers
   socket.onopen = () => {
-    console.log('WebSocket connection established');
+    console.log(`WebSocket connection established for port: ${port}`);
   };
 
   socket.onmessage = (event) => {
-  console.log("tsrdyfugiogygcfgjh");
     const receivedMessage = event.data;
-    console.log('Received message from server:', receivedMessage);
+    console.log('Received AI response from server:', receivedMessage);
 
     // Update HTML element with the received message
     updateSpeechContent(receivedMessage, "Luke")
@@ -21,7 +21,7 @@ export function init_audioReceiver() {
     if (event.wasClean) {
       console.log(`WebSocket connection closed cleanly, code=${event.code}, reason=${event.reason}`);
     } else {
-      console.error('Connection abruptly closed');
+      console.error(`Connection abruptly closed for port: ${port}`);
     }
   };
 }
@@ -32,17 +32,15 @@ const speechContentUpdatedEvent = new Event('speechContentUpdated');
 function updateSpeechContent(newContent, name) {
     // Get the <speak> element by its ID
     const speechElement = document.getElementsByClassName(`textEntry ${name}`)[0];
-    if (!speechElement) {
-        console.error('Element with ID "textEntry ${name}" not found.');
-        return;
-      }
-    console.log("update speech")
-    
+    // if (!speechElement) {
+    //     console.error('Element with ID "textEntry ${name}" not found.');
+    //     return;
+    //   }
     // Update the innerHTML of the <speak> element with the new content
     speechElement.value = `<amazon:domain name="conversational">${newContent}</amazon:domain>`;
     // Dispatch the event when content is updated
     speechElement.dispatchEvent(speechContentUpdatedEvent);
-    console.log("Dispatched updated speech event");
+    console.log("Dispatched textentry updating event");
   }
 
 

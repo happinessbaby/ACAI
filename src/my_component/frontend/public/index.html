@@ -19,10 +19,6 @@
     <script type="text/javascript" src="host.three.js"></script>
     <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <!-- <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js", data-main="../src/AudioStreaming.js"></script> -->
-    <!-- <script type = "module" src="AudioProcessor.js"></script> -->
-    <!--Host build file-->
-    <!-- <script type="text/javascript" src="../dist/host.babylon.js"></script> -->
     <style>
       html,
       body {
@@ -189,7 +185,7 @@
  <div id="loadScreen">
   <div id="loader"></div>
 </div>
-<!-- <div id="greeting"></div> -->
+<div id="greeting"></div>
 
 <!--Text to speech controls-->
 <div id="textToSpeech">
@@ -200,12 +196,12 @@
   <div>
     <textarea autofocus size="23" type="text" class="textEntry Luke">
 <speak>
-  <amazon:domain name="conversational">
+  <!-- <amazon:domain name="conversational">
     Hello, my name is Luke. I used to only be a host inside Amazon Sumerian, but
     now you can use me in other Javascript runtime environments like three js. Right now, 
     <mark name='{"feature":"PointOfInterestFeature","method":"setTargetByName","args":["chargaze"]}'/> 
     my friend and I here are in three js.
-  </amazon:domain>
+  </amazon:domain> -->
 </speak>
     </textarea>
     <textarea autofocus size="23" type="text" class="textEntry Alien">
@@ -241,11 +237,27 @@
   import { init_audioRecorder} from "./AudioRecorder.mjs";
   import {init_audioReceiver} from "./AudioReceiver.mjs"
 
+  // Initialize host and greeting
+  var host = "Luke";
+  var greeting = 'Hello welcome to your interview. Are you ready to get started?';
+  try {
+      var storedGreeting = localStorage.getItem('greetingData');
+      var greetingData = storedGreeting ? JSON.parse(storedGreeting) : {};
+      host = greetingData.name || "Luke";
+      greeting = greetingData.greeting || 'Hello welcome to your interview. Are you ready to get started?';
+  }
+  catch(err)
+  {
+    console.log(err)
+  }
+
+
   const renderFn = [];
   const speakers = new Map([
-    ['Luke', undefined],
+    [host, undefined],
     ['Alien', undefined],
   ]);
+  
 
   const audioRecorder = init_audioRecorder();
   init_audioReceiver();
@@ -267,10 +279,6 @@ function openFullscreen() {
     elem.msRequestFullscreen();
   }
 }
-// document.addEventListener('DOMContentLoaded', function() {
-//       openFullscreen();
-//       main();
-//     });
 
 document.onkeypress = function (e) {
     e = e || window.event;
@@ -981,9 +989,12 @@ document.onkeypress = function (e) {
     return {name, host: speakers.get(name)};
   }
 
+
+
   // Update UX with data for the current host
   function toggleHost(evt) {
-    const tab = evt.target;
+    // const tab = evt.target;
+    const tab = document.getElementsByClassName('tab current')[0];
     const allTabs = document.getElementsByClassName('tab');
 
     // Update tab classes
@@ -996,18 +1007,18 @@ document.onkeypress = function (e) {
     }
 
     // Show/hide speech input classes
-    const {name, host} = getCurrentHost(speakers);
-    const textEntries = document.getElementsByClassName('textEntry');
+    // const {name, host} = getCurrentHost(speakers);
+    // const textEntries = document.getElementsByClassName('textEntry');
 
-    for (let i = 0, l = textEntries.length; i < l; i += 1) {
-      const textEntry = textEntries[i];
+    // for (let i = 0, l = textEntries.length; i < l; i += 1) {
+    //   const textEntry = textEntries[i];
 
-      if (textEntry.classList.contains(name)) {
-        textEntry.classList.remove('hidden');
-      } else {
-        textEntry.classList.add('hidden');
-      }
-    }
+    //   if (textEntry.classList.contains(name)) {
+    //     textEntry.classList.remove('hidden');
+    //   } else {
+    //     textEntry.classList.add('hidden');
+    //   }
+    // }
 
     // Update emote selector
     // const emoteSelect = document.getElementById('emotes');
@@ -1075,22 +1086,14 @@ document.onkeypress = function (e) {
     //   };
     // });
     const {name, host} = getCurrentHost(speakers);
-    // Play initial greeting
-    document.addEventListener('DOMContentLoaded', function() {
-      const textareaElement = document.getElementsByClassName(
-      `textEntry ${name}`
-        )[0];  
-        console.log("insdie dom content loaded")
-        host.TextToSpeechFeature.play(textareaElement.value);
-  });
-    // if (speechGreeting!="") {
-    // }
-    // document.getElementById("greeting").innerHTML = ""; // Clear the content
+    // Play initial greetings from host
+    host.TextToSpeechFeature.play(greeting);
+
+
     // Set up speech generation 
     const textareaElement = document.getElementsByClassName(
       `textEntry ${name}`
         )[0];
-      // Listen for the custom event to trigger additional action
       textareaElement.addEventListener("speechContentUpdated", evt => {
         evt.stopPropagation();
     // textareaElement.addEventListener("input", function() {
@@ -1136,9 +1139,13 @@ document.onkeypress = function (e) {
     // };
 
     // Initialize tab
-    const tab = document.getElementsByClassName('tab current')[0];
-    toggleHost({target: tab});
+    // const tab = document.getElementsByClassName('tab current')[0];
+    // toggleHost({target: tab});
     
+
+  }
+
+  function initializeInterviewRoom(){
 
   }
 

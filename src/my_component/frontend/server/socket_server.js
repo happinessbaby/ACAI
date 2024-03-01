@@ -2,9 +2,7 @@
 console.log("STARTED MESSAGE RECEIVER")
 var WebSocketServer = require('websocket').server;
 var http = require('http');
-// Import statements for ES6 modules
-// import { server as WebSocketServer } from './websocket';
-// import http from  './http';
+
 
 var server = http.createServer(function(request, response) {
     // Not important for this example
@@ -27,7 +25,7 @@ wsServer.on('request', function(request) {
     var connection = request.accept(null, request.origin);
 
     // Send a greeting to the client
-    connection.sendUTF('Hello from the server!');
+    // connection.sendUTF('Greetings to the client!');
 
       // Add the connection to the list of clients
     clients.push(connection);
