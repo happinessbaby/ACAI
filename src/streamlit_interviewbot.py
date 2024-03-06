@@ -1112,20 +1112,20 @@ class Interview():
         company_description = generated_dict.get("company description", "")
         job_specification=generated_dict.get("job specification", "")
         # resume_field_names = generated_dict.get("field names", "")
-        if job!=-1:
-            # get top n job interview questions for this job
-            query = f"top 10 interview questions for {job}"
-            response = get_web_resources(query)
-            additional_interview_info += f"top 10 interview questions for {job}: {response}"
+        # if job!=-1:
+        #     # get top n job interview questions for this job
+        #     query = f"top 10 interview questions for {job}"
+        #     response = get_web_resources(query)
+        #     additional_interview_info += f"top 10 interview questions for {job}: {response}"
         # if resume_field_names!="":
         #     for field_name in resume_field_names:
         #         additional_interview_info += f"""applicant's {field_name}: {generated_dict.get(field_name, "")}"""
-        if job_description!="":
-            additional_interview_info += f"job description: {job_description} \n"
-        if job_specification!="":
-            additional_interview_info += f"job specification: {job_specification} \n"
-        if company_description!="":
-            additional_interview_info += f"company description: {company_description} \n"
+        # if job_description!="":
+        #     additional_interview_info += f"job description: {job_description} \n"
+        # if job_specification!="":
+        #     additional_interview_info += f"job specification: {job_specification} \n"
+        # if company_description!="":
+        #     additional_interview_info += f"company description: {company_description} \n"
 
         return additional_interview_info, generated_dict
     

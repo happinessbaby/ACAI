@@ -478,7 +478,7 @@ class InterviewController():
                                     interview job position: {job} /n
                                     Please make your greeting about 2-3 sentences long. Remember to introduce yourself and an interview supervisor/grader named Ali.
                                     YOu and Ali will be partnering together to help conduct the interview. 
-                                    If any part of the provided information is missing, skip it. Your greeting will be directly sent to the interviewee with no modifications.
+                                    If any part of the provided information is missing, skip it. 
                                         """)
         print(f"Successfully generated greeting: {greeting}")
         return greeting

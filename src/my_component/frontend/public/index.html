@@ -17,7 +17,6 @@
     <!--Host build file-->
     <!-- <script type="text/javascript" src="../node_module/@amazon-sumerian-hosts/three/dist/host.three.js"></script> -->
     <script type="text/javascript" src="host.three.js"></script>
-    <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
       html,
@@ -48,19 +47,18 @@
       }
 
       .textEntry {
-        /* display: none; */
-        min-width: 305px;
+        display: none;
+        /* min-width: 305px;
         min-height: 200px;
         outline: 0px;
         padding: 10px;
-        resize: both;
+        resize: both; */
       }
-      /* .greeting {
-        display: none;
-      } */
-      button {
-        width: 40px;
-        height: 40px;
+
+      .recButton {
+        display: block;
+        width: 60px;
+        height: 60px;
         font-size: 16px;
         font-weight: bold;
         color:white;
@@ -124,13 +122,19 @@
         left: 0;
         display: none;
       }
-/* 
-      #renderCanvas {
-        width: 100%;
-        height: 100%;
-        display: block;
-        font-size: 0;
-      } */
+      .base-timer.label {
+        position: fixed;   
+        width: 50px;
+        height: 50px;  
+        color:white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        top: 20%; /* Center the loader vertically */
+        left: 90%; /* Center the loader horizontally */
+      }
+  
       #loadScreen {
         display: block;
         align-items: center;
@@ -185,7 +189,6 @@
  <div id="loadScreen">
   <div id="loader"></div>
 </div>
-<div id="greeting"></div>
 
 <!--Text to speech controls-->
 <div id="textToSpeech">
@@ -224,12 +227,12 @@
   <div>
     <button id="playEmote" class="gestureButton">Play Emote</button>
   </div> -->
-  <div>
-    <button id="recButton">REC</button> 
-  </div>
 </div>
-<!-- <script src="dist/bundle.js"></script> -->
-<!-- <script src="AudioReceiver.mjs"></script> -->
+<div>
+  <button id="skip-intro" class="introButton">Skip intro</button>
+  <button id="recDisplay" class="recButton hidden">REC</button> 
+    <span id="base-timer-label" class="base-timer label hidden"></span>
+</div>
 <script type="module">
 
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.127.0/examples/jsm/controls/OrbitControls.js';
@@ -257,10 +260,15 @@
     [host, undefined],
     ['Alien', undefined],
   ]);
-  
+  var count = 0;
+  var finished_intro=false;
+  var during_interview=false;
+  let timerInterval;
+  let countdownInterval;
 
   const audioRecorder = init_audioRecorder();
   init_audioReceiver();
+  
   // document.addEventListener('DOMContentLoaded', function() {
       // init_audioReceiver();
     // });
@@ -309,35 +317,16 @@ document.onkeypress = function (e) {
     const polly = new AWS.Polly();
     const presigner = new AWS.Polly.Presigner();
     const speechInit = HOST.aws.TextToSpeechFeature.initializeService(
-      polly,
+      polly, 
       presigner,
       window.AWS.VERSION
     );
+
+
+    const characterData1 = await getCharacterData("Luke");
+    const characterData2 = await getCharacterData("Alien");
     
 
-    // Define the glTF assets that will represent the host
-    const characterFile1 =
-      './assets/glTF/characters/adult_male/luke/luke.gltf';
-    const characterFile2 = './assets/glTF/characters/alien/alien.gltf';
-    const animationPath1 = './assets/glTF/animations/adult_male';
-    const animationPath2 = './assets/glTF/animations/alien';
-    const animationFiles = [
-      'stand_idle.glb',
-      'lipsync.glb',
-      'gesture.glb',
-      'emote.glb',
-      'face_idle.glb',
-      'blink.glb',
-      'poi.glb',
-    ];
-    const gestureConfigFile = 'gesture.json';
-    const poiConfigFile = 'poi.json';
-    const audioAttachJoint1 = 'chardef_c_neckB'; // Name of the joint to attach audio to
-    const audioAttachJoint2 = 'charhead';
-    const lookJoint1 = 'charjx_c_look'; // Name of the joint to use for point of interest target tracking
-    const lookJoint2 = 'chargaze';
-    const voice1 = 'Matthew'; // Polly voice. Full list of available voices at: https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
-    const voice2 = 'Ivy';
     const voiceEngine = 'neural'; // Neural engine is not available for all voices in all regions: https://docs.aws.amazon.com/polly/latest/dg/NTTS-main.html
 
     // Set up the scene and host
@@ -348,9 +337,9 @@ document.onkeypress = function (e) {
       bindPoseOffset: bindPoseOffset1,
     } = await loadCharacter(
       scene,
-      characterFile1,
-      animationPath1,
-      animationFiles
+      characterData1.characterFile,
+      characterData1.animationPath,
+      characterData1.animationFiles
     );
     const {
       character: character2,
@@ -358,9 +347,9 @@ document.onkeypress = function (e) {
       bindPoseOffset: bindPoseOffset2,
     } = await loadCharacter(
       scene,
-      characterFile2,
-      animationPath2,
-      animationFiles
+      characterData2.characterFile,
+      characterData2.animationPath,
+      characterData2.animationFiles
     );
 
     character1.position.set(1.25, 0, 0);
@@ -369,29 +358,29 @@ document.onkeypress = function (e) {
     character2.rotateY(0.5);
 
     // Find the joints defined by name
-    const audioAttach1 = character1.getObjectByName(audioAttachJoint1);
-    const audioAttach2 = character2.getObjectByName(audioAttachJoint2);
-    const lookTracker1 = character1.getObjectByName(lookJoint1);
-    const lookTracker2 = character2.getObjectByName(lookJoint2);
+    const audioAttach1 = character1.getObjectByName(characterData1.audioAttachJoint);
+    const audioAttach2 = character2.getObjectByName(characterData2.audioAttachJoint);
+    const lookTracker1 = character1.getObjectByName(characterData1.lookJoint);
+    const lookTracker2 = character2.getObjectByName(characterData2.lookJoint);
 
     // Read the gesture config file. This file contains options for splitting up
     // each animation in gestures.glb into 3 sub-animations and initializing them
     // as a QueueState animation.
     const gestureConfig1 = await fetch(
-      `${animationPath1}/${gestureConfigFile}`
+      `${characterData1.animationPath}/${characterData1.gestureConfigFile}`
     ).then(response => response.json());
     const gestureConfig2 = await fetch(
-      `${animationPath2}/${gestureConfigFile}`
+      `${characterData2.animationPath}/${characterData2.gestureConfigFile}`
     ).then(response => response.json());
 
     // Read the point of interest config file. This file contains options for
     // creating Blend2dStates from look pose clips and initializing look layers
     // on the PointOfInterestFeature.
     const poiConfig1 = await fetch(
-      `${animationPath1}/${poiConfigFile}`
+      `${characterData1.animationPath}/${characterData1.poiConfigFile}`
     ).then(response => response.json());
     const poiConfig2 = await fetch(
-      `${animationPath2}/${poiConfigFile}`
+      `${characterData2.animationPath}/${characterData2.poiConfigFile}`
     ).then(response => response.json());
 
     const [
@@ -406,7 +395,7 @@ document.onkeypress = function (e) {
     const host1 = createHost(
       character1,
       audioAttach1,
-      voice1,
+      characterData1.voice,
       voiceEngine,
       idleClips1[0],
       faceClips1[0],
@@ -435,7 +424,7 @@ document.onkeypress = function (e) {
     const host2 = createHost(
       character2,
       audioAttach2,
-      voice2,
+      characterData2.voice,
       voiceEngine,
       idleClips2[0],
       faceClips2[0],
@@ -452,7 +441,7 @@ document.onkeypress = function (e) {
       camera,
       scene
     );
-
+  
     // Set up each host to look at the other when the other speaks and at the
     // camera when speech ends
     const onHost1StartSpeech = () => {
@@ -496,12 +485,54 @@ document.onkeypress = function (e) {
     document.getElementById('loadScreen').style.display = 'none';
 
     await speechInit;
-    // await client.initialize();
 
-    speakers.set('Luke', host1);
+    speakers.set(host, host1);
     speakers.set('Alien', host2);
 
-    initializeUX();
+    initializeIntro();
+
+  }
+
+  function initializeIntro() {
+
+    const grader_greeting =  "Hi, I'm Ali. I'll be supervising your interview and providing feedback at the end of the session. Good Luck!"
+
+    const onInterviewerStopSpeech = () => {
+      console.log("INSIDE INTERVIEWER STOP")
+      if (finished_intro==false) {
+        grader.TextToSpeechFeature.play(grader_greeting)
+      }
+      if (during_interview==true) {
+        // start the silence interval countdown
+        toggleCountdown("start");
+      }
+    } 
+
+    const onGraderStopSpeech = () => {
+      if (finished_intro==false) {
+        initializeUX();
+      }
+    }
+
+    const interviewer = speakers.get(host)
+    const grader = speakers.get('Alien')
+
+    interviewer.TextToSpeechFeature.play(greeting);
+    interviewer.listenTo( interviewer.TextToSpeechFeature.EVENTS.stop,onInterviewerStopSpeech)
+    grader.listenTo(grader.TextToSpeechFeature.EVENTS.stop, onGraderStopSpeech)
+
+    // Skip intro button
+    $('#skip-intro').click(function(){
+      finished_intro = true;
+      const {name, host} = getCurrentHost();
+      host.TextToSpeechFeature.stop();
+      initializeUX();
+    });
+
+  }
+
+  function initalizeOutro() {
+
   }
 
   
@@ -526,7 +557,7 @@ document.onkeypress = function (e) {
 
     // Env map
     new THREE.TextureLoader()
-      .setPath('assets/')
+      .setPath('./assets/')
       .load('images/machine_shop.jpg', hdrEquirect => {
         const hdrCubeRenderTarget = pmremGenerator.fromEquirectangular(
           hdrEquirect
@@ -618,6 +649,17 @@ document.onkeypress = function (e) {
     return {scene, camera, clock};
   }
 
+  async function getCharacterData(characterName) {
+  try {
+    const response = await fetch('./assets/character_mapping.json');
+    const jsonData = await response.json();
+    return jsonData[characterName];
+  } catch (error) {
+    console.error('Error loading JSON:', error);
+    return null;
+  }
+}
+  
   // Load character model and animations
   async function loadCharacter(
     scene,
@@ -1037,42 +1079,133 @@ document.onkeypress = function (e) {
     // });
   }
 
+
+  // Function to start recording timer
+  function toggleRecTimer(mode, seconds=0) {
+    console.log("recording timer started");
+      // updateTimerDisplay();
+    if (mode=="start") {
+      timerInterval = setInterval(function () {
+          seconds++;
+          document.getElementById('recDisplay').innerHTML = `${seconds} s`;
+            // updateTimerDisplay(seconds);
+        }, 1000);
+    }
+    else if (mode=="stop") {
+      document.getElementById('recDisplay').innerHTML = `REC`;
+      clearInterval(timerInterval)
+    }
+  }
+ // Function to format countdown timer's display
+  function formatTimeLeft(time) {
+      // The largest round integer less than or equal to the result of time divided being by 60.
+      const minutes = Math.floor(time / 60);    
+      // Seconds are the remainder of the time divided by 60 (modulus operator)
+      let seconds = time % 60;     
+      // If the value of seconds is less than 10, then display seconds with a leading zero
+      if (seconds < 10) {
+        seconds = `0${seconds}`;
+      }
+      // The output in MM:SS format
+      return `${minutes}:${seconds}`;
+    }
+  // Function to start a countdown timer
+  function toggleCountdown(mode, TIME_LIMIT=20, timePassed=0) {
+    if (mode=="start") {
+        toggleVisibility('.base-timer');
+        countdownInterval = setInterval(() => { 
+        // The amount of time passed increments by one
+        timePassed = timePassed += 1;
+        // var timeLeft = TIME_LIMIT - timePassed; 
+        // The time left label is updated
+        document.getElementById("base-timer-label").textContent = formatTimeLeft(TIME_LIMIT - timePassed);
+        // setCircleDasharray(TIME_LIMIT, timeLeft);
+        }, 1000);
+    }
+    else if (mode=="stop") {
+      if (count>=1) {
+        console.log("toggling base timer")
+        toggleVisibility('.base-timer');
+        clearInterval(countdownInterval);
+      }
+      count++;
+    }
+  }
+
+
+
+  // Divides time left by the defined time limit.
+  // function calculateTimeFraction() {
+  //   return timeLeft / TIME_LIMIT;
+  // }
+  // Update the dasharray value as time passes, starting with 283
+  // function setCircleDasharray(TIME_LIMIT, timeLeft) {
+  //   const circleDasharray = `${(
+  //     timeLeft/TIME_LIMIT * FULL_DASH_ARRAY
+  //   ).toFixed(0)} 283`;
+  //   document
+  //     .getElementById("base-timer-path-remaining")
+  //     .setAttribute("stroke-dasharray", circleDasharray);
+  // }
+
+//   function toggleCountdownVisibility() {
+//   const baseTimerElement = document.querySelector('.base-timer');
+//   baseTimerElement.classList.toggle('hidden');
+// }
+
+// function toggleRecTimerVisibility() {
+//   const recTimer = document.querySelector('.rec-timer');
+//   const countdownTimer = document.querySelector('.base-timer');
+//   recTimer.classList.toggle('hidden');
+//   countdownTimer.classList.toggle('hidden');
+// }
+function toggleVisibility(classname) {
+  const recButton = document.querySelector(classname);
+  // const countdownTimer = document.querySelector('.base-timer');
+  recButton.classList.toggle('hidden');
+  // countdownTimer.classList.toggle('hidden');
+}
+
+
+
+
   function initializeUX(speakers) {
+
+    // createScene();
     // Enable drag/drop text files on the speech text area
     enableDragDrop('textEntry');
+    toggleVisibility('.recButton');
+    toggleVisibility('.introButton');
+    finished_intro=true;
+    during_interview=true;
+  
 
     // Connect tab buttons to hosts
     // Array.from(document.getElementsByClassName('tab')).forEach(tab => {
     //   tab.onclick = evt => { toggleHost(evt); }
     // });
-    $('#recButton').addClass("notRec");
-
-    $('#recButton').click(function(){
-      if($('#recButton').hasClass('notRec')){
-        $('#recButton').removeClass("notRec");
-        $('#recButton').addClass("Rec");
+    $('.recButton').addClass("notRec");
+    $('.recButton').click(function(){
+      if($('.recButton').hasClass('notRec')){
+        $('.recButton').removeClass("notRec");
+        $('.recButton').addClass("Rec");
+        // stop the silence interval countdown
+        toggleCountdown("stop");
+        // start the recording timer
+        toggleRecTimer("start");
         audioRecorder.startRecording();
       }
       else{
-        $('#recButton').removeClass("Rec");
-        $('#recButton').addClass("notRec");
+        $('.recButton').removeClass("Rec");
+        $('.recButton').addClass("notRec");
+        // stop the recording timer
+        toggleRecTimer("stop");
         audioRecorder.stopRecording();
+
       }
     });	
-    // const button = document.getElementById('recButton');
-    // button.onclick = () => {
-    //   if (button.innerHTML=="Start Recording") {
-    //     // button.innerHTML ="Stop Recording";
-    //     audioRecorder.startRecording();
-    //     //require(["AudioStreaming"], function(AudioStreaming) {
-    //     //   AudioStreaming.mainstream();
-    //     // })
-    //   }
-    //   else if (button.innerHTML=="Stop Recording") {
-    //     audioRecorder.stopRecording();
-    //     // button.innerHTML = "Start Recording";
-    //   }
-    // };
+
+
     // Play, pause, resume and stop the contents of the text input as speech
     // when buttons are clicked
     // ['play', 'pause', 'resume', 'stop'].forEach(id => {
@@ -1086,9 +1219,10 @@ document.onkeypress = function (e) {
     //   };
     // });
     const {name, host} = getCurrentHost(speakers);
-    // Play initial greetings from host
-    host.TextToSpeechFeature.play(greeting);
+    // toggleHost();
 
+    // // Play initial greetings from host
+    // host.TextToSpeechFeature.play(greeting);
 
     // Set up speech generation 
     const textareaElement = document.getElementsByClassName(
@@ -1110,42 +1244,32 @@ document.onkeypress = function (e) {
         host.TextToSpeechFeature.play(textareaElement.value);
     });
 
-    
-
-    // Update the text area text with gesture SSML markup when clicked
-    // const gestureButton = document.getElementById('gestures');
-    // gestureButton.onclick = () => {
-    //   const {name, host} = getCurrentHost(speakers);
-    //   const speechInput = document.getElementsByClassName(
-    //     `textEntry ${name}`
-    //   )[0];
-    //   const gestureMap = host.GestureFeature.createGestureMap();
-    //   const gestureArray = host.GestureFeature.createGenericGestureArray([
-    //     'Gesture',
-    //   ]);
-    //   speechInput.value = HOST.aws.TextToSpeechUtils.autoGenerateSSMLMarks(
-    //     speechInput.value,
-    //     gestureMap,
-    //     gestureArray
-    //   );
-    // };
-
-    // Play emote on demand with emote button
-    // const emoteSelect = document.getElementById('emotes');
-    // const emoteButton = document.getElementById('playEmote');
-    // emoteButton.onclick = () => {
-    //   const {host} = getCurrentHost(speakers);
-    //   host.GestureFeature.playGesture('Emote', emoteSelect.value);
-    // };
-
-    // Initialize tab
-    // const tab = document.getElementsByClassName('tab current')[0];
-    // toggleHost({target: tab});
-    
-
   }
 
-  function initializeInterviewRoom(){
+  
+
+  async function initializeInterviewRoom(){
+     // Create the interview scene
+    const {scene, camera, clock} = createScene();
+    // Add character to the scene
+    const {
+      character: character1,
+      clips: clips1,
+      bindPoseOffset: bindPoseOffset1,
+    } = await loadCharacter(
+      scene,
+      characterData1.characterFile,
+      characterData1.animationPath,
+      characterData1.animationFiles
+    );
+    // position the character
+    character1.position.set(1.25, 0, 0);
+    character1.rotateY(-0.5);
+
+     // Find the joints defined by name
+    const audioAttach1 = character1.getObjectByName(characterData1.audioAttachJoint);
+    const lookTracker1 = character1.getObjectByName(characterData1.lookJoint);
+
 
   }
 
