@@ -180,10 +180,11 @@ var audioRecorder = {
               }; 
               audioRecorder.connection.onerror = event => {
                   console.error("WebSocket error:", event.error);
+                  audioRecorder.connect();
               };
               audioRecorder.connection.onmessage = event => {
                   console.log("websocket received msg", event.data);
-              }
+                }
             }
             else {
               console.log("webscoket already established", audioRecorder.connection.readyState)

@@ -156,7 +156,7 @@ class Interview():
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["count"]=0
-            st.session_state["host"] = "Luke"
+            st.session_state["host"] = "Maya"
 
             st.session_state["responseInput"] = ''
             if STORAGE == "LOCAL":

@@ -110,6 +110,7 @@ class MyComponent extends StreamlitComponentBase<State> {
         greeting: obj.greeting,    
       }
       localStorage.setItem('greetingData', JSON.stringify(greetingData));   
+      console.log("set greeting data", JSON.stringify(greetingData))
     }
     catch(err) {
       console.log(err);

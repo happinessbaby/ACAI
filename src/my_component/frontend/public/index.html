@@ -194,10 +194,10 @@
 <div id="textToSpeech">
   <!-- <button class="tab current">Luke</button>
   <button class="tab">Alien</button> -->
-  <div class="tab current">Luke</div>
-  <div class="tab">Alien</div>
+  <div class="tab current"></div>
+  <div class="tab"></div>
   <div>
-    <textarea autofocus size="23" type="text" class="textEntry Luke">
+    <textarea autofocus size="23" type="text" class="textEntry Interviewer">
 <speak>
   <!-- <amazon:domain name="conversational">
     Hello, my name is Luke. I used to only be a host inside Amazon Sumerian, but
@@ -207,7 +207,7 @@
   </amazon:domain> -->
 </speak>
     </textarea>
-    <textarea autofocus size="23" type="text" class="textEntry Alien">
+    <textarea autofocus size="23" type="text" class="textEntry Grader">
 <speak id="speech_Alien">
 </speak>
     </textarea>
@@ -229,9 +229,10 @@
   </div> -->
 </div>
 <div>
-  <button id="skip-intro" class="introButton">Skip intro</button>
+  <button id="skip-intro" class="skipIntroButton">Skip intro</button>
   <button id="recDisplay" class="recButton hidden">REC</button> 
-    <span id="base-timer-label" class="base-timer label hidden"></span>
+  <span id="base-timer-label" class="base-timer label hidden"></span>
+  <button id="stop-interview" class="stopInterviewButton hidden">stop interview</button>
 </div>
 <script type="module">
 
@@ -241,12 +242,13 @@
   import {init_audioReceiver} from "./AudioReceiver.mjs"
 
   // Initialize host and greeting
-  var host = "Luke";
+  var host_name = "Luke";
   var greeting = 'Hello welcome to your interview. Are you ready to get started?';
   try {
       var storedGreeting = localStorage.getItem('greetingData');
+      console.log("got greeting data", JSON.parse(storedGreeting))
       var greetingData = storedGreeting ? JSON.parse(storedGreeting) : {};
-      host = greetingData.name || "Luke";
+      host_name = greetingData.name || "Luke";
       greeting = greetingData.greeting || 'Hello welcome to your interview. Are you ready to get started?';
   }
   catch(err)
@@ -257,14 +259,28 @@
 
   const renderFn = [];
   const speakers = new Map([
-    [host, undefined],
+    [host_name, undefined],
     ['Alien', undefined],
   ]);
+  const intro_settings = new Map([
+    ["scene", undefined],
+    ["camera", undefined],
+    ["clock", undefined],
+    ["interviewer_chara", undefined],
+    ["grader_chara", undefined],
+    ["interviewer_host", undefined],
+    ["grader_host", undefined],
+  ])
   var count = 0;
   var finished_intro=false;
   var during_interview=false;
   let timerInterval;
   let countdownInterval;
+  let characterData1;
+  let characterData2;
+  // let scene, camera, clock;
+  const voiceEngine = 'neural';
+  setCurrentHost(host_name);
 
   const audioRecorder = init_audioRecorder();
   init_audioReceiver();
@@ -323,14 +339,17 @@ document.onkeypress = function (e) {
     );
 
 
-    const characterData1 = await getCharacterData("Luke");
-    const characterData2 = await getCharacterData("Alien");
+    characterData1 = await getCharacterData(host_name);
+    characterData2 = await getCharacterData("Alien");
     
-
-    const voiceEngine = 'neural'; // Neural engine is not available for all voices in all regions: https://docs.aws.amazon.com/polly/latest/dg/NTTS-main.html
 
     // Set up the scene and host
     const {scene, camera, clock} = createScene();
+    intro_settings.set("scene", scene);
+    intro_settings.set("camera", camera);
+    intro_settings.set("clock", clock);
+    // save scene, camera, and clock
+
     const {
       character: character1,
       clips: clips1,
@@ -341,6 +360,7 @@ document.onkeypress = function (e) {
       characterData1.animationPath,
       characterData1.animationFiles
     );
+    intro_settings.set("interviewer_chara", character1)
     const {
       character: character2,
       clips: clips2,
@@ -351,6 +371,7 @@ document.onkeypress = function (e) {
       characterData2.animationPath,
       characterData2.animationFiles
     );
+    intro_settings.set("grader_chara", character2)
 
     character1.position.set(1.25, 0, 0);
     character1.rotateY(-0.5);
@@ -412,6 +433,7 @@ document.onkeypress = function (e) {
       camera,
       scene
     );
+    intro_settings.set("interviewer_host", host1)
     const [
       idleClips2,
       lipsyncClips2,
@@ -441,13 +463,16 @@ document.onkeypress = function (e) {
       camera,
       scene
     );
+    intro_settings.set("grader_host", host2)
   
     // Set up each host to look at the other when the other speaks and at the
     // camera when speech ends
     const onHost1StartSpeech = () => {
+      setCurrentHost(host_name);
       host2.PointOfInterestFeature.setTarget(lookTracker1);
     };
     const onHost2StartSpeech = () => {
+      setCurrentHost("Alien");
       host1.PointOfInterestFeature.setTarget(lookTracker2);
     };
     const onStopSpeech = () => {
@@ -486,7 +511,7 @@ document.onkeypress = function (e) {
 
     await speechInit;
 
-    speakers.set(host, host1);
+    speakers.set(host_name, host1);
     speakers.set('Alien', host2);
 
     initializeIntro();
@@ -510,11 +535,11 @@ document.onkeypress = function (e) {
 
     const onGraderStopSpeech = () => {
       if (finished_intro==false) {
-        initializeUX();
+        createInterviewRoom();
       }
     }
 
-    const interviewer = speakers.get(host)
+    const interviewer = speakers.get(host_name)
     const grader = speakers.get('Alien')
 
     interviewer.TextToSpeechFeature.play(greeting);
@@ -526,12 +551,167 @@ document.onkeypress = function (e) {
       finished_intro = true;
       const {name, host} = getCurrentHost();
       host.TextToSpeechFeature.stop();
-      initializeUX();
+      createInterviewRoom();
     });
 
   }
 
-  function initalizeOutro() {
+  function initializeOutro() {
+
+    toggleVisibility('.recButton');
+    toggleVisibility('.stopInterviewButton');
+
+    const outro_scene = intro_settings.get("scene");
+    const saved_camera = intro_settings.get("camera");
+    const grader = intro_settings.get("grader_chara");
+    const interviewer = intro_settings.get("interviewer_chara");
+    outro_scene.add(grader);
+    outro_scene.remove(interviewer);
+    grader.position.set(0, 0, 0);
+    grader.rotateY(0);
+    const camera = saved_camera.clone();  // Cloning the saved camera to avoid modifying the original
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.setClearColor(0x33334d);
+    renderer.domElement.id = 'renderCanvas';
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    camera.position.set(0, 1.4, 3.1);
+    controls.target = new THREE.Vector3(0, 0.8, 0);
+    controls.screenSpacePanning = true;
+    controls.update();
+        // Render loop
+    function render() {
+      requestAnimationFrame(render);
+      controls.update();
+      renderFn.forEach(fn => {
+        fn();
+      });
+
+      renderer.render(outro_scene, camera);
+    }
+    render();
+  }
+
+
+  function createInterviewRoom() {
+
+    //remove intro scene
+    const interview_scene = intro_settings.get("scene");
+    const saved_camera = intro_settings.get('camera');
+    const camera = saved_camera.clone();  // Cloning the saved camera to avoid modifying the original
+
+    const grader = intro_settings.get("grader_chara");
+    const interviewer = intro_settings.get('interviewer_chara');
+    interview_scene.remove(grader);
+    interviewer.position.set(-1.25, 0, 0);
+    interviewer.rotateY(1);
+    // const clock = intro_settings.get("clock")
+    interview_scene.background = new THREE.Color(0x87ceeb); // Light blue color
+    interview_scene.fog = new THREE.Fog(0x87ceeb, 0, 10);
+     // Renderer
+     const renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.setClearColor(0x33334d);
+    renderer.domElement.id = 'renderCanvas';
+    document.body.appendChild(renderer.domElement);
+
+    // Env map
+    new THREE.TextureLoader()
+      .setPath('./assets/')
+      .load('images/background.png', hdrEquirect => {
+        const hdrCubeRenderTarget = pmremGenerator.fromEquirectangular(
+          hdrEquirect
+        );
+        hdrEquirect.dispose();
+        pmremGenerator.dispose();
+
+        interview_scene.environment = hdrCubeRenderTarget.texture;
+      });
+
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+
+    //  // Camera
+    //  const camera = new THREE.PerspectiveCamera(
+    //   THREE.MathUtils.radToDeg(0.8),
+    //   window.innerWidth / window.innerHeight,
+    //   0.1,
+    //   1000
+    // );
+    const controls = new OrbitControls(camera, renderer.domElement);
+    camera.position.set(0, 1.4, 3.1);
+    controls.target = new THREE.Vector3(0, 0.8, 0);
+    controls.screenSpacePanning = true;
+    controls.update();
+
+    // Render loop
+    function render() {
+      requestAnimationFrame(render);
+      controls.update();
+
+      renderFn.forEach(fn => {
+        fn();
+      });
+
+      renderer.render(interview_scene, camera);
+    }
+
+    render();
+
+    // Lights
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.6);
+    hemiLight.position.set(0, 1, 0);
+    hemiLight.intensity = 0.6;
+    interview_scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff);
+    dirLight.position.set(0, 5, 5);
+
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.camera.top = 2.5;
+    dirLight.shadow.camera.bottom = -2.5;
+    dirLight.shadow.camera.left = -2.5;
+    dirLight.shadow.camera.right = 2.5;
+    dirLight.shadow.camera.near = 0.1;
+    dirLight.shadow.camera.far = 40;
+    interview_scene.add(dirLight);
+
+    const dirLightTarget = new THREE.Object3D();
+    dirLight.add(dirLightTarget);
+    dirLightTarget.position.set(0, -0.5, -1.0);
+    dirLight.target = dirLightTarget;
+
+    // Environment
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x808080,
+      depthWrite: false,
+    });
+    groundMat.metalness = 0;
+    groundMat.refractionRatio = 0;
+    const ground = new THREE.Mesh(
+      new THREE.PlaneBufferGeometry(100, 100),
+      groundMat
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    interview_scene.add(ground);
+
+    initializeUX();
+
+    // return {interview_scene, camera, clock};
+
 
   }
 
@@ -650,15 +830,15 @@ document.onkeypress = function (e) {
   }
 
   async function getCharacterData(characterName) {
-  try {
-    const response = await fetch('./assets/character_mapping.json');
-    const jsonData = await response.json();
-    return jsonData[characterName];
-  } catch (error) {
-    console.error('Error loading JSON:', error);
-    return null;
+    try {
+      const response = await fetch('./assets/character_mapping.json');
+      const jsonData = await response.json();
+      return jsonData[characterName];
+    } catch (error) {
+      console.error('Error loading JSON:', error);
+      return null;
+    }
   }
-}
   
   // Load character model and animations
   async function loadCharacter(
@@ -1027,8 +1207,12 @@ document.onkeypress = function (e) {
   function getCurrentHost() {
     const tab = document.getElementsByClassName('tab current')[0];
     const name = tab.textContent;
-
     return {name, host: speakers.get(name)};
+  }
+
+  function setCurrentHost(name) {
+    const tab = document.getElementsByClassName('tab current')[0];
+    tab.textContent = name;
   }
 
 
@@ -1146,24 +1330,12 @@ document.onkeypress = function (e) {
   //   document
   //     .getElementById("base-timer-path-remaining")
   //     .setAttribute("stroke-dasharray", circleDasharray);
-  // }
+  // }textEntry
 
-//   function toggleCountdownVisibility() {
-//   const baseTimerElement = document.querySelector('.base-timer');
-//   baseTimerElement.classList.toggle('hidden');
-// }
 
-// function toggleRecTimerVisibility() {
-//   const recTimer = document.querySelector('.rec-timer');
-//   const countdownTimer = document.querySelector('.base-timer');
-//   recTimer.classList.toggle('hidden');
-//   countdownTimer.classList.toggle('hidden');
-// }
 function toggleVisibility(classname) {
   const recButton = document.querySelector(classname);
-  // const countdownTimer = document.querySelector('.base-timer');
   recButton.classList.toggle('hidden');
-  // countdownTimer.classList.toggle('hidden');
 }
 
 
@@ -1171,11 +1343,12 @@ function toggleVisibility(classname) {
 
   function initializeUX(speakers) {
 
-    // createScene();
     // Enable drag/drop text files on the speech text area
-    enableDragDrop('textEntry');
+    // setCurrentHost(host_name);
+    enableDragDrop('notePad');
     toggleVisibility('.recButton');
-    toggleVisibility('.introButton');
+    toggleVisibility('.skipIntroButton');
+    toggleVisibility('.stopInterviewButton');
     finished_intro=true;
     during_interview=true;
   
@@ -1205,6 +1378,10 @@ function toggleVisibility(classname) {
       }
     });	
 
+    $('.stopInterviewButton').click(function() {
+      initializeOutro();
+    });
+
 
     // Play, pause, resume and stop the contents of the text input as speech
     // when buttons are clicked
@@ -1218,19 +1395,15 @@ function toggleVisibility(classname) {
     //     host.TextToSpeechFeature[id](speechInput.value);
     //   };
     // });
-    const {name, host} = getCurrentHost(speakers);
-    // toggleHost();
-
-    // // Play initial greetings from host
-    // host.TextToSpeechFeature.play(greeting);
+    // const {name, host} = getCurrentHost();
+    // console.log(name, host)
+    const host = intro_settings.get("interviewer_host")
 
     // Set up speech generation 
-    const textareaElement = document.getElementsByClassName(
-      `textEntry ${name}`
-        )[0];
-      textareaElement.addEventListener("speechContentUpdated", evt => {
+    const textareaElement = document.getElementsByClassName('textEntry Interviewer')[0];
+    console.log(textareaElement.value);
+    textareaElement.addEventListener("speechContentUpdated", evt => {
         evt.stopPropagation();
-    // textareaElement.addEventListener("input", function() {
         console.log("text area is changed:", textareaElement.value);
         const gestureMap = host.GestureFeature.createGestureMap();
         const gestureArray = host.GestureFeature.createGenericGestureArray([
@@ -1247,31 +1420,6 @@ function toggleVisibility(classname) {
   }
 
   
-
-  async function initializeInterviewRoom(){
-     // Create the interview scene
-    const {scene, camera, clock} = createScene();
-    // Add character to the scene
-    const {
-      character: character1,
-      clips: clips1,
-      bindPoseOffset: bindPoseOffset1,
-    } = await loadCharacter(
-      scene,
-      characterData1.characterFile,
-      characterData1.animationPath,
-      characterData1.animationFiles
-    );
-    // position the character
-    character1.position.set(1.25, 0, 0);
-    character1.rotateY(-0.5);
-
-     // Find the joints defined by name
-    const audioAttach1 = character1.getObjectByName(characterData1.audioAttachJoint);
-    const lookTracker1 = character1.getObjectByName(characterData1.lookJoint);
-
-
-  }
 
 
 
@@ -1305,13 +1453,6 @@ function toggleVisibility(classname) {
     }
   }
 </script>
-    <!-- <div id="loadScreen">
-       <div id="loader"></div>
-     </div>  -->
-    <!-- <textarea id="speechText">Hello. I'm a Sumerian host. It's nice to meet you.</textarea>
-    <button id="speakButton">Speak</button>
-    <canvas id="renderCanvas" touch-action="none"></canvas>
-    <script src="main.js"></script> -->
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

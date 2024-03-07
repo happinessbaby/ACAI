@@ -13,7 +13,7 @@ export function init_audioReceiver() {
     console.log('Received AI response from server:', receivedMessage);
 
     // Update HTML element with the received message
-    updateSpeechContent(receivedMessage, "Luke")
+    updateSpeechContent(receivedMessage)
   };
 
   socket.onclose = (event) => {
@@ -29,23 +29,18 @@ export function init_audioReceiver() {
 // Define an event that will be triggered when content is updated
 const speechContentUpdatedEvent = new Event('speechContentUpdated');
 
-function updateSpeechContent(newContent, name) {
+function updateSpeechContent(newContent) {
     // Get the <speak> element by its ID
-    const speechElement = document.getElementsByClassName(`textEntry ${name}`)[0];
-    // if (!speechElement) {
-    //     console.error('Element with ID "textEntry ${name}" not found.');
-    //     return;
-    //   }
+    const speechElement = document.getElementsByClassName('textEntry Interviewer')[0];
     // Update the innerHTML of the <speak> element with the new content
-    speechElement.value = `<amazon:domain name="conversational">${newContent}</amazon:domain>`;
+    // speechElement.value = `<amazon:domain name="conversational">${newContent}</amazon:domain>`;
+    speechElement.value = newContent;
     // Dispatch the event when content is updated
     speechElement.dispatchEvent(speechContentUpdatedEvent);
     console.log("Dispatched textentry updating event");
   }
 
 
-  // Make the updateSpeechContent function available globally
-// window.updateSpeechContent = updateSpeechContent;
 
 
   
