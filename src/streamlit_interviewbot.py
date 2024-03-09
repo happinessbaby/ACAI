@@ -338,79 +338,12 @@ class Interview():
                 st.form_submit_button(label='Submit', on_click=self.form_callback)
             
              
-                    
-
-
-    # def thread_run(self):
-
-    #     with ThreadPoolExecutor(max_workers=60) as executor:
-    #         # ctx = get_script_run_ctx()
-    #         # futures = [executor.submit(self._create_interviewbot, ctx)]
-    #         # for future in as_completed(futures):
-    #         #     yield future.result()
-    #         future = executor.submit(self._create_interviewbot)
-    #         future.result()
-
-    # def _init_listener(self, q:Queue):
-    #     new_listener = keyboard.Listener(
-    #             on_press=self.on_press,
-    #             on_release=self.on_release)
-    #     # st.session_state["listener"] = new_listener   
-    #     q.put(new_listener)
-
-    # def _initialize_socket(self):
-
-    #     try:
-    #         start_server = websockets.serve(self.audio_processor, IP, PORT)
-    #         asyncio_run(start_server, as_task=False)
-    #         print("SUCCESSFULLY INITIALIZED SOCKET")
-    #     except OSError as e:
-    #         print("websocket already started")
-    #     ## address already in use error
-    #         pass 
-
-
-    # async def audio_processor(self, websocket, path,):
-    #     """
-    #     Collects audio from the stream, writes it to buffer and return the output of Google speech to text
-    #     """
-
-    #     print("INSIDE AUDIO PROCESSOR")
-    #     config = await websocket.recv()
-    #     if not isinstance(config, str):
-    #         print("ERROR, no config")
-    #         return
-    #     else:
-    #         print("CONFIG RECEIVED")
-    #         print(config)
-    #     config = json.loads(config)
-    #     transcoder = Transcoder(
-    #         encoding=config["format"],
-    #         rate=config["rate"],
-    #         language=config["language"]
-    #     )
-    #     transcoder.start()
-    #     while True:
-    #         try:
-    #             data = await websocket.recv()
-    #         except websockets.ConnectionClosed:
-    #             print("Connection closed")
-    #             break
-    #         transcoder.write(data)
-    #         transcoder.closed = False
-    #         if transcoder.transcript:
-    #             print(transcoder.transcript)
-    #             ##send it to ai
-    #             await websocket.send(transcoder.transcript)
-    #             # await self.data_queue.put(transcoder.transcript)
-        
-    #             print("sent to data queue")
-    #             transcoder.transcript = None             
+         
 
     # websocket server
-    async def receive_transcript(self, interviewer, loop):
+    async def receive_user_input(self, interviewer, loop):
 
-        """ Receives audio transcript from backend websocket server and sends it to AI agent. 
+        """ Receives audio transcript and user upload from backend websocket server through a data queue and sends it to AI agent. 
         
         Args:
         
@@ -421,19 +354,20 @@ class Interview():
         """
 
         while True:
-            transcript = await self.data_queue.get()
-            print(f"received transcript from data queue: {transcript}")
+            user_input = await self.data_queue.get()
+            print(f"received transcript from data queue: {user_input}")
             try:
                 print("userid:", interviewer.userId)
                 # this sends the CPU intensive function to a different blocking thread
-                response = await loop.run_in_executor(None, functools.partial(interviewer.interviewer.askAI, user_input=transcript))
-                print("ai response:", response)
+                interviewer_response, grader_response = await loop.run_in_executor(None, functools.partial(interviewer.interviewer.askAI, user_input=user_input))
+                print("interviewer response:", interviewer_response)
+                print("grader response", grader_response)
+                data = {"interviewer": interviewer_response, "grader":grader_response}
+                json_str = json.dumps(data)
                 # this sends the task to the same event loop/
-                asyncio.create_task(self.send_response(response))
+                asyncio.create_task(self.send_response(json_str))
             except Exception as e:
                 raise e
-    
-
 
     # websocket client
     async def send_response(self, response):
@@ -625,8 +559,7 @@ class Interview():
                 # # RuntimeError: threads can only be started once  
                 # except RuntimeError as e:
                 #     pass
-            # elif st.session_state.mode=="text":
-            #     self._init_text_session() 
+
 
     def invoke_lambda(self, payload, ):
 
@@ -927,15 +860,6 @@ class Interview():
                 ai_response = st.session_state.baseinterview.askAI(user_input)
                 self.synthesize_ai_response(ai_response)
  
-            # audio_bytes = audio_recorder(
-            #     text="Click to record",
-            #     recording_color="#e8b62c",
-            #     neutral_color="#6aa36f",
-            #     icon_name="user",
-            #     icon_size="6x",
-            # )
-            # wav_audio_data = st_audiorec()       
-                # st.session_state["text_received"]=text
 
 
 
@@ -1148,12 +1072,6 @@ class Interview():
                 file_ext = Path(uploaded_file.name).suffix
                 filename = str(uuid.uuid4())+file_ext
                 tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId, filename)
-                # if st.session_state.storage=="LOCAL":
-                #     with open(tmp_save_path, 'wb') as f:
-                #         f.write(uploaded_file.getvalue())
-                # elif st.session_state.storage=="CLOUD":
-                #     st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-                #     print("Successful written file to S3")
                 write_file(uploaded_file.getvalue(), tmp_save_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)
@@ -1379,11 +1297,8 @@ class SocketClient():
                             on_close=on_close)
         self.socket_client = st.session_state.socket_client
         threading.Thread(target=run_websocket, daemon=True).start()
-        # thread.daemon = True
-        # thread.start()
-            # asyncio_run(st.session_state.socket_client)
-        # else
-        #     print("Socket client already running")
+
+
 try:
     event_loop = asyncio.get_event_loop()
 except Exception:
@@ -1400,9 +1315,7 @@ interviewer = Interview(data_queue=web_socket_server.data_queue, socket_client=w
 if interviewer.interviewer is not None:
     tasks = [
         asyncio.ensure_future(web_socket_server._init_socket_server()),
-        asyncio.ensure_future(interviewer.receive_transcript(interviewer, event_loop,)),
-        # asyncio.ensure_future(web_socket_client._init_socket_client()),
-        # asyncio.ensure_future(interviewer.send_response())
+        asyncio.ensure_future(interviewer.receive_user_input(interviewer, event_loop,)),
     ]
 
     event_loop.run_until_complete(asyncio.gather(*tasks))

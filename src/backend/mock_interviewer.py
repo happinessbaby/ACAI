@@ -12,7 +12,7 @@ import json
 from json import JSONDecodeError
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
@@ -293,13 +293,11 @@ class InterviewController():
 
 
 
-    def askAI(self, user_input: str, callbacks=None,) -> str:
+    def askAI(self, user_input: str, callbacks=None,) -> Union[str, str]:
 
         """ Main function that processes all agents' conversation with user.
          
         Args:
-
-            userid (str): session id of user
 
             user_input (str): user question or response
 
@@ -309,7 +307,7 @@ class InterviewController():
 
         Returns:
 
-            Answer or response by AI (str)  
+            response from AI interviewer and AI grader  
             
          """
 
@@ -322,7 +320,7 @@ class InterviewController():
             # print(f"GRADER FEEDBACK: {grader_feedback}")
             print(f"User Voice Input: {user_input}")
             response = self.interview_agent({"input":user_input})
-            response = response.get("output", "sorry, something happened, try again.")        
+            interviewer_response = response.get("output", "sorry, something happened, try again.")        
             # response = self.interview_agent({"input":user_input})    
             # if (evaluate_result):
             #     evalagent_q = Queue()
@@ -352,7 +350,7 @@ class InterviewController():
         # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:
         #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # print(f"Sucessfully pickled conversation: {chat_history}")
-        return response 
+        return interviewer_response, grader_feedback
 
     # @retry(
     #     wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries

@@ -130,14 +130,18 @@ class SocketServer():
         self.IP= ip
         self.PORT = port
         self.data_queue = asyncio.Queue()
+        self.data_queue2 = asyncio.Queue();
 
 
     async def _init_socket_server(self, ):
 
         try:
             socket_server = websockets.serve(self.audio_processor, self.IP, self.PORT)
+             # WebSocket server runs on the main thread
+            # socket_server2 = websockets.serve(self.text_processor, self.IP, 8700)
             # start_server = websockets.serve(functools.partial(self.audio_processor, conn = conn), self.IP, self.PORT)
             asyncio_run(socket_server, as_task=False)
+            # asyncio_run(socket_server2, as_task=False)
         except OSError as e:
             print("Socket server already exists")
         ## address already in use error
@@ -175,8 +179,8 @@ class SocketServer():
         else:
             try:
                 data = json.loads(data)
+                # when user stopped recording, send transcript to AI
                 if data.get('action', None) == 'stopRecording':
-         # transcoder.closed = False
                     if transcoder.transcript:
                         print(transcoder.transcript)
                         await websocket.send(transcoder.transcript)
@@ -184,11 +188,16 @@ class SocketServer():
                         await self.data_queue.put(transcoder.transcript)
                         print(f"transcript sent to data queue")
                         transcoder.transcript = ""
+                if data.get('action', None)== 'userUpload':
+                    upload = data.get('upload', None)
+                    if upload:
+                        await websocket.send("successfully received user upload from socket server")
+                        print("user upload sent from socket server")
+                        await self.data_queue.put(upload)
+                        print("user upload sent to data queue")
             except json.JSONDecodeError as e:
                 raise 
 
-
-           
 
     
         

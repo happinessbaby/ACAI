@@ -58,6 +58,6 @@ wsServer.on('request', function(request) {
 // Function to broadcast a message to all connected clients
 function broadcast(message) {
     clients.forEach(function(client) {
-      client.sendUTF('Broadcast: ' + message);
+      client.sendUTF(message);
     });
   }

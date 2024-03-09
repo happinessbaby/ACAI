@@ -82,7 +82,7 @@ var audioRecorder = {
         //     //return a custom error
         //     return Promise.reject(new Error('mediaDevices API or getUserMedia method is not supported in this browser.'));
         // }
-        audioRecorder.connect();
+        _ = audioRecorder.connect();
 
         /** NOTE: for some reason audioContext needs to be recreated each time and closed each time for the websocket to receive more tha one msg in the backend */
         audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
@@ -184,14 +184,14 @@ var audioRecorder = {
               };
               audioRecorder.connection.onmessage = event => {
                   console.log("websocket received msg", event.data);
-                }
+                };
             }
             else {
-              console.log("webscoket already established", audioRecorder.connection.readyState)
+              console.log("webscoket already established", audioRecorder.connection.readyState);
             }
-            // audioRecorder.connection = connection;
-
+            // audioRecorder.connection = connection;     
             console.log("connected to websocket")
+            return audioRecorder.connection;
           },
     // disconnect: function() {
     //     console.log("disconnecting:", audioRecorder.connection.readyState)

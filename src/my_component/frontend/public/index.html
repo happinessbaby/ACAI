@@ -104,6 +104,30 @@
         width: 327px;
         outline: 0px;
       }
+      .skipIntroButton {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font-size: 32px;
+        color: white; /* Set the desired text color */
+        cursor: pointer;
+      }
+      .stopInterviewButton {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        font-size: 32px;
+        color: white; /* Set the desired text color */
+        cursor: pointer;
+      }
 
       .hidden {
         display: none;
@@ -212,6 +236,9 @@
 </speak>
     </textarea>
   </div>
+  <div>
+  <textarea autofocus size="23" type="text" class="notepad hidden"></textarea>
+  </div>
   <!-- <div>
     <button id="play" class="speechButton">Play</button>
     <button id="pause" class="speechButton">Pause</button>
@@ -229,10 +256,10 @@
   </div> -->
 </div>
 <div>
-  <button id="skip-intro" class="skipIntroButton">Skip intro</button>
+  <button id="skip-intro" class="skipIntroButton">skip intro</button>
   <button id="recDisplay" class="recButton hidden">REC</button> 
   <span id="base-timer-label" class="base-timer label hidden"></span>
-  <button id="stop-interview" class="stopInterviewButton hidden">stop interview</button>
+  <button id="stop-interview" class="stopInterviewButton hidden">end interview</button>
 </div>
 <script type="module">
 
@@ -565,6 +592,7 @@ document.onkeypress = function (e) {
     const saved_camera = intro_settings.get("camera");
     const grader = intro_settings.get("grader_chara");
     const interviewer = intro_settings.get("interviewer_chara");
+    const grader_host = intro_settings.get("grader_host");
     outro_scene.add(grader);
     outro_scene.remove(interviewer);
     grader.position.set(0, 0, 0);
@@ -597,6 +625,10 @@ document.onkeypress = function (e) {
       renderer.render(outro_scene, camera);
     }
     render();
+    const textareaElement = document.getElementsByClassName('textEntry Grader')[0];
+    console.log("grader feedback", textareaElement.value);
+    grader_host.TextToSpeechFeature.play(textareaElement.value)
+
   }
 
 
@@ -1334,8 +1366,8 @@ document.onkeypress = function (e) {
 
 
 function toggleVisibility(classname) {
-  const recButton = document.querySelector(classname);
-  recButton.classList.toggle('hidden');
+  const element = document.querySelector(classname);
+  element.classList.toggle('hidden');
 }
 
 
@@ -1345,7 +1377,8 @@ function toggleVisibility(classname) {
 
     // Enable drag/drop text files on the speech text area
     // setCurrentHost(host_name);
-    enableDragDrop('notePad');
+    enableDragDrop('notepad');
+    toggleVisibility('.notepad');
     toggleVisibility('.recButton');
     toggleVisibility('.skipIntroButton');
     toggleVisibility('.stopInterviewButton');
@@ -1419,12 +1452,16 @@ function toggleVisibility(classname) {
 
   }
 
+
   
 
 
 
   function enableDragDrop(className) {
     const elements = document.getElementsByClassName(className);
+    // const socket = new WebSocket('ws://localhost:8700');
+    const socket = audioRecorder.connect();
+
 
     for (let i = 0, l = elements.length; i < l; i += 1) {
       const dropArea = elements[i];
@@ -1433,6 +1470,8 @@ function toggleVisibility(classname) {
       const fileReader = new FileReader();
       fileReader.onload = evt => {
         dropArea.value = evt.target.result;
+        socket.send(JSON.stringify({'action': 'userUpload', 'upload':dropArea.value}));
+        console.log("user upload text sent from drag and drop box")
       };
 
       // Drag and drop listeners

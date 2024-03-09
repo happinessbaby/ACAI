@@ -9,7 +9,8 @@ export function init_audioReceiver() {
   };
 
   socket.onmessage = (event) => {
-    const receivedMessage = event.data;
+      
+    const receivedMessage = JSON.parse(event.data);
     console.log('Received AI response from server:', receivedMessage);
 
     // Update HTML element with the received message
@@ -31,12 +32,15 @@ const speechContentUpdatedEvent = new Event('speechContentUpdated');
 
 function updateSpeechContent(newContent) {
     // Get the <speak> element by its ID
-    const speechElement = document.getElementsByClassName('textEntry Interviewer')[0];
+    const interviewerSpeechElement = document.getElementsByClassName('textEntry Interviewer')[0];
+    const graderSpeechElement = document.getElementsByClassName('textEntry Grader')[0];
     // Update the innerHTML of the <speak> element with the new content
     // speechElement.value = `<amazon:domain name="conversational">${newContent}</amazon:domain>`;
-    speechElement.value = newContent;
+    interviewerSpeechElement.value = newContent.interviewer;
+    graderSpeechElement.value = newContent.grader;
     // Dispatch the event when content is updated
-    speechElement.dispatchEvent(speechContentUpdatedEvent);
+    interviewerSpeechElement.dispatchEvent(speechContentUpdatedEvent);
+    graderSpeechElement.dispatchEvent(speechContentUpdatedEvent);
     console.log("Dispatched textentry updating event");
   }
 
