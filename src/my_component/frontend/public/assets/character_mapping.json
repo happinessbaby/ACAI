@@ -1,0 +1,56 @@
+{
+    "Maya": {
+      "characterFile": "./assets/glTF/characters/adult_female/maya/maya.gltf",
+      "animationPath": "./assets/glTF/animations/adult_female",
+      "animationFiles": [
+        "stand_idle.glb",
+        "lipsync.glb",
+        "gesture.glb",
+        "emote.glb",
+        "face_idle.glb",
+        "blink.glb",
+        "poi.glb"
+      ],
+      "gestureConfigFile": "gesture.json",
+      "poiConfigFile": "poi.json",
+      "audioAttachJoint": "chardef_c_neckB",
+      "lookJoint": "charjx_c_look",
+      "voice": "Kendra"
+    },
+    "Luke": {
+      "characterFile": "./assets/glTF/characters/adult_male/luke/luke.gltf",
+      "animationPath": "./assets/glTF/animations/adult_male",
+      "animationFiles": [
+        "stand_idle.glb",
+        "lipsync.glb",
+        "gesture.glb",
+        "emote.glb",
+        "face_idle.glb",
+        "blink.glb",
+        "poi.glb"
+      ],
+      "gestureConfigFile": "gesture.json",
+      "poiConfigFile": "poi.json",
+      "audioAttachJoint": "chardef_c_neckB",
+      "lookJoint": "charjx_c_look",
+      "voice": "Matthew"
+    },
+    "Alien": {
+      "characterFile": "./assets/glTF/characters/alien/alien.gltf",
+      "animationPath": "./assets/glTF/animations/alien",
+      "animationFiles": [
+        "stand_idle.glb",
+        "lipsync.glb",
+        "gesture.glb",
+        "emote.glb",
+        "face_idle.glb",
+        "blink.glb",
+        "poi.glb"
+      ],
+      "gestureConfigFile": "gesture.json",
+      "poiConfigFile": "poi.json",
+      "audioAttachJoint": "charhead",
+      "lookJoint": "chargaze",
+      "voice": "Ivy"
+    }
+  }

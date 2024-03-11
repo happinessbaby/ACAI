@@ -2,35 +2,23 @@
 import os
 import openai
 from pathlib import Path
-from typing import Any
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
-# from langchain.prompts import ChatPromptTemplate
-# from langchain.agents import ConversationalChatAgent, Tool, AgentExecutor
+from langchain_community.embeddings import OpenAIEmbeddings
 from utils.common_utils import check_content
 from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
-from utils.langchain_utils import (create_vectorstore, create_summary_chain, MyCustomAsyncHandler,MyCustomSyncHandler,
-                             retrieve_redis_vectorstore, split_doc, CustomOutputParser, CustomPromptTemplate,
-                             retrieve_faiss_vectorstore, merge_faiss_vectorstore, )
-# from langchain.prompts import BaseChatPromptTemplate
-from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from utils.langchain_utils import (create_vectorstore, create_summary_chain,
+                             split_doc, CustomOutputParser, CustomPromptTemplate, retrieve_vectorstore )
 from langchain.chains import LLMChain
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
-from langchain.agents import initialize_agent
-from langchain.agents import AgentType, Tool, load_tools
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory,  ChatMessageHistory
+from langchain.agents import AgentType, Tool, load_tools, initialize_agent, Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
-from langchain.memory import ChatMessageHistory
 from langchain.schema import messages_from_dict, messages_to_dict, AgentAction
-from langchain.docstore import InMemoryDocstore
 from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.callbacks import get_openai_callback, StdOutCallbackHandler, FileCallbackHandler
+from langchain.callbacks import  StdOutCallbackHandler, FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain.schema.messages import SystemMessage
-from langchain.prompts import MessagesPlaceholder
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
 from langchain.vectorstores import FAISS
 # from feast import FeatureStore
 import pickle
@@ -47,19 +35,20 @@ from multiprocessing import Process, Queue, Value
 from backend.generate_cover_letter import  create_cover_letter_generator_tool
 from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
 from backend.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
-from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
-from langchain.agents.agent_toolkits import create_retriever_tool
-from typing import List, Dict
+from typing import List, Dict, Any
 from json import JSONDecodeError
 from langchain.tools import tool
 import re
 import asyncio
 from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
-from langchain.agents.agent_toolkits import FileManagementToolkit
+# from langchain.agents.agent_toolkits import FileManagementToolkit
 from langchain.tools.file_management.read import ReadFileTool
+from langchain.tools.retriever import create_retriever_tool
 from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from langchain.globals import set_llm_cache
+from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
+
 
 
 
@@ -67,19 +56,25 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
-pickle_path = os.environ["PICKLE_PATH"]
-# static_path = os.environ["STATIC_PATH"]
+save_path = os.environ["CHAT_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
+endpoint_url = os.environ["ENDPOINT_URL"]
+message_key = {
+"PK": os.environ["PK"],
+"SK": os.environ["SK"],
+}
+memory_max_token_count=os.environ["MEMORY_MAX_TOKEN_COUNT"]
+memory_key = os.environ["CHAT_MEMORY_KEY"]
 # debugging langchain: very useful
 langchain.debug=True 
 # The result evaluation process slows down chat by a lot, unless necessary, set to false
 evaluate_result = False
 # The instruction update process is still being tested for effectiveness
 update_instruction = False
+pickle_conversation = False
 delimiter = "####"
 word_count = 100
-memory_max_token = 500
-memory_key="chat_history"
+
 
 
 
@@ -95,20 +90,31 @@ memory_key="chat_history"
 class ChatController():
 
     # llm = ChatOpenAI(streaming=True, callbacks=[StreamingStdOutCallbackHandler()], temperature=0, cache = False)
-    llm = ChatOpenAI(model="gpt-4",streaming=True,temperature=0, cache = False, callbacks=[MyCustomSyncHandler()])
-    embeddings = OpenAIEmbeddings()
-    chat_memory = ConversationBufferMemory(llm=llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token)
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)
     # retry_decorator = _create_retry_decorator(llm)
     set_llm_cache(InMemoryCache())
 
 
-    def __init__(self, userid):
-        self.userid = userid
+    def __init__(self, sessionId, chat_memory=None):
+        self.sessionId = sessionId
+        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,streaming=True)
+        # self.llm.callbacks = [self.streamHandler]
+        self.embeddings = OpenAIEmbeddings()
+        if chat_memory is not None:
+            self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key, chat_memory=chat_memory, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token_count)
+        else:
+            self.chat_memory = ConversationBufferMemory(llm=self.llm, memory_key=memory_key, return_messages=True, input_key="input", output_key="output", max_token_limit=memory_max_token_count)
         self._initialize_log()
         self._initialize_chat_agent()
+        # initialize instructor
         if update_instruction:
             self._initialize_meta_agent()
+        # initialize evaluator
+        if (evaluate_result):
+            self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
+
+
+
         
 
 
@@ -142,11 +148,16 @@ class ChatController():
         requests_get = load_tools(["requests_get"])
         # link_download_tool = [binary_file_downloader_html]
         # general vector store tool
-        store = retrieve_faiss_vectorstore(faiss_web_data_path)
+        store = retrieve_vectorstore("faiss", faiss_web_data_path)
         retriever = store.as_retriever()
-        general_tool_description = """This is a general purpose tool. Use it to answer general job related questions through searching database.
-        Prioritize other tools over this tool. """
-        general_tool= create_retriever_tools(retriever, "search_general_database", general_tool_description)
+        general_tool_description = """This is a general purpose tool that helps answer questions through searching a general knowledge database.
+        Prioritize other tools over this tool! """
+        # general_tool= create_retriever_tools(retriever, "search_general_database", general_tool_description)
+        general_tool = [create_retriever_tool(
+            retriever,
+            "search_general_database",
+            general_tool_description,
+        )]
         # web reserach: https://python.langchain.com/docs/modules/data_connection/retrievers/web_research
         # search = GoogleSearchAPIWrapper()
         # embedding_size = 1536  
@@ -168,10 +179,6 @@ class ChatController():
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")
-
-        # initialize evaluator
-        if (evaluate_result):
-            self.evaluator = load_evaluator("trajectory", agent_tools=self.tools)
 
         # initialize dynamic args for prompt
         self.entities = ""
@@ -217,10 +224,12 @@ class ChatController():
                                             memory=self.chat_memory, 
                                             return_intermediate_steps = True,
                                             handle_parsing_errors="Check your output and make sure it conforms!",
-                                            callbacks = [self.handler])
+                                            callbacks = [self.Loghandler],
+                                            )
         # modify default agent prompt
         prompt = self.chat_agent.agent.create_prompt(system_message=template, input_variables=['chat_history', 'input', 'entities', 'instruction', 'agent_scratchpad'], tools=self.tools)
         self.chat_agent.agent.llm_chain.prompt = prompt
+
         # Option 2: structured chat agent for multi input tools, currently cannot get to use tools
         # suffix = """Begin! Reminder to ALWAYS respond with a valid json blob of a single action. 
         # Use tools if necessary. Respond directly if appropriate. 
@@ -330,7 +339,7 @@ class ChatController():
         memory = ReadOnlySharedMemory(memory=self.chat_memory)
 
         # Whenver there's an error message, please use the "debug_error" tool.
-        system_msg = """You are a meta AI whose job is to provide the Instructions so that your colleague, the AI assistant, would quickly and correctly respond to Humans.
+        system_msg = """You are an instruction AI whose job is to provide the Instructions so that the AI assistant would quickly and correctly respond to Humans.
 
         You are provided with their Current Conversation. If the current conversation is going well, you don't need to provide any Instruction. 
         
@@ -409,14 +418,15 @@ class ChatController():
         """ Initializes log: https://python.langchain.com/docs/modules/callbacks/filecallbackhandler """
 
          # initialize file callback logging
-        logfile = log_path + f"{self.userid}.log"
-        self.handler = FileCallbackHandler(logfile)
+        logfile = log_path + f"{self.sessionId}.log"
+        self.Loghandler = FileCallbackHandler(logfile)
+        #TODO: add log file to S3?
         logger.add(logfile,  enqueue=True)
         # Upon start, all the .log files will be deleted and changed to .txt files
         for path in  Path(log_path).glob('**/*.log'):
             file = str(path)
             file_name = path.stem
-            if file_name != self.userid: 
+            if file_name != self.sessionId: 
                 # convert all non-empty log from previous sessions to txt and delete the log
                 if os.stat(file).st_size != 0:  
                     convert_to_txt(file, log_path+f"{file_name}.txt")
@@ -429,13 +439,11 @@ class ChatController():
     #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
     # )
     @retry(wait=wait_fixed(5))
-    def askAI(self, userid:str, user_input:str, callbacks=None,) -> str:
+    def askAI(self, user_input:str, callbacks=None) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
         Args:
-
-            userid (str): session id of user
 
             user_input (str): user question or response
 
@@ -452,8 +460,11 @@ class ChatController():
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
             print([tools.name for tools in self.tools])
-            # response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks = callbacks)
-            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
+            # response = self.chat_agent.stream({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            # for res in response:
+            #     print(res.get("output", "Sorry, something happened, please try again."), flush=True)
+            #     return res.get("output", "Sorry, something happened, please try again.")
             # convert dict to string for chat output
             response = response.get("output", "sorry, something happened, try again.")
             if (update_instruction):
@@ -490,9 +501,12 @@ class ChatController():
             # self.askAI(userid, user_input, callbacks)    
             raise e    
 
-        # pickle memory (sanity check)
-        # with open(pickle_path+ userid + '.pickle', 'wb') as handle:
-        #     memory = self.chat_agent.memory.load_memory_variables({})
+        # self.conversation["human"].append(user_input)
+        # self.conversation["ai"].append(response)
+        # pickle conversation
+        # memory = self.chat_agent.memory.load_memory_variables({})
+        # pickle_path = os.path.join(save_path, userid, "chat", f"{userid}.pickle")
+        # with open(pickle_path, 'wb') as handle:
         #     pickle.dump(memory, handle, protocol=pickle.HIGHEST_PROTOCOL)
         #     print(f"Sucessfully pickled conversation: {memory}")
         return response
@@ -567,8 +581,8 @@ class ChatController():
         """ Updates entities list for main chat agent. Entities are files user loads or topics of the files. """
 
         entity_type = text.split(":")[0]
-        print(f"Entity type: {entity_type}")
-        self.delete_entities(entity_type, delimiter)
+        if entity_type!="user_material_topics":
+            self.delete_entities(entity_type, delimiter)
         self.entities += f"\n{text}\n"
         self.entities.strip()
         print(f"Successfully added entities {self.entities}.")
@@ -579,9 +593,11 @@ class ChatController():
 
         starting_indices = [m.start() for m in re.finditer(type, self.entities)]
         end_indices = [m.start() for m in re.finditer(delimiter, self.entities)]
-        print(type, starting_indices, end_indices)
-        for i in range(len(starting_indices)):
-            self.entities = self.entities.replace(self.entities[starting_indices[i]:end_indices[i]+len(delimiter)], "")
+        # print(type, starting_indices, end_indices)
+        if starting_indices and end_indices:
+            for i in range(len(starting_indices)):
+                self.entities = self.entities.replace(self.entities[starting_indices[i]:end_indices[i]+len(delimiter)], "")
+
 
     # def update_instructions(self, meta_output:str) -> None:
     #     delimiter = "Instructions: "
@@ -594,7 +610,7 @@ class ChatController():
         
         """ Adds custom data to log. """
 
-        with open(log_path+f"{self.userid}.log", "a") as f:
+        with open(log_path+f"{self.sessionId}.log", "a") as f:
             f.write(str(data))
             print(f"Successfully updated meta data: {data}")
 

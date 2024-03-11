@@ -51,3 +51,15 @@ st_clickable_images
 tenacity==8.2.3
 toml==0.10.2
 geopy==2.4.0
+httpx-oauth
+streamlit-authenticator
+extra-streamlit-components
+localstoragePy
+hydralit-components
+streamlit-datalist
+opensearch-py
+requests-aws4auth
+lancedb
+pywinctl
+streamlit-audiorec
+streamlit-mic-recorder

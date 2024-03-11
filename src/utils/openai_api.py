@@ -68,7 +68,17 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
     return num_tokens
 
-
+def num_assistant_tokens_from_messages(messages,  model="gpt-3.5-turbo-0613"):
+	try:
+		encoding = tiktoken.encoding_for_model(model)
+	except KeyError:
+		print("Warning: model not found. Using cl100k_base encoding.")
+		encoding = tiktoken.get_encoding("cl100k_base")
+	num_tokens = 0
+	for message in messages:
+		if message["role"] == "assistant":
+			num_tokens += len(encoding.encode(message["content"]))
+	return num_tokens
 
 def get_moderation_flag(prompt):
 

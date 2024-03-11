@@ -15,7 +15,7 @@ from langchain.document_loaders import UnstructuredURLLoader
 from typing import Any, List, Union, Dict
 from docxtpl import DocxTemplate
 from langchain.document_transformers import Html2TextTransformer
-from langchain.document_loaders import AsyncHtmlLoader
+from langchain.document_loaders import AsyncHtmlLoader, S3FileLoader
 import asyncio
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
@@ -26,35 +26,64 @@ import errno
 import os
 import signal
 import functools
+import codecs
+import json
+import decimal
     
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
+aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
-def convert_to_txt(file, output_path):
-    file_ext = os.path.splitext(file)[1]
-    if (file_ext)=='.txt':
-        os.rename(file, output_path)
-    if (file_ext=='.pdf'): 
-        convert_pdf_to_txt(file, output_path)
-    elif (file_ext=='.odt' or file_ext=='.docx'):
-        convert_doc_to_txt(file, output_path)
-    elif (file_ext==".log"):
-        convert_log_to_txt(file, output_path)
-    elif (file_ext==".pptx"):
-        convert_pptx_to_txt(file, output_path)
-    elif (file_ext==".ipynb"):
-        convert_ipynb_to_txt(file, output_path)
+def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None) -> bool:
 
-def convert_ipynb_to_txt(file, output_path):
-    os.rename(file, output_path)
+    """ Converts file to TXT file and move it to destination location. """
+    try:
+        file_ext = Path(file).suffix
+        if storage=="LOCAL":
+            if (file_ext)=='.txt' and file!=output_path:
+                os.rename(file, output_path)
+                # move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
+            if (file_ext=='.pdf'): 
+                convert_pdf_to_txt(file, output_path)
+            elif (file_ext=='.odt' or file_ext=='.docx'):
+                convert_doc_to_txt(file, output_path)
+            elif (file_ext==".log"):
+                convert_log_to_txt(file, output_path)
+            elif (file_ext==".pptx"):
+                convert_pptx_to_txt(file, output_path)
+        elif storage=="CLOUD":
+            loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            text = loader.load()[0].page_content
+            s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
+            print("Successfully converted file in S3 to TXT")
+        return True
+    except Exception:
+        return False
 
+
+
+# def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
+#     if storage=="LOCAL":
+#         os.rename(file, output_path)
+#     elif storage=="CLOUD":
+#          # Copy object A as object B
+#         copy_source = {'Bucket': bucket_name, 'Key': file}
+#         s3.copy_object(
+#             Bucket=bucket_name,
+#             Key=output_path,
+#             CopySource=copy_source,
+#         )
+#     print("Successfully moved TXT to final destination")
         
 
 def convert_log_to_txt(file, output_path):
     with open(file, "r") as f:
         content = f.read()
-        print(content)
         with open(output_path, "w") as f:
             f.write(content)
             f.close()
+      
 
 def convert_pptx_to_txt(pptx_file, output_path):
     prs = Presentation(pptx_file)
@@ -66,7 +95,7 @@ def convert_pptx_to_txt(pptx_file, output_path):
     with open(output_path, 'w') as f:
         f.write(text)
         f.close()
-
+ 
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
 def convert_pdf_to_txt(pdf_file, output_path):
     pdf = fitz.open(pdf_file)
@@ -81,13 +110,88 @@ def convert_pdf_to_txt(pdf_file, output_path):
 def convert_doc_to_txt(doc_file, output_path):
     pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
 
-def read_txt(file):
+def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
+
+    """ Reads TXT file into string. """
+
     try:
-        with open(file, 'r', errors='ignore') as f:
-            text = f.read()
+        if storage=="LOCAL":
+            with open(file, 'r', errors='ignore') as f:
+                text = f.read()
+                return text
+        elif storage=="CLOUD":
+            data = s3.get_object(Bucket=bucket_name, Key=file)
+            contents = data['Body'].read()
+            text = contents.decode("utf-8")
             return text
     except Exception as e:
-        raise e
+        return ""
+    
+def delete_file(file, storage="LOCAL", bucket_name=None, s3=None) -> bool:
+    
+    """ Deletes file. """
+    
+    try:
+        if storage=="LOCAL":
+            os.remove(file)
+        elif storage=="CLOUD":
+            s3.delete_object(Bucket=bucket_name, Key=file)
+        return True
+    except Exception as e:
+        return False
+    
+def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
+
+    """ Creates directories given a list of paths"""
+
+    if storage=="LOCAL":
+        for path in paths:
+            try: 
+                os.mkdir(path)
+            except FileExistsError:
+                pass
+    elif storage=="CLOUD":
+        for path in paths:
+            try:
+                s3.put_object(Bucket=bucket_name,Body='', Key=path)
+            except Exception as e:
+                raise e
+            
+
+def write_file(file_content:Any, end_path: str, mode="wb", storage="LOCAL", bucket_name=None, s3=None,):
+
+    """ Writes content to file. """
+
+    if storage=="LOCAL":
+        with open(end_path, mode) as f:
+            f.write(file_content)
+    elif storage=="CLOUD":
+        s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+
+
+def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=None):
+    
+    if storage=="LOCAL":
+        with open(file_path, mode) as f:
+            data = f.read()
+    elif storage=="CLOUD":
+        object = s3.get_object(Bucket=bucket_name, Key=file_path)
+        data = object['Body'].read()
+    return data
+
+        
+
+
+# def output_path(file:str, file_type:str, storage="LOCAL"):
+
+#     """ Creates output path of the given file. """
+
+#     dirname, fname = os.path.split(file)
+#     filename = Path(fname).stem 
+#     docx_filename = filename + "_" + file_type +".docx"
+#     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
+#     if storage=="LOCAL":
+#     elif storage=="S3":
     
 def markdown_table_to_dict(markdown_table):
     # Convert Markdown to HTML
@@ -142,21 +246,24 @@ def retrieve_web_content(link, save_path="./web_data/test.txt"):
         return False
     
 # this one is better than the above function 
-def html_to_text(urls:List[str], save_path="./web_data/test.txt"):
+def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s3=None):
 
-    """Writes a list of url content to txt file. """
+    """Writes a list of urls' content to txt file. """
     
     try:
         loader = AsyncHtmlLoader(urls)
         docs = loader.load()
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
-        content = docs_transformed[0].page_content              
-        with open(save_path, 'w') as file:
-            file.write(content)
-            file.close()
-            print('Content retrieved and written to file.')
-            return True
+        content = docs_transformed[0].page_content  
+        if storage=="LOCAL":            
+            with open(save_path, 'w') as file:
+                file.write(content)
+                file.close()
+                print('Content retrieved and written to file.')
+        elif storage=="S3":
+            s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
+        return True
     except Exception:
         return False
 
@@ -327,6 +434,15 @@ def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
         return wrapper
 
     return decorator
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            if abs(o) % 1 > 0:
+                return float(o)
+            else:
+                return int(o)
+        return super(DecimalEncoder, self).default(o)
 
 if __name__=="__main__":
     # retrieve_web_content(

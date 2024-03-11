@@ -1,0 +1,17 @@
+credentials:
+  usernames:
+    jsmith:
+      email: yueqipeng2021@gmail.com
+      name: Yueqi Peng
+      password: $2b$12$5lj7X//oNyQaXVrLPnoGmeL0aL3bUTSVxWkDc2ZSun4un79DCNl/e # To be replaced with hashed password
+    rbriggs:
+      email: rbriggs@gmail.com
+      name: Rebecca Briggs
+      password: $2b$12$TexoHHOUfEm6pqSelhcjveTUbkZv9rrm8nPSSZU5XTTXJ5WVS8MaW
+cookie:
+  expiry_days: 30
+  key: random_signature_key # Must be string
+  name: userInfo
+preauthorized:
+  emails:
+  - melsby@gmail.com

@@ -1,10 +1,9 @@
 from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
 from langchain.vectorstores import DocArrayInMemorySearch
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.agents import AgentType
 from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
-                              split_doc, retrieve_faiss_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
+                              split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
 from langchain.tools import tool
@@ -24,35 +23,29 @@ import base64
 from langchain.agents.react.base import DocstoreExplorer
 from langchain.document_loaders import TextLoader, DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
-from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.chains import RetrievalQA,  LLMChain
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.agents.agent_toolkits import (
-    create_vectorstore_agent,
-    VectorStoreToolkit,
-    create_vectorstore_router_agent,
-    VectorStoreRouterToolkit,
-    VectorStoreInfo,
-)
+# from langchain.agents.agent_toolkits import create_retriever_tool
+# from langchain.agents.agent_toolkits import (
+#     create_vectorstore_agent,
+#     VectorStoreToolkit,
+#     create_vectorstore_router_agent,
+#     VectorStoreRouterToolkit,
+#     VectorStoreInfo,
+# )
 from utils.langchain_utils import create_ensemble_retriever
 from typing import List, Union, Any, Optional, Dict
 from langchain.tools.base import ToolException
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
+STORAGE = os.environ['STORAGE']
 
 def create_wiki_tools() -> List[Tool]:
 
-    """
-    Creates wikipedia tool used to lookup and search in wikipedia
-
-    Args: None
-
-    Returns: List[Tool]
+    """ Creates wikipedia tool used to lookup and search in wikipedia """
     
-    """
     docstore = DocstoreExplorer(Wikipedia())
     tools = [
         Tool(
@@ -138,7 +131,6 @@ def create_search_tools(name: str, top_n: int) -> List[Tool]:
 
 class DocumentInput(BaseModel):
     question: str = Field()
-
 def create_retriever_tools(retriever: Any, name: str, description: str, llm=OpenAI(), chain_type="stuff") -> List[Tool]:
 
     """
@@ -178,50 +170,50 @@ def create_retriever_tools(retriever: Any, name: str, description: str, llm=Open
     return tool
 
 
-def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description: str) -> List[Tool]:   
+# def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description: str) -> List[Tool]:   
 
-    """Create retriever tools from vector store for conversational retrieval agent
+#     """Create retriever tools from vector store for conversational retrieval agent
     
-    See: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
+#     See: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
     
-    Args:
+#     Args:
 
-        vectorstore (Any): vector store to be used as retriever
+#         vectorstore (Any): vector store to be used as retriever
 
-        tool_name: name of the tool
+#         tool_name: name of the tool
 
-        tool_description: description of the tool's usage
+#         tool_description: description of the tool's usage
 
-    Returns:
+#     Returns:
 
-        List[Tool]
+#         List[Tool]
 
-    """   
+#     """   
 
-    retriever = vectorstore.as_retriever()
-    tool = [create_retriever_tool(
-        retriever,
-        tool_name,
-        tool_description
-        )]
-    print(f"Succesfully created retriever tool: {tool_name}")
+#     retriever = vectorstore.as_retriever()
+#     tool = [create_retriever_tool(
+#         retriever,
+#         tool_name,
+#         tool_description
+#         )]
+#     print(f"Succesfully created retriever tool: {tool_name}")
 
-    return tool
+#     return tool
 
-def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
+# def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
 
-    """ See: https://python.langchain.com/docs/integrations/toolkits/vectorstore"""
+#     """ See: https://python.langchain.com/docs/integrations/toolkits/vectorstore"""
 
-    store = retrieve_faiss_vectorstore(embeddings,index_name)
-    vectorstore_info = VectorStoreInfo(
-        name=vs_name,
-        description=vs_description,
-        vectorstore=store,
-        )
-    router_toolkit = VectorStoreRouterToolkit(
-    vectorstores=[vectorstore_info,], llm=llm
-        )  
-    return router_toolkit
+#     store = retrieve_faiss_vectorstore(embeddings,index_name)
+#     vectorstore_info = VectorStoreInfo(
+#         name=vs_name,
+#         description=vs_description,
+#         vectorstore=store,
+#         )
+#     router_toolkit = VectorStoreRouterToolkit(
+#     vectorstores=[vectorstore_info,], llm=llm
+#         )  
+#     return router_toolkit
 
 def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
 
@@ -261,9 +253,11 @@ def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[
 @tool()
 def search_user_material(json_request: str) -> str:
 
-    """Searches and looks up user uploaded material, if available.
+    """Searches and looks up user uploaded material.
 
-      Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>" \n"""
+    Use this tool more than other tools when user question is relevant in user_material_topics.
+
+    Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>"}}' """
 
     try:
         args = json.loads(process_json(json_request))
@@ -274,9 +268,14 @@ def search_user_material(json_request: str) -> str:
     vs_path = args["user_material_path"]
     query = args["user_query"]
     try:
+        if STORAGE=="LOCAL":
+            vs_type="faiss"
+        elif STORAGE=="CLOUD":
+            vs_type="elasticsearch"
+        vs = retrieve_vectorstore(vs_type=vs_type, index_name=vs_path)
         # subquery_relevancy = "how to determine what's relevant in resume"
         # option 1: compression retriever
-        retriever = create_compression_retriever(vectorstore=vs_path)
+        retriever = create_compression_retriever(vectorstore=vs)
         # option 2: ensemble retriever
         # retriever = create_ensemble_retriever(split_doc())
         # option 3: vector store retriever
@@ -286,8 +285,10 @@ def search_user_material(json_request: str) -> str:
         # reordered_docs = reorder_docs(retriever.get_relevant_documents(subquery_relevancy))
         texts = [doc.page_content for doc in docs]
         texts_merged = "\n\n".join(texts)
+        print(f"SEARCH USER MATERIAL TOOL RESPONSE: {texts_merged}")
         return texts_merged
-    except Exception:
+    except Exception as e:
+        raise e
         return "Stop using the search_user_material tool. There is no user material or query to look up. Use another tool."
 
 
@@ -312,23 +313,7 @@ def file_loader(json_request: str) -> str:
     except Exception as e:
         return "file did not load successfully. try another tool"
     
-# @tool("get_download_link", return_direct=True)
-# def binary_file_downloader_html(json_request: str):
 
-#     """ Gets the download link from file. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
-    
-#     Input should be a strictly single string in the following JSON format: '{{"file path": "<file path>"}}' """
-
-#     try: 
-#         args = json.loads(json_request)
-#         file = args["file_path"]
-#     except JSONDecodeError:
-#         return """ Format in the following JSON and try again: '{{"file path": "<file path>"}}' """
-#     with open(file, 'rb') as f:
-#         data = f.read()
-#     bin_str = base64.b64encode(data).decode()
-#     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download the cover letter</a>'
-#     return href
 
 @tool("help and instruction")
 def provide_help_and_instruction(query:str) -> str:
@@ -346,7 +331,8 @@ def search_all_chat_history(query:str)-> str:
     """ Used when there's miscommunication in the current conversation and agent needs to reference chat history for a solution. """
 
     try:
-        db = retrieve_faiss_vectorstore("chat_debug")
+        if STORAGE=="LOCAL":
+            db = retrieve_vectorstore("faiss", "chat_debug")
         retriever=db.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":1})
         # docs = retriever.get_relevant_documents(query)
         # texts = [doc.page_content for doc in docs]
@@ -369,5 +355,9 @@ def debug_error(self, error_message: str) -> str:
     """Useful when you need to debug the cuurent conversation. Use it when you encounter error messages. Input should be in the following format: {error_messages} """
 
     return "shorten your prompt"
+
+
+
+
 
 
