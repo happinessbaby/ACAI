@@ -30,7 +30,7 @@ export function init_audioReceiver() {
 // Define an event that will be triggered when content is updated
 const speechContentUpdatedEvent = new Event('speechContentUpdated');
 
-function updateSpeechContent(newContent) {
+export function updateSpeechContent(newContent) {
     // Get the <speak> element by its ID
     const interviewerSpeechElement = document.getElementsByClassName('textEntry Interviewer')[0];
     const graderSpeechElement = document.getElementsByClassName('textEntry Grader')[0];

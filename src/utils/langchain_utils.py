@@ -69,7 +69,7 @@ from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
 from langchain.schema import Document
-from lancedb_utils import create_table
+from utils.lancedb_utils import create_table
 import asyncio
 import errno
 
@@ -292,7 +292,7 @@ def create_QASource_chain(chat, vectorstore, docs=None, chain_type="stuff", inde
     return qa
 
 ""
-def create_compression_retriever(vectorstore: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
+def create_compression_retriever(retriever: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
 
     """ Creates a compression retriever given a vector store path. 
     For redundant filter compressor: https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
@@ -300,10 +300,8 @@ def create_compression_retriever(vectorstore: Any, compressor_type="redundant_fi
 
     Args:
 
-        vs_type: faiss, redis, or open_search
-
-        vectorstore: vector store
-
+        retriever: any retriever    
+    
     Keyword Args:
 
         compressor_type (str): redundant_filter or cohere_rerank
@@ -329,7 +327,7 @@ def create_compression_retriever(vectorstore: Any, compressor_type="redundant_fi
     elif compressor_type=="cohere_rerank":
         compressor = CohereRerank()
     # store = retrieve_vectorstore(vs_type, vectorstore)
-    retriever = vectorstore.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
+    # retriever = vectorstore.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
     # retriever = store.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":3})
 
     compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever)

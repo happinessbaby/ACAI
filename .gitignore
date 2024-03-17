@@ -171,7 +171,8 @@ src/my_feature_repo
 src/web_data
 src/interview_data
 src/pickle_memory
-src/session/
+src/chat_session
+src/interview_session
 src/log/
 src/uploads/
 src/streamlit_custom_components/

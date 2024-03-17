@@ -26,7 +26,7 @@ from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain.memory import ChatMessageHistory
 from langchain.schema import messages_from_dict, messages_to_dict, AgentAction
 from langchain.docstore import InMemoryDocstore
-from langchain.agents import AgentExecutor, ZeroShotAgent
+from langchain.agents import AgentExecutor, ZeroShotAgent, create_openai_tools_agent
 from langchain.tools.human.tool import HumanInputRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks import get_openai_callback, StdOutCallbackHandler, FileCallbackHandler
@@ -58,7 +58,7 @@ from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from urllib import request
 from langchain.globals import set_llm_cache
-from langchain.tools.retriever import create_retriever_tool
+from utils.agent_tools import create_vs_retriever_tools, search_user_material2
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -88,10 +88,11 @@ class InterviewController():
     interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=llm, input_key="input", max_token_limit=memory_max_token)
 
 
-    def __init__(self, userid, additional_prompt_info, generated_dict):
+    def __init__(self, userid, about_interview, generated_dict, learning_material):
         self.userid = userid
-        self.additional_interview_info = additional_prompt_info
+        self.about_interview = about_interview
         self.generated_dict = generated_dict
+        self.learning_material=learning_material
         self._initialize_log()
         self._initialize_interview_agent()
         self._initialize_interview_grader()
@@ -128,17 +129,19 @@ class InterviewController():
 
         """
 
-        store = retrieve_vectorstore("faiss", faiss_interview_data_path)
-        retriever = store.as_retriever()
-        general_tool_description = """Use this tool to generate general interview questions and answer.
-        Prioritize other tools over this tool. """
-        # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
-        general_tool = [create_retriever_tool(
-            retriever,
-            "search_general_database",
-            general_tool_description,
-        )]
-        self.interview_tools = general_tool
+        # vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
+        # general_tool_description = """Use this tool to generate general interview questions and answer.
+        # Prioritize other tools over this tool. """
+        # # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
+        # general_tool = create_vs_retriever_tools(
+        #     vs.as_retriever(),
+        #     "search_general_database",
+        #     general_tool_description,
+        # )
+        # self.interview_tools = general_tool
+        if self.learning_material:
+            self.interview_tools=[search_user_material2]
+            print("Successfully added search user material tool")
 
         # create vector store retriever tool for interview material
         # vs_directory = os.path.join(save_path, self.userid, "interview_material")
@@ -157,32 +160,30 @@ class InterviewController():
         #         self.interview_tools+=tools
         # except FileNotFoundError:
         #     pass  
-        tool_description =  """Useful for generating interview questions and answers. 
-                    Use this tool more than any other tool during a mock interview session to generate interview questions.
-                    Do not use this tool to load any files or documents.  """ 
-        try:
-            vs = retrieve_vectorstore(vs_type="elasticsearch", index_name=user_vs_name,)
-            if vs is not None:
-                self.interview_tools += [create_retriever_tool(
-                    vs.as_retriever(),
-                    "search_interview_material",
-                    tool_description,
-                )
-                ]
-        except Exception as e:
-            print("NO INTERVIEW MATERIAL FOR VECTOR STORE")
-            pass
+        # tool_description =  """Useful for generating interview questions and answers. 
+        #             Use this tool more than any other tool during a mock interview session to generate interview questions.
+        #             Do not use this tool to load any files or documents.  """ 
+        # try:
+        #     vs = retrieve_vectorstore(vs_type="elasticsearch", index_name=user_vs_name,)
+        #     if vs is not None:
+        #         self.interview_tools += create_vs_retriever_tools(
+        #             vs.as_retriever(),
+        #             "search_interview_material",
+        #             tool_description,
+        #         )
+        # except Exception as e:
+        #     print("NO INTERVIEW MATERIAL FOR VECTOR STORE")
+        #     pass
 
-
-            # Human may also have asked for a specific interview topic: {topic}
-        #initialize interviewer agent
 
         template =   f"""
-            You are a job interviewer. The following, if available, are things pertaining to the interview that you are conducting. 
-            
-           {self.additional_interview_info}
+            You are a job interviewer. The following, if available, are things pertaining to the interview that you are conducting:  {self.about_interview} \
 
-            The main interview content is contained in the tool "search_interview_material", if available. Generate your interview questions from this tool.
+            The main interview content is contained in the tool "search_user_material2", if available. Generate your interview questions from this tool using the following inputs.
+
+           user_material_path:{self.learning_material} \
+
+           user_query: formulate an interview question based on the given content \
 
             As an interviewer, you do not need to assess Human's response to your questions. Their response will be sent to a professional grader.         
 
@@ -216,6 +217,7 @@ class InterviewController():
 
         print(f"INTERVIEW AGENT TOOLS: {[tools.name for tools in self.interview_tools]}")
         agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
+        # agent = create_openai_tools_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
 
         # messages = chat_prompt.format_messages(
         #           grader_feedback = self.grader_feedback,
@@ -258,7 +260,7 @@ class InterviewController():
 
           The following, if available, are things pertaining to the interview.
             
-           {self.additional_interview_info}
+           {self.about_interview}
 
            The main interview content is contained in the tool "search_interview_material", if available.
         
@@ -281,6 +283,7 @@ class InterviewController():
         extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history")]
         )
         agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
+        # agent = create_openai_tools_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
         self.grader_agent = AgentExecutor(agent=agent, 
                                         tools=self.interview_tools, 
                                         memory=self.interview_memory, 
@@ -293,7 +296,7 @@ class InterviewController():
 
 
 
-    def askAI(self, user_input: str, callbacks=None,) -> Union[str, str]:
+    def askInterviewer(self, user_input: str, callbacks=None,) -> str:
 
         """ Main function that processes all agents' conversation with user.
          
@@ -316,11 +319,9 @@ class InterviewController():
             # if (update_instruction):
             #     instruction = self.askMetaAgent()
             #     print(instruction) 
-            grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
             # print(f"GRADER FEEDBACK: {grader_feedback}")
             print(f"User Voice Input: {user_input}")
-            response = self.interview_agent({"input":user_input})
-            interviewer_response = response.get("output", "sorry, something happened, try again.")        
+            interviewer_response = self.interview_agent({"input":user_input}).get("output", "sorry, something happened, try again.")        
             # response = self.interview_agent({"input":user_input})    
             # if (evaluate_result):
             #     evalagent_q = Queue()
@@ -350,42 +351,18 @@ class InterviewController():
         # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:
         #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # print(f"Sucessfully pickled conversation: {chat_history}")
-        return interviewer_response, grader_feedback
-
-    # @retry(
-    #     wait=wait_exponential(multiplier=1, min=4, max=10),  # Exponential backoff between retries
-    #     stop=stop_after_attempt(5)  # Maximum number of retry attempts
-    # )
-    async def askAI_async(self, user_input: str, callbacks=None,) -> str:
-
-        """ Main function that processes all agents' conversation with user.
-         
-        Args:
-
-            userid (str): session id of user
-
-            user_input (str): user question or response
-
-        Keyword Args:
-
-            callbacks: default is None
-
-        Returns:
-
-            Answer or response by AI (str)  
-            
-         """
+        return interviewer_response
+    
+    def askGrader(self, user_input:str, callbacks=None) -> str:
 
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
             # if (update_instruction):
             #     instruction = self.askMetaAgent()
             #     print(instruction) 
-            grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
-            # print(f"GRADER FEEDBACK: {grader_feedback}")
-            print(f"User Voice Input: {user_input}")
-            response = await self.interview_agent.acall({"input":user_input})
-            response = response.get("output", "sorry, something happened, try again.")        
+            grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
+            # grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
+            # print(f"GRADER FEEDBACK: {grader_feedback}")       
             # response = self.interview_agent({"input":user_input})    
             # if (evaluate_result):
             #     evalagent_q = Queue()
@@ -415,7 +392,42 @@ class InterviewController():
         # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:
         #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # print(f"Sucessfully pickled conversation: {chat_history}")
-        return response
+        return grader_feedback
+
+
+
+    # async def askAI_async(self, user_input: str, callbacks=None,) -> str:
+
+    #     """ Main function that processes all agents' conversation with user.
+         
+    #     Args:
+
+    #         userid (str): session id of user
+
+    #         user_input (str): user question or response
+
+    #     Keyword Args:
+
+    #         callbacks: default is None
+
+    #     Returns:
+
+    #         Answer or response by AI (str)  
+            
+    #      """
+
+    #     try:    
+    #         # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
+    #         grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
+    #         # print(f"GRADER FEEDBACK: {grader_feedback}")
+    #         print(f"User Voice Input: {user_input}")
+    #         response = await self.interview_agent.acall({"input":user_input})
+    #         response = response.get("output", "sorry, something happened, try again.")        
+    #     except Exception as e:
+    #         print(f"ERROR HAS OCCURED IN ASKAI: {e}")
+    #         error_msg = str(e)
+    #         raise e       
+    #     return response
     
     def craft_questions(self):
         if self.generated_dict:
@@ -433,17 +445,17 @@ class InterviewController():
             questions = ""
         return questions
     
-    def write_followup(self):
-        if self.generated_dict:
-            name = self.generated_dict.get("name", "")
-            job = self.generated_dict.get("job", "")
-            company=self.generated_dict.get("company", "")
-            followup = "\n\nFOLLOW-UP EMAIL: \n"
-            followup += get_completion(f""" Applicant {name} recently interviewed for a {job} role at {company}.
-                                      Can you generate  a follow-up email that {name} could send to reinterate their interest and tactifully ask the status of the hiring process?""")
-        else:
-            followup = ""
-        return followup
+    # def write_followup(self):
+    #     if self.generated_dict:
+    #         name = self.generated_dict.get("name", "")
+    #         job = self.generated_dict.get("job", "")
+    #         company=self.generated_dict.get("company", "")
+    #         followup = "\n\nFOLLOW-UP EMAIL: \n"
+    #         followup += get_completion(f""" Applicant {name} recently interviewed for a {job} role at {company}.
+    #                                   Can you generate  a follow-up email that {name} could send to reinterate their interest and tactifully ask the status of the hiring process?""")
+    #     else:
+    #         followup = ""
+    #     return followup
     
 
     def retrieve_feedback(self):
@@ -455,7 +467,7 @@ class InterviewController():
         convert_to_txt(self.logfile, end_path)
         conversation = read_txt(end_path)
         feedback = "MOCK INTERVIEW FEEDBACK:\n"
-        feedback += get_completion(f"Extract the positive and negative feedbacks from the following conversation: {conversation}")
+        feedback += get_completion(f"Extract the positive and negative feedbacks from the following conversation and summarize the feedbacks into a few sentences: {conversation}")
         return feedback
     
     def output_printout(self, response):
@@ -464,20 +476,19 @@ class InterviewController():
         print(f"Successfully retrieved interview feedback summary: {response}")
         return "./feedback.txt"
     
-    def generate_greeting(self, host="Luke", mode="regular"):
+    def generate_greeting(self, host):
 
         name = self.generated_dict.get("name", "")
         job = self.generated_dict.get("job", "")
         company=self.generated_dict.get("company", "")
-        if mode=="regular":
-            greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
-                                        interviewee name: {name} /n
-                                    employer's company: {company} /n
-                                    interview job position: {job} /n
-                                    Please make your greeting about 2-3 sentences long. Remember to introduce yourself and an interview supervisor/grader named Ali.
-                                    YOu and Ali will be partnering together to help conduct the interview. 
-                                    If any part of the provided information is missing, skip it. 
-                                        """)
+        greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
+                                    interviewee name: {name} /n
+                                employer's company: {company} /n
+                                interview job position: {job} /n
+                                Please make your greeting about 2-3 sentences long. Remember to introduce yourself and an interview supervisor/grader named Ali.
+                                YOu and Ali will be partnering together to help conduct the interview. 
+                                If any part of the provided information is missing, skip it. 
+                                    """)
         print(f"Successfully generated greeting: {greeting}")
         return greeting
 

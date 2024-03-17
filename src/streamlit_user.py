@@ -11,12 +11,12 @@ from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookie
 import time
 import datetime
 from streamlit_modal import Modal
-from dynamodb_utils import save_user_info
+from utils.dynamodb_utils import save_user_info
 from aws_manager import get_aws_session
-from dynamodb_utils import init_table, check_attribute_exists
+from utils.dynamodb_utils import init_table, check_attribute_exists
 from streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
-from lancedb_utils import create_table, add_to_table
+from utils.lancedb_utils import create_table, add_to_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
 from utils.common_utils import get_generated_responses, check_content
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
@@ -384,7 +384,7 @@ class User():
             docs.extend(resume_docs)
             print("added resume to docs")
             if st.session_state.first_name is None and st.session_state.last_name is None:
-                info_dict=get_generated_responses(resume_content=read_txt(st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client))
+                info_dict=get_generated_responses(resume_content=st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
         # basic_info_text = f""" User's name is {st.session_state.first_name} {st.session_state.last_name}. User is born in {st.session_state.birthday}. 
         # User graduated in {st.session_state.grad_year}, with a degree in {st.session_state.degree}, and area of study in {st.session_state.study}.
         # User's career of choice is {st.session_state.job}. The work experience level for this job is {st.session_state.job_level}

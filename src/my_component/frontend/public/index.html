@@ -625,9 +625,15 @@ document.onkeypress = function (e) {
       renderer.render(outro_scene, camera);
     }
     render();
+    // TRIGGER FEEDBACK LOOP
+    const socket = audioRecorder.connect();
+    socket.send(JSON.stringify({'action': 'endInterview'}));
+
     const textareaElement = document.getElementsByClassName('textEntry Grader')[0];
     console.log("grader feedback", textareaElement.value);
     grader_host.TextToSpeechFeature.play(textareaElement.value)
+
+
 
   }
 
@@ -1327,8 +1333,9 @@ document.onkeypress = function (e) {
     }
   // Function to start a countdown timer
   function toggleCountdown(mode, TIME_LIMIT=20, timePassed=0) {
+    console.log("inside toggle countdown");
+    toggleVisibility('.base-timer');
     if (mode=="start") {
-        toggleVisibility('.base-timer');
         countdownInterval = setInterval(() => { 
         // The amount of time passed increments by one
         timePassed = timePassed += 1;
@@ -1339,12 +1346,7 @@ document.onkeypress = function (e) {
         }, 1000);
     }
     else if (mode=="stop") {
-      if (count>=1) {
-        console.log("toggling base timer")
-        toggleVisibility('.base-timer');
-        clearInterval(countdownInterval);
-      }
-      count++;
+      clearInterval(countdownInterval);
     }
   }
 

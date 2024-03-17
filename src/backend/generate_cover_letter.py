@@ -77,7 +77,7 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     # Get resume info
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    info_dict = get_generated_responses(resume_content=resume_content, about_me=about_me, posting_path=posting_path)
+    info_dict = get_generated_responses(resume_path=resume_file, about_me=about_me, posting_path=posting_path)
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
     job_specification = info_dict.get("job specification", "")

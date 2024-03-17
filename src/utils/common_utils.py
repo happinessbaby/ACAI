@@ -68,6 +68,7 @@ import random
 import base64
 import datetime
 from datetime import date
+import boto3
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -80,7 +81,19 @@ delimiter4 = '////'
 # feast_repo_path = "/home/tebblespc/Auto-GPT/autogpt/auto_gpt_workspace/my_feature_repo/feature_repo/"
 # store = FeatureStore(repo_path = feast_repo_path)
 
-
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
+      
 
 
 def generate_tip_of_the_day(topic:str) -> str:
@@ -703,7 +716,7 @@ def get_web_resources(query: str, with_source: bool=False, llm = ChatOpenAI(temp
 
 def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -> str:
 
-    """ Retrieves query answer from database. 
+    """ Retrieves query answer from vector store using Docuemnt + Chain method.
 
     In this case, documents are compressed and reordered before sent to a StuffDocumentChain. 
 
@@ -725,7 +738,7 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
   
     """
 
-    compression_retriever = create_compression_retriever(vectorstore)
+    compression_retriever = create_compression_retriever(vectorstore.as_retriever())
     docs = compression_retriever.get_relevant_documents(query)
     reordered_docs = reorder_docs(docs)
 
@@ -851,7 +864,7 @@ def generate_user_info(content):
 
 
 # one of the most important functions
-def get_generated_responses(resume_content="",about_me="", posting_path="", program_path="") -> Dict[str, str]: 
+def get_generated_responses(resume_path="",about_me="", posting_path="", program_path="") -> Dict[str, str]: 
 
     # Get personal information from resume
     generated_responses={}
@@ -895,7 +908,8 @@ def get_generated_responses(resume_content="",about_me="", posting_path="", prog
         generated_responses.update({"about me": about_me})
         
 
-    if resume_content!="":
+    if resume_path!="":
+        resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         personal_info_dict = extract_personal_information(resume_content)
         generated_responses.update(personal_info_dict)
         field_content = extract_resume_fields3(resume_content)

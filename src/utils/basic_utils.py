@@ -163,17 +163,28 @@ def write_file(file_content:Any, end_path: str, mode="wb", storage="LOCAL", buck
     """ Writes content to file. """
 
     if storage=="LOCAL":
-        with open(end_path, mode) as f:
-            f.write(file_content)
+        try:
+            with open(end_path, mode) as f:
+                f.write(file_content)
+                return True
+        except Exception as e:
+            print(e)
+            return False
     elif storage=="CLOUD":
-        s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+        try:
+            s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+        except Exception:
+            return False
 
 
 def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=None):
     
     if storage=="LOCAL":
-        with open(file_path, mode) as f:
-            data = f.read()
+        try:
+            with open(file_path, mode) as f:
+                data = f.read()
+        except Exception as e:
+            raise e
     elif storage=="CLOUD":
         object = s3.get_object(Bucket=bucket_name, Key=file_path)
         data = object['Body'].read()
