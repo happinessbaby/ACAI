@@ -186,11 +186,23 @@ def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=No
         except Exception as e:
             raise e
     elif storage=="CLOUD":
-        object = s3.get_object(Bucket=bucket_name, Key=file_path)
-        data = object['Body'].read()
+        try:
+            object = s3.get_object(Bucket=bucket_name, Key=file_path)
+            data = object['Body'].read()
+        except Exception as e:
+            raise e
     return data
 
-        
+def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, s3=None,):
+
+    if storage=="LOCAL":
+        os.rename(source_file, dest_dir)
+    elif storage=="CLOUD":
+        s3.copy_object(
+            Bucket=bucket_name,
+            Key=dest_dir,
+            CopySource={'Bucket': bucket_name, 'Key': source_file}
+        )
 
 
 # def output_path(file:str, file_type:str, storage="LOCAL"):

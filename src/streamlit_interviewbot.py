@@ -13,7 +13,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from backend.career_advisor import ChatController
 from backend.mock_interviewer import InterviewController
 from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
+from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file, move_file
 from utils.openai_api import check_content_safety, get_completion
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, get_generated_responses, get_web_resources
@@ -1087,12 +1087,13 @@ class Interview():
         """
 
         end_paths = []
+        filename = str(uuid.uuid4())
         if upload_type=="files":
             for uploaded_file in uploads:
                 file_ext = Path(uploaded_file.name).suffix
-                filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename)
-                end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, str(uuid.uuid4())+".txt")
+                # filename = str(uuid.uuid4())+file_ext
+                tmp_save_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+file_ext)
+                end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+".txt")
                 if write_file(uploaded_file.getvalue(), tmp_save_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                         end_paths.append(end_path)
@@ -1100,7 +1101,8 @@ class Interview():
                 else:
                     print("failed to upload user file")
         if upload_type=="links":
-            end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, str(uuid.uuid4())+".txt")
+            # filename =  str(uuid.uuid4())+".txt"
+            end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+".txt")
             links = re.findall(r'(https?://\S+)', uploads)
             if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                 end_paths.append(end_path)
@@ -1115,7 +1117,17 @@ class Interview():
             print(content_type, content_safe, content_topics) 
             if content_safe:
                 if content_type!="browser error" and content_type!="empty":
-                    st.session_state["user_upload_dict"].update({content_type:end_path})
+                    ##TODO: save to different directory according to content type
+                    if content_type=="learning material":
+                        destination_path=os.path.join(st.session_state.save_path, "uploads", "learning_material", filename+".txt")
+                        destination_dir = os.path.dirname(destination_path)
+                        if not os.path.exists(destination_dir):
+                            os.makedirs(destination_dir)
+                        # Move the file
+                        move_file(end_path, destination_path)
+                        st.session_state["user_upload_dict"].update({content_type:destination_dir})
+                    else:
+                        st.session_state["user_upload_dict"].update({content_type:end_path})
                     # EVERY CONTENT TYPE WILL BE USED AS INTERVIEW MATERIAL
                 # record_name = self.userId if self.userId is not None else st.session_state.sessionId
                 # vs_path = user_vs_name if st.session_state.storage=="CLOUD" else os.path.join(st.session_state.save_path, st.session_state.sessionId, user_vs_name)

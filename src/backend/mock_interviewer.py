@@ -13,7 +13,6 @@ from json import JSONDecodeError
 import os
 from pathlib import Path
 from typing import Any, Union
-from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
 from utils.common_utils import  check_content
@@ -58,7 +57,7 @@ from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from urllib import request
 from langchain.globals import set_llm_cache
-from utils.agent_tools import create_vs_retriever_tools, search_user_material2
+from utils.agent_tools import create_vs_retriever_tools, generate_interview_QA
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -140,7 +139,7 @@ class InterviewController():
         # )
         # self.interview_tools = general_tool
         if self.learning_material:
-            self.interview_tools=[search_user_material2]
+            self.interview_tools=[generate_interview_QA]
             print("Successfully added search user material tool")
 
         # create vector store retriever tool for interview material
@@ -179,11 +178,9 @@ class InterviewController():
         template =   f"""
             You are a job interviewer. The following, if available, are things pertaining to the interview that you are conducting:  {self.about_interview} \
 
-            The main interview content is contained in the tool "search_user_material2", if available. Generate your interview questions from this tool using the following inputs.
+            The main interview questions and answers should be generated using the tool "generate_interview_QA", if available. Generate your interview questions from this tool using the following inputs.
 
            user_material_path:{self.learning_material} \
-
-           user_query: formulate an interview question based on the given content \
 
             As an interviewer, you do not need to assess Human's response to your questions. Their response will be sent to a professional grader.         
 

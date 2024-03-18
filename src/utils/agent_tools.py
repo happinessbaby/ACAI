@@ -22,7 +22,7 @@ import random, string
 from json import JSONDecodeError
 import base64
 from langchain.agents.react.base import DocstoreExplorer
-from langchain_community.document_loaders import TextLoader, DirectoryLoader
+from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
@@ -51,6 +51,8 @@ if STORAGE=="S3":
 else:
     bucket_name=None
     s3=None
+aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
+aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
 def create_wiki_tools() -> List[Tool]:
 
@@ -289,13 +291,13 @@ def search_user_material(json_request: str) -> str:
 
 #In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
 @tool()
-def search_user_material2(json_request: str) -> str:
+def generate_interview_QA(json_request: str) -> str:
 
-    """Searches and looks up user uploaded material content.
+    """Generates interview questions and answers base on the provided user material.
 
-    Use this tool more than any other tools. 
+    Use this tool more than any other tools to generate interview questions.
 
-    Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>", "user_query":"<user_query>"}}' """
+    Input should be a single string strictly in the following JSON format: '{{"user_material_path":"<user_material_path>"}}' """
 
     try:
         args = json.loads(process_json(json_request))
@@ -305,29 +307,19 @@ def search_user_material2(json_request: str) -> str:
  
     file_path = args["user_material_path"]
     file_path=re.sub(r"[\n\t\s]*", "", file_path)
-    query = args["user_query"]
     try:
-        # docs = split_doc_file_size(file_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-        # retriever = FAISS.from_documents(docs, OpenAIEmbeddings()).as_retriever()
         #TODO change this to a directory loader
-        loader = TextLoader(file_path)
-        # subquery_relevancy = "how to determine what's relevant in resume"
-        # option 1: compression retriever
-        # retriever = create_compression_retriever(retriever)
-        # option 2: ensemble retriever
-        # retriever = create_ensemble_retriever(split_doc())
-        # docs = retriever.get_relevant_documents(query)
-        # reordered_docs = reorder_docs(retriever.get_relevant_documents(subquery_relevancy))
+        # loader = TextLoader(file_path)
+        if STORAGE=="LOCAL":
+            loader = DirectoryLoader(file_path)
+        if STORAGE=="CLOUD":
+            loader = S3DirectoryLoader(bucket_name, file_path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
         llm = ChatOpenAI(temperature=0.9)
         chain = QAGenerationChain.from_llm(llm)
         docs = loader.load()[0]
         response = chain.run(docs.page_content)
         print(response[0])
         return response[0]
-        # texts = [doc.page_content for doc in docs]
-        # texts_merged = "\n\n".join(texts)
-        # print(f"SEARCH USER MATERIAL TOOL RESPONSE: {texts_merged}")
-        # return texts_merged
     except Exception as e:
         raise e
 
@@ -335,7 +327,7 @@ def search_user_material2(json_request: str) -> str:
 @tool(return_direct=True)
 def file_loader(json_request: str) -> str:
 
-    """Outputs a file. Use this whenever you need to load a file. 
+    """Outputs the summary of file. Use this whenever you need to load a file. 
     DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
     Input should be a single string in the following JSON format: '{{"file": "<file>"}}' \n """
 
