@@ -161,6 +161,7 @@ class Interview():
             st.session_state["count"]=0
             st.session_state["host"] = "Maya"
             st.session_state["responseInput"] = ''
+            st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
 
             if STORAGE == "LOCAL":
                 st.session_state["storage"]=STORAGE
@@ -415,6 +416,8 @@ class Interview():
 
         if "init_interview" not in st.session_state:
             self._init_interview_preform()
+            if st.session_state["modal"].is_open()==False:
+                st.session_state["init_interview"]=False
             # st.session_state["init_interview"]=True
         else:
             if "baseinterview" not in st.session_state:
@@ -430,7 +433,7 @@ class Interview():
                 print("about_interview:", self.about_interview)
                 print("generated_dict", self.generated_dict)
                 print("learning material", self.learning_material)
-                new_interview = InterviewController(st.session_state["interview_sessionId"], self.about_interview, self.generated_dict, self.learning_material)
+                new_interview = InterviewController(self.aws_session, st.session_state["interview_sessionId"], self.userId, self.about_interview, self.generated_dict, self.learning_material)
                 st.session_state["baseinterview"] = new_interview
             if "greeting" not in st.session_state:
                 st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting(host=st.session_state["host"])
@@ -443,15 +446,15 @@ class Interview():
                     interview = my_component(greeting_json) 
             elif st.session_state.mode=="audio":
                 print("entering audio mode")
-                if "greeting" in st.session_state and st.session_state.count==0:
-                    self.synthesize_ai_response(st.session_state.greeting)
-                    st.session_state.count+=1
+                # if "greeting" in st.session_state and st.session_state.count==0:
+                #     self.synthesize_ai_response(st.session_state.greeting)
+                #     st.session_state.count+=1
                 user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=self.audio_callback)
             elif st.session_state.mode=="text":
                 print('entering text mode')
-                if "greeting" in st.session_state and st.session_state.count==0:
-                    self.synthesize_ai_response(st.session_state.greeting)
-                    st.session_state.count+=1
+                # if "greeting" in st.session_state and st.session_state.count==0:
+                #     self.synthesize_ai_response(st.session_state.greeting)
+                #     st.session_state.count+=1
                 st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
                        
 
@@ -1119,7 +1122,7 @@ class Interview():
                 if content_type!="browser error" and content_type!="empty":
                     ##TODO: save to different directory according to content type
                     if content_type=="learning material":
-                        destination_path=os.path.join(st.session_state.save_path, "uploads", "learning_material", filename+".txt")
+                        destination_path=os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, "learning_material", filename+".txt")
                         destination_dir = os.path.dirname(destination_path)
                         if not os.path.exists(destination_dir):
                             os.makedirs(destination_dir)

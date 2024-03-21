@@ -14,9 +14,10 @@ import os
 from pathlib import Path
 from typing import Any, Union
 from langchain.llms import OpenAI
+from langchain.chains import LLMChain
 from langchain.embeddings import OpenAIEmbeddings
 from utils.common_utils import  check_content
-from utils.langchain_utils import retrieve_vectorstore
+from utils.langchain_utils import retrieve_vectorstore, CustomOutputParser, CustomPromptTemplate
 # from langchain.prompts import BaseChatPromptTemplate
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
@@ -25,15 +26,14 @@ from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain.memory import ChatMessageHistory
 from langchain.schema import messages_from_dict, messages_to_dict, AgentAction
 from langchain.docstore import InMemoryDocstore
-from langchain.agents import AgentExecutor, ZeroShotAgent, create_openai_tools_agent
+from langchain.agents import AgentExecutor, ZeroShotAgent, create_openai_tools_agent, create_openai_functions_agent
 from langchain.tools.human.tool import HumanInputRun
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks import get_openai_callback, StdOutCallbackHandler, FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from langchain.schema.messages import SystemMessage
-from langchain.prompts import MessagesPlaceholder
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
+from langchain.prompts import MessagesPlaceholder, PromptTemplate, ChatPromptTemplate
 from langchain.vectorstores import FAISS
 # from feast import FeatureStore
 import pickle
@@ -57,7 +57,9 @@ from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from urllib import request
 from langchain.globals import set_llm_cache
-from utils.agent_tools import create_vs_retriever_tools, generate_interview_QA
+from utils.agent_tools import create_vs_retriever_tools, generate_interview_QA, generateQATool
+from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
+from langchain_core.prompts.chat import BaseMessagePromptTemplate, BaseStringMessagePromptTemplate
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -74,27 +76,32 @@ user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 duration = 5 # duration of each recording in seconds
 fs = 44100 # sample rate
 channels = 1 # number of channel
+update_instructions=True
 # Code for audio part: https://github.com/VRSEN/langchain-agents-tutorial/blob/main/main.py
 
 
 class InterviewController():
 
-    llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
-    set_llm_cache(InMemoryCache())
-    embeddings = OpenAIEmbeddings()
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)
     # initialize new memory (shared betweeen interviewer and grader_agent)
-    interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=llm, input_key="input", max_token_limit=memory_max_token)
 
 
-    def __init__(self, userid, about_interview, generated_dict, learning_material):
+    def __init__(self, boto3_session, userid, sessionId, about_interview, generated_dict, learning_material):
         self.userid = userid
+        self.sessionId=sessionId
+        self.llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
+        # set_llm_cache(InMemoryCache())
+        # embeddings = OpenAIEmbeddings()
+        # message_history = DynamoDBChatMessageHistory(table_name=self.sessionId, boto3_session=boto3_session, session_id='0')
+        self.interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
         self.about_interview = about_interview
         self.generated_dict = generated_dict
         self.learning_material=learning_material
+        self.interviewer_assessment=''
         self._initialize_log()
         self._initialize_interview_agent()
         self._initialize_interview_grader()
+        self._initialize_meta_agent()
 
 
 
@@ -128,18 +135,19 @@ class InterviewController():
 
         """
 
-        # vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
-        # general_tool_description = """Use this tool to generate general interview questions and answer.
-        # Prioritize other tools over this tool. """
-        # # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
-        # general_tool = create_vs_retriever_tools(
-        #     vs.as_retriever(),
-        #     "search_general_database",
-        #     general_tool_description,
-        # )
-        # self.interview_tools = general_tool
+        vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
+        general_tool_description = """Use this tool to generate general interview questions and answer.
+        Prioritize other tools over this tool. """
+        # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
+        general_tool = create_vs_retriever_tools(
+            vs.as_retriever(),
+            "search_general_database",
+            general_tool_description,
+        )
+        self.interview_tools = general_tool
         if self.learning_material:
-            self.interview_tools=[generate_interview_QA]
+            # self.interview_tools=[generate_interview_QA]
+            self.interview_tools=[generateQATool()]
             print("Successfully added search user material tool")
 
         # create vector store retriever tool for interview material
@@ -175,14 +183,16 @@ class InterviewController():
         #     pass
 
 
-        template =   f"""
+        template = f"""
             You are a job interviewer. The following, if available, are things pertaining to the interview that you are conducting:  {self.about_interview} \
 
             The main interview questions and answers should be generated using the tool "generate_interview_QA", if available. Generate your interview questions from this tool using the following inputs.
 
            user_material_path:{self.learning_material} \
 
-            As an interviewer, you do not need to assess Human's response to your questions. Their response will be sent to a professional grader.         
+            As an interviewer, you should not provide the interviewee with answers, and you do not need to assess interviewee's response to your questions. 
+            
+            The correct answer and the interviewee's response will be sent to a professional grader for assessment.       
 
             Always remember your role as an interviewer. Unless you're told to stop interviewing, you should not stop asking interview questions.
 
@@ -192,16 +202,25 @@ class InterviewController():
 
             Remember to ask one interview question at a time and do not repeat the same type of questions. 
 
-            Please end the session after you have asked about 10 questions. Do not go over 10 questions.
-
-            If there are no user input or previous questions asked, this means it's the start of the interview session. Please greet the interviewee properly. 
-
-            Please ask your interview question now:
 
            """
+            # There will be an interview assessor that provides you with live feedbacks on the quality of your interview questions and smoothness of the interview session. Please use it to improve your next interview questions.
+
+            # Interview assessor's feedback: {self.interviewer_assessment}
+
+            # Please ask your interview question now:
+        
+        extra_prompt=""""  There will be an interview assessor that provides you with live feedbacks on the quality of your interview questions and smoothness of the interview session. Please use it to improve your next interview questions.
+
+            Interview assessor's feedback: {interviewer_assessment}
+
+            Please ask your interview question now:
+"""
             # Sometimes you will be provided with the professional grader's feedback. They will be handed out to the Human at the end of the session. You should ignore them. 
             # If you have other tools, use them as well to generate interview questions. Please don't skip using the tools if you have any. 
-        
+        extra_prompt = ChatPromptTemplate.from_template(template = extra_prompt)
+        extra_prompt.format_messages(interviewer_assessment=self.interviewer_assessment)
+
         system_message = SystemMessage(
         content=(
           template
@@ -209,11 +228,27 @@ class InterviewController():
         )
         prompt = OpenAIFunctionsAgent.create_prompt(
             system_message=system_message,
-            extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history")]
+            extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history"), extra_prompt]
             )
 
-        print(f"INTERVIEW AGENT TOOLS: {[tools.name for tools in self.interview_tools]}")
-        agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
+
+        # prompt = ChatPromptTemplate.from_messages(
+        #     [
+        #         ("system", template),
+        #         MessagesPlaceholder("chat_history", optional=True),
+        #         # ("human", "{input}"),
+        #         MessagesPlaceholder("agent_scratchpad"),
+        #     ]
+        # )
+
+        # prompt.format_messages(about_interview=self.about_interview, learning_material=self.learning_material)
+ 
+        
+
+        # if self.interview_tools:
+        #     print(f"INTERVIEW AGENT TOOLS: {[tools.name for tools in self.interview_tools]}")
+        # agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
+        agent = create_openai_functions_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
         # agent = create_openai_tools_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
 
         # messages = chat_prompt.format_messages(
@@ -251,19 +286,16 @@ class InterviewController():
           
           Access your memory and retrieve the very last piece of the conversation, if available.
 
-          Determine if the AI has asked an interview question. If it has, you are to grade the Human input based on how well it answers the question.
+          Determine if the AI has asked an interview question. If it has, check if there's an answer associated with the question.
+          
+          Your job is to grade the Human input based on how well it answers the question.
 
-          Otherwise, respond with the phrase "skip" only.
+
+          If there's no question or answer, respond with the phrase "skip" only.
 
           The following, if available, are things pertaining to the interview.
             
            {self.about_interview}
-
-           The main interview content is contained in the tool "search_interview_material", if available.
-        
-           Remember to use these tools to search for the correct answer.
-
-          If the answer cannot be found in your tools, use your best knowledge. 
 
           Remember, the Human may not know the answer or may have answered the question incorrectly. Therefore it is important that you provide an informative feedback to the Human's response in the format:
 
@@ -275,21 +307,86 @@ class InterviewController():
         #   Your feedback should take both the correct answer and the Human's response into consideration. When the Human's response implies that they don't know the answer, provide the correct answer in your feedback.
         )
         )
+        # Get the last n messages
+        n = 1
+        last_n_messages = self.interview_memory.chat_memory.messages[-n:]
         prompt = OpenAIFunctionsAgent.create_prompt(
         system_message=system_message,
-        extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history")]
+        extra_prompt_messages=[MessagesPlaceholder(variable_name="chat_history", messages=last_n_messages)]
         )
-        agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
-        # agent = create_openai_tools_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
+        # agent = OpenAIFunctionsAgent(llm=self.llm, tools=self.interview_tools, prompt=prompt)
+        agent = create_openai_functions_agent(llm=self.llm, tools = self.interview_tools, prompt=prompt)
+        # agent = create_openai_tools_agent(llm=self.llm, tools = self.interview_tools, prompt=system_message)
         self.grader_agent = AgentExecutor(agent=agent, 
                                         tools=self.interview_tools, 
-                                        memory=self.interview_memory, 
+                                        memory= ReadOnlySharedMemory(memory=self.interview_memory),
                                         # verbose=True,
                                         return_intermediate_steps=True, 
                                         handle_parsing_errors=True,
                                         callbacks = [self.handler])
 
 
+    def _initialize_meta_agent(self) -> None:
+
+        """ Initializes meta agent that will try to resolve any miscommunication between AI and Humn by providing Instruction for AI to follow.  """
+ 
+
+        memory = ReadOnlySharedMemory(memory=self.interview_memory)
+
+        # Whenver there's an error message, please use the "debug_error" tool.
+        system_msg = """You are an instruction AI whose job is to assess the interview process and interviewer's questions.
+
+        You are provided with their Current Conversation. If the current interview conversation is going well, you don't need to provide any Instruction. 
+        
+        If the current interview conversation can be improved, please help the interviewer improve the conversation by providing an Instruction. 
+        
+        If based on the length of conversation and number of questions asked, it's time to end the conversation, please tell interviewer to end the interview. """
+
+
+        template = system_msg + """Complete the objective as best you can. You have access to the following tools:
+
+        {tools}
+
+        Use the following format:
+
+        Question: Is the interview going well? Is it time to end the interview? Should the interviewer ask another type of question?
+        Thought: you should always think about what to do
+        Action: the action to take, should be based on Chat History below. If necessary, can be one of [{tool_names}] 
+        Action Input: the input to the action
+        Observation: the result of the action
+        ... (this Thought/Action/Action Input/Observation can repeat N times)
+        Thought: I now know the final answer
+        Final Answer: the final answer to the original input question
+
+        Begin!
+
+        Current Conversation: {chat_history}
+
+        Input: {input}
+        {agent_scratchpad}
+        """
+
+
+        prompt = CustomPromptTemplate(
+            template=template,
+            tools=self.interview_tools,
+            # system_msg=system_msg,
+            # This omits the `agent_scratchpad`, `tools`, and `tool_names` variables because those are generated dynamically
+            # This includes the `intermediate_steps` variable because that is needed
+            input_variables=["chat_history", "input", "intermediate_steps"],
+        )
+        output_parser = CustomOutputParser()
+        # LLM chain consisting of the LLM and a prompt
+        llm_chain = LLMChain(llm=self.llm, prompt=prompt)
+        tool_names = [tool.name for tool in self.interview_tools]
+
+        agent = LLMSingleActionAgent(
+            llm_chain=llm_chain, 
+            output_parser=output_parser,
+            stop=["\nObservation:"], 
+            allowed_tools=tool_names
+        )
+        self.meta_agent = AgentExecutor.from_agent_and_tools(agent=agent, tools=self.interview_tools, memory=memory, verbose=True)
 
 
 
@@ -318,8 +415,14 @@ class InterviewController():
             #     print(instruction) 
             # print(f"GRADER FEEDBACK: {grader_feedback}")
             print(f"User Voice Input: {user_input}")
-            interviewer_response = self.interview_agent({"input":user_input}).get("output", "sorry, something happened, try again.")        
-            # response = self.interview_agent({"input":user_input})    
+            # interviewer_response = self.interview_agent({"input":user_input}).get("output", "sorry, something happened, try again.")     
+            # qa_data={"question":self.question if self.question else self.greeting, "response":user_input}  
+            if (update_instructions):
+                self.interviewer_assessment = self.askMetaAgent()
+                print(self.interviewer_assessment) 
+            interviewer_response = self.interview_agent.invoke({"input":user_input, "interviewer_assessment":self.interviewer_assessment}).get("output", "sorry, something happened, try again.") 
+            # self.question = interviewer_response
+            # response = s  elf.interview_agent({"input":user_input})    
             # if (evaluate_result):
             #     evalagent_q = Queue()
             #     evalagent_p = Process(target = self.askEvalAgent, args=(response, evalagent_q, ))
@@ -391,7 +494,25 @@ class InterviewController():
             # print(f"Sucessfully pickled conversation: {chat_history}")
         return grader_feedback
 
+    def askMetaAgent(self, query="Update the Instruction please.") -> None:    
 
+        """ Evaluates conversation's effectiveness between AI and Human. Outputs instructions for AI to follow. 
+        
+        Keyword Args:
+        
+            query (str): default is empty string
+        
+        """
+
+        try: 
+            feedback = self.meta_agent({"input":query}).get("output", "")
+        except Exception as e:
+            if type(e) == OutputParserException or type(e)==ValueError:
+                feedback = str(e)
+                feedback = feedback.removeprefix("Could not parse LLM output: `").removesuffix("`")
+            else:
+                feedback = ""
+        return feedback
 
     # async def askAI_async(self, user_input: str, callbacks=None,) -> str:
 
@@ -478,7 +599,7 @@ class InterviewController():
         name = self.generated_dict.get("name", "")
         job = self.generated_dict.get("job", "")
         company=self.generated_dict.get("company", "")
-        greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
+        self.greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
                                     interviewee name: {name} /n
                                 employer's company: {company} /n
                                 interview job position: {job} /n
@@ -486,8 +607,8 @@ class InterviewController():
                                 YOu and Ali will be partnering together to help conduct the interview. 
                                 If any part of the provided information is missing, skip it. 
                                     """)
-        print(f"Successfully generated greeting: {greeting}")
-        return greeting
+        print(f"Successfully generated greeting: {self.greeting}")
+        return self.greeting
 
 
 

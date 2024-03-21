@@ -335,7 +335,7 @@ def create_compression_retriever(retriever: Any, compressor_type="redundant_filt
     return compression_retriever
 
 
-def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI()) -> str:
+def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI(), storage="LOCAL", bucket_name=None, s3=None) -> str:
 
     """ See summarization chain: https://python.langchain.com/docs/use_cases/summarization
     
@@ -354,12 +354,18 @@ def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", 
 
         llm (BaseModel)
 
+        storage: LOCAL or CLOUD
+
+        bucket_name: s3 bucket name
+
+        s3: s3 client
+
     Returns:
     
         a summary of the give file
     
     """
-    docs = split_doc_file_size(path, chunk_size=chunk_size)
+    docs = split_doc_file_size(path, chunk_size=chunk_size, storage=storage, bucket_name=bucket_name, s3=s3)
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=PROMPT)
     response = chain.run(docs)
