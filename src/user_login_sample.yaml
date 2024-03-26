@@ -1,17 +1,25 @@
+cookie:
+  expiry_days: 1
+  key: test
+  name: userInfo
 credentials:
   usernames:
-    jsmith:
-      email: yueqipeng2021@gmail.com
-      name: Yueqi Peng
-      password: $2b$12$5lj7X//oNyQaXVrLPnoGmeL0aL3bUTSVxWkDc2ZSun4un79DCNl/e # To be replaced with hashed password
+    new_user:
+      email: new_user@example.com
+      name: New User
+      password: $2b$12$rDuvhf9ZvHG62HZCt8E0VewljI2iC5mJMvNTnxxsol3M3PbboJi.O
     rbriggs:
       email: rbriggs@gmail.com
       name: Rebecca Briggs
       password: $2b$12$TexoHHOUfEm6pqSelhcjveTUbkZv9rrm8nPSSZU5XTTXJ5WVS8MaW
-cookie:
-  expiry_days: 30
-  key: random_signature_key # Must be string
-  name: userInfo
+    tebs:
+      email: yueqipeng2021@gmail.com
+      name: tebs
+      password: $2b$12$TQxhyb6IXVuHLf3sMb6ln.Equ45eORFG/aCpp3PFEPQiPMj1uxPVm
+    yueqi:
+      email: yueqipeng2021@gmail.com
+      name: Yueqi Peng
+      password: $2b$12$YKoiHshP3fWwDiV6H/nOS.0scoD5R6Vkym0B/hAjJ6luwHNUbeZnq
 preauthorized:
   emails:
   - melsby@gmail.com

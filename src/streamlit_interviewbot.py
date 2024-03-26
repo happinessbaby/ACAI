@@ -152,13 +152,8 @@ class Interview():
             # initialize submitted form variables
             # if "about" not in st.session_state:
             st.session_state["about"]=""
-            # # if "job_posting" not in st.session_state:
-            # st.session_state["job_posting"] = ""
-            # # if "resume_file" not in st.session_state:
-            # st.session_state["resume_file"] = ""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
-            st.session_state["count"]=0
             st.session_state["host"] = "Maya"
             st.session_state["responseInput"] = ''
             st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
@@ -298,11 +293,6 @@ class Interview():
                 audio_switch = st.button("switch to audio session", key="switch_audio", type="primary")
                 if audio_switch:
                     st.session_state["mode"]="audio"
-                    try:
-                        del st.session_state["greeting"]
-                    except Exception:
-                        pass
-                    st.session_state["count"] = 0
                     st.rerun()
             if st.session_state["mode"]=="audio":
                 st.markdown('''
@@ -316,11 +306,6 @@ class Interview():
                 text_switch = st.button("switch to text only session",  key="switch_text", type="primary")
                 if text_switch:
                     st.session_state["mode"]="text"
-                    try:
-                        del st.session_state["greeting"]
-                    except Exception:
-                        pass
-                    st.session_state["count"] = 0
                     st.rerun()
             if st.session_state["mode"]=="text" or st.session_state["mode"]=="audio":
                 st.button("end session",  key="end_session",)
@@ -446,15 +431,9 @@ class Interview():
                     interview = my_component(greeting_json) 
             elif st.session_state.mode=="audio":
                 print("entering audio mode")
-                # if "greeting" in st.session_state and st.session_state.count==0:
-                #     self.synthesize_ai_response(st.session_state.greeting)
-                #     st.session_state.count+=1
                 user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=self.audio_callback)
             elif st.session_state.mode=="text":
                 print('entering text mode')
-                # if "greeting" in st.session_state and st.session_state.count==0:
-                #     self.synthesize_ai_response(st.session_state.greeting)
-                #     st.session_state.count+=1
                 st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
                        
 
@@ -891,107 +870,106 @@ class Interview():
 
 
 
-    def _init_text_session(self):
+    # def _init_text_session(self):
 
-        """ Creates text only interview session. """
+    #     """ Creates text only interview session. """
 
-        # stop the keyboard listener
-        # try:
-        #     st.session_state.listener.stop()
-        # except Exception:
-        #     pass
+    #     # stop the keyboard listener
+    #     # try:
+    #     #     st.session_state.listener.stop()
+    #     # except Exception:
+    #     #     pass
 
 
-        styl = f"""
-        <style>
-            .stTextInput {{
-            position: fixed;
-            bottom: 3rem;
-            }}
-        </style>
-        """
-        st.markdown(styl, unsafe_allow_html=True)
+    #     styl = f"""
+    #     <style>
+    #         .stTextInput {{
+    #         position: fixed;
+    #         bottom: 3rem;
+    #         }}
+    #     </style>
+    #     """
+    #     st.markdown(styl, unsafe_allow_html=True)
 
-        st.session_state.count+=1
-        # if "interview_dict" not in st.session_state:
-        #     st.session_state["interview_dict"] = {"ai":[], "human":[]}
-        # # if 'interview_responses' not in st.session_state:
-        # #     st.session_state['interview_responses'] = list()
-        # # if 'interview_questions' not in st.session_state:
-        #     greeting = "Welcome to your mock interview! Are you ready to get started?"
-        #     # st.session_state['interview_questions'] = [greeting]
-        #     st.session_state["interview_dict"]["ai"].append(greeting)
-        # with self.ai_col:
-        #     self.typewriter(r"$\textsf{\Large Welcome to your mock interview! Are you ready to get started? $")
+    #     # if "interview_dict" not in st.session_state:
+    #     #     st.session_state["interview_dict"] = {"ai":[], "human":[]}
+    #     # # if 'interview_responses' not in st.session_state:
+    #     # #     st.session_state['interview_responses'] = list()
+    #     # # if 'interview_questions' not in st.session_state:
+    #     #     greeting = "Welcome to your mock interview! Are you ready to get started?"
+    #     #     # st.session_state['interview_questions'] = [greeting]
+    #     #     st.session_state["interview_dict"]["ai"].append(greeting)
+    #     # with self.ai_col:
+    #     #     self.typewriter(r"$\textsf{\Large Welcome to your mock interview! Are you ready to get started? $")
     
             
             
-        # # col1,  col2= st.columns(2, gap="large")
-        # if 'interview_response' not in st.session_state:
-        #     st.session_state['interview_response'] = ""
-        # if 'interview_question' not in st.session_state:
+    #     # # col1,  col2= st.columns(2, gap="large")
+    #     # if 'interview_response' not in st.session_state:
+    #     #     st.session_state['interview_response'] = ""
+    #     # if 'interview_question' not in st.session_state:
                 
 
                 
-        # with col1:
-        #     if "question_container" not in st.session_state:
-        #         st.session_state["question_container"] = st.container()
-        # with col2:
-        #     if "response_container" not in st.session_state:
-        #         st.session_state["response_container"] = st.container()
-        # response_container = st.container()
+    #     # with col1:
+    #     #     if "question_container" not in st.session_state:
+    #     #         st.session_state["question_container"] = st.container()
+    #     # with col2:
+    #     #     if "response_container" not in st.session_state:
+    #     #         st.session_state["response_container"] = st.container()
+    #     # response_container = st.container()
 
-        if 'responseInput' not in st.session_state:
-            st.session_state.responseInput = ''
-        # def submit():
-        #     st.session_state.responseInput = st.session_state.interview_input
-        #     st.session_state.interview_input = ''    
-        # # User input
-        # ## Function for taking user provided prompt as input
-        # def get_text():
-        #     st.text_input("Your response: ", "", key="interview_input", on_change = submit)
-        #     return st.session_state.responseInput
-        # ## Applying the user input box
-        # with response_container:
-        #     user_input = get_text()
-        #     response_container = st.empty()
-        #     st.session_state.responseInput='' 
+    #     if 'responseInput' not in st.session_state:
+    #         st.session_state.responseInput = ''
+    #     # def submit():
+    #     #     st.session_state.responseInput = st.session_state.interview_input
+    #     #     st.session_state.interview_input = ''    
+    #     # # User input
+    #     # ## Function for taking user provided prompt as input
+    #     # def get_text():
+    #     #     st.text_input("Your response: ", "", key="interview_input", on_change = submit)
+    #     #     return st.session_state.responseInput
+    #     # ## Applying the user input box
+    #     # with response_container:
+    #     #     user_input = get_text()
+    #     #     response_container = st.empty()
+    #     #     st.session_state.responseInput='' 
 
 
-        # if user_input:
+    #     # if user_input:
 
-        #     # res = question_container.container()
-        #     # streamlit_handler = StreamlitCallbackHandler(
-        #     #     parent_container=res,
-        #     #     # max_thought_containers=int(max_thought_containers),
-        #     #     # expand_new_thoughts=expand_new_thoughts,
-        #     #     # collapse_completed_thoughts=collapse_completed_thoughts,
-        #     # )
-        #     user_answer = user_input
-        #     # answer = chat_agent.run(mrkl_input, callbacks=[streamlit_handler])
-        #     ai_question = self.new_interview.askAI(user_answer, callbacks = None)
-        #     st.session_state.interview_questions.append(ai_question)
-        #     st.session_state.interview_responses.append(user_answer)
-        # if st.session_state['interview_responses']:
-        #     for i in range(len(st.session_state['interview_responses'])):
-        #         with col1:
-        #             message(st.session_state['interview_questions'][i], key=str(i), avatar_style="initials", seed="AI_Interviewer", allow_html=True)
-        #         with col2:
-        #             message(st.session_state['interview_responses'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
-        # try:
-        #     with self.ai_col:
-        #         # message(st.session_state.interview_questions[-1])
-        #         # st.markdown(st.session_state.interview_questions[-1])
-        #         st.markdown(st.session_state["interview_dict"]["ai"][-1])
-        #     with self.human_col:
-        #         # message(st.session_state.interview_responses[-1])
-        #         # st.markdown(st.session_state.interview_responses[-1])
-        #         st.markdown(st.session_state["interview_dict"]["human"][-1])
-        # except Exception:
-        #     pass
+    #     #     # res = question_container.container()
+    #     #     # streamlit_handler = StreamlitCallbackHandler(
+    #     #     #     parent_container=res,
+    #     #     #     # max_thought_containers=int(max_thought_containers),
+    #     #     #     # expand_new_thoughts=expand_new_thoughts,
+    #     #     #     # collapse_completed_thoughts=collapse_completed_thoughts,
+    #     #     # )
+    #     #     user_answer = user_input
+    #     #     # answer = chat_agent.run(mrkl_input, callbacks=[streamlit_handler])
+    #     #     ai_question = self.new_interview.askAI(user_answer, callbacks = None)
+    #     #     st.session_state.interview_questions.append(ai_question)
+    #     #     st.session_state.interview_responses.append(user_answer)
+    #     # if st.session_state['interview_responses']:
+    #     #     for i in range(len(st.session_state['interview_responses'])):
+    #     #         with col1:
+    #     #             message(st.session_state['interview_questions'][i], key=str(i), avatar_style="initials", seed="AI_Interviewer", allow_html=True)
+    #     #         with col2:
+    #     #             message(st.session_state['interview_responses'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
+    #     # try:
+    #     #     with self.ai_col:
+    #     #         # message(st.session_state.interview_questions[-1])
+    #     #         # st.markdown(st.session_state.interview_questions[-1])
+    #     #         st.markdown(st.session_state["interview_dict"]["ai"][-1])
+    #     #     with self.human_col:
+    #     #         # message(st.session_state.interview_responses[-1])
+    #     #         # st.markdown(st.session_state.interview_responses[-1])
+    #     #         st.markdown(st.session_state["interview_dict"]["human"][-1])
+    #     # except Exception:
+    #     #     pass
         
-        st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
-        # st.chat_input(key="interview_input", on_submit = self.chatbox_callback)
+    #     st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
+    #     # st.chat_input(key="interview_input", on_submit = self.chatbox_callback)
 
 
 

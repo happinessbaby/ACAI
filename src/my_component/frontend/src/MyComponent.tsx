@@ -9,8 +9,9 @@ import Carousel, { Modal, ModalGateway, ViewType } from 'react-images'
 import {functionalTemplates, chronologicalTemplates} from "./Templates" ;
 import DisplaySession from "./DisplaySession";
 import Welcome from "./Welcome"
-import GoogleSignin from "./GoogleSignin";
+import GoogleAuth from "./GoogleAuth";
 import DisplayTemplate from "./DisplayTemplate" 
+
 
 
 interface State {
@@ -60,10 +61,11 @@ function Templates(props: State) {
 function Signin() {
   const streamlitCallback = (token: any, data:any) => {
     var email = data.email 
+    var name = data.name
     console.log(token, email)
-    Streamlit.setComponentValue(token + "###" + email)
+    Streamlit.setComponentValue(`${name},${email},${token}`)
   }
-  return < GoogleSignin signinCallback = {streamlitCallback}/>
+  return < GoogleAuth.GoogleSignin signinCallback = {streamlitCallback}/>
 }
 
 
@@ -175,37 +177,31 @@ class MyComponent extends StreamlitComponentBase<State> {
       
 
     else if (name=="signin") {
-
-
-    // Streamlit sends us a theme object via props that we can use to ensure
-    // that our component has visuals that match the active theme in a
-    // streamlit app.
-    // const { theme } = this.props
-    // const style: React.CSSProperties = {}
-
-    // Maintain compatibility with older versions of Streamlit that don't send
-    // a theme object.
-    // if (theme) {
-    //   // Use the theme object to style our button border. Alternatively, the
-    //   // theme style is defined in CSS vars.
-    //   const borderStyling = `1px solid ${
-    //     this.state.isFocused ? theme.primaryColor : "gray"
-    //   }`
-    //   style.border = borderStyling
-    //   style.outline = borderStyling
-    // }
       return < Signin/>
     }
     else if (name =="signout") { 
-      localStorage.removeItem("accessTokenKey");
-      return <div></div>
+      console.log("asgasfjds")
+      return <GoogleAuth.GoogleLogout />
       // googleLogout(); // what does this do??
     }
-
-    // else if (name=="stream") {
-    //   s.push(name)
-    // }
     else {
+      // Streamlit sends us a theme object via props that we can use to ensure
+      // that our component has visuals that match the active theme in a
+      // streamlit app.
+      // const { theme } = this.props
+      // const style: React.CSSProperties = {}
+  
+      // Maintain compatibility with older versions of Streamlit that don't send
+      // a theme object.
+      // if (theme) {
+      //   // Use the theme object to style our button border. Alternatively, the
+      //   // theme style is defined in CSS vars.
+      //   const borderStyling = `1px solid ${
+      //     this.state.isFocused ? theme.primaryColor : "gray"
+      //   }`
+      //   style.border = borderStyling
+      //   style.outline = borderStyling
+      // }
      
       return <div></div>
       // return (

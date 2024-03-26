@@ -7,9 +7,9 @@ import streamlit_authenticator as stauth
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies
+from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt
 import time
-import datetime
+from datetime import datetime, timedelta
 from streamlit_modal import Modal
 from utils.dynamodb_utils import save_user_info
 from aws_manager import get_aws_session
@@ -26,6 +26,7 @@ from pathlib import Path
 import faiss
 import re
 import uuid
+from hash_password import save_password
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
@@ -47,9 +48,9 @@ class User():
         # NOTE: userId is retrieved from browser cookie
         time.sleep(2)
         if self.cookie:
-            self.userId = re.split("###|@", self.cookie)[1]
-             # self.userId = self.cookie.split("###")[1]
-            print(self.userId)
+            username = decode_jwt(self.cookie, "test").get('username')
+            print("cookie exists", username)
+            self.userId = username
         else:
             self.userId = None 
         if "sessionId" not in st.session_state:
@@ -60,6 +61,13 @@ class User():
 
     @st.cache_data()
     def _init_session_states(_self, userId, sessionId):
+
+        if _self.cookie is None:
+            st.session_state["mode"]="signedout"
+        else:
+            st.session_state["mode"]="signedin"
+
+        st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
 
         if STORAGE=="CLOUD":
             st.session_state["s3_client"] = _self.aws_session.client('s3') 
@@ -98,26 +106,19 @@ class User():
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-        if self.cookie is None:
+        if st.session_state.mode=="signup":
+            print("signing up")
+            self.sign_up(authenticator)
+        elif st.session_state.mode=="signedout":
             self.sign_in(authenticator)
-            # try:
-            #     if st.session_state["signin_modal"]:
-            #          self._sign_in(authenticator)
-            #     else:
-            #         st.sidebar.button("signin")
-            # except KeyError:
-            #     st.session_state["signin_modal"]=True
-            #     self._sign_in(authenticator)
-        else:
-            if "vectorstore" not in st.session_state:
-                st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
-            if st.session_state.vectorstore is not None:
-                if "init_user1" not in st.session_state:
-                    self.about_user1()
-                if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-                    self.about_user2()
-                    
-            
+        elif st.session_state.mode=="signedin":
+            # if "vectorstore" not in st.session_state:
+            #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
+            # if st.session_state.vectorstore is not None:
+            #     if "init_user1" not in st.session_state:
+            #         self.about_user1()
+            #     if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+            #         self.about_user2()
             self.sign_out(authenticator)
             with st.sidebar:
                 update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
@@ -134,10 +135,11 @@ class User():
         logout = authenticator.logout('Logout', 'sidebar')
         if logout:
             # Hacky way to log out of Google
-            with st.spinner("logging out"):
                 # print(get_all_cookies())
-                delete_cookie(get_cookie("userInfo"), key="deleteCookie")
-                _ = my_component("signout", key="signout")
+            print('signing out')
+            _ = my_component("signout", key="signout")
+            delete_cookie(get_cookie("userInfo"), key="deleteCookie")
+            st.session_state["mode"]="signedout"
 
 
 
@@ -148,11 +150,12 @@ class User():
             # st.button("X", on_click=self.close_modal, args=["signin_modal"])
         st.header("Welcome")
         name, authentication_status, username = authenticator.login('', 'main')
+        print(name, authentication_status, username)
         # print(name, authentication_status, username)
         if authentication_status:
             print("user signed in through system")
-            set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
-            time.sleep(3)
+            # set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
+            # time.sleep(3)
         elif authentication_status == False:
             st.error('Username/password is incorrect')
         # elif authentication_status == None:
@@ -184,32 +187,48 @@ class User():
         )
         col1, col2, col3 = st.columns([5, 1, 1])
         with col2:
-            sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
+            # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
+            sign_up = st.button(label="sign up", key="signup",  type="primary")
+            if sign_up:
+                print("sadfad")
+                st.session_state["mode"]="signup"
+                st.rerun()
+
         with col3:
             forgot_password = st.button(label="forgot my password", key="forgot", type="primary") 
         st.markdown("or")
         user_info = my_component(name="signin", key="signin")
         if user_info!=-1:
+            user_info=user_info.split(",")
+            name = user_info[0]
+            email = user_info[1]
+            token = user_info[2]
+            cookie = encode_jwt(name, email, "test")
             print(f"user signed in through google: {user_info}")
             # NOTE: Google's token expires after 1 hour
-            set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
+            # set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
+            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
             time.sleep(3)
 
 
     def sign_up(self, authenticator:stauth.Authenticate):
 
-        try:
-            modal = Modal("Welcome", key="register", max_width=500)
-            with modal.container():
-                if authenticator.register_user("Create an account", "main", preauthorization=False):
-                    st.success("User registered successfully")
-                    set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
-        except Exception as e:
-            st.error(e)
-    
+        # modal = Modal("Welcome", key="register", max_width=500)
+        # with modal.container():
+        username= authenticator.register_user("Create an account", "main", preauthorization=False)
+        if username:
+            name = authenticator.credentials["usernames"][username]["name"]
+            password = authenticator.credentials["usernames"][username]["password"]
+            email = authenticator.credentials["usernames"][username]["email"]
+            if save_password( username, name, password, email):
+                st.success("User registered successfully")
+                cookie = encode_jwt(name, username, "test")
+                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
+                st.session_state["mode"]="signedin"
+                st.rerun()
+                # user_info = ""
+                # set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.now()+ timedelta(hours=1))
 
-        # with open(login_file, "w") as file:
-        #     yaml.dump(config, file, default_flow_style=False)
 
 
 

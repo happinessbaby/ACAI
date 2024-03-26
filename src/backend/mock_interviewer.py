@@ -214,6 +214,8 @@ class InterviewController():
 
             Interview assessor's feedback: {interviewer_assessment}
 
+            When the interview assessor asks you to end the interview, please compose a message to end the interview. 
+
             Please ask your interview question now:
 """
             # Sometimes you will be provided with the professional grader's feedback. They will be handed out to the Human at the end of the session. You should ignore them. 
