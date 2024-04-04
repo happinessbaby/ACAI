@@ -7,19 +7,23 @@ credentials:
     new_user:
       email: new_user@example.com
       name: New User
-      password: $2b$12$rDuvhf9ZvHG62HZCt8E0VewljI2iC5mJMvNTnxxsol3M3PbboJi.O
-    rbriggs:
-      email: rbriggs@gmail.com
-      name: Rebecca Briggs
-      password: $2b$12$TexoHHOUfEm6pqSelhcjveTUbkZv9rrm8nPSSZU5XTTXJ5WVS8MaW
-    tebs:
-      email: yueqipeng2021@gmail.com
-      name: tebs
-      password: $2b$12$TQxhyb6IXVuHLf3sMb6ln.Equ45eORFG/aCpp3PFEPQiPMj1uxPVm
+      password: $2b$12$rDuvhf9ZvHG62HZCt8E0VewljI2iC5mJMvNTnxxsol3M3PbboJi.Os
+    tebaby:
+      email: yueqipeng2024@gmail.com
+      name: Yueqi
+      password: $2b$12$TIHW38Dgj69nfQN4nWaYD.DjZ6kwW9CZ/tDS1PvtV98UkexN.M7oq
+    tebby:
+      email: yueqipeng2022@gmail.com
+      name: yueqi
+      password: $2b$12$UYRFdbD9/RthfkdMv5Cz1.doyh7h7ITW1RfQ5uC.YhMuzbMKEqXWK
     yueqi:
       email: yueqipeng2021@gmail.com
       name: Yueqi Peng
-      password: $2b$12$YKoiHshP3fWwDiV6H/nOS.0scoD5R6Vkym0B/hAjJ6luwHNUbeZnq
+      password: jp901210
+    yueqipeng:
+      email: yueqipeng2024@gmail.com
+      name: yueqi
+      password: $2b$12$TF0mEMzFKMNHhE1qqfyFTuKps4fraBYZnZMCMHQFBQTWIMKTmmBrm
 preauthorized:
   emails:
   - melsby@gmail.com

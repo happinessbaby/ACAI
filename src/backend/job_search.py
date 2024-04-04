@@ -2,15 +2,16 @@ import os
 import openai
 from langchain.agents import load_tools
 from langchain.utilities import TextRequestsWrapper
-from langchain.document_loaders.base import Document
+from langchain_core.documents import Document
 from langchain.indexes import VectorstoreIndexCreator
-from langchain.utilities import ApifyWrapper
-from langchain.document_loaders import ApifyDatasetLoader
+from langchain_community.utilities import ApifyWrapper
+from langchain_community.document_loaders import ApifyDatasetLoader
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
+### This module should be ran in the background continuously fetching most recent jobs and saving them to job metadata store
 
 class JobSearch():
 
@@ -40,18 +41,23 @@ class JobSearch():
         print(result["sources"])
 
         
-    def load_apify_dataset(self, dataset_id: str, query: str):
+    def load_apify_dataset(self, dataset_id: str, ):
         loader = ApifyDatasetLoader(
             dataset_id=dataset_id,
             dataset_mapping_function=lambda item: Document(
                 page_content=item["text"] or "", metadata={"source": item["url"]}
             ),
         )
-        index = VectorstoreIndexCreator().from_loaders([loader])
-        query = "What is Apify?"
-        result = index.query_with_sources(query)
+        data = loader.load()
+        print(data[1].page_content)
+        return data
+        # index = VectorstoreIndexCreator().from_loaders([loader])
+        # result = index.query_with_sources(query)
+        # return result
+
 
 
 if __name__ == '__main__':
     search = JobSearch()
-    search.start_apify_search("https://www.indeed.com/", "software engineer jobs in birmingham, alabama")
+    # search.start_apify_search("https://www.indeed.com/", "find one software engineer jobs in birmingham, alabama")
+    search.load_apify_dataset(dataset_id="CII7CKZMlhjjKbzQg")

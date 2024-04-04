@@ -1,6 +1,6 @@
 import streamlit as st
 import extra_streamlit_components as stx
-from backend.task_planner import PlannerController
+from backend.profile_builder import ProfileController
 import uuid
 
 
@@ -16,7 +16,7 @@ class Planner():
 
     def _init_session_states(self):
         if "planner" not in st.session_state:
-            st.session_state.planner = PlannerController(self.userId)
+            st.session_state.planner = ProfileController(self.userId)
 
 
     def _create_user_page(self):

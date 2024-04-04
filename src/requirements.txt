@@ -63,3 +63,6 @@ lancedb
 pywinctl
 streamlit-audiorec
 streamlit-mic-recorder
+streamlit-bokeh-events
+apify-client
+streamlit_js_eval

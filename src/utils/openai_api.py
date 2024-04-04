@@ -7,6 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from utils.basic_utils import read_txt
 import tiktoken
 import math
+from tenacity import retry, wait_exponential
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -87,7 +88,7 @@ def get_moderation_flag(prompt):
 	moderation_output = response["results"][0]
 	return moderation_output["flagged"]
 	
-
+@retry(wait=wait_exponential(multiplier=1, min=2, max=6))
 def get_completion(prompt, model="gpt-3.5-turbo"):
     messages = [{"role": "user", "content": prompt}]
     response = openai.chat.completions.create(
@@ -97,7 +98,7 @@ def get_completion(prompt, model="gpt-3.5-turbo"):
     )
     return response.choices[0].message.content.strip()
 
-
+@retry(wait=wait_exponential(multiplier=1, min=2, max=6))
 def get_completion_from_messages(messages, 
                                  model="gpt-3.5-turbo", 
                                  temperature=0, 

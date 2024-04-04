@@ -391,7 +391,7 @@ class InterviewController():
         self.meta_agent = AgentExecutor.from_agent_and_tools(agent=agent, tools=self.interview_tools, memory=memory, verbose=True)
 
 
-
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=6))
     def askInterviewer(self, user_input: str, callbacks=None,) -> str:
 
         """ Main function that processes all agents' conversation with user.
@@ -455,6 +455,9 @@ class InterviewController():
             # print(f"Sucessfully pickled conversation: {chat_history}")
         return interviewer_response
     
+
+    
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=6))
     def askGrader(self, user_input:str, callbacks=None) -> str:
 
         try:    
@@ -495,7 +498,10 @@ class InterviewController():
         #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # print(f"Sucessfully pickled conversation: {chat_history}")
         return grader_feedback
+    
 
+
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=6))
     def askMetaAgent(self, query="Update the Instruction please.") -> None:    
 
         """ Evaluates conversation's effectiveness between AI and Human. Outputs instructions for AI to follow. 

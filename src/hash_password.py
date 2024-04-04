@@ -3,14 +3,15 @@ import yaml
 
 def hash_password(password):
     # Hash the password using bcrypt
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     return hashed_password
 
 
 def save_password(username, name, password, email, filename="./user_login_sample.yaml"):
 
     try:
-        hashed_password = hash_password(password)
+        # hashed_password = hash_password(password)
+        # print("hashed password", hashed_password)
         with open(filename, 'r') as file:
             credentials = yaml.safe_load(file)
             print(credentials)
@@ -18,7 +19,7 @@ def save_password(username, name, password, email, filename="./user_login_sample
         credentials['credentials']['usernames'][username] = {
             'email': email,
             'name': name,
-            'password': hashed_password.decode()
+            'password': password
         }  
         with open(filename, 'w') as file:
             yaml.dump(credentials, file)

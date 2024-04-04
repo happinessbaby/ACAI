@@ -4,12 +4,13 @@ from my_component import my_component
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
+from langchain.prompts import PromptTemplate, StringPromptTemplate
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from streamlit_modal import Modal
 from utils.dynamodb_utils import save_user_info
 from aws_manager import get_aws_session
@@ -23,10 +24,17 @@ from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
 from langchain.docstore.document import Document
 from pathlib import Path
+from feast import FeatureStore
 import faiss
 import re
 import uuid
 from hash_password import save_password
+from bokeh.models.widgets import Button
+from bokeh.models import CustomJS
+from streamlit_bokeh_events import streamlit_bokeh_events
+from streamlit_js_eval import get_geolocation
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
@@ -35,6 +43,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 login_file = os.environ["LOGIN_FILE"]
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
+# store = FeatureStore("./my_feature_repo/")
 
 
 
@@ -63,11 +72,12 @@ class User():
     def _init_session_states(_self, userId, sessionId):
 
         if _self.cookie is None:
-            st.session_state["mode"]="signedout"
+            st.session_state["mode"]="signedin"
         else:
             st.session_state["mode"]="signedin"
 
         st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
+        st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
 
         if STORAGE=="CLOUD":
             st.session_state["s3_client"] = _self.aws_session.client('s3') 
@@ -102,7 +112,6 @@ class User():
     def _init_user(self):
 
         """ Initalizes user page according to user's sign in status"""
-
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
@@ -110,15 +119,17 @@ class User():
             print("signing up")
             self.sign_up(authenticator)
         elif st.session_state.mode=="signedout":
+            print("signing in")
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
+            print("signed in")
             # if "vectorstore" not in st.session_state:
             #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
             # if st.session_state.vectorstore is not None:
-            #     if "init_user1" not in st.session_state:
-            #         self.about_user1()
-            #     if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-            #         self.about_user2()
+            if "init_user1" not in st.session_state:
+                self.about_user1()
+            if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+                self.about_user2()
             self.sign_out(authenticator)
             with st.sidebar:
                 update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
@@ -190,10 +201,8 @@ class User():
             # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
             sign_up = st.button(label="sign up", key="signup",  type="primary")
             if sign_up:
-                print("sadfad")
                 st.session_state["mode"]="signup"
                 st.rerun()
-
         with col3:
             forgot_password = st.button(label="forgot my password", key="forgot", type="primary") 
         st.markdown("or")
@@ -215,19 +224,22 @@ class User():
 
         # modal = Modal("Welcome", key="register", max_width=500)
         # with modal.container():
+        print("inside signing up")
         username= authenticator.register_user("Create an account", "main", preauthorization=False)
         if username:
             name = authenticator.credentials["usernames"][username]["name"]
             password = authenticator.credentials["usernames"][username]["password"]
             email = authenticator.credentials["usernames"][username]["email"]
             if save_password( username, name, password, email):
+                st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, "test")
                 set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
-                st.session_state["mode"]="signedin"
                 st.rerun()
-                # user_info = ""
-                # set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.now()+ timedelta(hours=1))
+            else:
+                st.info("Failed to register user, please try again")
+                st.rerun()
+
 
 
 
@@ -288,7 +300,7 @@ class User():
         with c2:
             st.text_input("Last Name", key="last_namex", on_change=self.field_check)
         with c3:
-            st.date_input("Date of Birth", datetime.date(2019, 7, 6), min_value=datetime.date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
+            st.date_input("Date of Birth", date(2019, 7, 6), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
         # c1, c2, c3, c4=st.columns(4)
         # with c1:
         #     st.text("Date of Birth")
@@ -318,6 +330,11 @@ class User():
             st.select_slider("Level",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
         st.markdown("*OR*")
         st.file_uploader(label="Default Resume", key="resumex", on_change=self.field_check,)
+        if st.checkbox("Share my location"):
+            loc = get_geolocation()
+            if loc:
+                address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
+                st.session_state["address"] = address
         st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
 
@@ -379,6 +396,7 @@ class User():
             on_change=self.field_check
             )
             st.session_state["value2"]=value2
+        
         submitted = st.button("Submit", on_click=self.form_callback2, disabled=st.session_state.disabled)
         # if submitted:
         #     st.session_state["init_user2"]=True
@@ -397,13 +415,13 @@ class User():
     def form_callback2(self):
 
         #TODO: if user did not fill out info, grab info from resume
-        docs: List[Document] = []
-        if "resume_path" in st.session_state:
-            resume_docs = split_doc_file_size(path=st.session_state.resume_path, file_type="file", storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-            docs.extend(resume_docs)
-            print("added resume to docs")
-            if st.session_state.first_name is None and st.session_state.last_name is None:
-                info_dict=get_generated_responses(resume_content=st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        # docs: List[Document] = []
+        # if "resume_path" in st.session_state:
+        #     resume_docs = split_doc_file_size(path=st.session_state.resume_path, file_type="file", storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        #     docs.extend(resume_docs)
+        #     print("added resume to docs")
+        #     if st.session_state.first_name is None and st.session_state.last_name is None:
+        #         info_dict=get_generated_responses(resume_content=st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
         # basic_info_text = f""" User's name is {st.session_state.first_name} {st.session_state.last_name}. User is born in {st.session_state.birthday}. 
         # User graduated in {st.session_state.grad_year}, with a degree in {st.session_state.degree}, and area of study in {st.session_state.study}.
         # User's career of choice is {st.session_state.job}. The work experience level for this job is {st.session_state.job_level}
@@ -446,7 +464,15 @@ class User():
         clear_index(record_manager, vectorstore)
         print(f"record manager keys: {record_manager.list_keys()}")
 
-
+    def get_address(self, latitude, longitude):
+        geolocator = Nominatim(user_agent="nearest_city_finder")
+        try:
+            location = geolocator.reverse((latitude, longitude), exactly_one=True)
+            print(location.address)
+            return location.address
+        except GeocoderTimedOut:
+            # Retry after a short delay
+            return self.get_address(latitude, longitude)
         
     def field_check(self):
 
@@ -545,6 +571,28 @@ class User():
 
 
 
+
+
+# class to filter data and pass the information into
+# the prompt template we have above.
+# class FeastPromptTemplate(StringPromptTemplate):
+#     def format(self, **kwargs) -> str:
+#         user_id = kwargs.pop("user_id")
+#         feature_vector = feature_service.get_online_features(join_keys={"user_id":user_id}).to_dict()
+#         # df = pd.read_csv("./data.csv")
+#         # row = df[df["EmpID"] == int(employee_id)]
+#         kwargs["full_name"] = row["RecruitmentSource"].values[0]
+#         kwargs["date_of_birth"] = row["Salary"].values[0]
+#         kwargs["highest_education"] = row["RaceDesc"].values[0]
+#         kwargs["year_of_graduation"] = row["Department"].values[0]
+#         kwargs["degree"] = row["SpecialProjectsCount"].values[0]
+#         kwargs["area_of_study"] = row["Employee_Name"].values[0]
+#         kwargs["desired_job"] = row["Department"].values[0]
+#         kwargs["experience_level"] = row["SpecialProjectsCount"].values[0]
+#         kwargs["self_description"] = row["Employee_Name"].values[0]
+#         kwargs["current_situation"] = row["Employee_Name"].values[0]
+#         kwargs["career_goals"] = row["Employee_Name"].values[0]
+#         return prompt.format(**kwargs)
 
 
 
