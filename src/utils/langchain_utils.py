@@ -55,6 +55,7 @@ from langchain_community.document_transformers.openai_functions import (
 from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
 from langchain.vectorstores import FAISS
+from utils.lancedb_utils import create_lancedb_table
 # from langchain.docstore import InMemoryDocstore
 from langchain.indexes import SQLRecordManager, index
 from langchain.chains import create_tagging_chain, create_tagging_chain_pydantic
@@ -69,7 +70,6 @@ from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
 from langchain.schema import Document
-from utils.lancedb_utils import create_table
 import asyncio
 import errno
 
@@ -703,7 +703,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             print("Successfully created Redis vector store.")
                 # db=create_redis_index(docs, embeddings, index_name, source)
         elif (vs_type=="lancedb"):
-            table = create_table()
+            table = create_lancedb_table()
             db= LanceDB.from_documents(docs, embeddings, connection=table)
             # query = "What did a set in Tableau"
             # docs = db.similarity_search(query)

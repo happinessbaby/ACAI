@@ -17,7 +17,7 @@ from aws_manager import get_aws_session
 from utils.dynamodb_utils import init_table, check_attribute_exists
 from streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
-from utils.lancedb_utils import create_table, add_to_table
+from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
 from utils.common_utils import get_generated_responses, check_content
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
@@ -28,21 +28,22 @@ from feast import FeatureStore
 import faiss
 import re
 import uuid
-from hash_password import save_password
 from bokeh.models.widgets import Button
 from bokeh.models import CustomJS
 from streamlit_bokeh_events import streamlit_bokeh_events
 from streamlit_js_eval import get_geolocation
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
+import lancedb
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-login_file = os.environ["LOGIN_FILE"]
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
+login_file = os.environ["LOGIN_FILE_PATH"]
+db_path=os.environ["LANCEDB_PATH"]
 # store = FeatureStore("./my_feature_repo/")
 
 
@@ -78,6 +79,8 @@ class User():
 
         st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
         st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
+        st.session_state["address"] = ""
+        st.session_state["lancedb_conn"]= lancedb.connect(db_path)
 
         if STORAGE=="CLOUD":
             st.session_state["s3_client"] = _self.aws_session.client('s3') 
@@ -126,13 +129,17 @@ class User():
             # if "vectorstore" not in st.session_state:
             #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
             # if st.session_state.vectorstore is not None:
-            if "init_user1" not in st.session_state:
-                self.about_user1()
-            if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-                self.about_user2()
-            self.sign_out(authenticator)
-            with st.sidebar:
-                update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
+
+            if lancedb_table_exists(st.session_state["lancedb_conn"], "test_table1"):
+                print("user exists")
+            else:
+                if "init_user1" not in st.session_state:
+                    self.about_user1()
+                if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+                    self.about_user2()
+            # self.sign_out(authenticator)
+            # with st.sidebar:
+            #     update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
             # if "plannerbot" not in st.session_state:
             #     st.session_state["plannerbot"]=Planner(self.userId)
             # try:
@@ -230,7 +237,7 @@ class User():
             name = authenticator.credentials["usernames"][username]["name"]
             password = authenticator.credentials["usernames"][username]["password"]
             email = authenticator.credentials["usernames"][username]["email"]
-            if save_password( username, name, password, email):
+            if self.save_password( username, name, password, email):
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, "test")
@@ -289,52 +296,51 @@ class User():
     def about_user1(self):
 
 
-        if (st.session_state.get("first_name", False) and st.session_state.get("last_name", False) and st.session_state.get("birthday", False) and st.session_state.get("grad_year", False) and st.session_state.get("degree", False) and st.session_state.get("job", False) and st.session_state.get("job_level", False)) or (st.session_state.get("resume", False)):
+        if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and st.session_state.get("location", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
             st.session_state.disabled1=False
         else:
             st.session_state.disabled1=True
-        st.markdown("**Basic Information**")
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.text_input("First Name", key="first_namex", on_change=self.field_check)
-        with c2:
-            st.text_input("Last Name", key="last_namex", on_change=self.field_check)
-        with c3:
-            st.date_input("Date of Birth", date(2019, 7, 6), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
-        # c1, c2, c3, c4=st.columns(4)
-        # with c1:
-        #     st.text("Date of Birth")
-        # with c2:
-        #     st.selectbox("day", key="day", options=(1, 2, 3))
-        # with c3:
-        #     st.selectbox("month", key="month", options=(1, 2, 3))
-        # with c4: 
-        #     st.selectbox("year", key="year", options=(1, 2, 3))
-        c1, c2, c3, c4 = st.columns([0.5, 1, 1, 1])
-        with c1:
-            st.text("Highest Level of \n Education")
-            # st.text_input("School", key="schoolx")
-        with c2:
-            st.text_input("Year of Graduation", key="grad_yearx", on_change=self.field_check)
-        with c3:
-            st.selectbox("Degree", options=(1, 2, 3), key="degreex", on_change=self.field_check)
-        with c4:
-            st.text_input("Area of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
-        c1, c2, c3 = st.columns([0.5, 1, 1])
-        with c1:
-            st.text("""Work Experience of \n Your Career of Choice""")
+        # st.markdown("**Basic Information**")
+        with st.expander("**Basic information**", expanded=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.text_input("Full name", key="namex", on_change=self.field_check)
+            with c2:
+                st.date_input("Date of Birth", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
+            st.text_input("LinkedIn (optional)", key="linkedinx", on_change=self.field_check)
+    
+        with st.expander("**Education**"):
+            c1, c2 = st.columns([1, 1])
+                # st.text_input("School", key="schoolx")
+            with c2:
+                st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
+            with c1:
+                degree = st.selectbox("Highest level of education", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", on_change=self.field_check)
+            if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
+                st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
+            certification = st.text_area("Certification (optional)", placeholder="Please write out the full name of each certification chronologically and separate them with a comman")
+        # st.markdown("**Career**")
+        with st.expander("**Career**"):
+            c1, c2 = st.columns([1, 1])
             # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
-        with c2:
-            st.text_input("Job Title", key="jobx", on_change=self.field_check)
-        with c3:
-            st.select_slider("Level",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
-        st.markdown("*OR*")
-        st.file_uploader(label="Default Resume", key="resumex", on_change=self.field_check,)
-        if st.checkbox("Share my location"):
-            loc = get_geolocation()
-            if loc:
-                address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-                st.session_state["address"] = address
+            with c1:
+                st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_check)
+            with c2:
+                st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
+            job_unsure=st.checkbox("Not sure about the job?")
+            career_switch = st.checkbox("Career switch?", key="career_switchx", on_change=self.field_check)
+            if job_unsure:
+                st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
+            location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
+        if location == "I have a specific place in mind":
+            st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
+        if location == "I want to work near where I currently live":
+            if st.checkbox("Share my location"):
+                loc = get_geolocation()
+                if loc:
+                    address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
+                    st.session_state["address"] = address
+        st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
         st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
 
@@ -347,11 +353,11 @@ class User():
             st.session_state.disabled=False
         else:
             st.session_state.disabled=True
-        selected = stx.stepper_bar(steps=["Self Description", "Current Situation", "Career Goals"])
+        selected = stx.stepper_bar(steps=["Self Description", "Job Search", "Career Goals"])
         if selected==0 and st.session_state.value0=="":
             value0 = st.text_area(
             label="What can I know about you?", 
-            placeholder="Tell me about yourself", 
+            placeholder="Tell me about yourself, for example, what are your motivations and values? What's important to you in a job?", 
             key = "self_descriptionx", 
             on_change=self.field_check
             )
@@ -367,8 +373,8 @@ class User():
         elif selected==1 and st.session_state.value1=="":
             value1=st.text_area(
             label="What takes you here?",
-            placeholder = "Tell me about your present situation",
-            key="current_situationx",
+            placeholder = "Tell me about your job search history, for example, have you been in the job market for a long time? What takes you here?",
+            key="job_searchx",
             on_change =self.field_check
             )
             st.session_state["value1"]=value1
@@ -376,14 +382,14 @@ class User():
             value1=st.text_area(
             label="What takes you here?",
             value=st.session_state["value1"],
-            key = "current_situationx",
+            key = "job_searchx",
             on_change=self.field_check
             )
             st.session_state["value1"]=value1
         elif selected==2 and st.session_state.value2=="":
             value2=st.text_area(
             label="What can I do for you?",
-            placeholder = "Tell me about your career goals",
+            placeholder = "Tell me about your career goals. Where do you see yourself in 1 year? What about 10 years? What do you want to achieve in life?",
             key="career_goalsx",
             on_change=self.field_check,
             )
@@ -414,7 +420,7 @@ class User():
                 
     def form_callback2(self):
 
-        #TODO: if user did not fill out info, grab info from resume
+        #TODO: save user information in csv s
         # docs: List[Document] = []
         # if "resume_path" in st.session_state:
         #     resume_docs = split_doc_file_size(path=st.session_state.resume_path, file_type="file", storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
@@ -422,17 +428,6 @@ class User():
         #     print("added resume to docs")
         #     if st.session_state.first_name is None and st.session_state.last_name is None:
         #         info_dict=get_generated_responses(resume_content=st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        # basic_info_text = f""" User's name is {st.session_state.first_name} {st.session_state.last_name}. User is born in {st.session_state.birthday}. 
-        # User graduated in {st.session_state.grad_year}, with a degree in {st.session_state.degree}, and area of study in {st.session_state.study}.
-        # User's career of choice is {st.session_state.job}. The work experience level for this job is {st.session_state.job_level}
-        # """
-        # description_text = f""" user's name is {st.session_state.first_name} {st.session_state.last_name}. The following are user's self-description, current situation, and future career goals.
-        # self-description: {st.session_state.self_description} \
-        # """   
-        # # current situation: {st.session_state.current_situation} \
-        # # career goals: {st.session_state.career_goals} \
-        # text = basic_info_text + description_text
-        # print(text)
         # save_path =  os.path.join(st.session_state.user_path, self.userId, "basic_info", "user_description.txt")
         # if st.session_state.storage=="LOCAL":
         #     with open(save_path, "wb") as f:
@@ -448,14 +443,15 @@ class User():
         # record_manager=create_record_manager(self.userId)
         # update_index(docs, record_manager, vectorstore, cleanup_mode=None)
         # print(f"record manager keys: {record_manager.list_keys()}")
+        field_names = ["name", "birthday", "grad_year", "degree", "study", "job", "job_level", "past", "present", "future", "address"]
+        field_values=[st.session_state.name, st.session_state.birthday, st.session_state.grad_year, 
+                      st.session_state.degree, st.session_state.study, st.session_state.job, st.session_state.job_level, 
+                      st.session_state.self_description, st.session_state.job_search, st.session_state.career_goals, st.session_state.address]
+        data = {name: value for name, value in zip(field_names, field_values)}
+        create_lancedb_table(st.session_state["lancedb_conn"], "test_table1", data)
         st.session_state["init_user2"]=True
-        # table.add([{"text":text}])
-        # field_names = ["first_name", "last_name", "birthday", "grad_year", "degree", "study", "job", "job_level", "past", "present", "future"]
-        # field_values=[st.session_state.first_name, st.session_state.last_name, st.session_state.birthday, st.session_state.grad_year, 
-        #               st.session_state.degree, st.session_state.study, st.session_state.job, st.session_state.job_level, 
-        #               st.session_state.past, st.session_state.present, st.session_state.future]
-        # for field_name, field_value in zip(field_names, field_values):
-        #     add_to_table(field_name, field_value, table=table)
+
+
     def test_clear(self):
         
         vectorstore = retrieve_vectorstore("elasticsearch", index_name=self.userId)
@@ -482,7 +478,7 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["current_situation"] = st.session_state.current_situationx
+            st.session_state["job_search"] = st.session_state.job_searchx
         except AttributeError:
             pass
         try:
@@ -490,21 +486,17 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["first_name"] = st.session_state.first_namex
-        except AttributeError:
-            pass
-        try:
-            st.session_state["last_name"] = st.session_state.last_namex
+            st.session_state["name"] = st.session_state.namex
         except AttributeError:
             pass
         try:
             st.session_state["birthday"] = st.session_state.birthdayx
         except AttributeError:
             pass
-        # try:
-        #     st.session_state["school"] = st.session_state.schoolx
-        # except AttributeError:
-        #     pass
+        try:
+            st.session_state["linkedin"] = st.session_state.linkedinx
+        except AttributeError:
+            pass
         try:
             st.session_state["grad_year"] = st.session_state.grad_yearx
         except AttributeError:
@@ -523,6 +515,22 @@ class User():
             pass
         try:
             st.session_state["job_level"] = st.session_state.job_levelx
+        except AttributeError:
+            pass
+        try:
+            st.session_state["career_switch"] = st.session_state.career_switchx
+        except AttributeError:
+            pass
+        try:
+            st.session_state["industry"] = st.session_state.industryx
+        except AttributeError:
+            pass
+        try:
+            st.session_state["location"] = st.session_state.locationx
+        except AttributeError:
+            pass
+        try:
+            st.session_state["location_input"] = st.session_state.location_inputx
         except AttributeError:
             pass
         try:
@@ -568,6 +576,28 @@ class User():
         vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
         record_manager=create_record_manager(self.userId)
         update_index(docs, record_manager, vectorstore)
+
+
+
+    def save_password(self, username, name, password, email, filename=login_file):
+
+        try:
+            # hashed_password = hash_password(password)
+            # print("hashed password", hashed_password)
+            with open(filename, 'r') as file:
+                credentials = yaml.safe_load(file)
+                print(credentials)
+                # Add the new user's details to the dictionary
+            credentials['credentials']['usernames'][username] = {
+                'email': email,
+                'name': name,
+                'password': password
+            }  
+            with open(filename, 'w') as file:
+                yaml.dump(credentials, file)
+            return True
+        except Exception as e:
+            return False
 
 
 
