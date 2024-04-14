@@ -11,7 +11,9 @@ func = registry.get("openai").create(model=model)
 db_path=os.environ["LANCEDB_PATH"]
 
 # this is the schema for table of UserInfo
-#FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tables
+#FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
+# class BasicInfo(LanceModel):
+
 class UserInfo(LanceModel):
     name: str = func.SourceField()
     vector: Vector(func.ndims()) = func.VectorField()
@@ -21,21 +23,14 @@ def register_model(model_name):
     model = registry.get(model_name).create()
     return model
 
-def create_lancedb_table(db, table_name, data, schema="userInfo", mode="overwrite", ):
-    # if schema=="userInfo":
-    #     schema=UserInfo
+def create_lancedb_table(db, table_name,  ):
+
     table = db.create_table(
         table_name,
-        # schema = schema,
-        # # data=[
-        # #     {
-        # #         "vector": embeddings.embed_query(query),
-        # #         "text": "Hello World",
-        # #         "id": "1",
-        # #     }
+        schema = UserInfo,
         # # ],
-        data=data,
-        mode=mode,
+        # data=data,
+        # mode=mode,
     )
     return table
 
@@ -44,8 +39,9 @@ def add_to_lancedb_table(db, table_name, data, mode="append"):
     try:
         table=db.open_table(table_name)
         table.add(data, mode=mode)
-    except Exception:
-        create_lancedb_table(db, table_name, data)
+    except FileNotFoundError:
+        create_lancedb_table(db, table_name)
+        # add_to_lancedb_table(db, table_name, data)
 
 def create_lancedb_index(db, table_name, distance_type):
 
@@ -59,6 +55,17 @@ def lancedb_table_exists(db, table_name):
     try:
         table=db.open_table(table_name)
     except FileNotFoundError:
-        return False
-    return True
+        return None
+    return table
 
+def query_lancedb_table(query, db, table_name, top_k=1):
+    try:
+        table = lancedb_table_exists(db, table_name)
+        results = (
+            table.search(query)
+            .limit(top_k)
+            .to_pydantic(UserInfo)[0]
+        )
+    except Exception as e:
+        raise e
+    return results

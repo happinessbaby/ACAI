@@ -17,7 +17,7 @@ from aws_manager import get_aws_session
 from utils.dynamodb_utils import init_table, check_attribute_exists
 from streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
-from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists
+from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
 from utils.common_utils import get_generated_responses, check_content
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
@@ -77,11 +77,18 @@ class User():
         else:
             st.session_state["mode"]="signedin"
 
-        st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
+        # st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
         st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
-        st.session_state["address"] = ""
+        st.session_state["location_input"] = ""
+        st.session_state["study"] = ""
+        st.session_state["grad_year"] = ""
+        st.session_state["certification"] = ""
+        st.session_state["career_switch"] = False
+        st.session_state["industry"] = ""
+        st.session_state["self_description"]= ""
+        st.session_state["job_search"]=""
+        st.session_state["career_goals"]=""
         st.session_state["lancedb_conn"]= lancedb.connect(db_path)
-
         if STORAGE=="CLOUD":
             st.session_state["s3_client"] = _self.aws_session.client('s3') 
             st.session_state["bucket_name"] = bucket_name
@@ -318,7 +325,7 @@ class User():
                 degree = st.selectbox("Highest level of education", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", on_change=self.field_check)
             if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
                 st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
-            certification = st.text_area("Certification (optional)", placeholder="Please write out the full name of each certification chronologically and separate them with a comman")
+            certification = st.text_area("Certification (optional)", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
         # st.markdown("**Career**")
         with st.expander("**Career**"):
             c1, c2 = st.columns([1, 1])
@@ -339,7 +346,7 @@ class User():
                 loc = get_geolocation()
                 if loc:
                     address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-                    st.session_state["address"] = address
+                    st.session_state["location_input"] = address
         st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
         st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
@@ -404,6 +411,7 @@ class User():
             st.session_state["value2"]=value2
         
         submitted = st.button("Submit", on_click=self.form_callback2, disabled=st.session_state.disabled)
+        skip = st.button(label="skip", help="You can come back to this later, but remember, the more information you provide, the better your job search results", type="primary", on_click=self.form_callback2)
         # if submitted:
         #     st.session_state["init_user2"]=True
 
@@ -443,12 +451,13 @@ class User():
         # record_manager=create_record_manager(self.userId)
         # update_index(docs, record_manager, vectorstore, cleanup_mode=None)
         # print(f"record manager keys: {record_manager.list_keys()}")
-        field_names = ["name", "birthday", "grad_year", "degree", "study", "job", "job_level", "past", "present", "future", "address"]
-        field_values=[st.session_state.name, st.session_state.birthday, st.session_state.grad_year, 
-                      st.session_state.degree, st.session_state.study, st.session_state.job, st.session_state.job_level, 
-                      st.session_state.self_description, st.session_state.job_search, st.session_state.career_goals, st.session_state.address]
-        data = {name: value for name, value in zip(field_names, field_values)}
-        create_lancedb_table(st.session_state["lancedb_conn"], "test_table1", data)
+        # field_names = ["name", "birthday" "linkedin", "grad_year", "degree", "study", "certification", "job", "job_level", "industry", "career_switch", "locatino", "self_description", "job_search", "career_goals"]
+        # field_values=[st.session_state.name, st.session_state.birthday, st.session_state.linkedin, st.session_state.grad_year, 
+        #               st.session_state.degree, st.session_state.study, st.session_state.job, st.session_state.job_level, st.session_state.industry, st.session_state.career_switch, st.session_state.location, 
+        #               st.session_state.location_input, st.session_state.self_description, st.session_state.job_search, st.session_state.career_goals]
+        # data = {name: value for name, value in zip(field_names, field_values)}
+        data = [{"name":st.session_state.name}]
+        add_to_lancedb_table(st.session_state["lancedb_conn"], "test_table1", data)
         st.session_state["init_user2"]=True
 
 
@@ -461,6 +470,9 @@ class User():
         print(f"record manager keys: {record_manager.list_keys()}")
 
     def get_address(self, latitude, longitude):
+
+        """Retrieves the address of user's current location """
+
         geolocator = Nominatim(user_agent="nearest_city_finder")
         try:
             location = geolocator.reverse((latitude, longitude), exactly_one=True)
@@ -490,7 +502,8 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["birthday"] = st.session_state.birthdayx
+            birthday = st.session_state.birthdayx
+            self.process_input("birthday", birthday)
         except AttributeError:
             pass
         try:
@@ -506,11 +519,18 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["study"] = st.session_state.studyx
+            study = st.session_state.studyx
+            self.process_input("study", study)
         except AttributeError:
             pass
         try:
-            st.session_state["job"] = st.session_state.jobx
+            certification = st.session_state.certificationx 
+            self.process_input("certification", certification)
+        except AttributeError:
+            pass
+        try:
+            job = st.session_state.jobx
+            self.process_input("job", job)
         except AttributeError:
             pass
         try:
@@ -530,7 +550,8 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["location_input"] = st.session_state.location_inputx
+            location_input = st.session_state.location_inputx
+            self.process_input("location_input", location_input)
         except AttributeError:
             pass
         try:
@@ -539,6 +560,19 @@ class User():
                 self.process_file(st.session_state.resume)
         except AttributeError:
             pass
+
+    def process_input(self, input_type, input_value):
+
+        if input_type=="birthday":
+            st.session_state.birthday = input_value.strftime('%Y-%m-%d')
+        if input_type=="certification":
+            st.session_state.certification = input_value.split(",")
+        if input_type=="study":
+            st.session_state.study = input_value.split(",")
+        if input_type=="job":
+            st.session_state.job=input_value.split(",")
+        if input_type=="location_input":
+            st.session_state.location_input=input_value.split(",")
 
     def process_file(self, uploaded_file: Any) -> None:
 
