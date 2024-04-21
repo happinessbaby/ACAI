@@ -8,22 +8,10 @@ credentials:
       email: new_user@example.com
       name: New User
       password: $2b$12$rDuvhf9ZvHG62HZCt8E0VewljI2iC5mJMvNTnxxsol3M3PbboJi.Os
-    tebaby:
-      email: yueqipeng2024@gmail.com
-      name: Yueqi
-      password: $2b$12$TIHW38Dgj69nfQN4nWaYD.DjZ6kwW9CZ/tDS1PvtV98UkexN.M7oq
-    tebby:
-      email: yueqipeng2022@gmail.com
-      name: yueqi
-      password: $2b$12$UYRFdbD9/RthfkdMv5Cz1.doyh7h7ITW1RfQ5uC.YhMuzbMKEqXWK
     yueqi:
-      email: yueqipeng2021@gmail.com
-      name: Yueqi Peng
-      password: jp901210
-    yueqipeng:
-      email: yueqipeng2024@gmail.com
+      email: yueqi@gmail.com
       name: yueqi
-      password: $2b$12$TF0mEMzFKMNHhE1qqfyFTuKps4fraBYZnZMCMHQFBQTWIMKTmmBrm
+      password: $2b$12$XDdZvx7XczYpC6HxnnCem.lpZ6QQ8D3q0tMdQXD3JGv0ourWoOATK
 preauthorized:
   emails:
   - melsby@gmail.com

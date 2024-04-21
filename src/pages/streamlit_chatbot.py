@@ -74,15 +74,15 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # should be
 
 
-show_pages(
-    [
-        Page("streamlit_user.py", f"User"),
-        Section(name="Settings"),
-        Page("streamlit_chatbot.py", "Career Help", "🏠"),
-        Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
-        # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
-    ]
-)
+# show_pages(
+#     [
+#         Page("streamlit_user.py", f"User"),
+#         Section(name="Settings"),
+#         Page("streamlit_chatbot.py", "Career Help", "🏠"),
+#         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
+#         # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
+#     ]
+# )
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']

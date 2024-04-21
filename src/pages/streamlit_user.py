@@ -73,12 +73,16 @@ class User():
     def _init_session_states(_self, userId, sessionId):
 
         if _self.cookie is None:
-            st.session_state["mode"]="signedin"
+            st.session_state["mode"]="signedout"
         else:
             st.session_state["mode"]="signedin"
 
         # st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
-        st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
+        with open(login_file) as file:
+            config = yaml.load(file, Loader=SafeLoader)
+        # authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+        st.session_state["config"] = config
+        # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         st.session_state["location_input"] = ""
         st.session_state["study"] = ""
         st.session_state["grad_year"] = ""
@@ -108,7 +112,6 @@ class User():
             try: 
                 user_dir = os.path.join(st.session_state.user_path,  _self.userId, "basic_info")
                 os.mkdir(user_dir)
-                # st.session_state["directory_made"] = True
             except Exception as e:
                 pass
         st.session_state["value0"]=""
@@ -122,8 +125,9 @@ class User():
     def _init_user(self):
 
         """ Initalizes user page according to user's sign in status"""
-        with open(login_file) as file:
-            config = yaml.load(file, Loader=SafeLoader)
+        # with open(login_file) as file:
+        #     config = yaml.load(file, Loader=SafeLoader)
+        config = st.session_state["config"]
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
         if st.session_state.mode=="signup":
             print("signing up")
@@ -137,7 +141,7 @@ class User():
             #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
             # if st.session_state.vectorstore is not None:
 
-            if lancedb_table_exists(st.session_state["lancedb_conn"], "test_table1"):
+            if lancedb_table_exists(st.session_state["lancedb_conn"], self.userId):
                 print("user exists")
             else:
                 if "init_user1" not in st.session_state:
@@ -176,10 +180,8 @@ class User():
         st.header("Welcome")
         name, authentication_status, username = authenticator.login('', 'main')
         print(name, authentication_status, username)
-        # print(name, authentication_status, username)
         if authentication_status:
             print("user signed in through system")
-            # set_cookie("userInfo", user_info, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
             # time.sleep(3)
         elif authentication_status == False:
             st.error('Username/password is incorrect')

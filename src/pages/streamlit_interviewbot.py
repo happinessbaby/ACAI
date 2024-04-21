@@ -280,8 +280,8 @@ class Interview():
                         
             # ''')
             # add_vertical_space(5)
-            if "init_interview" not in st.session_state:
-                st.markdown("Welcome to your mock interviewer session with an AI interviewer. Please fill out the interview pre-form first so your AI interviewer gets a better understanding of your interview. " )
+            # if "init_interview" not in st.session_state:
+            #     st.markdown("Welcome to your mock interviewer session with an AI interviewer. Please fill out the interview pre-form first so your AI interviewer gets a better understanding of your interview. " )
             if st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
                 st.markdown('''
                 Troubleshooting:
