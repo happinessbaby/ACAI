@@ -11,52 +11,32 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 endpoint_url = os.environ["ENDPOINT_URL"]
 
 
-def init_table(session, userId):
+def init_table(session, tableId):
 
-    dynamodb = session.resource('dynamodb') 
-    # print(session.resource("dynamodb", 'us-east-2').get_available_subresources())
-    print(session.client("dynamodb",'us-east-2').list_tables())
-    try:
-        return dynamodb.Table(userId)
-    except Exception as e:
-        return create_table(dynamodb, userId)
+    client = session.client('dynamodb', 'us-east-2') 
+    existing_tables = client.list_tables()['TableNames']
+    if tableId not in existing_tables:
+        return create_table(client, tableId)
 
-def create_table(dynamodb, name):
-    # table = dynamodb.create_table(
-    #     TableName=name,
-    #     KeySchema=[
-    #         {
-    #             'AttributeName': 'userId',
-    #             'KeyType': 'HASH'  #Partition_key
-    #         },
-    #     ],
-    #     AttributeDefinitions=[
-    #         {
-    #             'AttributeName': 'userId',
-    #             'AttributeType': 'S'
-    #         },
+def create_table(client, tableId):
+    table = client.create_table(
+        TableName=tableId,
+        KeySchema=[
+            {
+                'AttributeName': 'userId',
+                'KeyType': 'HASH'  #Partition_key
+            },
+        ],
+        AttributeDefinitions=[
+            {
+                'AttributeName': 'userId',
+                'AttributeType': 'S'
+            },
 
-    #     ],
-    #     ProvisionedThroughput={
-    #         'ReadCapacityUnits': 10,
-    #         'WriteCapacityUnits': 10
-    #     }
-    # )
-    print("CREATE TABLE")
-    table = dynamodb.create_table(
-    TableName=name,
-    KeySchema=[
-        {"AttributeName": "PK", "KeyType": "HASH"},
-        {"AttributeName": "SK", "KeyType": "RANGE"},
-    ],
-    AttributeDefinitions=[
-        {"AttributeName": "PK", "AttributeType": "S"},
-        {"AttributeName": "SK", "AttributeType": "S"},
-    ],
-    BillingMode="PAY_PER_REQUEST",
+        ],
+        BillingMode="PAY_PER_REQUEST",
     )
-    table.meta.client.get_waiter("table_exists").wait(TableName=name)
-    print("Table status:", table.table_status)
+    print("CREATED DYNAMODB TABLE")
     return table
 
 

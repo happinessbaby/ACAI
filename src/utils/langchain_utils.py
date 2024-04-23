@@ -55,6 +55,7 @@ from langchain_community.document_transformers.openai_functions import (
 from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
 from langchain.vectorstores import FAISS
+from utils.lancedb_utils import create_lancedb_table
 # from langchain.docstore import InMemoryDocstore
 from langchain.indexes import SQLRecordManager, index
 from langchain.chains import create_tagging_chain, create_tagging_chain_pydantic
@@ -69,7 +70,6 @@ from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
 from langchain.schema import Document
-from lancedb_utils import create_table
 import asyncio
 import errno
 
@@ -292,7 +292,7 @@ def create_QASource_chain(chat, vectorstore, docs=None, chain_type="stuff", inde
     return qa
 
 ""
-def create_compression_retriever(vectorstore: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
+def create_compression_retriever(retriever: Any, compressor_type="redundant_filter", search_type="mmr", search_kwargs={"k":1}) -> ContextualCompressionRetriever:
 
     """ Creates a compression retriever given a vector store path. 
     For redundant filter compressor: https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
@@ -300,10 +300,8 @@ def create_compression_retriever(vectorstore: Any, compressor_type="redundant_fi
 
     Args:
 
-        vs_type: faiss, redis, or open_search
-
-        vectorstore: vector store
-
+        retriever: any retriever    
+    
     Keyword Args:
 
         compressor_type (str): redundant_filter or cohere_rerank
@@ -329,7 +327,7 @@ def create_compression_retriever(vectorstore: Any, compressor_type="redundant_fi
     elif compressor_type=="cohere_rerank":
         compressor = CohereRerank()
     # store = retrieve_vectorstore(vs_type, vectorstore)
-    retriever = vectorstore.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
+    # retriever = vectorstore.as_retriever(search_type=search_type,  search_kwargs=search_kwargs)
     # retriever = store.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5, "k":3})
 
     compression_retriever = ContextualCompressionRetriever(base_compressor=compressor, base_retriever=retriever)
@@ -337,7 +335,7 @@ def create_compression_retriever(vectorstore: Any, compressor_type="redundant_fi
     return compression_retriever
 
 
-def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI()) -> str:
+def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI(), storage="LOCAL", bucket_name=None, s3=None) -> str:
 
     """ See summarization chain: https://python.langchain.com/docs/use_cases/summarization
     
@@ -356,12 +354,18 @@ def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", 
 
         llm (BaseModel)
 
+        storage: LOCAL or CLOUD
+
+        bucket_name: s3 bucket name
+
+        s3: s3 client
+
     Returns:
     
         a summary of the give file
     
     """
-    docs = split_doc_file_size(path, chunk_size=chunk_size)
+    docs = split_doc_file_size(path, chunk_size=chunk_size, storage=storage, bucket_name=bucket_name, s3=s3)
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=PROMPT)
     response = chain.run(docs)
@@ -699,7 +703,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             print("Successfully created Redis vector store.")
                 # db=create_redis_index(docs, embeddings, index_name, source)
         elif (vs_type=="lancedb"):
-            table = create_table()
+            table = create_lancedb_table()
             db= LanceDB.from_documents(docs, embeddings, connection=table)
             # query = "What did a set in Tableau"
             # docs = db.similarity_search(query)

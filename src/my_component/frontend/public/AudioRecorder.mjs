@@ -18,30 +18,10 @@
 //     audioRecorder.stopResolver = resolve;
 // });
 
+import {updateSpeechContent} from "./AudioReceiver.mjs";
 
-// require(['./@google-cloud/speech'], async (speech) => {
-    // var speech = require('@google-cloud/speech'); 
-//   var app = express()
-    // });
-// const speech = require('@google-cloud/speech');
 const sampleRate = 16000;
-  // initialize stt parameters
-  // need a 16-bit, 16KHz raw PCM audio 
-// const encoding = 'LINEAR16';
-// const sampleRateHertz = 16000;
-// const languageCode = 'en-US';
-// const request = {
-// config: {
-//     encoding: encoding,
-//     sampleRateHertz: sampleRateHertz,
-//     languageCode: languageCode,
-// },
-// interimResults: false // If you want interim results, set this to true
-// };
-// // init SpeechClient
-// const client = new speech.v1p1beta1.SpeechClient();
-// await client.initialize();
-// const stt_stream = await client.streamingRecognize(request);
+
 const getMediaStream = () =>
   navigator.mediaDevices.getUserMedia({
     audio: {
@@ -72,6 +52,9 @@ var audioRecorder = {
     connection: null, 
 
     audioContext: null,
+
+    received: false,
+
     /** Start recording the audio
       * @returns {Promise} - returns a promise that resolves if audio recording successfully started
       */
@@ -82,7 +65,7 @@ var audioRecorder = {
         //     //return a custom error
         //     return Promise.reject(new Error('mediaDevices API or getUserMedia method is not supported in this browser.'));
         // }
-        _ = audioRecorder.connect();
+        const x = audioRecorder.connect();
 
         /** NOTE: for some reason audioContext needs to be recreated each time and closed each time for the websocket to receive more tha one msg in the backend */
         audioRecorder.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
@@ -136,21 +119,32 @@ var audioRecorder = {
             //     //resolve promise with the single audio blob representing the recorded audio
             //     resolve(audioBlob);
             // });
- 
-        //stop the recording feature
-        // audioRecorder.mediaRecorder.stop();
-        // audioRecorder.disconnect();
-        audioRecorder.connection.send(JSON.stringify({'action': 'stopRecording'}));
- 
-        //stop all the tracks on the active stream in order to stop the stream
+            
+            //stop the recording feature
+            // audioRecorder.mediaRecorder.stop();
+            // audioRecorder.disconnect();
+            audioRecorder.connection.send(JSON.stringify({'action': 'stopRecording'}));
+            
+            //stop all the tracks on the active stream in order to stop the stream
         audioRecorder.stopStream();
  
         //reset API properties for next recording
         audioRecorder.resetRecordingProperties();
+        
+        setTimeout(() => {
+          if (audioRecorder.received==false) {
+            // let user know their message didn't get recorded
+            console.log("user recording not recorded");
+            let error_msg = {interviewer:"Sorry, I didn't get your response, please try again", grader:""};
+            updateSpeechContent(error_msg);
+          }
+          else
+          {   
+            console.log("user recording received");
+            audioRecorder.received = false;
+          }
+        }, 5000);
 
-        // })
-
-        // audioRecorder.stopResolver();
         
     //...
     },
@@ -160,17 +154,14 @@ var audioRecorder = {
 
     connect: function() {
             // audioRecorder.connection?.close();
+          //  return new Promise((resolve, reject) => {
+
             if (audioRecorder.connection == null) {
               // Check if the connection is closed or if it is null
               audioRecorder.connection = new WebSocket("ws://localhost:8000");
               // connection.onmessage = event => speechRecognized(JSON.parse(event.data));
               audioRecorder.connection.onopen = event => {
                   // Send a JSON message to the server with specific parameters
-                  // audioRecorder.connection.send(JSON.stringify({
-                  //     "rate": 16000,
-                  //     "format": 'LINEAR16',
-                  //     "language": 'en-US',
-                  // }));
                   this.send(JSON.stringify({
                       "rate": 16000,
                       "format": 'LINEAR16',
@@ -180,19 +171,39 @@ var audioRecorder = {
               }; 
               audioRecorder.connection.onerror = event => {
                   console.error("WebSocket error:", event.error);
-                  audioRecorder.connect();
+                  setTimeout(audioRecorder.connect(), 1000);
               };
+              audioRecorder.connection.onclose = function(event) {
+                console.log("WebSocket connection closed:", event);
+                // Reconnect after a delay (e.g., 5 seconds)
+                setTimeout(audioRecorder.connect(), 1000);
+            };
               audioRecorder.connection.onmessage = event => {
-                  console.log("websocket received msg", event.data);
+                if (event.data.startsWith("200")) {
+                    console.log("websocket received audio msg", event.data);
+                    audioRecorder.received=true;
+                  }
+                else if (event.data.startsWith("201")) {
+                    console.log("websocket received user upload");
+                    audioRecorder.received=true;
+                  }
+                else if (event.data.startsWith("202")) {
+                    console.log("websocket received end signal");
+                    audioRecorder.received=true;
+                  }
                 };
             }
             else {
               console.log("webscoket already established", audioRecorder.connection.readyState);
-            }
-            // audioRecorder.connection = connection;     
-            console.log("connected to websocket")
+            };
+             // Return the audioRecorder variable along with the promise
+             console.log("connected to websocket");
+            //  const connection = audioRecorder.connection;
+            //  resolve({connection, promise: () => Promise });   
             return audioRecorder.connection;
-          },
+          // });
+        },
+
     // disconnect: function() {
     //     console.log("disconnecting:", audioRecorder.connection.readyState)
     //     audioRecorder.connection?.close();
@@ -284,29 +295,22 @@ var audioRecorder = {
       },
     
     handleSuccess: function(audioContext, stream, output) {
+
         // //save the reference of the stream to be able to stop it when necessary
         console.log("successfully initiated audio contect, pcmMaker, and stream")
         audioRecorder.streamBeingCaptured = stream;
         
-        // var audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sampleRate });
-        // audioRecorder.audioContext = audioContext;
         var source = audioContext.createMediaStreamSource(stream);     
-        // audioContext.audioWorklet.addModule('./pcmWorker.js')
-            // .then(() => {
-                var pcmWorker = new AudioWorkletNode(audioContext, 'pcm-worker', {
-                    outputChannelCount: [1]
-                });
-    
-                source.connect(pcmWorker);
-                // pcmWorker.port.onmessage = (event) => conn.send(event.data);
-                // pcmWorker.port.onmessage = (event) => output(event.data)       
-                pcmWorker.port.onmessage = (event) => output(event.data)
-                // pcmWorker.port.onmessage = (event) => stt_stream.write(event.data)
-                pcmWorker.port.start();
-                console.log("ALL SUCCESSFUL")
 
-            // })
-            // .catch(error => console.error("Error loading pcmWorker module:", error));
+        var pcmWorker = new AudioWorkletNode(audioContext, 'pcm-worker', {
+            outputChannelCount: [1]
+        });
+
+        source.connect(pcmWorker);
+      
+        pcmWorker.port.onmessage = (event) => {output(event.data);};
+        pcmWorker.port.start();
+        console.log("ALL SUCCESSFUL")
 
     },
     // /** Cancel audio recording*/
@@ -315,7 +319,6 @@ var audioRecorder = {
     // }
 }
 
-// });
 
 export function init_audioRecorder() {
     return audioRecorder

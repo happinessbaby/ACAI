@@ -5,9 +5,9 @@ import os
 import json
 from dotenv import load_dotenv, find_dotenv
 from utils.basic_utils import read_txt
-from openai.error import InvalidRequestError
 import tiktoken
 import math
+from tenacity import retry, wait_exponential
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -82,34 +82,34 @@ def num_assistant_tokens_from_messages(messages,  model="gpt-3.5-turbo-0613"):
 
 def get_moderation_flag(prompt):
 
-	response = openai.Moderation.create(
+	response = openai.moderations.create(
 		input = prompt
 	)
 	moderation_output = response["results"][0]
 	return moderation_output["flagged"]
 	
-
+@retry(wait=wait_exponential(multiplier=1, min=2, max=6))
 def get_completion(prompt, model="gpt-3.5-turbo"):
     messages = [{"role": "user", "content": prompt}]
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model=model,
         messages=messages,
         temperature=0, 
     )
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content.strip()
 
-
+@retry(wait=wait_exponential(multiplier=1, min=2, max=6))
 def get_completion_from_messages(messages, 
                                  model="gpt-3.5-turbo", 
                                  temperature=0, 
                                  max_tokens=500):
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model=model,
         messages=messages,
         temperature=temperature, # this is the degree of randomness of the model's output
         max_tokens=max_tokens, # the maximum number of tokens the model can ouptut 
     )
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content.strip()
 
 
 
@@ -177,7 +177,7 @@ def check_content_safety(file=None, text_str=None):
 	try: 
 		immoderate = get_moderation_flag(text)
 		unsafe = check_injection(text)
-	except InvalidRequestError:
+	except Exception as e:
 			parts = split_text(text)
 			for text in parts:
 				check_content_safety(text_str=text)

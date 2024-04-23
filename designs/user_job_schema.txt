@@ -1,0 +1,47 @@
+Prelimiary schema and designs for job search
+
+
+Option 1: two tables
+
+One-step match: 
+
+class User(LanceModel):
+    vector: Vector(openai.ndims()) = openai.VectorField()
+    text: str = openai.SourceField()
+    id: str
+    job_title: str
+    job_industry: str
+    key_skills: str (includes transferable skills)
+
+class Job(LanceModel):
+    vector: Vector(openai.ndims()) = openai.VectorField()
+    text: str = openai.SourceField()
+    id: str
+    url: str
+    job_title: str
+    job_industry: str
+    key_skills: str
+    company_type: str (small, agencies, large coorps)
+
+
+
+Option 2: one table overallness
+
+Retrieval:
+
+class Schema(LanceModel):
+    vector: Vector(openai.ndims()) = openai.VectorField()
+    text: str = openai.SourceField() (a text formatted resume or text formatted job posting)
+    id: str (unique for each user and each job)
+    job_title: str
+    job_industry: str
+    job_level: str (entry, junior, senior, etc)
+    education: str 
+    type: str (User or Job)
+
+- filter on job_title/job_industry, query(match) on text, outputs ids of both user and jobs
+
+Ranking:
+
+- option 1: use metadata match filter
+- option 2: combine with job application history status to build a user profile that feeds into an agent recommender

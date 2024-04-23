@@ -5,8 +5,9 @@ from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI 
 from langchain.vectorstores import FAISS
-from langchain.tools import tool
+from langchain.tools import tool, BaseTool
 from langchain.output_parsers import PydanticOutputParser
 from langchain.tools.file_management.move import MoveFileTool
 from pydantic import BaseModel, Field, validator
@@ -21,26 +22,41 @@ import random, string
 from json import JSONDecodeError
 import base64
 from langchain.agents.react.base import DocstoreExplorer
-from langchain.document_loaders import TextLoader, DirectoryLoader
+from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.chains import RetrievalQA,  LLMChain
-# from langchain.agents.agent_toolkits import create_retriever_tool
-# from langchain.agents.agent_toolkits import (
-#     create_vectorstore_agent,
-#     VectorStoreToolkit,
-#     create_vectorstore_router_agent,
-#     VectorStoreRouterToolkit,
-#     VectorStoreInfo,
-# )
 from utils.langchain_utils import create_ensemble_retriever
-from typing import List, Union, Any, Optional, Dict
+from typing import List, Union, Any, Optional, Dict, Type
 from langchain.tools.base import ToolException
+from langchain.tools.retriever import create_retriever_tool
+from langchain.embeddings import OpenAIEmbeddings
+from langchain_experimental.smart_llm import SmartLLMChain
+from langchain.chains import QAGenerationChain
+from langchain.callbacks.manager import (
+    AsyncCallbackManagerForToolRun,
+    CallbackManagerForToolRun,
+)
+import boto3
+import re
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 STORAGE = os.environ['STORAGE']
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
+aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
+aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
 def create_wiki_tools() -> List[Tool]:
 
@@ -170,50 +186,35 @@ def create_retriever_tools(retriever: Any, name: str, description: str, llm=Open
     return tool
 
 
-# def create_vs_retriever_tools(vectorstore: Any, tool_name: str, tool_description: str) -> List[Tool]:   
+def create_vs_retriever_tools(retriever: Any, tool_name: str, tool_description: str) -> List[Tool]:   
 
-#     """Create retriever tools from vector store for conversational retrieval agent
+    """Create retriever tools from vector store.
     
-#     See: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
+    Example: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents
     
-#     Args:
+    Args:
 
-#         vectorstore (Any): vector store to be used as retriever
+        retriever (Any): any type of retriever including vector store as retriever
 
-#         tool_name: name of the tool
+        tool_name: name of the tool
 
-#         tool_description: description of the tool's usage
+        tool_description: description of the tool's usage
 
-#     Returns:
+    Returns:
 
-#         List[Tool]
+        List[Tool]
 
-#     """   
+    """   
 
-#     retriever = vectorstore.as_retriever()
-#     tool = [create_retriever_tool(
-#         retriever,
-#         tool_name,
-#         tool_description
-#         )]
-#     print(f"Succesfully created retriever tool: {tool_name}")
+    tool = [create_retriever_tool(
+        retriever,
+        tool_name,
+        tool_description
+        )]
+    print(f"Succesfully created retriever tool: {tool_name}")
 
-#     return tool
+    return tool
 
-# def create_vectorstore_agent_toolkit(embeddings, index_name, vs_name, vs_description, llm=OpenAI()):
-
-#     """ See: https://python.langchain.com/docs/integrations/toolkits/vectorstore"""
-
-#     store = retrieve_faiss_vectorstore(embeddings,index_name)
-#     vectorstore_info = VectorStoreInfo(
-#         name=vs_name,
-#         description=vs_description,
-#         vectorstore=store,
-#         )
-#     router_toolkit = VectorStoreRouterToolkit(
-#     vectorstores=[vectorstore_info,], llm=llm
-#         )  
-#     return router_toolkit
 
 def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
 
@@ -242,14 +243,15 @@ def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[
         tool_description = f"This is a {sample_type} sample. Use it to compare with other {sample_type} samples"
         ensemble_retriever = create_ensemble_retriever(docs)
         tool_name = f"{sample_type}_{random.choice(string.ascii_letters)}"
-        tool = create_retriever_tools(ensemble_retriever, tool_name, tool_description)
+        # tool = create_retriever_tools(ensemble_retriever, tool_name, tool_description)
+        tool = create_vs_retriever_tools(ensemble_retriever, tool_name, tool_description)
         tool_names.append(tool_name)
         tools.extend(tool)
     print(f"Successfully created {sample_type} tools")
     return tools, tool_names
 
 
-
+# VECTOR STORE ADVANCED RETRIEVER AS CUSTOM TOOL
 @tool()
 def search_user_material(json_request: str) -> str:
 
@@ -275,7 +277,7 @@ def search_user_material(json_request: str) -> str:
         vs = retrieve_vectorstore(vs_type=vs_type, index_name=vs_path)
         # subquery_relevancy = "how to determine what's relevant in resume"
         # option 1: compression retriever
-        retriever = create_compression_retriever(vectorstore=vs)
+        retriever = create_compression_retriever(vs.as_retriever())
         # option 2: ensemble retriever
         # retriever = create_ensemble_retriever(split_doc())
         # option 3: vector store retriever
@@ -290,26 +292,86 @@ def search_user_material(json_request: str) -> str:
     except Exception as e:
         raise e
         return "Stop using the search_user_material tool. There is no user material or query to look up. Use another tool."
+    
+#In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
+class GenerateQA(BaseModel):
+    json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"user_material_path":"<user_material_path>"}}'""")
+@tool(args_schema=GenerateQA, return_direct=False)
+def generate_interview_QA(json_request: str,) -> str:
 
+    """Generates interview questions and answers base on the user material provided in a directory path. 
 
+    Use this tool more than any other tools to generate interview questions. """
+
+    try:
+        args = json.loads(process_json(json_request))
+    except JSONDecodeError as e:
+        print(f"JSON DECODE ERROR: {e}")
+        return "Format in a single string JSON and try again."
+ 
+    file_path = args["user_material_path"]
+    file_path=re.sub(r"[\n\t\s]*", "", file_path)
+    try:
+        if STORAGE=="LOCAL":
+            loader = DirectoryLoader(file_path)
+        if STORAGE=="CLOUD":
+            loader = S3DirectoryLoader(bucket_name, file_path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        llm = ChatOpenAI(temperature=0.9)
+        chain = QAGenerationChain.from_llm(llm)
+        docs = loader.load()[0]
+        response = chain.run(docs.page_content)
+        print(response[0])
+        return response[0]
+    except Exception as e:
+        raise e
+    
+#In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
+#SAME AS ABOVE BUT WRITTEN DIFFERENTLY
+class generateQATool(BaseTool):
+    name="generate_interview_QA"
+    description =  """Generates interview questions and answers base on the user material provided in a directory path. 
+    Use this tool more than any other tools to generate interview questions. """
+    args_schema: Type[BaseModel] = GenerateQA
+    return_direct: bool=False
+
+    def _run(self, json_request:str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        try:
+            args = json.loads(process_json(json_request))
+        except JSONDecodeError as e:
+            print(f"JSON DECODE ERROR: {e}")
+            return "Format in a single string JSON and try again."
+    
+        file_path = args["user_material_path"]
+        file_path=re.sub(r"[\n\t\s]*", "", file_path)
+        try:
+            if STORAGE=="LOCAL":
+                loader = DirectoryLoader(file_path)
+            if STORAGE=="CLOUD":
+                loader = S3DirectoryLoader(bucket_name, file_path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            llm = ChatOpenAI(temperature=0.9)
+            chain = QAGenerationChain.from_llm(llm)
+            docs = loader.load()[0]
+            response = chain.run(docs.page_content)
+            print(response[0])
+            return response[0]
+        except Exception as e:
+            raise e
+        
+    def _arun(self, json_request:str, ):
+        raise NotImplementedError("This tool does not support async")
 
 @tool(return_direct=True)
 def file_loader(json_request: str) -> str:
 
-    """Outputs a file. Use this whenever you need to load a file. 
+    """Outputs the summary of file. Use this whenever you need to load a file. 
     DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.
     Input should be a single string in the following JSON format: '{{"file": "<file>"}}' \n """
 
     try:
         args = json.loads(process_json(json_request))
         file = args["file"]
-        file_content = read_txt(file)
-        if os.path.getsize(file)<2000:    
-            print(file_content)   
-            return file_content
-        else:
-            prompt_template = "summarize the follwing text. text: {text} \n in less than 100 words."
-            return create_summary_chain(file, prompt_template=prompt_template)
+        prompt_template = "summarize the follwing text. text: {text} \n in less than 100 words."
+        return create_summary_chain(file, prompt_template=prompt_template, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     except Exception as e:
         return "file did not load successfully. try another tool"
     
@@ -325,6 +387,7 @@ def provide_help_and_instruction(query:str) -> str:
 
 
 # https://python.langchain.com/docs/modules/agents/agent_types/self_ask_with_search
+#TODO: can use a vector store + document retriever so current conversation and past conversation are combined
 @tool("search chat history")
 def search_all_chat_history(query:str)-> str:
 

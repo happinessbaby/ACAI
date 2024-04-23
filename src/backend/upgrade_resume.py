@@ -68,7 +68,7 @@ def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
     docx_filename = filename + "_evaluation"+".docx"
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    info_dict=get_generated_responses(resume_content=resume_content, posting_path=posting_path, about_me=about_me)
+    info_dict=get_generated_responses(resume_path=resume_file, posting_path=posting_path, about_me=about_me)
     work_experience_level = info_dict.get("work experience level", "")
     graduation_year = info_dict.get("graduation year", -1)
     years_since_graduation = calculate_graduation_years(graduation_year)
@@ -230,9 +230,9 @@ def reformat_functional_resume(resume_file="", posting_path="", template_file=""
     filename = Path(fname).stem 
     docx_filename = filename + "_reformat"+".docx"
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     functional_doc_template = DocxTemplate(template_file)
-    info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
+    info_dict = get_generated_responses(resume_path=resume_file, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
@@ -318,9 +318,9 @@ def reformat_chronological_resume(resume_file="", posting_path="", template_file
     filename = Path(fname).stem 
     docx_filename = filename + "_reformat"+".docx"
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     chronological_resume_template = DocxTemplate(template_file)
-    info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
+    info_dict = get_generated_responses(resume_path=resume_file, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
@@ -414,9 +414,9 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
     filename = Path(fname).stem 
     docx_filename = filename + "_reformat"+".docx"
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     chronological_resume_template = DocxTemplate(template_file)
-    info_dict = get_generated_responses(resume_content=resume_content, posting_path=posting_path)
+    info_dict = get_generated_responses(resume_path=resume_file, posting_path=posting_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),

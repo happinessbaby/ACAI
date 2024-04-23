@@ -50,6 +50,7 @@ function GoogleSignin(props: any) {
         [ user ]
     );
 
+
     return (
         <div>
             <button onClick={() => login()}>Sign in with Google 🚀 </button>
@@ -83,4 +84,34 @@ function GoogleSignin(props: any) {
     //     </div>
     // );
 }
-export default GoogleSignin;
+
+
+
+function GoogleLogout() {
+    // Revoke access token
+    console.log("insie google log out")
+    var access_token = localStorage.getItem("accessTokenKey");
+    var revokeUrl = 'https://accounts.google.com/o/oauth2/revoke?token=' + access_token;
+
+    // Send revoke request
+    fetch(revokeUrl, {
+        method: 'GET',
+    })
+    .then(response => {
+        if (response.status === 200) {
+            // Clear user session/storage
+            /* clear user session/storage here */
+            localStorage.removeItem("accessTokenKey");
+            console.log('User logged out successfully.');
+        } else {
+            console.error('Failed to revoke access token.');
+        }
+    })
+    .catch(error => {
+        console.error('Error occurred while revoking access token:', error);
+    });
+    return <div></div>
+}
+
+export default {GoogleSignin, GoogleLogout};
+

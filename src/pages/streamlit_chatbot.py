@@ -50,7 +50,7 @@ import yaml
 import decimal
 import time
 from cookie_manager import get_cookie, get_all_cookies
-from dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
+from utils.dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
 from aws_manager import get_aws_session, request_aws4auth
 from st_multimodal_chatinput import multimodal_chatinput
 from streamlit_datalist import stDatalist
@@ -74,15 +74,15 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 # should be
 
 
-show_pages(
-    [
-        Page("streamlit_user.py", f"User"),
-        Section(name="Settings"),
-        Page("streamlit_chatbot.py", "Career Help", "🏠"),
-        Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
-        # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
-    ]
-)
+# show_pages(
+#     [
+#         Page("streamlit_user.py", f"User"),
+#         Section(name="Settings"),
+#         Page("streamlit_chatbot.py", "Career Help", "🏠"),
+#         Page("streamlit_interviewbot.py", "Mock Interview", ":books:"),
+#         # Page("streamlit_resources.py", "My Journey", ":busts_in_silhouette:" ),
+#     ]
+# )
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ['BUCKET_NAME']
