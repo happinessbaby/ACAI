@@ -324,7 +324,7 @@ class User():
             with c2:
                 st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
             with c1:
-                degree = st.selectbox("Highest level of education", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", on_change=self.field_check)
+                degree = st.selectbox("Highest level of education", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
             if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
                 st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
             certification = st.text_area("Certification (optional)", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
@@ -349,6 +349,12 @@ class User():
                 if loc:
                     address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
                     st.session_state["location_input"] = address
+            c1, c2=st.columns([1, 1])
+            with c1:
+                min_pay = st.text_input("Minimum pay", key="payx")
+            with c2: 
+                pay_type = st.selectbox("", ("hourly", "yearly"), placeholder="Select pay type...")
+
         st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
         st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 

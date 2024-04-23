@@ -19,7 +19,7 @@ st.set_page_config(initial_sidebar_state="collapsed", layout="wide")
 
 st.markdown("<h1 style='text-align: center; color: black;'>Welcome</h1>", unsafe_allow_html=True)
 st.markdown("#")
-st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your job application journey</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
 # st.markdown("## Let AI empower your job application journey ##")
 st.markdown("#")
 left_space, c1, c2, c3, right_space = st.columns([1, 1, 1, 1, 1])

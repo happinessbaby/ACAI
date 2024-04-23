@@ -178,6 +178,7 @@ src/uploads/
 src/streamlit_custom_components/
 src/recording
 create_lambda_layers
-
+src/lancetest/
+*.yaml
 my_component/frontend/public/assets/
 

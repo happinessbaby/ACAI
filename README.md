@@ -1,12 +1,7 @@
 
-# AI Powered Career Help Platform
 
-#### An AI--powered career help platform 
+## AI-powered Career Builder Site
 
-
-
-![page](./designs/page1.png)
-![page](./designs/page2.png)
 
 
 Note: Everything is still a work in progress!
@@ -15,17 +10,20 @@ Note: Everything is still a work in progress!
 
 #### Basic features
 
-Generates a cover letter when provided with applicant's resume
+Resume help - chatbot with built-in support and resume templates
 
-Evaluates and provides feedback on applicant's resume
+Job search - batch process retrieval & ranking  that can be possibly combined with a job tracker 
 
-Customizes applicant's resume, cover letter, personal statement to suit a specific purpose
+Mock interview - interactive 3D avatar AI interviewer with AI grader for feedback
+
+![page](./designs/home_screen.png)
 
 
-#### Mock Interviewer
 
-A voice bot AI that can conduct mock interviews (hopefully a video bot in the future)
 
+
+#### Tools
+LangChain
 
 
 
