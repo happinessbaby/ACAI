@@ -14,9 +14,15 @@ db_path=os.environ["LANCEDB_PATH"]
 #FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
 # class BasicInfo(LanceModel):
 
-class User(LanceModel):
-    userInfo: str = func.SourceField()
+class Schema(LanceModel):
+    text: str = func.SourceField() 
     vector: Vector(func.ndims()) = func.VectorField()
+    id: str 
+    job_title: str
+    job_industry: str
+    job_level: str 
+    education: str 
+    type: str 
 
 def register_model(model_name):
     registry = EmbeddingFunctionRegistry.get_instance()
@@ -27,7 +33,7 @@ def create_lancedb_table(db, table_name,  ):
 
     table = db.create_table(
         table_name,
-        schema = User,
+        schema = Schema,
         # # ],
         # data=data,
         # mode=mode,
@@ -64,7 +70,7 @@ def query_lancedb_table(query, db, table_name, top_k=1):
         results = (
             table.search(query)
             .limit(top_k)
-            .to_pydantic(User)[0]
+            .to_pydantic(Schema)[0]
         )
     except Exception as e:
         raise e

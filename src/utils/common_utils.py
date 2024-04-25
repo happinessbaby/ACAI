@@ -69,11 +69,20 @@ import base64
 import datetime
 from datetime import date
 import boto3
+from unstructured_client import UnstructuredClient
+from unstructured_client.models import shared
+from unstructured_client.models.errors import SDKError
+
+from unstructured.partition.html import partition_html
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
+s = UnstructuredClient(
+    api_key_auth=os.environ["UNSTRUCTURED_API_KEY"],
+    # server_url=DLAI_API_URL,
+)
 delimiter = "####"
 delimiter2 = "'''"
 delimiter3 = '---'
@@ -1203,9 +1212,16 @@ def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) ->
     # else:
     #     raise Exception(f"Content checking failed for {file_path}")
     
+def process_resume(resume):
+    print("")
 
-
-
+def process_linkedin(url):
+    # filename = "example_files/medium_blog.html"
+    # elements = partition_html(filename=filename)
+    # element_dict = [el.to_dict() for el in elements]
+    # example_output = json.dumps(element_dict[11:15], indent=2)
+    # print(example_output)
+    print("")
 
     
 
