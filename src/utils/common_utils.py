@@ -72,6 +72,8 @@ import boto3
 from unstructured_client import UnstructuredClient
 from unstructured_client.models import shared
 from unstructured_client.models.errors import SDKError
+from langchain_community.document_loaders import JSONLoader
+from pprint import pprint
 
 from unstructured.partition.html import partition_html
 # from feast import FeatureStore
@@ -102,6 +104,7 @@ if STORAGE=="S3":
 else:
     bucket_name=None
     s3=None
+user_file=os.environ["USER_FILE"]
       
 
 
@@ -1223,8 +1226,39 @@ def process_linkedin(url):
     # print(example_output)
     print("")
 
-    
+def create_profile_summary(userId: str) -> str:
 
+    """
+    Generates a text profile for user using JSON loader to load the users file and summary chain to summarize the profile.
+    JSON loader: https://python.langchain.com/docs/modules/data_connection/document_loaders/json/
+    Summary chain: https://python.langchain.com/docs/use_cases/summarization/
+    """
+
+    # Define prompt
+    prompt_template = """Write a concise summary of the following:
+    "{text}"
+    CONCISE SUMMARY:"""
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    # Define LLM chain
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+    loader = JSONLoader(
+        file_path='./user_file.json',
+        jq_schema=f'.{userId}',
+        text_content=False)
+    data = loader.load()
+    # Define StuffDocumentsChain
+    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
+    resp = stuff_chain.run(data)
+    print(f"Successfully generated user profile summary: {resp}")
+    return resp
+
+
+
+
+
+    
 
     
         

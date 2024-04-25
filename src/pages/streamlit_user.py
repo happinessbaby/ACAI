@@ -19,7 +19,7 @@ from streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
-from utils.common_utils import get_generated_responses, check_content, process_linkedin, process_resume
+from utils.common_utils import get_generated_responses, check_content, process_linkedin, process_resume, create_profile_summary
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
 from langchain.docstore.document import Document
@@ -412,7 +412,8 @@ class User():
          # Save the updated user profiles back to the JSON file
         with open(user_file, 'w') as file:
             json.dump(st.session_state["users"], file, indent=2)
-        data = [{"id":self.userId, "job_title":st.session_state.job, "job_level":st.session_state.job_level, "job_industry":st.session_state.industry, "degree":st.session_state.degree, "location":st.session_state.location_input, "type":"user"}]
+        summary = create_profile_summary(self.userId)
+        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_level":st.session_state.job_level, "job_industry":st.session_state.industry, "degree":st.session_state.degree, "location":st.session_state.location_input, "type":"user"}]
         add_to_lancedb_table(st.session_state["lancedb_conn"], self.userId, data)
         st.session_state["init_user2"]=True
 
@@ -459,10 +460,7 @@ class User():
             pass
         try:
             st.session_state["name"] = st.session_state.namex
-            print(st.session_state.users)
-            print(self.userId)
             st.session_state["users"][self.userId]["name"] = st.session_state.name
-            print(st.session_state.users)
         except AttributeError:
             pass
         try:

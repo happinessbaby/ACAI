@@ -67,3 +67,4 @@ streamlit-bokeh-events
 apify-client
 streamlit_js_eval
 unstructured_client
+jq
