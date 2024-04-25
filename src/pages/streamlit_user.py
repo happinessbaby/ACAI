@@ -280,7 +280,10 @@ class User():
         with st.expander("**Basic information**", expanded=True):
             c1, c2 = st.columns(2)
             with c1:
-                st.text_input("Full name *", key="namex", on_change=self.field_check)
+                #TODO: check default value for user who wants to change their profile info
+                st.text_input("Full name *", key="namex", 
+                              value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
+                              on_change=self.field_check)
             with c2:
                 st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
             st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
@@ -599,9 +602,18 @@ class User():
     def update_personal_info(self):
 
         # update user information to vectorstore
-        vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
-        record_manager=create_record_manager(self.userId)
-        update_index(docs, record_manager, vectorstore)
+        # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
+        # record_manager=create_record_manager(self.userId)
+        # update_index(docs, record_manager, vectorstore)
+        try:
+            del st.session_state["init_user1"]
+        except Exception:
+            pass
+        if "init_user1" not in st.session_state:
+            self.about_user1()
+        if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+            self.about_user2()
+
 
 
 
