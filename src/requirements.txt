@@ -68,3 +68,4 @@ apify-client
 streamlit_js_eval
 unstructured_client
 jq
+python-linkedin

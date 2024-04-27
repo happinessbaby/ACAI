@@ -1,5 +1,4 @@
 import openai
-from utils.openai_api import get_completion
 from utils.openai_api import get_completion, get_completion_from_messages
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
@@ -12,7 +11,7 @@ from langchain.vectorstores import DocArrayInMemorySearch
 from langchain.agents import AgentType
 from langchain.chains import RetrievalQA,  LLMChain
 from pathlib import Path
-from utils.basic_utils import read_txt, convert_to_txt
+from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain)
@@ -74,7 +73,10 @@ from unstructured_client.models import shared
 from unstructured_client.models.errors import SDKError
 from langchain_community.document_loaders import JSONLoader
 from pprint import pprint
-
+# from linkedin import linkedin, server
+from linkedin_api import Linkedin
+from time import sleep 
+from selenium import webdriver 
 from unstructured.partition.html import partition_html
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
@@ -1218,13 +1220,33 @@ def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) ->
 def process_resume(resume):
     print("")
 
-def process_linkedin(url):
-    # filename = "example_files/medium_blog.html"
-    # elements = partition_html(filename=filename)
-    # element_dict = [el.to_dict() for el in elements]
-    # example_output = json.dumps(element_dict[11:15], indent=2)
-    # print(example_output)
-    print("")
+def process_linkedin(userId, url):
+
+    #start browser session 
+    chromedriver = "/home/tebblespc/chromedriver" #change this to your selenium driver
+    os.environ["webdriver.chrome.driver"] = chromedriver
+    driver = webdriver.Chrome(chromedriver)
+    driver.get("https://www.linkedin.com/login") 
+    sleep(5)
+    # login credentials 
+    linkedin_username = "yueqipeng2021@gmail.com"
+    linkedin_password = "Pyq901210"
+    driver.find_element_by_xpath( 
+	"/html/body/div/main/div[2]/div[1]/form/div[1]/input").send_keys(linkedin_username) 
+    driver.find_element_by_xpath( 
+        "/html/body/div/main/div[2]/div[1]/form/div[2]/input").send_keys(linkedin_password) 
+    sleep(3) 
+    driver.find_element_by_xpath( 
+        "/html/body/div/main/div[2]/div[1]/form/div[3]/button").click() 
+    driver.get(url) 
+    #click the "more" button
+    driver.find_element_by_class_name("pv-s-profile-actions__overflow").click()
+    sleep(1)
+
+    #saves profile to pdf 
+    driver.find_element_by_class_name("pv-s-profile-actions pv-s-profile-actions--save-to-pdf").click()
+    sleep(1)
+
 
 def create_profile_summary(userId: str) -> str:
 
@@ -1256,9 +1278,8 @@ def create_profile_summary(userId: str) -> str:
 
 
 
+process_linkedin("tebs","https://www.linkedin.com/in/yueqi-peng/")
 
-
-    
 
     
         

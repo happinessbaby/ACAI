@@ -8,7 +8,8 @@ import os
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
-db_path=os.environ["LANCEDB_PATH"]
+db_path="./lancetest"
+db = lancedb.connect(db_path)
 
 # this is the schema for table of UserInfo
 #FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
@@ -19,9 +20,9 @@ class Schema(LanceModel):
     vector: Vector(func.ndims()) = func.VectorField()
     id: str 
     job_title: str
-    job_industry: str
-    job_level: str 
-    education: str 
+    # job_industry: str
+    # job_level: str 
+    # education: str 
     type: str 
 
 def register_model(model_name):
@@ -47,7 +48,7 @@ def add_to_lancedb_table(db, table_name, data, mode="append"):
         table.add(data, mode=mode)
     except FileNotFoundError:
         create_lancedb_table(db, table_name)
-        # add_to_lancedb_table(db, table_name, data)
+        add_to_lancedb_table(db, table_name, data)
 
 def create_lancedb_index(db, table_name, distance_type):
 
@@ -75,3 +76,9 @@ def query_lancedb_table(query, db, table_name, top_k=1):
     except Exception as e:
         raise e
     return results
+
+def delete_lancedb_table(table_name):
+    db.drop_table(table_name)
+
+# delete_lancedb_table("Jobs2")
+
