@@ -1229,8 +1229,8 @@ def process_linkedin(userId, url):
     driver.get("https://www.linkedin.com/login") 
     sleep(5)
     # login credentials 
-    linkedin_username = "yueqipeng2021@gmail.com"
-    linkedin_password = "Pyq901210"
+    linkedin_username = os.environ["LINKEDIN_USERNAME"]
+    linkedin_password = os.environ["LINKEDIN_PASSWORD"]
     driver.find_element_by_xpath( 
 	"/html/body/div/main/div[2]/div[1]/form/div[1]/input").send_keys(linkedin_username) 
     driver.find_element_by_xpath( 
@@ -1277,8 +1277,6 @@ def create_profile_summary(userId: str) -> str:
     return resp
 
 
-
-process_linkedin("tebs","https://www.linkedin.com/in/yueqi-peng/")
 
 
     

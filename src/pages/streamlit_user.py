@@ -8,7 +8,7 @@ from langchain.prompts import PromptTemplate, StringPromptTemplate
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt
+from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
 import time
 from datetime import datetime, timedelta, date
 from streamlit_modal import Modal
@@ -53,19 +53,25 @@ user_file=os.environ["USER_FILE"]
 
 class User():
     
-    cookie = get_cookie("userInfo")
+    # cookie = get_cookie("userInfo")
     aws_session = get_aws_session()
+    cookie_manager = get_cookie_manager()
     # st.write(get_all_cookies())
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
+        self.cookie = get_cookie("userInfo", self.cookie_manager)
         time.sleep(2)
         if self.cookie:
             username = decode_jwt(self.cookie, "test").get('username')
-            print("cookie exists", username)
+            print("Cookie:", username)
             self.userId = username
+            st.session_state["mode"]="signedin"
         else:
-            self.userId = "tebs"
+            if "mode" not in st.session_state or st.session_state["mode"]!="signup":  
+                # self.userId = "tebs"
+                st.session_state["mode"]="signedout"
+            self.userId = None
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -75,10 +81,10 @@ class User():
     @st.cache_data()
     def _init_session_states(_self, userId, sessionId):
 
-        if _self.cookie is None:
-            st.session_state["mode"]="signedout"
-        else:
-            st.session_state["mode"]="signedin"
+        # if _self.cookie is None:
+        #     st.session_state["mode"]="signedout"
+        # else:
+        #     st.session_state["mode"]="signedin"
 
         # st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
         with open(login_file) as file:
@@ -134,25 +140,20 @@ class User():
     def _init_user(self):
 
         """ Initalizes user page according to user's sign in status"""
-        # with open(login_file) as file:
-        #     config = yaml.load(file, Loader=SafeLoader)
+
         config = st.session_state["config"]
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
         if st.session_state.mode=="signup":
             print("signing up")
             self.sign_up(authenticator)
         elif st.session_state.mode=="signedout":
-            print("signing in")
+            print("signed out")
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
             print("signed in")
-            # if "vectorstore" not in st.session_state:
-            #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
-            # if st.session_state.vectorstore is not None:
-
             self.sign_out(authenticator)
             if lancedb_table_exists(st.session_state["lancedb_conn"], self.userId):
-                print("user exists")
+                print("user profile already exists")
             else:
                 if "init_user1" not in st.session_state:
                     self.about_user1()
@@ -176,7 +177,7 @@ class User():
                 # print(get_all_cookies())
             print('signing out')
             _ = my_component("signout", key="signout")
-            delete_cookie(get_cookie("userInfo"), key="deleteCookie")
+            delete_cookie(get_cookie("userInfo"), key="deleteCookie", cookie_manager=self.cookie_manager)
             st.session_state["mode"]="signedout"
             st.rerun()
 
@@ -187,11 +188,12 @@ class User():
         # modal = Modal("   ", key="sign_in_popup", max_width=500, close_button=False)
         # with modal.container():
             # st.button("X", on_click=self.close_modal, args=["signin_modal"])
-        st.header("Welcome")
+        st.header("Welcome back")
         name, authentication_status, username = authenticator.login('', 'main')
         # print(name, authentication_status, username)
         if authentication_status:
-            print("user signed in through system")
+            cookie = encode_jwt(name, username, "test")
+            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1), cookie_manager=self.cookie_manager)
             st.session_state["mode"]="signedin"
             st.rerun()
             # time.sleep(3)
@@ -232,7 +234,7 @@ class User():
                 st.session_state["mode"]="signup"
                 st.rerun()
         with col3:
-            forgot_password = st.button(label="forgot my password", key="forgot", type="primary") 
+            forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
         # st.markdown("or")
         # user_info = my_component(name="signin", key="signin")
         # if user_info!=-1:
@@ -250,8 +252,6 @@ class User():
 
     def sign_up(self, authenticator:stauth.Authenticate):
 
-        # modal = Modal("Welcome", key="register", max_width=500)
-        # with modal.container():
         print("inside signing up")
         username= authenticator.register_user("Create an account", "main", preauthorization=False)
         if username:
@@ -262,7 +262,7 @@ class User():
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, "test")
-                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
+                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1), cookie_manager=self.cookie_manager)
                 st.rerun()
             else:
                 st.info("Failed to register user, please try again")
@@ -271,7 +271,7 @@ class User():
 
     def about_user1(self):
 
-
+        st.markdown("**To get started, please fill out the fields below**")
         if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
             st.session_state.disabled1=False
         else:
@@ -413,7 +413,7 @@ class User():
         with open(user_file, 'w') as file:
             json.dump(st.session_state["users"], file, indent=2)
         summary = create_profile_summary(self.userId)
-        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_level":st.session_state.job_level, "job_industry":st.session_state.industry, "degree":st.session_state.degree, "location":st.session_state.location_input, "type":"user"}]
+        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job,  "type":"user"}]
         add_to_lancedb_table(st.session_state["lancedb_conn"], self.userId, data)
         st.session_state["init_user2"]=True
 

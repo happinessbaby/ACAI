@@ -31,24 +31,20 @@ def decode_jwt(token, key):
         return None
 
 @st.cache_resource(experimental_allow_widgets=True)
-def get_manager():
+def get_cookie_manager():
     return stx.CookieManager(key="init_cookie_manager")
     # if "init_cookie_manager" not in st.session_state else st.session_state["init_cookie_manager"]
 
-def get_cookie(name):
-    cookie_manager = get_manager()
+def get_cookie(name, cookie_manager):
     time.sleep(2)
     return cookie_manager.get(cookie=name)
 
-def set_cookie(cookie, value, key, path, expire_at):
-    cookie_manager = get_manager()
+def set_cookie(cookie, value, key, path, expire_at, cookie_manager):
     cookie_manager.set(cookie, value, key=key, path=path, expires_at=expire_at)
     
-def get_all_cookies():
-    cookie_manager = get_manager()
+def get_all_cookies(cookie_manager):
     return cookie_manager.get_all()
 
-def delete_cookie(name, key):
-    cookie_manager = get_manager()
+def delete_cookie(name, key, cookie_manager):
     cookie_manager.delete(name, key)
     

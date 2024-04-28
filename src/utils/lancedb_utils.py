@@ -2,6 +2,7 @@ import lancedb
 from lancedb.embeddings import EmbeddingFunctionRegistry
 from lancedb.embeddings import get_registry
 from lancedb.pydantic import LanceModel, Vector
+import streamlit as st
 import os
 
 
@@ -9,6 +10,8 @@ model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 db_path="./lancetest"
+
+
 db = lancedb.connect(db_path)
 
 # this is the schema for table of UserInfo
@@ -24,6 +27,7 @@ class Schema(LanceModel):
     # job_level: str 
     # education: str 
     type: str 
+
 
 def register_model(model_name):
     registry = EmbeddingFunctionRegistry.get_instance()
