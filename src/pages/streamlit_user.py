@@ -8,14 +8,14 @@ from langchain.prompts import PromptTemplate, StringPromptTemplate
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
+from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
 import time
 from datetime import datetime, timedelta, date
 from streamlit_modal import Modal
 from utils.dynamodb_utils import save_user_info
-from aws_manager import get_aws_session
+from utils.aws_manager import get_client
 from utils.dynamodb_utils import init_table, check_attribute_exists
-from streamlit_plannerbot import Planner
+from todo_tmp.streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
@@ -37,6 +37,7 @@ from geopy.exc import GeocoderTimedOut
 import lancedb
 import json
 from json.decoder import JSONDecodeError
+from backend.job_recommender import Recommender
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
@@ -49,23 +50,32 @@ db_path=os.environ["LANCEDB_PATH"]
 user_file=os.environ["USER_FILE"]
 # store = FeatureStore("./my_feature_repo/")
 
+# st.set_page_config(initial_sidebar_state="collapsed")
 
+# st.markdown(
+#     """
+# <style>
+#     [data-testid="collapsedControl"] {
+#         display: none
+#     }
+# </style>
+# """,
+#     unsafe_allow_html=True,
+# )
 
 class User():
     
     # cookie = get_cookie("userInfo")
-    aws_session = get_aws_session()
-    cookie_manager = get_cookie_manager()
+    # aws_session = get_aws_session()
+    # cookie_manager = get_cookie_manager()
     # st.write(get_all_cookies())
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
-        self.cookie = get_cookie("userInfo", self.cookie_manager)
-        time.sleep(2)
+        self.cookie = get_cookie("userInfo")
+        print("Cookie", self.cookie)
         if self.cookie:
-            username = decode_jwt(self.cookie, "test").get('username')
-            print("Cookie:", username)
-            self.userId = username
+            self.userId = str(decode_jwt(self.cookie, "test").get('username'))
             st.session_state["mode"]="signedin"
         else:
             if "mode" not in st.session_state or st.session_state["mode"]!="signup":  
@@ -94,7 +104,7 @@ class User():
                 users = json.load(file)
             except JSONDecodeError:
                 users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-        users[_self.userId]={}
+                users[_self.userId]={}
         st.session_state["config"] = config
         st.session_state["users"] = users
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
@@ -107,9 +117,9 @@ class User():
         st.session_state["self_description"]= ""
         st.session_state["skill_set"]=""
         st.session_state["career_goals"]=""
-        st.session_state["lancedb_conn"]= lancedb.connect(db_path)
+        # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if STORAGE=="CLOUD":
-            st.session_state["s3_client"] = _self.aws_session.client('s3') 
+            st.session_state["s3_client"] = get_client('s3')
             st.session_state["bucket_name"] = bucket_name
             st.session_state["storage"] = "CLOUD"
             st.session_state["user_path"] = os.environ["S3_USER_PATH"]
@@ -152,21 +162,18 @@ class User():
         elif st.session_state.mode=="signedin":
             print("signed in")
             self.sign_out(authenticator)
-            if lancedb_table_exists(st.session_state["lancedb_conn"], self.userId):
+            if lancedb_table_exists(self.userId) is not None:
                 print("user profile already exists")
+                if "base_recommender" not in st.session_state:
+                    st.session_state["base_recommender"]= Recommender()
+                self.recommend_job()
             else:
+                print("user profile does not exists yet")
                 if "init_user1" not in st.session_state:
                     self.about_user1()
                 if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
                     self.about_user2()
-            # with st.sidebar:
-            #     update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
-            # if "plannerbot" not in st.session_state:
-            #     st.session_state["plannerbot"]=Planner(self.userId)
-            # try:
-            #     st.session_state.plannerbot._create_user_page()
-            # except Exception as e:
-            #     raise e
+
     
 
     def sign_out(self, authenticator):
@@ -174,10 +181,9 @@ class User():
         logout = authenticator.logout('Logout', 'sidebar')
         if logout:
             # Hacky way to log out of Google
-                # print(get_all_cookies())
             print('signing out')
             _ = my_component("signout", key="signout")
-            delete_cookie(get_cookie("userInfo"), key="deleteCookie", cookie_manager=self.cookie_manager)
+            delete_cookie(get_cookie("userInfo"), key="deleteCookie")
             st.session_state["mode"]="signedout"
             st.rerun()
 
@@ -190,10 +196,10 @@ class User():
             # st.button("X", on_click=self.close_modal, args=["signin_modal"])
         st.header("Welcome back")
         name, authentication_status, username = authenticator.login('', 'main')
-        # print(name, authentication_status, username)
+        print(name, authentication_status, username)
         if authentication_status:
             cookie = encode_jwt(name, username, "test")
-            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1), cookie_manager=self.cookie_manager)
+            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
             st.session_state["mode"]="signedin"
             st.rerun()
             # time.sleep(3)
@@ -262,11 +268,20 @@ class User():
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, "test")
-                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1), cookie_manager=self.cookie_manager)
+                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
                 st.rerun()
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
+
+    def recommend_job(self):
+
+        try:
+            query = st.session_state["users"][self.userId]["summary"]
+            st.session_state.base_recommender.match_job(query)
+        except Exception:
+            raise
+                    
 
 
     def about_user1(self):
@@ -409,13 +424,17 @@ class User():
                 
     def form_callback2(self):
 
+        summary = create_profile_summary(self.userId)
+        print("profile summary",  summary)
+        st.session_state["users"][self.userId]["summary"] = summary
          # Save the updated user profiles back to the JSON file
         with open(user_file, 'w') as file:
             json.dump(st.session_state["users"], file, indent=2)
-        summary = create_profile_summary(self.userId)
         data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job,  "type":"user"}]
-        add_to_lancedb_table(st.session_state["lancedb_conn"], self.userId, data)
+        print(data)
+        add_to_lancedb_table(self.userId, data)
         st.session_state["init_user2"]=True
+
 
 
 
@@ -470,9 +489,10 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["linkedin"] = st.session_state.linkedinx
-            process_linkedin(st.session_state.linkedin)
-            st.session_state["users"][self.userId]["linkedin"] = st.session_state.linkedin
+            linkedin = st.session_state.linkedinx
+            if linkedin:
+                process_linkedin(st.session_state.linkedinx)
+                st.session_state["users"][self.userId]["linkedin"] = st.session_state.linkedin
         except AttributeError:
             pass
         try:
@@ -552,12 +572,13 @@ class User():
 
         if input_type=="birthday":
             st.session_state.birthday = input_value.strftime('%Y-%m-%d')
+            #TODO: get age instead
         if input_type=="certification":
             st.session_state.certification = input_value.split(",")
         if input_type=="study":
             st.session_state.study = input_value.split(",")
         if input_type=="job":
-            st.session_state.job=input_value.split(",")
+            st.session_state.job=str(input_value.split(","))
         if input_type=="location_input":
             st.session_state.location_input=input_value.split(",")
         elif input_type=="transferable_skills":

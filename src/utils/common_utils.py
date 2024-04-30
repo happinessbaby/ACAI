@@ -1270,13 +1270,12 @@ def create_profile_summary(userId: str) -> str:
         jq_schema=f'.{userId}',
         text_content=False)
     data = loader.load()
+    print(data)
     # Define StuffDocumentsChain
     stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
     resp = stuff_chain.run(data)
     print(f"Successfully generated user profile summary: {resp}")
     return resp
-
-
 
 
     

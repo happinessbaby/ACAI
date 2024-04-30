@@ -34,44 +34,43 @@ def register_model(model_name):
     model = registry.get(model_name).create()
     return model
 
-def create_lancedb_table(db, table_name,  ):
+def create_lancedb_table(table_name,  ):
 
     table = db.create_table(
         table_name,
         schema = Schema,
-        # # ],
-        # data=data,
-        # mode=mode,
     )
     return table
 
-def add_to_lancedb_table(db, table_name, data, mode="append"):
+def add_to_lancedb_table(table_name, data, mode="append"):
 
     try:
         table=db.open_table(table_name)
         table.add(data, mode=mode)
     except FileNotFoundError:
-        create_lancedb_table(db, table_name)
-        add_to_lancedb_table(db, table_name, data)
+        create_lancedb_table(table_name)
+        add_to_lancedb_table(table_name, data)
 
-def create_lancedb_index(db, table_name, distance_type):
+def create_lancedb_index(table_name, distance_type):
 
     """ https://lancedb.github.io/lancedb/ann_indexes/#creating-an-ivf_pq-index"""
 
     table=db.open_table(table_name)
     table.create_index(metric=distance_type)
 
-def lancedb_table_exists(db, table_name):
+def lancedb_table_exists(table_name):
 
     try:
         table=db.open_table(table_name)
+        print(f"table {table_name} exists")
     except FileNotFoundError:
+        print(f"table {table_name} does not exists")
         return None
     return table
 
-def query_lancedb_table(query, db, table_name, top_k=1):
+def query_lancedb_table(query, table_name, top_k=1):
     try:
-        table = lancedb_table_exists(db, table_name)
+        table = lancedb_table_exists(table_name)
         results = (
             table.search(query)
             .limit(top_k)
@@ -84,5 +83,5 @@ def query_lancedb_table(query, db, table_name, top_k=1):
 def delete_lancedb_table(table_name):
     db.drop_table(table_name)
 
-# delete_lancedb_table("Jobs2")
+
 

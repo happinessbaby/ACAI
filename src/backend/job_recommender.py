@@ -2,7 +2,7 @@ from langchain_community.document_loaders import AirtableLoader
 import os
 import json
 from pyairtable import Api
-from utils.lancedb_utils import add_to_lancedb_table, create_lancedb_table
+from utils.lancedb_utils import add_to_lancedb_table, create_lancedb_table, query_lancedb_table
 import uuid
 import lancedb
 from dotenv import load_dotenv, find_dotenv
@@ -16,6 +16,7 @@ api = Api(api_key)
 table = api.table(base_id, table_id)
 db = lancedb.connect(db_path)
 
+
 class Recommender():
 
 
@@ -24,6 +25,7 @@ class Recommender():
 
     
     def retrieve_job(self):
+
         jobs = table.all(view='Myview', fields=['job_description', 'job_link', 'job_title'])
         data = []
         for job in jobs:
@@ -34,7 +36,7 @@ class Recommender():
             if job_description:
                 data.append({"text":job_description, "id":job_id, "job_title":job_title,  "type":"job"})
         print(data)
-        add_to_lancedb_table(db, "Jobs3", data)
+        add_to_lancedb_table("Jobs3", data)
 
         # loader = AirtableLoader(api_key, table_id, base_id)
         # docs = loader.load()[0]
@@ -43,7 +45,11 @@ class Recommender():
         #     doc = doc.replace("'", "\"")
         #     json.loads(doc)
 
+    def match_job(self, query):
+
+        res = query_lancedb_table(query, "Jobs3")
+        print(res)
 
 
-recommend = Recommender()
-recommend.retrieve_job()
+
+

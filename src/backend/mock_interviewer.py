@@ -60,6 +60,7 @@ from langchain.globals import set_llm_cache
 from utils.agent_tools import create_vs_retriever_tools, generate_interview_QA, generateQATool
 from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
 from langchain_core.prompts.chat import BaseMessagePromptTemplate, BaseStringMessagePromptTemplate
+from utils.aws_manager import session
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -86,14 +87,17 @@ class InterviewController():
     # initialize new memory (shared betweeen interviewer and grader_agent)
 
 
-    def __init__(self, boto3_session, userid, sessionId, about_interview, generated_dict, learning_material):
-        self.userid = userid
+    def __init__(self, userId, sessionId, about_interview, generated_dict, learning_material, message_history=None):
+        self.userId = userId
         self.sessionId=sessionId
         self.llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
         # set_llm_cache(InMemoryCache())
         # embeddings = OpenAIEmbeddings()
-        # message_history = DynamoDBChatMessageHistory(table_name=self.sessionId, boto3_session=boto3_session, session_id='0')
-        self.interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
+        if self.userId:
+            chat_memory = DynamoDBChatMessageHistory(self.userId, self.sessionId, boto3_session=session)
+            self.interview_memory = AgentTokenBufferMemory(chat_memory=chat_memory, memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
+        else:
+            self.interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
         self.about_interview = about_interview
         self.generated_dict = generated_dict
         self.learning_material=learning_material
