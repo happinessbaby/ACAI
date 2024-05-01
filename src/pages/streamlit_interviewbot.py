@@ -75,7 +75,7 @@ import threading
 # from six.moves import queue
 import queue
 from google.cloud import speech
-from backend.socket_server import SocketServer, Transcoder
+from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
