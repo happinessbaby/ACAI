@@ -49,9 +49,9 @@ from boto3.dynamodb.conditions import Key, Attr
 import yaml
 import decimal
 import time
-from cookie_manager import get_cookie, get_all_cookies
+from utils.cookie_manager import get_cookie, get_all_cookies
 from utils.dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
-from aws_manager import get_aws_session, request_aws4auth
+from utils.aws_manager import get_aws_session, request_aws4auth
 from st_multimodal_chatinput import multimodal_chatinput
 from streamlit_datalist import stDatalist
 import time

@@ -181,4 +181,5 @@ create_lambda_layers
 src/lancetest/
 *.yaml
 my_component/frontend/public/assets/
-
+src/user_file.json
+src/jobscraperv2/

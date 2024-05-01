@@ -8,18 +8,18 @@ from langchain.prompts import PromptTemplate, StringPromptTemplate
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt
+from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
 import time
 from datetime import datetime, timedelta, date
 from streamlit_modal import Modal
 from utils.dynamodb_utils import save_user_info
-from aws_manager import get_aws_session
+from utils.aws_manager import get_client
 from utils.dynamodb_utils import init_table, check_attribute_exists
-from streamlit_plannerbot import Planner
+from todo_tmp.streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
-from utils.common_utils import get_generated_responses, check_content
+from utils.common_utils import get_generated_responses, check_content, process_linkedin, process_resume, create_profile_summary
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
 from langchain.docstore.document import Document
@@ -35,6 +35,9 @@ from streamlit_js_eval import get_geolocation
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import lancedb
+import json
+from json.decoder import JSONDecodeError
+from backend.job_recommender import Recommender
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
@@ -44,25 +47,41 @@ STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
 login_file = os.environ["LOGIN_FILE_PATH"]
 db_path=os.environ["LANCEDB_PATH"]
+user_file=os.environ["USER_FILE"]
 # store = FeatureStore("./my_feature_repo/")
 
+# st.set_page_config(initial_sidebar_state="collapsed")
 
+# st.markdown(
+#     """
+# <style>
+#     [data-testid="collapsedControl"] {
+#         display: none
+#     }
+# </style>
+# """,
+#     unsafe_allow_html=True,
+# )
 
 class User():
     
-    cookie = get_cookie("userInfo")
-    aws_session = get_aws_session()
+    # cookie = get_cookie("userInfo")
+    # aws_session = get_aws_session()
+    # cookie_manager = get_cookie_manager()
     # st.write(get_all_cookies())
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
-        time.sleep(2)
+        self.cookie = get_cookie("userInfo")
+        print("Cookie", self.cookie)
         if self.cookie:
-            username = decode_jwt(self.cookie, "test").get('username')
-            print("cookie exists", username)
-            self.userId = username
+            self.userId = str(decode_jwt(self.cookie, "test").get('username'))
+            st.session_state["mode"]="signedin"
         else:
-            self.userId = None 
+            if "mode" not in st.session_state or st.session_state["mode"]!="signup":  
+                # self.userId = "tebs"
+                st.session_state["mode"]="signedout"
+            self.userId = None
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -72,16 +91,23 @@ class User():
     @st.cache_data()
     def _init_session_states(_self, userId, sessionId):
 
-        if _self.cookie is None:
-            st.session_state["mode"]="signedout"
-        else:
-            st.session_state["mode"]="signedin"
+        # if _self.cookie is None:
+        #     st.session_state["mode"]="signedout"
+        # else:
+        #     st.session_state["mode"]="signedin"
 
-        # st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
+        # Open users login file
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
-        # authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+        # Open users profile file
+        with open(user_file, 'r') as file:
+            try:
+                users = json.load(file)
+            except JSONDecodeError:
+                users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+                users[_self.userId]={}
         st.session_state["config"] = config
+        st.session_state["users"] = users
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         st.session_state["location_input"] = ""
         st.session_state["study"] = ""
@@ -90,11 +116,11 @@ class User():
         st.session_state["career_switch"] = False
         st.session_state["industry"] = ""
         st.session_state["self_description"]= ""
-        st.session_state["job_search"]=""
+        st.session_state["skill_set"]=""
         st.session_state["career_goals"]=""
-        st.session_state["lancedb_conn"]= lancedb.connect(db_path)
+        # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if STORAGE=="CLOUD":
-            st.session_state["s3_client"] = _self.aws_session.client('s3') 
+            st.session_state["s3_client"] = get_client('s3')
             st.session_state["bucket_name"] = bucket_name
             st.session_state["storage"] = "CLOUD"
             st.session_state["user_path"] = os.environ["S3_USER_PATH"]
@@ -125,38 +151,30 @@ class User():
     def _init_user(self):
 
         """ Initalizes user page according to user's sign in status"""
-        # with open(login_file) as file:
-        #     config = yaml.load(file, Loader=SafeLoader)
+
         config = st.session_state["config"]
         authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
         if st.session_state.mode=="signup":
             print("signing up")
             self.sign_up(authenticator)
         elif st.session_state.mode=="signedout":
-            print("signing in")
+            print("signed out")
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
             print("signed in")
-            # if "vectorstore" not in st.session_state:
-            #     st.session_state["vectorstore"] = retrieve_vectorstore("elasticsearch", self.userId)
-            # if st.session_state.vectorstore is not None:
-
-            if lancedb_table_exists(st.session_state["lancedb_conn"], self.userId):
-                print("user exists")
+            self.sign_out(authenticator)
+            if lancedb_table_exists(self.userId) is not None:
+                print("user profile already exists")
+                if "base_recommender" not in st.session_state:
+                    st.session_state["base_recommender"]= Recommender()
+                self.recommend_job()
             else:
+                print("user profile does not exists yet")
                 if "init_user1" not in st.session_state:
                     self.about_user1()
                 if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
                     self.about_user2()
-            # self.sign_out(authenticator)
-            # with st.sidebar:
-            #     update = st.button(label="update profile", key="update_profile", on_click=self.update_personal_info)
-            # if "plannerbot" not in st.session_state:
-            #     st.session_state["plannerbot"]=Planner(self.userId)
-            # try:
-            #     st.session_state.plannerbot._create_user_page()
-            # except Exception as e:
-            #     raise e
+
     
 
     def sign_out(self, authenticator):
@@ -164,11 +182,11 @@ class User():
         logout = authenticator.logout('Logout', 'sidebar')
         if logout:
             # Hacky way to log out of Google
-                # print(get_all_cookies())
             print('signing out')
             _ = my_component("signout", key="signout")
             delete_cookie(get_cookie("userInfo"), key="deleteCookie")
             st.session_state["mode"]="signedout"
+            st.rerun()
 
 
 
@@ -177,14 +195,17 @@ class User():
         # modal = Modal("   ", key="sign_in_popup", max_width=500, close_button=False)
         # with modal.container():
             # st.button("X", on_click=self.close_modal, args=["signin_modal"])
-        st.header("Welcome")
+        st.header("Welcome back")
         name, authentication_status, username = authenticator.login('', 'main')
         print(name, authentication_status, username)
         if authentication_status:
-            print("user signed in through system")
+            cookie = encode_jwt(name, username, "test")
+            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
+            st.session_state["mode"]="signedin"
+            st.rerun()
             # time.sleep(3)
-        elif authentication_status == False:
-            st.error('Username/password is incorrect')
+        # elif authentication_status == False:
+        #     st.error('Username/password is incorrect')
         # elif authentication_status == None:
         #     st.warning('Please enter your username and password')
         st.markdown(
@@ -220,26 +241,24 @@ class User():
                 st.session_state["mode"]="signup"
                 st.rerun()
         with col3:
-            forgot_password = st.button(label="forgot my password", key="forgot", type="primary") 
-        st.markdown("or")
-        user_info = my_component(name="signin", key="signin")
-        if user_info!=-1:
-            user_info=user_info.split(",")
-            name = user_info[0]
-            email = user_info[1]
-            token = user_info[2]
-            cookie = encode_jwt(name, email, "test")
-            print(f"user signed in through google: {user_info}")
-            # NOTE: Google's token expires after 1 hour
-            # set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
-            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
-            time.sleep(3)
+            forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
+        # st.markdown("or")
+        # user_info = my_component(name="signin", key="signin")
+        # if user_info!=-1:
+        #     user_info=user_info.split(",")
+        #     name = user_info[0]
+        #     email = user_info[1]
+        #     token = user_info[2]
+        #     cookie = encode_jwt(name, email, "test")
+        #     print(f"user signed in through google: {user_info}")
+        #     # NOTE: Google's token expires after 1 hour
+        #     # set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
+        #     set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
+        #     time.sleep(3)
 
 
     def sign_up(self, authenticator:stauth.Authenticate):
 
-        # modal = Modal("Welcome", key="register", max_width=500)
-        # with modal.container():
         print("inside signing up")
         username= authenticator.register_user("Create an account", "main", preauthorization=False)
         if username:
@@ -250,62 +269,28 @@ class User():
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, "test")
-                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
+                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
                 st.rerun()
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
 
+    def recommend_job(self):
 
+        try:
+            query = st.session_state["users"][self.userId]["summary"]
+            matched_urls = st.session_state.base_recommender.match_job(query)
+            for url in matched_urls:
+                st.markdown(url)
+        except Exception:
+            raise
+                    
 
-
-
-    # def close_modal(self, name):
-    #     st.session_state[name]=False
-
-
-    # def about_me_popup(_self) -> None:
-    
-    #     """ Processes user's about me input. """
-
-    #     modal = Modal(title="", key="about_popup", max_width=800, close_button=False)
-    #     if st.session_state.get("past", False) and st.session_state.get("present", False) and st.session_state.get("future", False) :
-    #         st.session_state.disabled=False
-    #     else:
-    #         st.session_state.disabled=True
-    #     with modal.container():
-    #         st.button("X", on_click=_self.close_modal, args=["about_me_modal"])
-    #         selected = stx.stepper_bar(steps=["Self Description", "Current Situation", "Career Goals"])
-    #         if selected==0:
-    #             st.text_input(
-    #             label="What can I know about you?", 
-    #             placeholder="Tell me about yourself", 
-    #             key = "about_past", 
-    #             on_change=_self.field_check
-    #             )
-    #         elif selected==1:
-    #             st.text_input(
-    #             label="What takes you here?",
-    #             placeholder = "Tell me about your present situation",
-    #             key="about_present",
-    #             on_change = _self.field_check
-    #             )
-    #         elif selected==2:
-    #             st.text_input(
-    #             label="What can I do for you?",
-    #             placeholder = "Tell me about your career goals",
-    #             key="about_future",
-    #             on_change=_self.field_check,
-    #             )
-    #         submitted = st.button("Submit", on_click=_self.form_callback2, disabled=st.session_state.disabled)
-    #         if submitted:
-    #             st.session_state["init_user"]=True
-    #             modal.close()
 
     def about_user1(self):
 
-
-        if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and st.session_state.get("location", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
+        st.markdown("**To get started, please fill out the fields below**")
+        if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
             st.session_state.disabled1=False
         else:
             st.session_state.disabled1=True
@@ -313,21 +298,25 @@ class User():
         with st.expander("**Basic information**", expanded=True):
             c1, c2 = st.columns(2)
             with c1:
-                st.text_input("Full name", key="namex", on_change=self.field_check)
+                #TODO: check default value for user who wants to change their profile info
+                st.text_input("Full name *", key="namex", 
+                              value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
+                              on_change=self.field_check)
             with c2:
-                st.date_input("Date of Birth", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
-            st.text_input("LinkedIn (optional)", key="linkedinx", on_change=self.field_check)
-    
+                st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
+            st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
         with st.expander("**Education**"):
             c1, c2 = st.columns([1, 1])
                 # st.text_input("School", key="schoolx")
             with c2:
                 st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
             with c1:
-                degree = st.selectbox("Highest level of education", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
+                degree = st.selectbox("Highest level of education *", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
             if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
                 st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
-            certification = st.text_area("Certification (optional)", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
+            certification = st.checkbox("Other certifications")
+            if certification:
+                st.text_area("", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
         # st.markdown("**Career**")
         with st.expander("**Career**"):
             c1, c2 = st.columns([1, 1])
@@ -336,25 +325,31 @@ class User():
                 st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_check)
             with c2:
                 st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
-            job_unsure=st.checkbox("Not sure about the job?")
-            career_switch = st.checkbox("Career switch?", key="career_switchx", on_change=self.field_check)
-            if job_unsure:
-                st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
-            location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
-        if location == "I have a specific place in mind":
-            st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
-        if location == "I want to work near where I currently live":
-            if st.checkbox("Share my location"):
-                loc = get_geolocation()
-                if loc:
-                    address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-                    st.session_state["location_input"] = address
             c1, c2=st.columns([1, 1])
             with c1:
-                min_pay = st.text_input("Minimum pay", key="payx")
+                min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_check)
             with c2: 
-                pay_type = st.selectbox("", ("hourly", "yearly"), placeholder="Select pay type...")
-
+                pay_type = st.selectbox("", ("hourly", "annually"), placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
+            job_unsure=st.checkbox("Not sure about the job")
+            if job_unsure:
+                st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
+            career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.field_check)
+            if career_switch:
+                st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.field_check)
+            location = st.checkbox("Location is important to me")
+            # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
+            if location:
+                location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
+                if location_input=="I want remote work":
+                    st.session_state.location_input = "remote"
+                if location_input == "I have a specific place in mind":
+                    st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
+                if location_input == "work near where I currently live":
+                    if st.checkbox("Share my location"):
+                        loc = get_geolocation()
+                        if loc:
+                            address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
+                            st.session_state["location_input"] = address
         st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
         st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
@@ -372,7 +367,7 @@ class User():
         if selected==0 and st.session_state.value0=="":
             value0 = st.text_area(
             label="What can I know about you?", 
-            placeholder="Tell me about yourself, for example, what are your motivations and values? What's important to you in a job?", 
+            placeholder="Tell me about yourself, for example, what are your best motivations and values? What's important to you in a job?", 
             key = "self_descriptionx", 
             on_change=self.field_check
             )
@@ -387,17 +382,17 @@ class User():
             st.session_state["value0"]=value0
         elif selected==1 and st.session_state.value1=="":
             value1=st.text_area(
-            label="What takes you here?",
-            placeholder = "Tell me about your job search history, for example, have you been in the job market for a long time? What takes you here?",
-            key="job_searchx",
+            label="What are your skills?",
+            placeholder = "Tell me about your skills and talent? What are you especially good at that you want to bring to a workplace?",
+            key="skill_setx",
             on_change =self.field_check
             )
             st.session_state["value1"]=value1
         elif selected==1 and st.session_state.value1!="":
             value1=st.text_area(
-            label="What takes you here?",
+            label="What are your skills?",
             value=st.session_state["value1"],
-            key = "job_searchx",
+            key = "skill_setx",
             on_change=self.field_check
             )
             st.session_state["value1"]=value1
@@ -427,55 +422,32 @@ class User():
 
     def form_callback1(self):
 
-        # try:
-        #     first_name=st.session_state.first_name
-        # except AttributeError:
-        #     st.write("first name is required")
         st.session_state["init_user1"]=True
 
                 
     def form_callback2(self):
 
-        #TODO: save user information in csv s
-        # docs: List[Document] = []
-        # if "resume_path" in st.session_state:
-        #     resume_docs = split_doc_file_size(path=st.session_state.resume_path, file_type="file", storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        #     docs.extend(resume_docs)
-        #     print("added resume to docs")
-        #     if st.session_state.first_name is None and st.session_state.last_name is None:
-        #         info_dict=get_generated_responses(resume_content=st.session_state.resume_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        # save_path =  os.path.join(st.session_state.user_path, self.userId, "basic_info", "user_description.txt")
-        # if st.session_state.storage=="LOCAL":
-        #     with open(save_path, "wb") as f:
-        #         f.write(text)
-        # elif st.session_state.storage=="CLOUD":
-        #     st.session_state.s3_client.put_object(Body=text, Bucket=bucket_name, Key=save_path)
-        #     print("Successful written file to S3")
-        # docs = split_doc_file_size(save_path, "file", storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        # # update user information to vectorstore
-        # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
-        # # res = vectorstore.similarity_search(query="what is the name of the user?", k=2)
-        # # print(f"res is {res}")
-        # record_manager=create_record_manager(self.userId)
-        # update_index(docs, record_manager, vectorstore, cleanup_mode=None)
-        # print(f"record manager keys: {record_manager.list_keys()}")
-        # field_names = ["name", "birthday" "linkedin", "grad_year", "degree", "study", "certification", "job", "job_level", "industry", "career_switch", "locatino", "self_description", "job_search", "career_goals"]
-        # field_values=[st.session_state.name, st.session_state.birthday, st.session_state.linkedin, st.session_state.grad_year, 
-        #               st.session_state.degree, st.session_state.study, st.session_state.job, st.session_state.job_level, st.session_state.industry, st.session_state.career_switch, st.session_state.location, 
-        #               st.session_state.location_input, st.session_state.self_description, st.session_state.job_search, st.session_state.career_goals]
-        # data = {name: value for name, value in zip(field_names, field_values)}
-        data = [{"name":st.session_state.name}]
-        add_to_lancedb_table(st.session_state["lancedb_conn"], "test_table1", data)
+        summary = create_profile_summary(self.userId)
+        print("profile summary",  summary)
+        st.session_state["users"][self.userId]["summary"] = summary
+         # Save the updated user profiles back to the JSON file
+        with open(user_file, 'w') as file:
+            json.dump(st.session_state["users"], file, indent=2)
+        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
+        print(data)
+        add_to_lancedb_table(self.userId, data)
         st.session_state["init_user2"]=True
 
 
-    def test_clear(self):
+
+
+    # def test_clear(self):
         
-        vectorstore = retrieve_vectorstore("elasticsearch", index_name=self.userId)
-        record_manager=create_record_manager(self.userId)
-        print(f"record manager keys: {record_manager.list_keys()}")
-        clear_index(record_manager, vectorstore)
-        print(f"record manager keys: {record_manager.list_keys()}")
+    #     vectorstore = retrieve_vectorstore("elasticsearch", index_name=self.userId)
+    #     record_manager=create_record_manager(self.userId)
+    #     print(f"record manager keys: {record_manager.list_keys()}")
+    #     clear_index(record_manager, vectorstore)
+    #     print(f"record manager keys: {record_manager.list_keys()}")
 
     def get_address(self, latitude, longitude):
 
@@ -495,77 +467,107 @@ class User():
         # Hacky way to save input text for stepper bar for batch submission
         try:
             st.session_state["self_description"] = st.session_state.self_descriptionx
+            st.session_state["users"][self.userId]["self_description"] = st.session_state.self_description
         except AttributeError:
             pass
         try:
-            st.session_state["job_search"] = st.session_state.job_searchx
+            st.session_state["skill_set"] = st.session_state.skill_setx
+            st.session_state["users"][self.userId]["skill_set"] = st.session_state.skill_set
         except AttributeError:
             pass
         try:
             st.session_state["career_goals"] = st.session_state.career_goalsx
+            st.session_state["users"][self.userId]["career_goals"] = st.session_state.career_goals
         except AttributeError:
             pass
         try:
             st.session_state["name"] = st.session_state.namex
+            st.session_state["users"][self.userId]["name"] = st.session_state.name
         except AttributeError:
             pass
         try:
             birthday = st.session_state.birthdayx
             self.process_input("birthday", birthday)
+            st.session_state["users"][self.userId]["birthday"] = st.session_state.birthday
         except AttributeError:
             pass
         try:
-            st.session_state["linkedin"] = st.session_state.linkedinx
+            linkedin = st.session_state.linkedinx
+            if linkedin:
+                process_linkedin(st.session_state.linkedinx)
+                st.session_state["users"][self.userId]["linkedin"] = st.session_state.linkedin
         except AttributeError:
             pass
         try:
             st.session_state["grad_year"] = st.session_state.grad_yearx
+            st.session_state["users"][self.userId]["graduation_year"] = st.session_state.grad_year
         except AttributeError:
             pass
         try:
             st.session_state["degree"] = st.session_state.degreex
+            st.session_state["users"][self.userId]["degree"] = st.session_state.degree
         except AttributeError:
             pass
         try:
             study = st.session_state.studyx
             self.process_input("study", study)
+            st.session_state["users"][self.userId]["study"] = st.session_state.study
         except AttributeError:
             pass
         try:
             certification = st.session_state.certificationx 
             self.process_input("certification", certification)
+            st.session_state["users"][self.userId]["certification"] = st.session_state.certification
         except AttributeError:
             pass
         try:
             job = st.session_state.jobx
             self.process_input("job", job)
+            st.session_state["users"][self.userId]["job"] = st.session_state.job
         except AttributeError:
             pass
         try:
             st.session_state["job_level"] = st.session_state.job_levelx
+            st.session_state["users"][self.userId]["job_level"] = st.session_state.job_level
         except AttributeError:
             pass
         try:
-            st.session_state["career_switch"] = st.session_state.career_switchx
+            st.session_state["min_pay"] = st.session_state.min_payx
+            st.session_state["users"][self.userId]["mininum_pay"] = st.session_state.min_pay
+        except AttributeError:
+            pass
+        try:
+            st.session_state["pay_type"] = st.session_state.pay_typex
+            st.session_state["users"][self.userId]["pay_type"] = st.session_state.pay_type
+        except AttributeError:
+            pass
+        
+        # try:
+        #     st.session_state["career_switch"] = st.session_state.career_switchx
+        #     st.session_state["users"][self.userId]["career_switch"] = st.session_state.career_switch
+        # except AttributeError:
+        #     pass
+        try:
+            transferable_skills = st.session_state.transferable_skillsx
+            self.process_input("transferable_skills", transferable_skills)
+            st.session_state["users"][self.userId]["transferable_skills"] = st.session_state.transferable_skills
         except AttributeError:
             pass
         try:
             st.session_state["industry"] = st.session_state.industryx
-        except AttributeError:
-            pass
-        try:
-            st.session_state["location"] = st.session_state.locationx
+            st.session_state["users"][self.userId]["industry"] = st.session_state.industry
         except AttributeError:
             pass
         try:
             location_input = st.session_state.location_inputx
             self.process_input("location_input", location_input)
+            st.session_state["users"][self.userId]["location_input"] = st.session_state.location_input
         except AttributeError:
             pass
         try:
             st.session_state["resume"] = st.session_state.resumex
             if st.session_state.resume:
-                self.process_file(st.session_state.resume)
+                process_resume(st.session_state.resume)
         except AttributeError:
             pass
 
@@ -573,51 +575,67 @@ class User():
 
         if input_type=="birthday":
             st.session_state.birthday = input_value.strftime('%Y-%m-%d')
+            #TODO: get age instead
         if input_type=="certification":
             st.session_state.certification = input_value.split(",")
         if input_type=="study":
             st.session_state.study = input_value.split(",")
         if input_type=="job":
-            st.session_state.job=input_value.split(",")
+            st.session_state.job=str(input_value.split(","))
         if input_type=="location_input":
             st.session_state.location_input=input_value.split(",")
+        elif input_type=="transferable_skills":
+            st.session_state.transferable_skills=input_value.split(",")
 
-    def process_file(self, uploaded_file: Any) -> None:
+    # def process_file(self, uploaded_file: Any) -> None:
 
-        """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
-        # with st.session_state.file_loading, st.spinner("Processing..."):
-        # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-        # for uploaded_file in uploaded_files:
-        file_ext = Path(uploaded_file.name).suffix
-        filename = str(uuid.uuid4())+file_ext
-        save_path = os.path.join(st.session_state.user_path, self.userId, "basic_info", filename)
-        end_path =  os.path.join(st.session_state.user_path, self.userId, "basic_info", Path(filename).stem+'.txt')
-        st.session_state["resume_path"] = end_path
-        if st.session_state.storage=="LOCAL":
-            with open(save_path, 'wb') as f:
-                f.write(uploaded_file.getvalue())
-        elif st.session_state.storage=="CLOUD":
-            st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=save_path)
-            print("Successful written file to S3")
-        # Convert file to txt and save it 
-        if convert_to_txt(save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client): 
-            content_safe, content_type, content_topics = check_content(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-            print(content_type, content_safe, content_topics) 
-            if content_safe and content_type=="resume":
-                st.toast(f"your {content_type} is successfully submitted")
-            else:
-                delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-                # delete_file(save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-                st.toast(f"Failed processing your resume. Please try again!")
-           
+    #     """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
+    #     # with st.session_state.file_loading, st.spinner("Processing..."):
+    #     # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
+    #     # for uploaded_file in uploaded_files:
+    #     file_ext = Path(uploaded_file.name).suffix
+    #     filename = str(uuid.uuid4())+file_ext
+    #     save_path = os.path.join(st.session_state.user_path, self.userId, "basic_info", filename)
+    #     end_path =  os.path.join(st.session_state.user_path, self.userId, "basic_info", Path(filename).stem+'.txt')
+    #     st.session_state["resume_path"] = end_path
+    #     if st.session_state.storage=="LOCAL":
+    #         with open(save_path, 'wb') as f:
+    #             f.write(uploaded_file.getvalue())
+    #     elif st.session_state.storage=="CLOUD":
+    #         st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=save_path)
+    #         print("Successful written file to S3")
+    #     # Convert file to txt and save it 
+    #     if convert_to_txt(save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client): 
+    #         content_safe, content_type, content_topics = check_content(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+    #         print(content_type, content_safe, content_topics) 
+    #         if content_safe and content_type=="resume":
+    #             st.toast(f"your {content_type} is successfully submitted")
+    #         else:
+    #             delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+    #             # delete_file(save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+    #             st.toast(f"Failed processing your resume. Please try again!")
 
+
+
+    def display_profile(self):
+
+        """Loads from user file and displays profile"""
   
     def update_personal_info(self):
 
         # update user information to vectorstore
-        vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
-        record_manager=create_record_manager(self.userId)
-        update_index(docs, record_manager, vectorstore)
+        # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
+        # record_manager=create_record_manager(self.userId)
+        # update_index(docs, record_manager, vectorstore)
+        try:
+            del st.session_state["init_user1"]
+        except Exception:
+            pass
+        if "init_user1" not in st.session_state:
+            self.about_user1()
+        if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+            self.about_user2()
+
 
 
 
@@ -640,31 +658,7 @@ class User():
             return True
         except Exception as e:
             return False
-
-
-
-
-
-# class to filter data and pass the information into
-# the prompt template we have above.
-# class FeastPromptTemplate(StringPromptTemplate):
-#     def format(self, **kwargs) -> str:
-#         user_id = kwargs.pop("user_id")
-#         feature_vector = feature_service.get_online_features(join_keys={"user_id":user_id}).to_dict()
-#         # df = pd.read_csv("./data.csv")
-#         # row = df[df["EmpID"] == int(employee_id)]
-#         kwargs["full_name"] = row["RecruitmentSource"].values[0]
-#         kwargs["date_of_birth"] = row["Salary"].values[0]
-#         kwargs["highest_education"] = row["RaceDesc"].values[0]
-#         kwargs["year_of_graduation"] = row["Department"].values[0]
-#         kwargs["degree"] = row["SpecialProjectsCount"].values[0]
-#         kwargs["area_of_study"] = row["Employee_Name"].values[0]
-#         kwargs["desired_job"] = row["Department"].values[0]
-#         kwargs["experience_level"] = row["SpecialProjectsCount"].values[0]
-#         kwargs["self_description"] = row["Employee_Name"].values[0]
-#         kwargs["current_situation"] = row["Employee_Name"].values[0]
-#         kwargs["career_goals"] = row["Employee_Name"].values[0]
-#         return prompt.format(**kwargs)
+        
 
 
 

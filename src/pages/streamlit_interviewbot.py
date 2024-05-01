@@ -55,9 +55,9 @@ from botocore.errorfactory import ClientError
 import boto3
 import botocore
 from botocore.errorfactory import ClientError
-from cookie_manager import get_cookie, get_all_cookies
+from utils.cookie_manager import get_cookie, get_all_cookies, decode_jwt
 from utils.dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
-from aws_manager import get_aws_session, request_aws4auth
+from utils.aws_manager import get_aws_session, request_aws4auth, get_client
 import pywinctl as pwc
 from my_component import my_component
 from google.cloud import texttospeech
@@ -75,15 +75,10 @@ import threading
 # from six.moves import queue
 import queue
 from google.cloud import speech
-from backend.socket_server import SocketServer, Transcoder
+from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
-import streamlit.components.v1 as components
-
-
-
-# from test import YourDataProcessor
 
 
 
@@ -118,16 +113,17 @@ class Interview():
     # currently_pressed = set()
     # q = queue.Queue()
     ai_col, human_col = st.columns(2, gap="large")
-    cookie = get_cookie("userInfo")
-    aws_session = get_aws_session()
+    # aws_session = get_aws_session()
 
     
 
     def __init__(self, data_queue, socket_client):
+        self.cookie = get_cookie("userInfo")
         if self.cookie:
             # self.userId = self.cookie.split("###")[1]
-            self.userId = re.split("###|@", self.cookie)[1]
-            print(self.userId)
+            username = decode_jwt(self.cookie, "test").get('username')
+            print("Cookie:", username)
+            self.userId = username
         else:
             self.userId = None
         if "interview_sessionId" not in st.session_state:
@@ -156,8 +152,7 @@ class Interview():
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["host"] = "Maya"
             st.session_state["responseInput"] = ''
-            st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
-
+            # st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
             if STORAGE == "LOCAL":
                 st.session_state["storage"]=STORAGE
                 st.session_state["bucket_name"]=None
@@ -169,12 +164,12 @@ class Interview():
                 # st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
                 # if "directory_made" not in st.session_state:
             elif STORAGE=="CLOUD":
-                st.session_state["lambda_client"] = _self.aws_session.client('lambda')
+                st.session_state["lambda_client"] = get_client("lambda")
+                st.session_state["s3_client"]= get_client("s3")
                 st.session_state["storage"]= STORAGE
                 st.session_state["bucket_name"]= os.environ['BUCKET_NAME']
                 st.session_state["transcribe_bucket_name"] = os.environ['TRANSCRIBE_BUCKET_NAME']
                 st.session_state["polly_bucket_name"] = os.environ['POLLY_BUCKET_NAME']
-                st.session_state["s3_client"]= _self.aws_session.client('s3') 
                 # if "save_path" not in st.session_state:
                 st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
@@ -418,7 +413,7 @@ class Interview():
                 print("about_interview:", self.about_interview)
                 print("generated_dict", self.generated_dict)
                 print("learning material", self.learning_material)
-                new_interview = InterviewController(self.aws_session, st.session_state["interview_sessionId"], self.userId, self.about_interview, self.generated_dict, self.learning_material)
+                new_interview = InterviewController( st.session_state["interview_sessionId"], self.userId, self.about_interview, self.generated_dict, self.learning_material)
                 st.session_state["baseinterview"] = new_interview
             if "greeting" not in st.session_state:
                 st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting(host=st.session_state["host"])

@@ -29,6 +29,7 @@ import functools
 import codecs
 import json
 import decimal
+import requests
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -242,7 +243,7 @@ def markdown_table_to_dict(markdown_table):
 class AppURLopener(urllib.request.FancyURLopener):
     version = "Mozilla/5.0"
 
-def retrieve_web_content(link, save_path="./web_data/test.txt"):
+def retrieve_web_content(link, save_path="test.txt"):
 
     req = Request(
         url=link, 
@@ -257,16 +258,16 @@ def retrieve_web_content(link, save_path="./web_data/test.txt"):
     soup = bs4.BeautifulSoup(webpage, features="lxml")
 
     content = soup.get_text()
-
-    if content:
-        with open(save_path, 'w') as file:
-            file.write(content)
-            file.close()
-            print('Content retrieved and written to file.')
-            return True
-    else:
-        print('Failed to retrieve content from the URL.')
-        return False
+    print(content)
+    # if content:
+    #     with open(save_path, 'w') as file:
+    #         file.write(content)
+    #         file.close()
+    #         print('Content retrieved and written to file.')
+    #         return True
+    # else:
+    #     print('Failed to retrieve content from the URL.')
+    #     return False
     
 # this one is better than the above function 
 def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s3=None):
@@ -289,6 +290,20 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
         return True
     except Exception:
         return False
+    
+def save_website_as_html(url, filename):
+    
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(response.text)
+            print(f"Website saved as {filename} successfully.")
+        else:
+            print(f"Failed to retrieve the website. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
 
 
 
@@ -302,7 +317,7 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
 #     print(f"Succesfully written {field_name} to {res_path}.")
 
 # source code: https://github.com/trancethehuman/entities-extraction-web-scraper/blob/main/scrape.py
-async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3", "span"]) -> str:
+async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     """
     An asynchronous Python function that uses Playwright to scrape
     content from a given URL, extracting specified HTML tags and removing unwanted tags and unnecessary
@@ -468,14 +483,12 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(o)
 
 if __name__=="__main__":
-    # retrieve_web_content(
-    #     "https://www.google.com/search?q=software+engineer+jobs+in+chicago+&oq=jobs+in+chicago&aqs=chrome.0.0i131i433i512j0i512l9.1387j1j7&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwikxaml1dqBAxULkmoFHRzvD2MQudcGKAF6BAgSEC8&sxsrf=AM9HkKmG-P_UI-ha1ySTJJklAvltPyKEtA:1696363178524#fpstate=tldetail&htivrt=jobs&htidocid=AMKKBKD-6xYovEnvAAAAAA%3D%3D",
-    #     save_path = f"./uploads/link/chicago0.txt")
-    # html_to_text(
-    #     "https://jobs.lever.co/RaptorMaps/e2845018-aa14-4add-892d-826e1276132c",
-    #     save_path =f"test.txt")
+    # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
+    html_to_text(
+        "https://www.linkedin.com/in/yueqi-peng/",
+        save_path =f"test.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
-    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
+    # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
 
 
 

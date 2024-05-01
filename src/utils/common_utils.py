@@ -1,5 +1,4 @@
 import openai
-from utils.openai_api import get_completion
 from utils.openai_api import get_completion, get_completion_from_messages
 from langchain.chat_models import ChatOpenAI
 from langchain.embeddings import OpenAIEmbeddings
@@ -12,7 +11,7 @@ from langchain.vectorstores import DocArrayInMemorySearch
 from langchain.agents import AgentType
 from langchain.chains import RetrievalQA,  LLMChain
 from pathlib import Path
-from utils.basic_utils import read_txt, convert_to_txt
+from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain)
@@ -69,11 +68,25 @@ import base64
 import datetime
 from datetime import date
 import boto3
+from unstructured_client import UnstructuredClient
+from unstructured_client.models import shared
+from unstructured_client.models.errors import SDKError
+from langchain_community.document_loaders import JSONLoader
+from pprint import pprint
+# from linkedin import linkedin, server
+from linkedin_api import Linkedin
+from time import sleep 
+from selenium import webdriver 
+from unstructured.partition.html import partition_html
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
+s = UnstructuredClient(
+    api_key_auth=os.environ["UNSTRUCTURED_API_KEY"],
+    # server_url=DLAI_API_URL,
+)
 delimiter = "####"
 delimiter2 = "'''"
 delimiter3 = '---'
@@ -93,6 +106,7 @@ if STORAGE=="S3":
 else:
     bucket_name=None
     s3=None
+user_file=os.environ["USER_FILE"]
       
 
 
@@ -1203,11 +1217,65 @@ def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) ->
     # else:
     #     raise Exception(f"Content checking failed for {file_path}")
     
+def process_resume(resume):
+    print("")
+
+def process_linkedin(userId, url):
+
+    #start browser session 
+    chromedriver = "/home/tebblespc/chromedriver" #change this to your selenium driver
+    os.environ["webdriver.chrome.driver"] = chromedriver
+    driver = webdriver.Chrome(chromedriver)
+    driver.get("https://www.linkedin.com/login") 
+    sleep(5)
+    # login credentials 
+    linkedin_username = os.environ["LINKEDIN_USERNAME"]
+    linkedin_password = os.environ["LINKEDIN_PASSWORD"]
+    driver.find_element_by_xpath( 
+	"/html/body/div/main/div[2]/div[1]/form/div[1]/input").send_keys(linkedin_username) 
+    driver.find_element_by_xpath( 
+        "/html/body/div/main/div[2]/div[1]/form/div[2]/input").send_keys(linkedin_password) 
+    sleep(3) 
+    driver.find_element_by_xpath( 
+        "/html/body/div/main/div[2]/div[1]/form/div[3]/button").click() 
+    driver.get(url) 
+    #click the "more" button
+    driver.find_element_by_class_name("pv-s-profile-actions__overflow").click()
+    sleep(1)
+
+    #saves profile to pdf 
+    driver.find_element_by_class_name("pv-s-profile-actions pv-s-profile-actions--save-to-pdf").click()
+    sleep(1)
 
 
+def create_profile_summary(userId: str) -> str:
 
+    """
+    Generates a text profile for user using JSON loader to load the users file and summary chain to summarize the profile.
+    JSON loader: https://python.langchain.com/docs/modules/data_connection/document_loaders/json/
+    Summary chain: https://python.langchain.com/docs/use_cases/summarization/
+    """
 
-    
+    # Define prompt
+    prompt_template = """Write a concise summary of the following:
+    "{text}"
+    CONCISE SUMMARY:"""
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    # Define LLM chain
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+    loader = JSONLoader(
+        file_path='./user_file.json',
+        jq_schema=f'.{userId}',
+        text_content=False)
+    data = loader.load()
+    print(data)
+    # Define StuffDocumentsChain
+    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
+    resp = stuff_chain.run(data)
+    print(f"Successfully generated user profile summary: {resp}")
+    return resp
 
 
     

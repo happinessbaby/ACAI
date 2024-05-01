@@ -8,18 +8,29 @@ from sagemaker import get_execution_role
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
-
+region_name='us-east-2'
 @st.cache_resource()
 def get_aws_session():
-    session = boto3.Session(         
+
+    return boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-                    region_name='us-east-2'
+                    region_name=region_name
                 )
-    return session
+
+session = get_aws_session()
+
+def get_client(type):
+    
+    if type=="s3":
+        return session.client('s3')
+    elif type=="lambda":
+        return session.client('lambda')
+    elif type=="dynamodb":
+        return session.client('dynamodb', region_name) 
 
 
-def request_aws4auth(session: boto3.Session, service="aoss", region='us-east-2'):
+def request_aws4auth(service="aoss", region='us-east-2'):
     credentials=session.get_credentials()
     auth = AWS4Auth(credentials.access_key, credentials.secret_key, 
                 region, service, session_token=credentials.token)
