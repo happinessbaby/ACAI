@@ -2,7 +2,7 @@ from langchain_community.document_loaders import AirtableLoader
 import os
 import json
 from pyairtable import Api
-from utils.lancedb_utils import add_to_lancedb_table, create_lancedb_table, query_lancedb_table
+from utils.lancedb_utils import add_to_lancedb_table, create_lancedb_table, query_lancedb_table, lancedb_table_exists, Schema
 from utils.async_utils import asyncio_run
 import uuid
 import lancedb
@@ -38,10 +38,11 @@ class Recommender():
         for job in jobs:
             job_description = str(job['fields'].get("job_description", ""))
             job_title=str(job['fields'].get("job_title", ""))
+            job_link=str(job["fields"].get("job_link", ""))
             job_id=str(uuid.uuid4())
             # add job to lanceDB table: HAS TO BE A LIST!
             if job_description:
-                data.append({"text":job_description, "id":job_id, "job_title":job_title,  "type":"job"})
+                data.append({"text":job_description, "id":job_id, "job_title":job_title, "job_url":job_link, "type":"job"})
         print(data)
         add_to_lancedb_table("Jobs3", data)
 
@@ -61,14 +62,29 @@ class Recommender():
     async def main(self):
         # Run the scheduler asynchronously
          # Schedule the job to run every hour
-        schedule.every().hour.do(self.retrieve_job)
+        schedule.every().minute.do(self.retrieve_job)
         await self.run_scheduler()
 
 
-    def match_job(self, query):
+    def match_job(self, query, table_name="Jobs3", top_k=2):
 
-        res = query_lancedb_table(query, "Jobs3")
-        print(res)
+        urls = []
+        try:
+            table = lancedb_table_exists(table_name)
+            results = (
+                table.search(query)
+                .limit(top_k)
+                .to_pydantic(Schema)
+            )
+            for res in results:
+                urls.append(res.url)
+        except Exception as e:
+            raise e
+        return urls
+
+        # res = query_lancedb_table(query, "Jobs3")
+        # res[0].url
+        # print(res)
 
     def rank_job(self, jobs):
         return None

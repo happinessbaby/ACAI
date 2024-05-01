@@ -96,9 +96,10 @@ class User():
         # else:
         #     st.session_state["mode"]="signedin"
 
-        # st.session_state["welcome_modal"]=Modal("Welcome", key="register", max_width=500)
+        # Open users login file
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
+        # Open users profile file
         with open(user_file, 'r') as file:
             try:
                 users = json.load(file)
@@ -278,7 +279,9 @@ class User():
 
         try:
             query = st.session_state["users"][self.userId]["summary"]
-            st.session_state.base_recommender.match_job(query)
+            matched_urls = st.session_state.base_recommender.match_job(query)
+            for url in matched_urls:
+                st.markdown(url)
         except Exception:
             raise
                     
@@ -430,7 +433,7 @@ class User():
          # Save the updated user profiles back to the JSON file
         with open(user_file, 'w') as file:
             json.dump(st.session_state["users"], file, indent=2)
-        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job,  "type":"user"}]
+        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
         print(data)
         add_to_lancedb_table(self.userId, data)
         st.session_state["init_user2"]=True

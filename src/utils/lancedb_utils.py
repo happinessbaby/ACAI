@@ -23,10 +23,15 @@ class Schema(LanceModel):
     vector: Vector(func.ndims()) = func.VectorField()
     id: str 
     job_title: str
+    job_url: str
     # job_industry: str
     # job_level: str 
     # education: str 
     type: str 
+
+    @property
+    def url(self):
+        return self.job_url
 
 
 def register_model(model_name):
@@ -74,7 +79,7 @@ def query_lancedb_table(query, table_name, top_k=1):
         results = (
             table.search(query)
             .limit(top_k)
-            .to_pydantic(Schema)[0]
+            .to_pydantic(Schema)
         )
     except Exception as e:
         raise e
