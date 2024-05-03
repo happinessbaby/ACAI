@@ -29,7 +29,9 @@ class Recommender():
         pass
 
     
-    def retrieve_job(self):
+    def retrieve_and_save_jobs(self):
+
+        """ Retrieves jobs from Air tables and saves them to LanceDB vector tables. """
 
         print("retrieving jobs from air table")
         #TODO: update in batches instead of all
@@ -54,6 +56,7 @@ class Recommender():
         #     json.loads(doc)
 
     def run_scheduler(self):
+        
         while True:
             schedule.run_pending()
             time.sleep(1)  # Sleep for 1 second to avoid high CPU usage
@@ -62,11 +65,13 @@ class Recommender():
     async def main(self):
         # Run the scheduler asynchronously
          # Schedule the job to run every hour
-        schedule.every().minute.do(self.retrieve_job)
+        schedule.every().minute.do(self.retrieve_and_save_jobs)
         await self.run_scheduler()
 
 
     def match_job(self, query, table_name="Jobs3", top_k=2):
+
+        """ Matches jobs according to user information and returns the matched job urls. """
 
         urls = []
         try:
@@ -87,6 +92,7 @@ class Recommender():
         # print(res)
 
     def rank_job(self, jobs):
+        #TODO, Job ranking requires more thought processs than retrieval. Will need some kind of RLHF or agent 
         return None
 
 

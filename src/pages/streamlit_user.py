@@ -1,6 +1,6 @@
 import streamlit as st
 import extra_streamlit_components as stx
-from my_component import my_component
+from interview_component import my_component
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth

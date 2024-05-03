@@ -90,7 +90,8 @@ class InterviewController():
     def __init__(self, userId, sessionId, about_interview, generated_dict, learning_material, message_history=None):
         self.userId = userId
         self.sessionId=sessionId
-        self.llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
+        # self.llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
+        self.llm = ChatOpenAI(temperature=0)
         # set_llm_cache(InMemoryCache())
         # embeddings = OpenAIEmbeddings()
         if self.userId:
@@ -114,14 +115,15 @@ class InterviewController():
         """ Initializes log: https://python.langchain.com/docs/modules/callbacks/filecallbackhandler """
 
          # initialize file callback logging
-        self.logfile = log_path + f"{self.userid}.log"
+        filename=self.userId if self.userId else "temp"
+        self.logfile = log_path + f"{filename}.log"
         self.handler = FileCallbackHandler(self.logfile)
         logger.add(self.logfile,  enqueue=True)
         # Upon start, all the .log files will be deleted and changed to .txt files
         for path in  Path(log_path).glob('**/*.log'):
             file = str(path)
             file_name = path.stem
-            if file_name != self.userid: 
+            if file_name != filename: 
                 # convert all non-empty log from previous sessions to txt and delete the log
                 if os.stat(file).st_size != 0:  
                     convert_to_txt(file, log_path+f"{file_name}.txt")
