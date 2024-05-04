@@ -431,34 +431,7 @@ class Interview():
                 st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting(host=st.session_state["host"])
                 # st.session_state["greeting_json"] = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 # st.session_state["modal"].close()
-            # else:
-            # if st.session_state.mode=="regular":
-            #     if "interview_ui" not in st.session_state:
-            #         st.session_state["interview_ui"]=True
-            #         greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
-            #         interview = my_component(greeting_json) 
-            # elif st.session_state.mode=="audio":
-            #     print("entering audio mode")
-            #     user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=self.audio_callback)
-            # elif st.session_state.mode=="text":
-            #     print('entering text mode')
-            #     st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
-                       
 
-
-                
-                # try:
-                #     self.new_interview = st.session_state.baseinterview  
-                #     # self.listener = st.sesssion_state.listener
-                #     # try:
-                #     #     self.listener.start()
-                #     # # RuntimeError: threads can only be started once  
-                #     # except RuntimeError as e:
-                #     #     pass
-                # except AttributeError as e:
-                #     # if for some reason session ended in the middle, may need to do something different from raise exception
-                #     raise e 
-               
                 # with self.human_col:
                 #     user_input=speech_to_text(language='en',use_container_width=True,just_once=True,key='STT')
                 #     # audio_bytes = audio_recorder(
@@ -876,7 +849,7 @@ class Interview():
         if user_input:
             with st.session_state.human_col:
                 st.markdown(user_input)
-                ai_response = st.session_state.baseinterview.askAI(user_input)
+                ai_response = st.session_state.baseinterview.askInterviewer(user_input)
                 self.synthesize_ai_response(ai_response)
  
 

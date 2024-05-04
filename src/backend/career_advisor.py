@@ -97,7 +97,7 @@ class ChatController():
 
     def __init__(self, sessionId, chat_memory=None):
         self.sessionId = sessionId
-        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,streaming=True)
+        self.llm = ChatOpenAI(temperature=0, cache = False,)
         # self.llm.callbacks = [self.streamHandler]
         self.embeddings = OpenAIEmbeddings()
         if chat_memory is not None:
@@ -460,8 +460,8 @@ class ChatController():
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
             print([tools.name for tools in self.tools])
-            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
-            # response = self.chat_agent.stream({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            # response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
+            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
             # for res in response:
             #     print(res.get("output", "Sorry, something happened, please try again."), flush=True)
             #     return res.get("output", "Sorry, something happened, please try again.")
