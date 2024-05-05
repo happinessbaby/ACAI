@@ -323,21 +323,22 @@ class Chat():
                 if "download_placeholder" not in st.session_state:
                     st.session_state["download_placeholder"]=st.empty()
                 _self.retrieve_downloads()  
-            with st.expander("Commonly asked questions"):
-                sample_questions =[
-                    "hi",
-                "Evaluate my resume",
-                "Rewrite my resume using a new template",
-                "Tailor my resume to a job position",
-                ]
-                content = f"""<p><a href='#' id='0'>{sample_questions[0]}</a></p>
-                    <p><a href='#' id='1'>{sample_questions[1]}</a></p>
-                    <p><a href='#' id='1'>{sample_questions[2]}</a></p>
-                    <p><a href='#' id='1'>{sample_questions[3]}</a></p>
-                    """
-                clicked = click_detector(content, key=f"clickable_question")
-                if clicked:
-                    _self.chat_callback(clicked)
+            # with st.expander("Commonly asked questions"):
+            st.markdown("Commonly asked questions")
+            sample_questions =[
+                "hi",
+            "Evaluate my resume",
+            "Rewrite my resume using a new template",
+            "Tailor my resume to a job position",
+            ]
+            content = f"""<p><a href='#' id='0'>{sample_questions[0]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[1]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[2]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[3]}</a></p>
+                """
+            clicked = click_detector(content, key=f"clickable_question")
+            if clicked:
+                _self.chat_callback(clicked)
                 # st.markdown(f"**{clicked} clicked**" if clicked != "" else "**No click**")
                 # question = st.selectbox("", index=None, key="prefilled", options=sample_questions,)
                 # if question:
@@ -631,12 +632,6 @@ class Chat():
                 filename = str(uuid.uuid4())+file_ext
                 tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
                 end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", Path(filename).stem+'.txt')
-                # if st.session_state.storage=="LOCAL":
-                #     with open(tmp_save_path, 'wb') as f:
-                #         f.write(uploaded_file.getvalue())
-                # elif st.session_state.storage=="CLOUD":
-                #     st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-                #     print("Successful written file to S3")
                 write_file(uploaded_file.getvalue(), tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)

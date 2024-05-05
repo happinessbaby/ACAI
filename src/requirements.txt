@@ -70,3 +70,5 @@ unstructured_client
 jq
 python-linkedin
 schedule
+langchainhub
+langchain_openai

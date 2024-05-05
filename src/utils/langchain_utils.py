@@ -694,7 +694,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
         if (vs_type=="faiss"):
             db=FAISS.from_documents(docs, embeddings)
-            # db.save_local(index_name)
+            db.save_local(index_name)
             print("Succesfully created Faiss vector store.")
         elif (vs_type=="redis"):
             db = Redis.from_documents(
@@ -788,9 +788,10 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
             return None
     elif vs_type=="faiss":
         try:
-            db = FAISS.load_local(index_name, embeddings)
+            db = FAISS.load_local(index_name, embeddings, allow_dangerous_deserialization=True)
             return db
         except Exception as e:
+            print(e)
             return None
     elif vs_type=="elasticsearch":
         try:
@@ -1002,8 +1003,8 @@ class CustomOutputParser(AgentOutputParser):
 if __name__ == '__main__':
 
     # db =  create_vectorstore("redis", "./web_data/", "dir", "index_web_advice")
-     db = create_vectorstore("faiss", "./interview_data/", "dir", "faiss_interview_data")
-     db.save_local("faiss_interview_data")
+    # db = create_vectorstore("faiss", "./backend/faiss_interview_data", "./interview_data/", "dir", )
+    retrieve_vectorstore("faiss", "./backend/faiss_interview_data/")
     #  create_vectorstore("faiss", "./log/", "dir", "chat_debug")
  
 
