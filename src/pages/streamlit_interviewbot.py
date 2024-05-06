@@ -116,6 +116,8 @@ class Interview():
 
             st.session_state["mode"]=None
             st.session_state["user_upload_dict"] = {}
+            st.session_state["grader_response"]=''
+            st.session_state["interviewer_response"]=''
             # initialize submitted form variables
             # if "about" not in st.session_state:
             st.session_state["about"]=""
@@ -263,6 +265,10 @@ class Interview():
             #     user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=_self.audio_callback)
             elif st.session_state.mode=="text" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
                 print('entering text mode')
+                if st.session_state.grader_response:
+                    feedback = st.button("How am I doing?", key="feedback_button", type="primary",)
+                    if feedback:
+                        st.write(st.session_state.grader_response)
                 st.chat_input("Your response: ",  key="interview_input", on_submit = _self.chatbox_callback)
                        
 
@@ -280,8 +286,6 @@ class Interview():
                         
             # ''')
             # add_vertical_space(5)
-            # if "init_interview" not in st.session_state:
-            #     st.markdown("Welcome to your mock interviewer session with an AI interviewer. Please fill out the interview pre-form first so your AI interviewer gets a better understanding of your interview. " )
             if "init_interview" not in st.session_state:
                 st.markdown("Please fill out the form below before we begin")
                 industry_options =  ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ]
@@ -304,6 +308,7 @@ class Interview():
                     st.session_state["init_interview"]=True
                     st.rerun()
                 interview_loading()
+        
             # elif st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
             #     st.markdown('''
             #     Troubleshooting:
@@ -990,13 +995,12 @@ class Interview():
         # st.session_state.interview_input = ''    
         with st.session_state.human_col:
             st.markdown(st.session_state.interview_input)
-        grader_response = st.session_state.baseinterview.askGrader(st.session_state.interview_input)
-        interviewer_response = st.session_state.baseinterview.askInterviewer(st.session_state.interview_input, 
+        st.session_state["grader_response"]= st.session_state.baseinterview.askGrader(st.session_state.interview_input)
+        st.session_state["interviewer_response"] = st.session_state.baseinterview.askInterviewer(st.session_state.interview_input, 
                                            callbacks = None)
         # self.synthesize_ai_response(ai_response,)
         with st.session_state.ai_col:
-            self.typewriter(interviewer_response, speed=3)
-
+            self.typewriter(st.session_state.interviewer_response, speed=3)
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
         # if response:
@@ -1006,6 +1010,14 @@ class Interview():
         # st.session_state.interview_questions.append(response)
         # st.session_state["interview_dict"]["human"].append(st.session_state.interview_input)
         # st.session_state["interview_dict"]["ai"].append(response)
+    
+    def retrieve_feedback(self):
+        
+        """Retrieves live feedback from interview grader"""
+        with st.container():
+            st.write(st.session_state.grader_response)
+
+        
 
 
     def typewriter(self, text: str, speed=1): 

@@ -341,11 +341,11 @@ class InterviewController():
         )
         # Chaining runnables: https://python.langchain.com/docs/expression_language/primitives/sequence/
         analysis_prompt = ChatPromptTemplate.from_template("""
-                                                        Assess the interviewee's response to the correct answer: 
+                                                        Assess the interviewee's response to the correct answer and provide a feedback as if you are giving constructive critism or positive comment to someone: 
                                                         correct answer: {answer}
                                                         interviewee's response: {interviewee_response} 
-                                                        Assessment: """)
-        analysis_runnable = analysis_prompt | self.llm.bind(stop="Assessment") | StrOutputParser()
+                                                        feedback: """)
+        analysis_runnable = analysis_prompt | self.llm.bind(stop="feedback") | StrOutputParser()
 
         self.interview_grader = {"answer": answer_runnable, "interviewer_question":itemgetter("interviewer_question"), "interviewee_response":itemgetter("interviewee_response")}| RunnablePassthrough.assign(assessment=analysis_runnable)
     
