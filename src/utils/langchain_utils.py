@@ -863,7 +863,7 @@ def drop_redis_index(index_name: str) -> None:
 
 
 
-def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEmbeddings()) -> FAISS:
+def merge_faiss_vectorstore(main_db: str, file: str, file_type="dir", index_name="tmp", merge_type="tmp_into_main", embeddings=OpenAIEmbeddings()) -> FAISS:
 
     """ Merges files into existing Faiss vecstores if main vector store exists. Else, main vector store is created.
 
@@ -883,15 +883,16 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
     
     """
     
-    main_db = retrieve_vectorstore("faiss", index_name_main)
-    if main_db is None:
-        main_db = create_vectorstore(vs_type="faiss", file=file, file_type="file", index_name=index_name_main)
-        print(f"Successfully created vectorstore: {index_name_main}")
-    else:
-        db = create_vectorstore(vs_type="faiss", index_name="temp", file=file, file_type="file",)
+    db = create_vectorstore(vs_type="faiss", index_name=index_name, file=file, file_type=file_type,)
+    print(f"{index_name} vector store", db)
+    if "main_into_other":
+        db.merge_from(main_db)
+        print(f"Successfully merged vectorestore main into {index_name}")
+        return main_db
+    elif "tmp_into_main":
         main_db.merge_from(db)
-        print(f"Successfully merged vectorestore {index_name_main}")
-    return main_db
+        print(f"Successfully merged vectorestore tmp into main")
+        return main_db
     
 
         

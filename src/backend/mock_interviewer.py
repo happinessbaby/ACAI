@@ -15,7 +15,7 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.embeddings import OpenAIEmbeddings
 from utils.common_utils import  check_content
-from utils.langchain_utils import retrieve_vectorstore, CustomOutputParser, CustomPromptTemplate
+from utils.langchain_utils import retrieve_vectorstore, CustomOutputParser, CustomPromptTemplate, merge_faiss_vectorstore
 # from langchain.prompts import BaseChatPromptTemplate
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory, ChatMessageHistory
@@ -43,6 +43,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain.schema import messages_from_dict, messages_to_dict
 from utils.aws_manager import session
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from operator import itemgetter
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -86,7 +87,8 @@ class InterviewController():
         self.interview_industry = interview_industry
         self.generated_dict = generated_dict
         self.learning_material=learning_material
-        self.interviewer_assessment='none'
+        self.interviewer_assessment=''
+        self.interviewer_question=''
         self._initialize_log()
         self._initialize_interview_agent()
         self._initialize_interview_grader()
@@ -266,6 +268,8 @@ class InterviewController():
         """ Initialize interview grader agent, a Conversational Retrieval Agent: https://python.langchain.com/docs/use_cases/question_answering/how_to/conversational_retrieval_agents """
 
         vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
+        if self.learning_material:
+            vs=merge_faiss_vectorstore(vs, file=self.learning_material, file_type="dir", index_name=f"./interview_tmp_vs/{self.sessionId}", merge_type="main_into_other")
         self.retriever = vs.as_retriever()
         # system_message = SystemMessage(
         # content=(
@@ -316,16 +320,12 @@ class InterviewController():
         #    
         #                              callbacks = [self.handler])
         system_msg = """
-            Please assess the interviewee's answer to the interviewer's question based on the content below, which include best practices of answering interview questions:
-            
+            Please  answer the interviewer's question based on the interview material content below:    
             {context}
+            Questions: {interviewer_question}
+            Answer:  
 
-            Q&A: {QA}
-
-            Please be critical and constructive of the interviewee's answer. 
-            
-            Assessment:
-            
+            {interviewee_response}
             """
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -336,11 +336,17 @@ class InterviewController():
             ]
         )
         # model = ChatOpenAI(temperature=0)
-        self.grader_runnable = (
-               {"context": self.retriever, "QA": RunnablePassthrough()} | prompt | self.llm.bind(stop="Assessment") | StrOutputParser()
+        answer_runnable = (
+               {"context": itemgetter("interviewer_question") | self.retriever, "interviewer_question": RunnablePassthrough(), "interviewee_response":RunnablePassthrough()} | prompt | self.llm.bind(stop="Answer") | StrOutputParser()
         )
+        # Chaining runnables: https://python.langchain.com/docs/expression_language/primitives/sequence/
+        analysis_prompt = ChatPromptTemplate.from_template("""
+                                                        Assess the interviewee's response to the correct answer: 
+                                                        correct answer: {answer}
+                                                        interviewee's response: {interviewee_response} 
+                                                        Assessment: """)
+        self.interview_grader = {"answer": answer_runnable, "interviewee_response":itemgetter("interviewee_response")}| analysis_prompt | self.llm.bind(stop="Assessment") | StrOutputParser()
         
-
 
     def _initialize_meta_agent(self) -> None:
 
@@ -428,49 +434,31 @@ class InterviewController():
 
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
-            # if (update_instruction):
+            # if (update_instruction):            # print(f"GRADER FEEDBACK: {grader_feedback}")
             #     instruction = self.askMetaAgent()
             #     print(instruction) 
-            # print(f"GRADER FEEDBACK: {grader_feedback}")
             # interviewer_response = self.interview_agent({"input":user_input}).get("output", "sorry, something happened, try again.")     
             if update_instructions:
                 self.interviewer_assessment = self.askMetaAgent()
             print("INPUT",  user_input)
             print("ASSESSMENT", self.interviewer_assessment)
             # interviewer_response = self.interview_agent.invoke({"input":user_input, "interviewer_assessment":self.interviewer_assessment}).get("output", "sorry, something happened, try again.") 
-            interviewer_response = self.interview_agent.invoke(
+            self.interviewer_question = self.interview_agent.invoke(
                     {"input": user_input},
                     config={"configurable": {"session_id": self.sessionId}},
-                ).get("output", "Sorry, something happened, please try again.")
-            # if (evaluate_result):
-            #     evalagent_q = Queue()
-            #     evalagent_p = Process(target = self.askEvalAgent, args=(response, evalagent_q, ))
-            #     evalagent_p.start()
-            #     evalagent_p.join()
-            #     evaluation_result = evalagent_q.get()
-            #     # add evaluation and instruction to log
-            #     self.update_meta_data(evaluation_result)
-            
-            # convert dict to string for chat output
+                ).get("output", "Sorry, something happened, please try again.")            
+
         # let instruct agent handle all exceptions with feedback loop
         except Exception as e:
             print(f"ERROR HAS OCCURED IN ASKInterviewer: {e}")
             error_msg = str(e)
-            # needs to get action and action input before error and add it to error message
-            # if (update_instruction):
-            #     query = f""""Debug the error message and provide Instruction for the AI assistant: {error_msg}
-            #         """        
-            #     instruction = self.askMetaAgent(query)
-                # self.update_instructions(feedback)
-            # if evaluate_result:
-            #     self.update_meta_data(error_msg)
             raise e       
 
         # pickle memory (sanity check)
         # with open('conv_memory/' + userid + '.pickle', 'wb') as handle:
         #     pickle.dump(self.chat_history, handle, protocol=pickle.HIGHEST_PROTOCOL)
             # print(f"Sucessfully pickled conversation: {chat_history}")
-        return interviewer_response
+        return self.interviewer_question
     
 
     
@@ -483,13 +471,11 @@ class InterviewController():
             #     instruction = self.askMetaAgent()
             #     print(instruction) 
             # grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
-
-            
-            print("last_qa", last_qa)
-            if last_qa:
-                last_qa="interviewer question: {last_qa} / interviewee answer:I like dancing. "
-                grader_feedback = self.grader_runnable.invoke(last_qa)
+            if self.interviewer_question:
+                grader_feedback = self.interview_grader.invoke({"interviewer_question": self.interviewer_question, "interviewee_response":user_input})
                 print("GRADER FEEDBACK:", grader_feedback)
+            else:
+                grader_feedback=""
             # grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
             # print(f"GRADER FEEDBACK: {grader_feedback}")       
             # response = self.interview_agent({"input":user_input})    

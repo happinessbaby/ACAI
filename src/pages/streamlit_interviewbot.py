@@ -976,9 +976,9 @@ class Interview():
         # st.session_state.interview_input = ''    
         with st.session_state.human_col:
             st.markdown(st.session_state.interview_input)
+        grader_response = st.session_state.baseinterview.askGrader(st.session_state.interview_input)
         interviewer_response = st.session_state.baseinterview.askInterviewer(st.session_state.interview_input, 
                                            callbacks = None)
-        # grader_response = st.session_state.baseinterview.askGrader(st.session_state.responseInput)
         # self.synthesize_ai_response(ai_response,)
         with st.session_state.ai_col:
             self.typewriter(interviewer_response, speed=3)
