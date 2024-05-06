@@ -479,9 +479,6 @@ class InterviewController():
                 print("GRADER FEEDBACK:", grader_feedback)
             else:
                 grader_feedback=""
-            # grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
-            # print(f"GRADER FEEDBACK: {grader_feedback}")       
-            # response = self.interview_agent({"input":user_input})    
             # if (evaluate_result):
             #     evalagent_q = Queue()
             #     evalagent_p = Process(target = self.askEvalAgent, args=(response, evalagent_q, ))

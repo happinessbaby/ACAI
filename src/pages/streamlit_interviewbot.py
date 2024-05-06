@@ -114,7 +114,7 @@ class Interview():
     @st.cache_data()
     def _init_session_states(_self,):
 
-            st.session_state["mode"]="text"
+            st.session_state["mode"]=None
             st.session_state["user_upload_dict"] = {}
             # initialize submitted form variables
             # if "about" not in st.session_state:
@@ -230,7 +230,25 @@ class Interview():
         with st._main:
             if "init_interview" not in st.session_state:
                 loading()
-            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
+                skip = st.button("Skip the form", type="primary")
+                if skip:
+                    st.session_state["init_interview"]=False
+                    st.rerun()
+            elif "init_interview" in st.session_state and st.session_state["mode"]==None:
+                c1, _, c2=st.columns([1, 1, 1])
+                with c1:
+                    interview_mode=st.button("Enter interview room", key="interview_mode_button",)
+                with c2:
+                    practice_mode = st.button("Enter practice mode", key="practice_mode_button",)
+                if interview_mode:
+                    st.session_state["init_interview"]=False
+                    st.session_state.mode="regular"
+                    st.rerun()
+                if practice_mode:
+                    st.session_state["init_interview"]=False
+                    st.session_state.mode="text"
+                    st.rerun()
+            elif st.session_state["mode"]=="regular" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
                 print("initializing interview ui")
                  # components.iframe("http://localhost:3001/")
                 # st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
@@ -282,27 +300,22 @@ class Interview():
                 c1, c2 = st.columns([1, 1])
                 with c1:
                     form_submit=st.button("Submit", key="preform_submit_button")
-                with c2:
-                    skip = st.button("skip", type="primary", key="preform_skip_button")
                 if form_submit:
                     st.session_state["init_interview"]=True
                     st.rerun()
-                if skip:
-                    st.session_state["init_interview"] = False
-                    st.rerun()
                 interview_loading()
-            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
-                st.markdown('''
-                Troubleshooting:
+            # elif st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
+            #     st.markdown('''
+            #     Troubleshooting:
 
-                1. if the AI cannot hear you, make sure your mic is turned on and enabled
-                2. you can switch to the audio only session 
+            #     1. if the AI cannot hear you, make sure your mic is turned on and enabled
+            #     2. you can switch to the audio only session 
 
-                            ''')
-                audio_switch = st.button("switch to audio session", key="switch_audio", type="primary")
-                if audio_switch:
-                    st.session_state["mode"]="audio"
-                    st.rerun()
+            #                 ''')
+            #     audio_switch = st.button("switch to audio session", key="switch_audio", type="primary")
+            #     if audio_switch:
+            #         st.session_state["mode"]="audio"
+            #         st.rerun()
             # if st.session_state["mode"]=="audio":
             #     st.markdown('''
 
@@ -316,7 +329,7 @@ class Interview():
             #     if text_switch:
             #         st.session_state["mode"]="text"
             #         st.rerun()
-            if st.session_state["mode"]=="text" or st.session_state["mode"]=="audio" and "init_interview" in st.session_state:
+            elif st.session_state["mode"]=="text" or st.session_state["mode"]=="audio" and "init_interview" in st.session_state:
                 st.button("end session",  key="end_session",)
             # with _self.ai_col:
             #     subtitles = st.button("subtitles",key="turnon_subtitles")
@@ -419,7 +432,7 @@ class Interview():
                 print("inside create interviewbot")
                 # update interview agents prompts from form variables
                 # if  st.session_state.about!="" or st.session_state.job_posting!="" or st.session_state.resume_file!="":
-                if st.session_state["user_upload_dict"]:
+                if st.session_state["init_interview"]:
                     self.about_interview, self.interview_industry, self.learning_material, self.generated_dict = self.update_prompt()
                 else:
                     self.about_interview = ""
