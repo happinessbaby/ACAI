@@ -103,7 +103,7 @@ class Interview():
             print(f"Interview Session: {st.session_state.interview_sessionId}")
         self.data_queue=data_queue
         self.socket_client = socket_client
-        self._init_session_states(st.session_state.interview_sessionId, self.userId)
+        self._init_session_states()
         self._create_interviewbot()
         self._init_display()
         self.interviewer=st.session_state["baseinterview"] if "baseinterview" in st.session_state else None
@@ -112,13 +112,14 @@ class Interview():
 
     
     @st.cache_data()
-    def _init_session_states(_self, sessionId, userId):
+    def _init_session_states(_self,):
 
             st.session_state["mode"]="text"
             st.session_state["user_upload_dict"] = {}
             # initialize submitted form variables
             # if "about" not in st.session_state:
             st.session_state["about"]=""
+            st.session_state["industry"]=""
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["host"] = "Maya"
@@ -131,7 +132,7 @@ class Interview():
                 st.session_state["s3_client"]= None
                 # st.session_state["window_title"] = pwc.getActiveWindowTitle()
                 # if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["INTERVIEW_PATH"]
+                st.session_state["save_path"] =os.environ["INTERVIEW_PATH"]
                 # if "temp_path" not in st.session_state:
                 # st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
                 # if "directory_made" not in st.session_state:

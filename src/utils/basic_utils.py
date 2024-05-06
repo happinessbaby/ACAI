@@ -58,8 +58,9 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
             text = loader.load()[0].page_content
             s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
             print("Successfully converted file in S3 to TXT")
-        return True
-    except Exception:
+        return True 
+    except Exception as e:
+        print(e)
         return False
 
 
@@ -149,6 +150,7 @@ def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
         for path in paths:
             try: 
                 os.mkdir(path)
+                print("Successfully made directories")
             except FileExistsError:
                 pass
     elif storage=="CLOUD":

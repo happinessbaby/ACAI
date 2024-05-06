@@ -142,7 +142,7 @@ class InterviewController():
         # self.interview_tools = general_tool
         if not self.learning_material:
             # self.interview_tools=[generate_interview_QA]
-            self.learning_material = "./interview_data/"
+            self.learning_material = "./interview_data"
         else:
             #TODO: combine user uploaded material with industry speicifc interview_data
             pass
@@ -322,10 +322,10 @@ class InterviewController():
         system_msg = """
             Please  answer the interviewer's question based on the interview material content below:    
             {context}
-            Questions: {interviewer_question}
+            Question: {interviewer_question}
             Answer:  
 
-            {interviewee_response}
+            PLEASE IGNORE THE FOLLOWING: {interviewee_response}
             """
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -337,7 +337,7 @@ class InterviewController():
         )
         # model = ChatOpenAI(temperature=0)
         answer_runnable = (
-               {"context": itemgetter("interviewer_question") | self.retriever, "interviewer_question": RunnablePassthrough(), "interviewee_response":RunnablePassthrough()} | prompt | self.llm.bind(stop="Answer") | StrOutputParser()
+               {"context": itemgetter("interviewer_question") | self.retriever, "interviewer_question": itemgetter("interviewer_question"), "interviewee_response":RunnablePassthrough()} | prompt | self.llm.bind(stop="Answer") | StrOutputParser()
         )
         # Chaining runnables: https://python.langchain.com/docs/expression_language/primitives/sequence/
         analysis_prompt = ChatPromptTemplate.from_template("""
@@ -345,8 +345,10 @@ class InterviewController():
                                                         correct answer: {answer}
                                                         interviewee's response: {interviewee_response} 
                                                         Assessment: """)
-        self.interview_grader = {"answer": answer_runnable, "interviewee_response":itemgetter("interviewee_response")}| analysis_prompt | self.llm.bind(stop="Assessment") | StrOutputParser()
-        
+        analysis_runnable = analysis_prompt | self.llm.bind(stop="Assessment") | StrOutputParser()
+
+        self.interview_grader = {"answer": answer_runnable, "interviewer_question":itemgetter("interviewer_question"), "interviewee_response":itemgetter("interviewee_response")}| RunnablePassthrough.assign(assessment=analysis_runnable)
+    
 
     def _initialize_meta_agent(self) -> None:
 
@@ -472,7 +474,8 @@ class InterviewController():
             #     print(instruction) 
             # grader_feedback = self.grader_agent({"input":user_input}).get("output", "")
             if self.interviewer_question:
-                grader_feedback = self.interview_grader.invoke({"interviewer_question": self.interviewer_question, "interviewee_response":user_input})
+                grader_response = self.interview_grader.invoke({"interviewer_question": self.interviewer_question, "interviewee_response":user_input})
+                grader_feedback=grader_response.get("assessment", "")
                 print("GRADER FEEDBACK:", grader_feedback)
             else:
                 grader_feedback=""
@@ -532,38 +535,7 @@ class InterviewController():
                 feedback = ""
         return feedback
 
-    # async def askAI_async(self, user_input: str, callbacks=None,) -> str:
 
-    #     """ Main function that processes all agents' conversation with user.
-         
-    #     Args:
-
-    #         userid (str): session id of user
-
-    #         user_input (str): user question or response
-
-    #     Keyword Args:
-
-    #         callbacks: default is None
-
-    #     Returns:
-
-    #         Answer or response by AI (str)  
-            
-    #      """
-
-    #     try:    
-    #         # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
-    #         grader_feedback = await self.grader_agent.acall({"input":user_input}).get("output", "")
-    #         # print(f"GRADER FEEDBACK: {grader_feedback}")
-    #         print(f"User Voice Input: {user_input}")
-    #         response = await self.interview_agent.acall({"input":user_input})
-    #         response = response.get("output", "sorry, something happened, try again.")        
-    #     except Exception as e:
-    #         print(f"ERROR HAS OCCURED IN ASKAI: {e}")
-    #         error_msg = str(e)
-    #         raise e       
-    #     return response
     
     def craft_questions(self):
         if self.generated_dict:
@@ -606,11 +578,11 @@ class InterviewController():
         feedback += get_completion(f"Extract the positive and negative feedbacks from the following conversation and summarize the feedbacks into a few sentences: {conversation}")
         return feedback
     
-    def output_printout(self, response):
-        with open(log_path+"./feedback.txt", "w") as f:
-            f.write(response)
-        print(f"Successfully retrieved interview feedback summary: {response}")
-        return "./feedback.txt"
+    # def output_printout(self, response):
+    #     with open(log_path+"./feedback.txt", "w") as f:
+    #         f.write(response)
+    #     print(f"Successfully retrieved interview feedback summary: {response}")
+    #     return "./feedback.txt"
     
     def generate_greeting(self, host):
 

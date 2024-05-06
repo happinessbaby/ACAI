@@ -123,7 +123,7 @@ class Chat():
 
     # NOTE: Cache differently depending on if user is logged in and re-caches for each new session
     @st.cache_data()
-    def _init_session_states(_self, userId, sessionId):
+    def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
 
