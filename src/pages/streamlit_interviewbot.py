@@ -53,11 +53,11 @@ from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
-from utils.streamlit_utils import loading, interview_loading
-
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
+
+
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 STORAGE = os.environ['STORAGE']
@@ -116,8 +116,6 @@ class Interview():
 
             st.session_state["mode"]=None
             st.session_state["user_upload_dict"] = {}
-            st.session_state["grader_response"]=''
-            st.session_state["interviewer_response"]=''
             # initialize submitted form variables
             # if "about" not in st.session_state:
             st.session_state["about"]=""
@@ -126,7 +124,18 @@ class Interview():
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["host"] = "Maya"
             st.session_state["responseInput"] = ''
+            _, _, st.session_state["feedback_col"] = st.columns([3, 2, 1])
+            with st.session_state.feedback_col:
+                st.session_state["placeholder_expander"]=st.empty()
+                # st.session_state["feedback_expander"]= st.expander("How am I doing?")
+                # with st.session_state.feedback_expander:
+                #     st.session_state["placeholder_grader"]=st.empty()
             st.session_state["ai_col"], st.session_state["human_col"] = st.columns(2, gap="large")
+            with st.session_state.ai_col:
+                st.session_state["placeholder_ai"] = st.empty()
+            with st.session_state.human_col:
+                st.session_state["placeholder_human"]=st.empty()
+            # st.session_state["chat_input"] = st.chat_input("Your response: ",  key="interview_input", on_submit = _self.chatbox_callback)
             # st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
             if STORAGE == "LOCAL":
                 st.session_state["storage"]=STORAGE
@@ -229,47 +238,65 @@ class Interview():
         # </style>
         # """
         # st.markdown(styl, unsafe_allow_html=True)
+
         with st._main:
             if "init_interview" not in st.session_state:
-                loading()
-                skip = st.button("Skip the form", type="primary")
-                if skip:
-                    st.session_state["init_interview"]=False
-                    st.rerun()
-            elif "init_interview" in st.session_state and st.session_state["mode"]==None:
-                c1, _, c2=st.columns([1, 1, 1])
-                with c1:
-                    interview_mode=st.button("Enter interview room", key="interview_mode_button",)
-                with c2:
-                    practice_mode = st.button("Enter practice mode", key="practice_mode_button",)
-                if interview_mode:
-                    st.session_state["init_interview"]=False
-                    st.session_state.mode="regular"
-                    st.rerun()
-                if practice_mode:
-                    st.session_state["init_interview"]=False
-                    st.session_state.mode="text"
-                    st.rerun()
-            elif st.session_state["mode"]=="regular" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
+                with st.container():
+                    c1, c2=st.columns([8, 1])
+                    #TODO: display interview tips UI with some html component
+                    with c2:
+                        placeholder_skip = st.empty()
+                        skip = placeholder_skip.button("Skip the interview form", type="primary")
+                        if skip:
+                            st.session_state["init_interview"]=False
+                            placeholder_skip.empty()
+                            # st.rerun()
+                    # _self.interview_loading()
+                    # interview_loading(container)
+            if "init_interview" in st.session_state and st.session_state["mode"]==None:
+                with st.container():
+                    c1, _, c2=st.columns([1, 1, 1])
+                    with c1:
+                        placeholder_interview=st.empty()
+                        interview_mode=placeholder_interview.button("Enter interview room", key="interview_mode_button",)
+                    with c2:
+                        placeholder_practice=st.empty()
+                        practice_mode = placeholder_practice.button("Enter practice mode", key="practice_mode_button",)
+                    if interview_mode:
+                        st.session_state.mode="regular"
+                        placeholder_interview.empty()
+                        placeholder_practice.empty()
+                    if practice_mode:
+                        st.session_state.mode="text"
+                        placeholder_interview.empty()
+                        placeholder_practice.empty()
+            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
                 print("initializing interview ui")
                  # components.iframe("http://localhost:3001/")
                 # st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
-            # if st.session_state.mode=="regular":
-                # if "interview_ui" not in st.session_state:
-                #     st.session_state["interview_ui"]=True
                 greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 interview = my_component(greeting_json) 
                 _self.nav_to("http://localhost:3001/" )
             # elif st.session_state.mode=="audio":
             #     print("entering audio mode")
             #     user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=_self.audio_callback)
-            elif st.session_state.mode=="text" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
+            if st.session_state.mode=="text" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
                 print('entering text mode')
-                if st.session_state.grader_response:
-                    feedback = st.button("How am I doing?", key="feedback_button", type="primary",)
-                    if feedback:
-                        st.write(st.session_state.grader_response)
-                st.chat_input("Your response: ",  key="interview_input", on_submit = _self.chatbox_callback)
+                with st.container():
+                    if "interview_input" in st.session_state and "interviewer_response" in st.session_state:
+                        with st.session_state.human_col:
+                            st.session_state.placeholder_human.markdown(st.session_state.interview_input)
+                        with st.session_state.ai_col:
+                            _self.typewriter(st.session_state.interviewer_response, speed=3)
+                    if "grader_response" in st.session_state:
+                        with st.session_state.feedback_col:
+                            with st.session_state.placeholder_expander.expander("How am I doing?"):
+                                placeholder_feedback=st.empty()
+                                placeholder_feedback.write(st.session_state.grader_response)
+                    placeholder_chat=st.empty()
+                    placeholder_chat.chat_input("Your response: ",  key="interview_input", on_submit = _self.chatbox_callback)
+
+                    # st.session_state.chat_input
                        
 
 
@@ -287,27 +314,29 @@ class Interview():
             # ''')
             # add_vertical_space(5)
             if "init_interview" not in st.session_state:
-                st.markdown("Please fill out the form below before we begin")
-                industry_options =  ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ]
-                st.selectbox("Industry", index=None, key="interview_industry", options=industry_options, on_change=_self.form_callback)
-                st.text_area("Tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about", on_change=_self.form_callback)
-                st.text_input("Links", placeholder="please separate each link with a comma", key = "interview_links", on_change=_self.form_callback, help="This can be a job posting or your interview material from online sources" )
-                st.file_uploader(label="Files",
-                                type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                                key = "interview_files",
-                                accept_multiple_files=True, 
-                                help="This can be your resume and interview material",
-                                on_change=_self.form_callback,
-                                )
-                add_vertical_space(1)
+                placeholder_form=st.empty()
+                with placeholder_form.form("Interview Form", clear_on_submit=True):
+                # st.markdown("Interview Form")
+                    st.text_area("Tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about",)
+                    industry_options =  ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ]
+                    st.selectbox("Industry", index=None, key="interview_industry", options=industry_options,)
+                    st.text_input("Links", placeholder="please separate each link with a comma", key = "interview_links", help="This can be a job posting or your interview material from online sources" )
+                    st.file_uploader(label="Interview materials",
+                                    type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                                    key = "interview_files",
+                                    accept_multiple_files=True, 
+                                    help="This can also be your resume",
+                                    )
+                    add_vertical_space(1)      
+                    clicked=st.form_submit_button("Submit", on_click=_self.form_callback, args=(placeholder_form, placeholder_skip))
                 # st.button("Submit", key="preform_submit_button", on_click=_self.submit_callback)
-                c1, c2 = st.columns([1, 1])
-                with c1:
-                    form_submit=st.button("Submit", key="preform_submit_button")
-                if form_submit:
-                    st.session_state["init_interview"]=True
-                    st.rerun()
-                interview_loading()
+                # c1, c2 = st.columns([1, 1])
+                # with c1:
+                #     form_submit=st.button("Submit", key="preform_submit_button")
+                # if form_submit:
+                #     st.session_state["init_interview"]=True
+                #     st.rerun()
+                # interview_loading()
         
             # elif st.session_state["mode"]=="regular" and "init_interview" in st.session_state:
             #     st.markdown('''
@@ -334,13 +363,13 @@ class Interview():
             #     if text_switch:
             #         st.session_state["mode"]="text"
             #         st.rerun()
-            elif st.session_state["mode"]=="text" or st.session_state["mode"]=="audio" and "init_interview" in st.session_state:
-                st.button("end session",  key="end_session",)
+            # elif st.session_state["mode"]=="text" or st.session_state["mode"]=="audio" and "init_interview" in st.session_state:
+            #     st.button("end session",  key="end_session",)
             # with _self.ai_col:
             #     subtitles = st.button("subtitles",key="turnon_subtitles")
             #     if subtitles:
+            # 
             #         st.session_state.subtitles=True
-
 
             
     # def _init_interview_preform(self):
@@ -418,6 +447,16 @@ class Interview():
             break
     
        
+    # def show_interview_tips(self, container):
+    #     while True:
+    #         #Temporary 
+    #         container.write("Please fill out the form on the sidebar. The more you provide the more personalized your session will be. ")
+    #         time.sleep(5)
+    #         container.write("If AI cannot hear you, please check if your mic is turned on and check the sound volume. ")
+    #         time.sleep(5)
+    #         container.write("Do not refresh the page or your interview session will restart")
+    #         time.sleep(5)
+
 
           
             
@@ -840,7 +879,7 @@ class Interview():
 
 
 
-    def form_callback(self):
+    def form_callback(self, form_placeholder, skip_placeholder):
 
         """ Processes form information during form submission callback. """
 
@@ -868,7 +907,10 @@ class Interview():
                 self.process_uploads(industry, "industry")     
         except Exception:
             pass
-        # st.session_state["init_interview"]=True
+        st.session_state["init_interview"]=True
+        skip_placeholder.empty()
+        form_placeholder.empty()
+        
     
     def audio_callback(self):
 
@@ -993,14 +1035,14 @@ class Interview():
         
         # st.session_state.responseInput = st.session_state.interview_input
         # st.session_state.interview_input = ''    
-        with st.session_state.human_col:
-            st.markdown(st.session_state.interview_input)
+        # with st.session_state.human_col:
+        #     st.markdown(st.session_state.interview_input)
         st.session_state["grader_response"]= st.session_state.baseinterview.askGrader(st.session_state.interview_input)
         st.session_state["interviewer_response"] = st.session_state.baseinterview.askInterviewer(st.session_state.interview_input, 
                                            callbacks = None)
         # self.synthesize_ai_response(ai_response,)
-        with st.session_state.ai_col:
-            self.typewriter(st.session_state.interviewer_response, speed=3)
+        # with st.session_state.ai_col:
+        #     self.typewriter(st.session_state.interviewer_response, speed=3)
         # st.session_state.interview_responses.append(st.session_state.interview_input)
         # st.session_state.interview_questions.append(response)
         # if response:
@@ -1025,10 +1067,9 @@ class Interview():
         """ Displays AI response playback at a particular speed. """
 
         tokens = text.split()
-        container = st.empty()
         for index in range(len(tokens) + 1):
             curr_full_text = " ".join(tokens[:index])
-            container.markdown(curr_full_text)
+            st.session_state.placeholder_ai.markdown(curr_full_text)
             time.sleep(1 / speed)
 
     

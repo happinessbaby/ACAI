@@ -282,6 +282,7 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
+        print(content)
         if storage=="LOCAL":            
             with open(save_path, 'w') as file:
                 file.write(content)
@@ -290,7 +291,8 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
         elif storage=="S3":
             s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
         return True
-    except Exception:
+    except Exception as e:
+        print(e)
         return False
     
 def save_website_as_html(url, filename):
@@ -487,8 +489,8 @@ class DecimalEncoder(json.JSONEncoder):
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
     html_to_text(
-        "https://www.linkedin.com/in/yueqi-peng/",
-        save_path =f"test.txt")
+        "https://www.monster.com/career-advice/article/100-potential-interview-questions",
+        save_path =f"./interview_data/general01.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
 

@@ -5,7 +5,8 @@ from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI 
+# from langchain.chat_models import ChatOpenAI 
+from langchain_openai import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.tools import tool, BaseTool
 from langchain.output_parsers import PydanticOutputParser

@@ -128,25 +128,23 @@ class InterviewController():
         """
 
         #TODO: get industry specific vector store path using a python map/json
-        # NOTE:Interviewer uses QA generation tool to generate interview questions
-        # vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
-        # self.retriever = vs.retriever()
-        # general_tool_description = """Use this tool to generate general interview questions and answer.
-        # Prioritize other tools over this tool. """
-        # # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
-        # general_tool = create_vs_retriever_tools(
-        #     vs.as_retriever(),
-        #     "search_general_database",
-        #     general_tool_description,
-        # )
-        # self.interview_tools = general_tool
-        if not self.learning_material:
-            # self.interview_tools=[generate_interview_QA]
-            self.learning_material = "./interview_data"
-        else:
+        vs = retrieve_vectorstore("faiss", faiss_interview_data_path)
+        self.retriever = vs.as_retriever()
+        general_tool_description = """Use this tool to generate general interview questions and answer.
+        Prioritize other tools over this tool. """
+        # general_tool= create_retriever_tools(retriever, "search_interview_database", general_tool_description)
+        general_tool = create_vs_retriever_tools(
+            self.retriever,
+            "search_general_interview_questions_answers",
+            general_tool_description,
+        )
+        self.interview_tools = general_tool
+        # NOTE:Interviewer uses QA generation tool to generate user specific interview questions
+        if self.learning_material:
+            self.interview_tools+=[generateQATool()]
+        if self.interview_industry:
             #TODO: combine user uploaded material with industry speicifc interview_data
             pass
-        self.interview_tools=[generateQATool()]
         print("Successfully added search interview material tool")
 
         template = f"""
@@ -155,6 +153,8 @@ class InterviewController():
             The main interview questions and answers should be generated using the tool "generate_interview_QA", if available. Generate your interview questions from this tool using the following inputs.
 
            interview_material_path:{self.learning_material} \
+           
+           You can also generate questions from the tool "search_generatl_interview_questions_answers"
 
             As an interviewer, you should not provide the interviewee with answers, and you do not need to assess interviewee's response to your questions. 
             
