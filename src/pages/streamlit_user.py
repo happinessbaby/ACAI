@@ -62,6 +62,7 @@ user_file=os.environ["USER_FILE"]
 # """,
 #     unsafe_allow_html=True,
 # )
+st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 class User():
     
@@ -82,14 +83,11 @@ class User():
                 # self.userId = "tebs"
                 st.session_state["mode"]="signedout"
             self.userId = None
-        if "sessionId" not in st.session_state:
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
-        self._init_session_states(self.userId, st.session_state.sessionId)
+        self._init_session_states()
         self._init_user()
 
     @st.cache_data()
-    def _init_session_states(_self, userId, sessionId):
+    def _init_session_states(_self, ):
 
         # if _self.cookie is None:
         #     st.session_state["mode"]="signedout"
@@ -119,27 +117,27 @@ class User():
         st.session_state["skill_set"]=""
         st.session_state["career_goals"]=""
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
-        if STORAGE=="CLOUD":
-            st.session_state["s3_client"] = get_client('s3')
-            st.session_state["bucket_name"] = bucket_name
-            st.session_state["storage"] = "CLOUD"
-            st.session_state["user_path"] = os.environ["S3_USER_PATH"]
-            try:
-                # create "directories" in S3 bucket
-                st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.user_path, _self.userId, "basic_info"))
-                print("Successfully created directories in S3")
-            except Exception as e:
-                pass
-        elif STORAGE=="LOCAL":
-            st.session_state["s3_client"] = None
-            st.session_state["bucket_name"] = None
-            st.session_state["storage"] = "LOCAL"
-            st.session_state["user_path"] = os.environ["USER_PATH"]
-            try: 
-                user_dir = os.path.join(st.session_state.user_path,  _self.userId, "basic_info")
-                os.mkdir(user_dir)
-            except Exception as e:
-                pass
+        # if STORAGE=="CLOUD":
+        #     st.session_state["s3_client"] = get_client('s3')
+        #     st.session_state["bucket_name"] = bucket_name
+        #     st.session_state["storage"] = "CLOUD"
+        #     st.session_state["user_path"] = os.environ["S3_USER_PATH"]
+        #     try:
+        #         # create "directories" in S3 bucket
+        #         st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.user_path, _self.userId, "basic_info"))
+        #         print("Successfully created directories in S3")
+        #     except Exception as e:
+        #         pass
+        # elif STORAGE=="LOCAL":
+        #     st.session_state["s3_client"] = None
+        #     st.session_state["bucket_name"] = None
+        #     st.session_state["storage"] = "LOCAL"
+        #     st.session_state["user_path"] = os.environ["USER_PATH"]
+        #     try: 
+        #         user_dir = os.path.join(st.session_state.user_path,  _self.userId, "basic_info")
+        #         os.mkdir(user_dir)
+        #     except Exception as e:
+        #         pass
         st.session_state["value0"]=""
         st.session_state["value1"]=""
         st.session_state["value2"]=""
@@ -162,12 +160,15 @@ class User():
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
             print("signed in")
-            self.sign_out(authenticator)
+            # self.sign_out(authenticator)
             if lancedb_table_exists(self.userId) is not None:
                 print("user profile already exists")
-                if "base_recommender" not in st.session_state:
-                    st.session_state["base_recommender"]= Recommender()
-                self.recommend_job()
+                # if "base_recommender" not in st.session_state:
+                #     st.session_state["base_recommender"]= Recommender()
+                # self.recommend_job()
+                #TODO: if redirected to here, needs to redirect back
+
+                #TODO: display uer profile if not redirected to here
             else:
                 print("user profile does not exists yet")
                 if "init_user1" not in st.session_state:
@@ -275,15 +276,15 @@ class User():
                 st.info("Failed to register user, please try again")
                 st.rerun()
 
-    def recommend_job(self):
+    # def recommend_job(self):
 
-        try:
-            query = st.session_state["users"][self.userId]["summary"]
-            matched_urls = st.session_state.base_recommender.match_job(query)
-            for url in matched_urls:
-                st.markdown(url)
-        except Exception:
-            raise
+    #     try:
+    #         query = st.session_state["users"][self.userId]["summary"]
+    #         matched_urls = st.session_state.base_recommender.match_job(query)
+    #         for url in matched_urls:
+    #             st.markdown(url)
+    #     except Exception:
+    #         raise
                     
 
 

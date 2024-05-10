@@ -78,7 +78,7 @@ placeholder = st.empty()
 # keyboard_event = Keyboard()
 uri = "ws://127.0.0.1:8765"
 
-
+st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 
 class Interview():
@@ -308,7 +308,7 @@ class Interview():
 
 
         with st.sidebar:          
-            add_vertical_space(3)
+            add_vertical_space(10)
             # st.markdown('''s
                         
             # How the mock interview works: 

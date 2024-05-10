@@ -3,7 +3,8 @@ import streamlit as st
 
 # Application Process, Job Search, Mock Interview
 
-st.set_page_config(initial_sidebar_state="collapsed", layout="wide")
+# st.set_page_config(initial_sidebar_state="collapsed", layout="wide")
+st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 st.markdown(
     """

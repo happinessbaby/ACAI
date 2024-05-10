@@ -58,6 +58,7 @@ import time
 import re
 from langchain.schema import ChatMessage
 from st_click_detector import click_detector
+from st_btn_select import st_btn_select
 
 
 
@@ -95,6 +96,7 @@ message_key = {
 }
 topic = "jobs"
 # st.write(get_all_cookies())
+st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 
 class Chat():
@@ -115,7 +117,7 @@ class Chat():
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
-        self._init_session_states(self.userId, st.session_state.sessionId)
+        self._init_session_states()
         self._create_chatbot()
         self._init_display()
 
@@ -249,16 +251,49 @@ class Chat():
         # selected_questions.append(chat_input)
         # st.markdown(textinput_styl, unsafe_allow_html=True)
         # st.markdown(selectbox_styl, unsafe_allow_html=True)
+
         with st._main:
-            for msg in st.session_state.messages:
-                # with st.chat_message(msg.role):
-                #     st.write(msg.content[:-1])
-                #     _self.typewriter(msg.content[-1])
-                st.chat_message(msg.role).write(msg.content)
+
+            if "initial_resume" not in st.session_state:
+                    #TODO: logged in user can select from past resume
+                modal=Modal("Welcome", key="welcome_modal", close_button=False, max_width="600" )
+                with modal.container():
+                    # with st.form(key="resume_form"):
+                    file= st.file_uploader(label="Upload your most recent resume", 
+                                           key="resume",
+                                            type=["pdf","odt", "docx","txt"], 
+                                            on_change=_self.form_callback)
+                        # st.form_submit_button("Submit", on_click=_self.form_callback,)
+                    skip = st.button("next", key="skip_resume_button", type="primary")
+                    if skip:
+                        st.session_state["initial_resume"]=False
+                        st.rerun()
+
+            elif "initial_resume" in st.session_state:
+                st.markdown("<h1 style='text-align: center; color: black;'>Welcome</h1>", unsafe_allow_html=True)
+                st.markdown("#")
+                st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
+# st.markdown("## Let AI empower your job application journey ##")
+                selection1 = st_btn_select(('Evaluate my resume', 'Redesign my resume', 'Tailor my resume', "Cover letter", ""), index=-1)
+                selection2 = st_btn_select(('Mock interview', "Job search", "Profile", ""), index=-1)
+                if selection1=="Redesign my resume":
+                    research_resume_type()
+                elif selection1=="Evaluate my resume":
+                    #TODO: send to backend
+                    pass
+                if selection2=="Mock interview":
+                    st.switch_page("pages/streamlit_interviewbot.py")
+                elif selection2=="Profile":
+                    st.switch_page("pages/streamlit_user.py")
+                elif selection2=="Job search":
+                    st.switch_page("pages/streamlit_jobs.py")
+            # for msg in st.session_state.messages:
+            #     st.chat_message(msg.role).write(msg.content)
         
-            chat_input = st.chat_input(placeholder="Chat with me:",key="input",)
-            if chat_input:
-                _self.chat_callback(chat_input)
+            # chat_input = st.chat_input(placeholder="Chat with me:",key="input", on_submit=_self.chat_callback)
+  
+
+
             # chat_input = stDatalist("Chat with me...", sample_questions, key=f"input_{str(st.session_state.input_counter)}")
             # if prompt := chat_input or st.session_state.questionInput:
             # if prompt := chat_input:
@@ -292,12 +327,7 @@ class Chat():
             #     st.session_state["input_counter"] += 1  
 
         with st.sidebar:
-            add_vertical_space(1)
-            st.markdown('''
-                                                
-            Chat with me, Upload & Share, or click on the Mock Interview tab above to try it out! 
-                                                
-            ''')
+            add_vertical_space(5)
 
             with st.expander("Upload & Share"):
                 st.file_uploader(label="Files",
@@ -324,21 +354,21 @@ class Chat():
                     st.session_state["download_placeholder"]=st.empty()
                 _self.retrieve_downloads()  
             # with st.expander("Commonly asked questions"):
-            st.markdown("Commonly asked questions")
-            sample_questions =[
-                "hi",
-            "Evaluate my resume",
-            "Rewrite my resume using a new template",
-            "Tailor my resume to a job position",
-            ]
-            content = f"""<p><a href='#' id='0'>{sample_questions[0]}</a></p>
-                <p><a href='#' id='1'>{sample_questions[1]}</a></p>
-                <p><a href='#' id='1'>{sample_questions[2]}</a></p>
-                <p><a href='#' id='1'>{sample_questions[3]}</a></p>
-                """
-            clicked = click_detector(content, key=f"clickable_question")
-            if clicked:
-                _self.chat_callback(clicked)
+            # st.markdown("Commonly asked questions")
+            # sample_questions =[
+            #     "hi",
+            # "Evaluate my resume",
+            # "Rewrite my resume using a new template",
+            # "Tailor my resume to a job position",
+            # ]
+            # content = f"""<p><a href='#' id='0'>{sample_questions[0]}</a></p>
+            #     <p><a href='#' id='1'>{sample_questions[1]}</a></p>
+            #     <p><a href='#' id='1'>{sample_questions[2]}</a></p>
+            #     <p><a href='#' id='1'>{sample_questions[3]}</a></p>
+            #     """
+            # clicked = click_detector(content, key=f"clickable_question")
+            # if clicked:
+            #     _self.chat_callback(clicked)
                 # st.markdown(f"**{clicked} clicked**" if clicked != "" else "**No click**")
                 # question = st.selectbox("", index=None, key="prefilled", options=sample_questions,)
                 # if question:
@@ -490,7 +520,13 @@ class Chat():
     def form_callback(self):
 
         """ Processes form information after form submission. """
-   
+        try:
+            resume=st.session_state.resume
+            if resume:
+                print("User uploaded resume")
+                self.process_uploads([resume],"resume" )
+        except Exception:
+            pass
         try:
             # files = st.session_state.files 
             file_key = f"files_{str(st.session_state.file_counter)}"
@@ -626,15 +662,20 @@ class Chat():
         """
 
         end_paths = []
-        if upload_type=="files":
+        if upload_type=="files" or upload_type=="resume":
             for uploaded_file in uploads:
                 file_ext = Path(uploaded_file.name).suffix
-                filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
-                end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", Path(filename).stem+'.txt')
-                write_file(uploaded_file.getvalue(), tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-                if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
-                    end_paths.append(end_path)
+                filename = str(uuid.uuid4())
+                tmp_save_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", filename+file_ext)
+                end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", filename+'.txt')
+                if write_file(uploaded_file.getvalue(), tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
+                    if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
+                        if upload_type=="files":
+                            end_paths.append(end_path)
+                        elif upload_type=="resume":
+                            st.session_state["resume_path"]= end_path
+                            st.session_state["initial_resume"]=True
+                            print("Successfully processed inital resume")
         elif upload_type=="links":
             end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", str(uuid.uuid4())+".txt")
             links = re.findall(r'(https?://\S+)', uploads)
