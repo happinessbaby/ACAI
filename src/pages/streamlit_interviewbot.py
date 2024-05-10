@@ -45,6 +45,7 @@ from streamlit_mic_recorder import mic_recorder,speech_to_text
 from speech_recognition import Recognizer, AudioData
 import asyncio
 import json
+import base64
 import threading
 # from six.moves import queue
 from google.cloud import speech
@@ -52,6 +53,7 @@ from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
+from utils.whisper_stt import whisper_stt
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -122,7 +124,7 @@ class Interview():
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["host"] = "Maya"
-            st.session_state["responseInput"] = ''
+            # st.session_state["responseInput"] = ''
             # st.session_state["input_counter"]=0
             _, st.session_state["voice_col"], st.session_state["feedback_col"] = st.columns([3, 2, 1])
             with st.session_state.voice_col:
@@ -137,9 +139,9 @@ class Interview():
                 st.session_state["placeholder_ai"] = st.empty()
             with st.session_state.human_col:
                 st.session_state["placeholder_human"]=st.empty()
-            st.session_state["record_col"], _ = st.columns([1, 10])
             # st.session_state["chat_input"] = st.chat_input("Your response: ",  key="interview_input", on_submit = _self.chatbox_callback)
             # st.session_state["message_history"] = init_table(_self.aws_session, st.session_state.interview_sessionId)
+            st.session_state["placeholder_chat"]=st.empty()
             if STORAGE == "LOCAL":
                 st.session_state["storage"]=STORAGE
                 st.session_state["bucket_name"]=None
@@ -280,27 +282,28 @@ class Interview():
                 greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 interview = my_component(greeting_json) 
                 _self.nav_to("http://localhost:3001/" )
-            # elif st.session_state.mode=="audio":
-            #     print("entering audio mode")
-            #     user_input=speech_to_text(language='en',use_container_width=True, key="stt", callback=_self.audio_callback)
-            if  st.session_state.mode=="text_and_voice" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
+            elif  st.session_state.mode=="text_and_voice" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
                 print('entering text mode')
                 with st.container():
-                    user_input =speech_to_text(start_prompt="🔴", stop_prompt="⏺️", just_once=True, language='en', key="voice_input", callback=_self.enable_voice_mode)
+                    # user_input =speech_to_text(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))
+                    text = whisper_stt(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))  
+                    if text:
+                        print(text)
                     if "interview_input" in st.session_state and "interviewer_response" in st.session_state:
                         with st.session_state.human_col:
                             st.session_state.placeholder_human.markdown(st.session_state.interview_input)
                         with st.session_state.ai_col:
-                            _self.typewriter(st.session_state.interviewer_response, speed=3)
+                            if "input_type" in st.session_state and st.session_state["input_type"]=="voice":
+                                _self.synthesize_ai_response(st.session_state.interviewer_response)
+                            elif  "input_type" in st.session_state and st.session_state["input_type"]=="text":
+                                _self.typewriter(st.session_state.interviewer_response, speed=3)
                     if "grader_response" in st.session_state:
                         with st.session_state.feedback_col:
                             with st.session_state.placeholder_expander.expander("How am I doing?"):
                                 placeholder_feedback=st.empty()
                                 placeholder_feedback.write(st.session_state.grader_response)
-                    placeholder_chat=st.empty()
-                    placeholder_chat.chat_input("Your response: ",  key=f"interview_input", on_submit = _self.chatbox_callback)
+                    st.session_state.placeholder_chat.chat_input("Your response: ",  key=f"chat_input", on_submit = _self.chat_callback, args=("text", ))
 
-                    # st.session_state.chat_input
                        
 
 
@@ -361,15 +364,6 @@ class Interview():
     #     st.session_state["init_interview"]=True    
 
 
-    def enable_voice_mode(self):
-
-        # "access this transcription directly in the session state by adding an '_output' suffix to the key you chose for the widget"
-        if st.session_state.voice_input_output:
-            user_input = st.session_state.voice_input_output
-            with st.session_state.human_col:
-                st.session_state.placeholder_human.markdown(user_input)
-            ai_response = st.session_state.baseinterview.askInterviewer(user_input)
-            self.synthesize_ai_response(ai_response)
         
  
 
@@ -637,11 +631,12 @@ class Interview():
 
         """Playback for AI response """
         
-        # b64 = base64.b64encode(data).decode('utf-8')
+        b64 = base64.b64encode(data).decode('utf-8')
+        # st.audio(data)
         audio_placeholder=st.empty()
-        b64=data
+        # b64=data
         md = f"""
-            <audio controls autoplay="true">
+            <audio controls autoplay hidden>
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             """
@@ -741,13 +736,13 @@ class Interview():
             payload={"text":ai_response}
             data = self.invoke_lambda(payload)
             resp_bytes = data["audio"]
+            print("Invoked Lambda Polly")
         except Exception:
             resp_bytes=self.tts(ai_response)
+            print("Invoked Google TTS")
         if resp_bytes:
             with st.session_state.ai_col:
-                print("before calling autoplay")
                 self.autoplay_audio(resp_bytes)
-                # if st.session_state.subtitles:
                 self.typewriter(ai_response, speed=3)
 
 
@@ -795,65 +790,6 @@ class Interview():
     #     #     self.typewriter(question)
     #     return question
     
-    # def play_response2(self, response: str) -> None:
-
-    #     # tts = ElevenLabsText2SpeechTool()
-    #     # tts= GoogleCloudTextToSpeechTool()
-    #     # speech_file = tts.run(response)
-    #     # tts.play(speech_file)
-    #     # st.session_state.tts.play(response)
-    #     # Set the text input to be synthesized
-    #     #NOTE: can be switched to AWS boto3 POLLY, outputs mp3 file
-    #     synthesis_input = texttospeech.SynthesisInput(text=response)
-    #     # Build the voice request, select the language code ("en-US") and the ssml
-    #     # voice gender ("neutral")
-    #     voice = texttospeech.VoiceSelectionParams(
-    #         language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
-    #     )
-    #     # Select the type of audio file you want returned
-    #     audio_config = texttospeech.AudioConfig(
-    #         audio_encoding=texttospeech.AudioEncoding.MP3
-    #     )
-    #     # Perform the text-to-speech request on the text input with the selected
-    #     # voice parameters and audio file type
-    #     response = self.tts_client.synthesize_speech(
-    #         input=synthesis_input, voice=voice, audio_config=audio_config
-    #     )
-    #     # The response's audio_content is binary.
-    #     filename=strftime("%Y-%m-%d %H:%M:%S", gmtime())
-    #     #NOTE: try S3 with CloudFront to stream out the audio
-    #     end_path=os.path.join(self.rec_path,  filename, ".mp3")
-    #     with open(end_path, "wb") as out:
-    #         # Write the response to the output file.
-    #         out.write(response.audio_content)
-    #         print(f'Audio content written to file {end_path}')
-    #     playsound.playsound(end_path, True)
-
-    
-    # def play_generated_audio(self, text, voice="Bella", model="eleven_monolingual_v1"):
-
-    #     """ Deploys Eleven Labs for AI generated voice playback """
-
-    #     audio = generate(text=text, voice=voice, model=model)
-    #     play(audio)
-
-    # def interview_feedback(self):
-
-    #     """ Provides interview session feedback as a downloadable file to the user. """
-
-    #     with placeholder.container():
-    #         modal = Modal(key="feedback_popup", title="Thank you for your participation in the interview session. I have a printout of your session summary and I value your feedback too!")
-    #         with modal.container():
-    #             feedback = st.session_state.baseinterview.retrieve_feedback()
-    #             questions = st.session_state.baseinterview.craft_questions()
-    #             followup =st.session_state.baseinterview.write_followup()
-    #             feedback_path = self.output_printout(feedback+questions+followup)
-    #             with open(feedback_path) as f:
-    #                 st.download_button('Download my session summary', f)  # Defaults to 'text/plain'
-    #             with st.form(key="feedback_form", clear_on_submit=True):
-    #                 submit = st.form_submit_button()
-    #                 #TODO write feedback to AI
-
 
 
     def form_callback(self, form_placeholder, skip_placeholder):
@@ -888,148 +824,33 @@ class Interview():
         skip_placeholder.empty()
         form_placeholder.empty()
         
-    
-    def audio_callback(self):
 
-        """Creates audio only interview session. """
+    # def voice_callback(self):
 
-        user_input = st.session_state.stt_output
-        if user_input:
-            with st.session_state.human_col:
-                st.markdown(user_input)
-                ai_response = st.session_state.baseinterview.askInterviewer(user_input)
-                self.synthesize_ai_response(ai_response)
- 
-
+    #     # "access this transcription directly in the session state by adding an '_output' suffix to the key you chose for the widget"
+    #     if st.session_state.voice_input_output:
+    #         user_input = st.session_state.voice_input_output
+    #         with st.session_state.human_col:
+    #             st.session_state.placeholder_human.markdown(user_input)
+    #         ai_response = st.session_state.baseinterview.askInterviewer(user_input)
+    #         st.session_state["grader_response"] = st.session_state.baseinterview.askGrader(user_input)
+    #         self.synthesize_ai_response(ai_response)
 
 
-    # def _init_text_session(self):
-
-    #     """ Creates text only interview session. """
-
-    #     # stop the keyboard listener
-    #     # try:
-    #     #     st.session_state.listener.stop()
-    #     # except Exception:
-    #     #     pass
-
-
-    #     styl = f"""
-    #     <style>
-    #         .stTextInput {{
-    #         position: fixed;
-    #         bottom: 3rem;
-    #         }}
-    #     </style>
-    #     """
-    #     st.markdown(styl, unsafe_allow_html=True)
-
-    #     # if "interview_dict" not in st.session_state:
-    #     #     st.session_state["interview_dict"] = {"ai":[], "human":[]}
-    #     # # if 'interview_responses' not in st.session_state:
-    #     # #     st.session_state['interview_responses'] = list()
-    #     # # if 'interview_questions' not in st.session_state:
-    #     #     greeting = "Welcome to your mock interview! Are you ready to get started?"
-    #     #     # st.session_state['interview_questions'] = [greeting]
-    #     #     st.session_state["interview_dict"]["ai"].append(greeting)
-    #     # with self.ai_col:
-    #     #     self.typewriter(r"$\textsf{\Large Welcome to your mock interview! Are you ready to get started? $")
-    
-            
-            
-    #     # # col1,  col2= st.columns(2, gap="large")
-    #     # if 'interview_response' not in st.session_state:
-    #     #     st.session_state['interview_response'] = ""
-    #     # if 'interview_question' not in st.session_state:
-                
-
-                
-    #     # with col1:
-    #     #     if "question_container" not in st.session_state:
-    #     #         st.session_state["question_container"] = st.container()
-    #     # with col2:
-    #     #     if "response_container" not in st.session_state:
-    #     #         st.session_state["response_container"] = st.container()
-    #     # response_container = st.container()
-
-    #     if 'responseInput' not in st.session_state:
-    #         st.session_state.responseInput = ''
-    #     # def submit():
-    #     #     st.session_state.responseInput = st.session_state.interview_input
-    #     #     st.session_state.interview_input = ''    
-    #     # # User input
-    #     # ## Function for taking user provided prompt as input
-    #     # def get_text():
-    #     #     st.text_input("Your response: ", "", key="interview_input", on_change = submit)
-    #     #     return st.session_state.responseInput
-    #     # ## Applying the user input box
-    #     # with response_container:
-    #     #     user_input = get_text()
-    #     #     response_container = st.empty()
-    #     #     st.session_state.responseInput='' 
-
-
-    #     # if user_input:
-
-    #     #     # res = question_container.container()
-    #     #     # streamlit_handler = StreamlitCallbackHandler(
-    #     #     #     parent_container=res,
-    #     #     #     # max_thought_containers=int(max_thought_containers),
-    #     #     #     # expand_new_thoughts=expand_new_thoughts,
-    #     #     #     # collapse_completed_thoughts=collapse_completed_thoughts,
-    #     #     # )
-    #     #     user_answer = user_input
-    #     #     # answer = chat_agent.run(mrkl_input, callbacks=[streamlit_handler])
-    #     #     ai_question = self.new_interview.askAI(user_answer, callbacks = None)
-    #     #     st.session_state.interview_questions.append(ai_question)
-    #     #     st.session_state.interview_responses.append(user_answer)
-    #     # if st.session_state['interview_responses']:
-    #     #     for i in range(len(st.session_state['interview_responses'])):
-    #     #         with col1:
-    #     #             message(st.session_state['interview_questions'][i], key=str(i), avatar_style="initials", seed="AI_Interviewer", allow_html=True)
-    #     #         with col2:
-    #     #             message(st.session_state['interview_responses'][i], is_user=True, key=str(i) + '_user',  avatar_style="initials", seed="Yueqi", allow_html=True)
-    #     # try:
-    #     #     with self.ai_col:
-    #     #         # message(st.session_state.interview_questions[-1])
-    #     #         # st.markdown(st.session_state.interview_questions[-1])
-    #     #         st.markdown(st.session_state["interview_dict"]["ai"][-1])
-    #     #     with self.human_col:
-    #     #         # message(st.session_state.interview_responses[-1])
-    #     #         # st.markdown(st.session_state.interview_responses[-1])
-    #     #         st.markdown(st.session_state["interview_dict"]["human"][-1])
-    #     # except Exception:
-    #     #     pass
-        
-    #     st.text_input("Your response: ",  key="interview_input", on_change = self.chatbox_callback)
-    #     # st.chat_input(key="interview_input", on_submit = self.chatbox_callback)
-
-
-
-    def chatbox_callback(self):
+    def chat_callback(self, type):
 
         """ Processes user input from chatbox and prefilled question selection after submission. """
         
-        # st.session_state.responseInput = st.session_state.interview_input
-        # st.session_state.interview_input = ''    
-        # with st.session_state.human_col:
-        #     st.markdown(st.session_state.interview_input)
-        interview_input = st.session_state.interview_input
+        if type=="text":
+            interview_input = st.session_state.chat_input
+        elif type=="voice":
+            interview_input = st.session_state.voice_input_output
         st.session_state["grader_response"]= st.session_state.baseinterview.askGrader(interview_input)
         st.session_state["interviewer_response"] = st.session_state.baseinterview.askInterviewer(interview_input, 
                                            callbacks = None)
-        # self.synthesize_ai_response(ai_response,)
-        # with st.session_state.ai_col:
-        #     self.typewriter(st.session_state.interviewer_response, speed=3)
-        # st.session_state.interview_responses.append(st.session_state.interview_input)
-        # st.session_state.interview_questions.append(response)
-        # if response:
-        #     with self.ai_col:
-        #         self.typewriter(response, speed=3)
-        # st.session_state.interview_responses.append(st.session_state.interview_input)
-        # st.session_state.interview_questions.append(response)
-        # st.session_state["interview_dict"]["human"].append(st.session_state.interview_input)
-        # st.session_state["interview_dict"]["ai"].append(response)
+        st.session_state["interview_input"] = interview_input
+        st.session_state["input_type"] = type
+
     
     def retrieve_feedback(self):
         
@@ -1038,7 +859,6 @@ class Interview():
             st.write(st.session_state.grader_response)
 
         
-
 
     def typewriter(self, text: str, speed=1): 
 
