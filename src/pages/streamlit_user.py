@@ -1,6 +1,6 @@
 import streamlit as st
 import extra_streamlit_components as stx
-from my_component import my_component
+from interview_component import my_component
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -311,7 +311,7 @@ class User():
             with c2:
                 st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
             with c1:
-                degree = st.selectbox("Highest level of education *", options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
+                degree = st.selectbox("Highest level of education *", index=None, options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
             if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
                 st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
             certification = st.checkbox("Other certifications")
@@ -329,7 +329,7 @@ class User():
             with c1:
                 min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_check)
             with c2: 
-                pay_type = st.selectbox("", ("hourly", "annually"), placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
+                pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
             job_unsure=st.checkbox("Not sure about the job")
             if job_unsure:
                 st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)

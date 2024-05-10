@@ -694,7 +694,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
         if (vs_type=="faiss"):
             db=FAISS.from_documents(docs, embeddings)
-            # db.save_local(index_name)
+            db.save_local(index_name)
             print("Succesfully created Faiss vector store.")
         elif (vs_type=="redis"):
             db = Redis.from_documents(
@@ -788,9 +788,10 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
             return None
     elif vs_type=="faiss":
         try:
-            db = FAISS.load_local(index_name, embeddings)
+            db = FAISS.load_local(index_name, embeddings, allow_dangerous_deserialization=True)
             return db
         except Exception as e:
+            print(e)
             return None
     elif vs_type=="elasticsearch":
         try:
@@ -862,7 +863,7 @@ def drop_redis_index(index_name: str) -> None:
 
 
 
-def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEmbeddings()) -> FAISS:
+def merge_faiss_vectorstore(main_db: str, file: str, file_type="dir", index_name="tmp", merge_type="tmp_into_main", embeddings=OpenAIEmbeddings()) -> FAISS:
 
     """ Merges files into existing Faiss vecstores if main vector store exists. Else, main vector store is created.
 
@@ -882,15 +883,16 @@ def merge_faiss_vectorstore(index_name_main: str, file: str, embeddings=OpenAIEm
     
     """
     
-    main_db = retrieve_vectorstore("faiss", index_name_main)
-    if main_db is None:
-        main_db = create_vectorstore(vs_type="faiss", file=file, file_type="file", index_name=index_name_main)
-        print(f"Successfully created vectorstore: {index_name_main}")
-    else:
-        db = create_vectorstore(vs_type="faiss", index_name="temp", file=file, file_type="file",)
+    db = create_vectorstore(vs_type="faiss", index_name=index_name, file=file, file_type=file_type,)
+    print(f"{index_name} vector store", db)
+    if "main_into_other":
+        db.merge_from(main_db)
+        print(f"Successfully merged vectorestore main into {index_name}")
+        return main_db
+    elif "tmp_into_main":
         main_db.merge_from(db)
-        print(f"Successfully merged vectorestore {index_name_main}")
-    return main_db
+        print(f"Successfully merged vectorestore tmp into main")
+        return main_db
     
 
         
@@ -1002,8 +1004,8 @@ class CustomOutputParser(AgentOutputParser):
 if __name__ == '__main__':
 
     # db =  create_vectorstore("redis", "./web_data/", "dir", "index_web_advice")
-     db = create_vectorstore("faiss", "./interview_data/", "dir", "faiss_interview_data")
-     db.save_local("faiss_interview_data")
+    # db = create_vectorstore("faiss", "./backend/faiss_interview_data", "./interview_data/", "dir", )
+    retrieve_vectorstore("faiss", "./backend/faiss_interview_data/")
     #  create_vectorstore("faiss", "./log/", "dir", "chat_debug")
  
 

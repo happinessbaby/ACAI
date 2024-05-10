@@ -5,7 +5,8 @@ from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI 
+# from langchain.chat_models import ChatOpenAI 
+from langchain_openai import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.tools import tool, BaseTool
 from langchain.output_parsers import PydanticOutputParser
@@ -40,6 +41,7 @@ from langchain.callbacks.manager import (
 )
 import boto3
 import re
+
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -295,35 +297,35 @@ def search_user_material(json_request: str) -> str:
     
 #In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
 class GenerateQA(BaseModel):
-    json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"user_material_path":"<user_material_path>"}}'""")
-@tool(args_schema=GenerateQA, return_direct=False)
-def generate_interview_QA(json_request: str,) -> str:
+    json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"interview_material_path":"<interview_material_path>"}}'""")
+# @tool(args_schema=GenerateQA, return_direct=False)
+# def generate_interview_QA(json_request: str,) -> str:
 
-    """Generates interview questions and answers base on the user material provided in a directory path. 
+#     """Generates interview questions and answers base on the user material provided in a directory path. 
 
-    Use this tool more than any other tools to generate interview questions. """
+#     Use this tool more than any other tools to generate interview questions. """
 
-    try:
-        args = json.loads(process_json(json_request))
-    except JSONDecodeError as e:
-        print(f"JSON DECODE ERROR: {e}")
-        return "Format in a single string JSON and try again."
+#     try:
+#         args = json.loads(process_json(json_request))
+#     except JSONDecodeError as e:
+#         print(f"JSON DECODE ERROR: {e}")
+#         return "Format in a single string JSON and try again."
  
-    file_path = args["user_material_path"]
-    file_path=re.sub(r"[\n\t\s]*", "", file_path)
-    try:
-        if STORAGE=="LOCAL":
-            loader = DirectoryLoader(file_path)
-        if STORAGE=="CLOUD":
-            loader = S3DirectoryLoader(bucket_name, file_path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        llm = ChatOpenAI(temperature=0.9)
-        chain = QAGenerationChain.from_llm(llm)
-        docs = loader.load()[0]
-        response = chain.run(docs.page_content)
-        print(response[0])
-        return response[0]
-    except Exception as e:
-        raise e
+#     file_path = args["user_material_path"]
+#     file_path=re.sub(r"[\n\t\s]*", "", file_path)
+#     try:
+#         if STORAGE=="LOCAL":
+#             loader = DirectoryLoader(file_path)
+#         if STORAGE=="CLOUD":
+#             loader = S3DirectoryLoader(bucket_name, file_path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+#         llm = ChatOpenAI(temperature=0.9)
+#         chain = QAGenerationChain.from_llm(llm)
+#         docs = loader.load()[0]
+#         response = chain.run(docs.page_content)
+#         print(response[0])
+#         return response[0]
+#     except Exception as e:
+#         raise e
     
 #In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
 #SAME AS ABOVE BUT WRITTEN DIFFERENTLY
@@ -341,7 +343,7 @@ class generateQATool(BaseTool):
             print(f"JSON DECODE ERROR: {e}")
             return "Format in a single string JSON and try again."
     
-        file_path = args["user_material_path"]
+        file_path = args["interview_material_path"]
         file_path=re.sub(r"[\n\t\s]*", "", file_path)
         try:
             if STORAGE=="LOCAL":
@@ -359,6 +361,42 @@ class generateQATool(BaseTool):
         
     def _arun(self, json_request:str, ):
         raise NotImplementedError("This tool does not support async")
+    
+
+class ResumeTemplateDesign(BaseModel):
+    json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"resume_file":"<resume_file>"}}'""")
+@tool(args_schema=ResumeTemplateDesign, return_direct=False)
+def design_resume_template(json_request:str):
+
+    """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
+    Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
+    When there is resume_template_file in the prompt, use the "resume_writer" tool instead. """
+    from backend.upgrade_resume import research_resume_type
+    try:
+        args = json.loads(process_json(json_request))
+    except JSONDecodeError as e:
+      print(f"JSON DECODER ERROR: {e}")
+      return "Reformat in JSON and try again."
+    # if resume doesn't exist, ask for resume
+    if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
+      return "Please provide your resume file and try again. "
+    else:
+        resume_file = args["resume_file"]
+    resume_type= research_resume_type(resume_file)
+    return resume_type
+
+
+@tool(return_direct=True)
+def resume_template_design_tool(resume_file: str) -> str:
+
+    """
+    Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
+    Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
+    When there is resume_template_file in the prompt, use the "resume_writer" tool instead. 
+    """
+    from backend.upgrade_resume import research_resume_type
+    resume_type= research_resume_type(resume_file)
+    return resume_type
 
 @tool(return_direct=True)
 def file_loader(json_request: str) -> str:

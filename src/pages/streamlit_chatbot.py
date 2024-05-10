@@ -37,7 +37,7 @@ import base64
 from langchain.tools import tool
 import streamlit.components.v1 as components, html
 from PIL import Image
-from my_component import my_component
+from interview_component import my_component
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
@@ -49,15 +49,15 @@ from boto3.dynamodb.conditions import Key, Attr
 import yaml
 import decimal
 import time
-from utils.cookie_manager import get_cookie, get_all_cookies
+from utils.cookie_manager import get_cookie, decode_jwt
 from utils.dynamodb_utils import create_table, retrieve_sessions, save_current_conversation, check_attribute_exists, save_user_info, init_table
-from utils.aws_manager import get_aws_session, request_aws4auth
+from utils.aws_manager import get_client, request_aws4auth
 from st_multimodal_chatinput import multimodal_chatinput
 from streamlit_datalist import stDatalist
 import time
 import re
 from langchain.schema import ChatMessage
-
+from st_click_detector import click_detector
 
 
 
@@ -100,32 +100,30 @@ topic = "jobs"
 class Chat():
 
     ctx = get_script_run_ctx()
-    cookie = get_cookie("userInfo")
-    aws_session = get_aws_session()
     # chatinput = multimodal_chatinput()
 
     
     def __init__(self):
 
         # NOTE: userId is retrieved from browser cookie
+        self.cookie = get_cookie("userInfo")
         if self.cookie:
-            # self.userId = self.cookie.split("###")[1]
-            self.userId = re.split("###|@", self.cookie)[1]
-            print(self.userId)
+            self.userId = decode_jwt(self.cookie, "test").get('username')
+            print("Cookie:", self.userId)
         else:
             self.userId = None
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
         self._init_session_states(self.userId, st.session_state.sessionId)
-        self._init_display()
         self._create_chatbot()
+        self._init_display()
 
         
 
     # NOTE: Cache differently depending on if user is logged in and re-caches for each new session
     @st.cache_data()
-    def _init_session_states(_self, userId, sessionId):
+    def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
 
@@ -151,9 +149,9 @@ class Chat():
         # if "template_path" not in st.session_state:
         st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         ## NOTE: for logged in users, paths will be different
-        if _self.userId is not None:
-            # if "dnm_table" not in st.session_state:
-            st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
+        # if _self.userId is not None:
+        #     # if "dnm_table" not in st.session_state:
+        #     st.session_state["dnm_table"] = init_table(session=_self.aws_session, userId=_self.userId)
            
 
             # if "past_human_sessions" not in st.session_state:
@@ -188,8 +186,8 @@ class Chat():
         elif STORAGE=="CLOUD":
             st.session_state["storage"]="CLOUD"
             st.session_state["bucket_name"]=bucket_name
-            st.session_state["s3_client"]= _self.aws_session.client('s3') 
-            st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
+            st.session_state["s3_client"]= get_client('s3') 
+            # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
             # if "save_path" not in st.session_state:
             st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
             # if "temp_path" not in st.session_state:
@@ -251,6 +249,47 @@ class Chat():
         # selected_questions.append(chat_input)
         # st.markdown(textinput_styl, unsafe_allow_html=True)
         # st.markdown(selectbox_styl, unsafe_allow_html=True)
+        with st._main:
+            for msg in st.session_state.messages:
+                # with st.chat_message(msg.role):
+                #     st.write(msg.content[:-1])
+                #     _self.typewriter(msg.content[-1])
+                st.chat_message(msg.role).write(msg.content)
+        
+            chat_input = st.chat_input(placeholder="Chat with me:",key="input",)
+            if chat_input:
+                _self.chat_callback(chat_input)
+            # chat_input = stDatalist("Chat with me...", sample_questions, key=f"input_{str(st.session_state.input_counter)}")
+            # if prompt := chat_input or st.session_state.questionInput:
+            # if prompt := chat_input:
+            #     # self.question_callback(prompt)
+            #     st.session_state.messages.append(ChatMessage(role="user", content=prompt))
+            #     # st.session_state.questionInput=None
+            #     st.chat_message("human").write(prompt)
+            #     # st.session_state.questions.append(prompt)
+            #     _self.question = prompt
+            #     # Note: new messages are saved to history automatically by Langchain during run
+            #     # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
+            #     # question = self.process_user_input(prompt)
+            #     # queue = Queue()
+            #     # task = threading.Thread(
+            #     #     target=self.new_chat.askAI,
+            #     #     args=(st.session_state.sessionId,prompt)
+            #     # )
+            #     # task.start()
+            #     # container = st.empty()
+            #     # streamHandler = StreamHandler(container)
+            #     response = _self.new_chat.askAI(prompt,)
+
+            #     # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
+            #     if response == "functional" or response == "chronological" or response == "student":
+            #         _self.resume_template_popup(response)
+            #     else:
+            #         # st.chat_message("ai").write(response)
+            #         # st.session_state.responses.append(response)
+            #         st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+            #         _self.response = response
+            #     st.session_state["input_counter"] += 1  
 
         with st.sidebar:
             add_vertical_space(1)
@@ -260,15 +299,13 @@ class Chat():
                                                 
             ''')
 
-            # st.button("Upload my files", key="upload_file_button", on_click=self.file_upload_popup)
-            # st.button("Share a link", key="link_button", on_click=self.link_share_popup)
             with st.expander("Upload & Share"):
                 st.file_uploader(label="Files",
                                 accept_multiple_files=True,
                                 help = "This can be a resume, cover letter, job posting, study material, etc.",
                                 key= f"files_{str(st.session_state.file_counter)}",
                                 on_change=_self.form_callback)
-                link = st.checkbox("job link")
+                link = st.checkbox("job posting link")
                 description = st.checkbox("job description")
                 if link:
                     st.text_area(label="Links", 
@@ -282,51 +319,73 @@ class Chat():
                                 key="aboutJob",
                                 placeholder="What should I know about this job?",
                                 on_change=_self.form_callback)
-                # additional = st.radio(label="Additional information?", 
-                #          options=["link", "job description"], 
-                #          key="select_options",
-                #          index=None,)
-                # if additional=="link":
-                #     st.text_area(label="Links", 
-                #             placeholder="This can be a job posting site for example", 
-                #             key = "links", 
-                #             # label_visibility="hidden",
-                #             help="If the link failed, please try to save the content into a file and upload it.",
-                #         on_change=_self.form_callback)
-                # elif additional=="job description":
-                #     st.text_area(label="About",
-                #                 key="aboutJob",
-                #                 placeholder="What should I know about this job?",
-                #                 on_change=_self.form_callback)
-                  
             with st.expander("Download your files"):
                 if "download_placeholder" not in st.session_state:
                     st.session_state["download_placeholder"]=st.empty()
-      
+                _self.retrieve_downloads()  
+            # with st.expander("Commonly asked questions"):
+            st.markdown("Commonly asked questions")
+            sample_questions =[
+                "hi",
+            "Evaluate my resume",
+            "Rewrite my resume using a new template",
+            "Tailor my resume to a job position",
+            ]
+            content = f"""<p><a href='#' id='0'>{sample_questions[0]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[1]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[2]}</a></p>
+                <p><a href='#' id='1'>{sample_questions[3]}</a></p>
+                """
+            clicked = click_detector(content, key=f"clickable_question")
+            if clicked:
+                _self.chat_callback(clicked)
+                # st.markdown(f"**{clicked} clicked**" if clicked != "" else "**No click**")
+                # question = st.selectbox("", index=None, key="prefilled", options=sample_questions,)
+                # if question:
+                #     _self.chat_callback(question)
+    
 
-            # with st.expander("Past sessions"):
-            #     if "past_placeholder" not in st.session_state:
-            #         st.session_state["past_placeholder"]=st.empty()
 
-            # test = st.button("save session")
-            # if test:
-            #    self.save_current_session()
-                
+    def chat_callback(self, prompt):
 
-            # st.markdown('''
-                                                
-            # Note: 
-               
-            # Only the most recent uploaded files, links, and about me will be used.
-                        
-            # If you refresh the page, your session conversation and downloads will be lost.
-                                                
-            # ''')
+        # prompt = st.session_state.prefilled if self.sample_question else st.session_state.input   
+        st.session_state.messages.append(ChatMessage(role="user", content=prompt))
+        # st.session_state.questionInput=None
+        # st.chat_message("human").write(prompt)
+        # st.session_state.questions.append(prompt)
+        self.question = prompt
+        # Note: new messages are saved to history automatically by Langchain during run
+        # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
+        # question = self.process_user_input(prompt)
+        response = self.new_chat.askAI(prompt,)
+        # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
+        if response == "functional" or response == "chronological" or response == "student":
+            self.resume_template_popup(response)
+        else:
+            # st.chat_message("ai").write(response)
+            # st.session_state.responses.append(response)
+            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+            self.response = response
+        st.rerun()
         
 
+    def typewriter(self, text: str, speed=1): 
+
+        """ Displays AI response playback at a particular speed. """
+
+        tokens = text.split()
+        container = st.empty()
+        for index in range(len(tokens) + 1):
+            curr_full_text = " ".join(tokens[:index])
+            container.markdown(curr_full_text)
+            time.sleep(1 / speed)
 
 
+    def generate_common_questions(self):
 
+        """ Generate a list of commone questions users ask """
+
+        pass
                 
   
     def _create_chatbot(self,):
@@ -344,383 +403,12 @@ class Chat():
             # self.msgs = st.session_state.message_history
         except AttributeError as e:
             raise e
-        # streamHandler = StreamHandler([st.empty()])
-    
-        # Initialize chat history
-        # msgs = StreamlitChatMessageHistory(key="langchain_messages")
-        # view_messages = st.expander("View the message contents in session state")
-        # SAMPLE_QUESTIONS = {
-        #     "":"",
-        #     # "upload my files": "upload",
-        #     "help me generate a cover letter": "generate",
-        #     "Evaluate my resume": "evaluate",
-        #     "rewrite my resume using a new template": "reformat",
-        #     "tailor my document to a job position": "tailor",
-        # }
 
 
-        # Sidebar section
-        # with st.sidebar:
-        #     add_vertical_space(1)
-        #     st.markdown('''
-                                                
-        #     Chat with me, Upload & Share, or click on the Mock Interview tab above to try it out! 
-                                                
-        #     ''')
-
-        #     # st.button("Upload my files", key="upload_file_button", on_click=self.file_upload_popup)
-        #     # st.button("Share a link", key="link_button", on_click=self.link_share_popup)
-        #     with st.expander("Upload & Share"):
-        #         st.file_uploader(label="Files",
-        #                         accept_multiple_files=True,
-        #                         help = "This can be a resume, cover letter, job posting, study material, etc.",
-        #                         key= f"files_{str(st.session_state.file_counter)}",
-        #                         on_change=self.form_callback)
-        #         additional = st.radio(label="Additional information?", 
-        #                  options=["link", "job description"], 
-        #                  key="select_options",
-        #                  index=None,)
-        #         if additional=="link":
-        #             st.text_area(label="Links", 
-        #                     placeholder="This can be a job posting site for example", 
-        #                     key = "links", 
-        #                     # label_visibility="hidden",
-        #                     help="If the link failed, please try to save the content into a file and upload it.",
-        #                 on_change=self.form_callback)
-        #         elif additional=="job description":
-        #             st.text_area(label="About",
-        #                         key="aboutJob",
-        #                         placeholder="What should I know about this job?",
-        #                         on_change=self.form_callback)
-                  
-        #     with st.expander("Download your files"):
-        #         if "download_placeholder" not in st.session_state:
-        #             st.session_state["download_placeholder"]=st.empty()
-      
-
-        #     # with st.expander("Past sessions"):
-        #     #     if "past_placeholder" not in st.session_state:
-        #     #         st.session_state["past_placeholder"]=st.empty()
-
-        #     # test = st.button("save session")
-        #     # if test:
-        #     #    self.save_current_session()
-                
-
-        #     st.markdown('''
-                                                
-        #     Note: 
-               
-        #     Only the most recent uploaded files, links, and about me will be used.
-                        
-        #     If you refresh the page, your session conversation and downloads will be lost.
-                                                
-        #     ''')
-        
-
-        
-            # st.text_area(label="About me", placeholder="""This can be anything that will help me pinpoint your request better, e.g.,  what kind of job you're looking for, where you're applying, etc.""")
-            # st.markdown("Quick navigation")
-            # with st.form( key='my_form', clear_on_submit=True):
-
-            # col1, col2= st.columns([5, 5])
-
-            # with col1:
-            #     st.text_area(
-            #         "Job",
-            #         "",
-            #         key="job",
-            #         placeholder="job title or program name",                  
-            #         on_change=self.form_callback,
-            #     )
-            
-            # with col2:
-            #     st.text_area(
-            #         "Company",
-            #         "",
-            #         key = "company",
-            #         placeholder="name of the company or institution",
-            #         on_change=self.form_callback
-            #     )
-            
-        # Chat section
-        ## Displays the current conversation
-
-        # if st.session_state['responses']:
-        #     for i in range(len(st.session_state['responses'])):
-        #         try:
-        #             message(st.session_state['questions'][i], is_user=True, key=str(i) + '_user',  avatar_style="identicon", allow_html=True)
-        #             message(st.session_state['responses'][i], key=str(i)+'_AI', logo="logo.png", seed="AI", allow_html=True)
-        #         except Exception:
-        #             pass   
-
-        # self.callback_done = threading.Event()
-        # thread = threading.Thread(target=self.question_callback, args=(self.callback_done, ))
-        # add_script_run_ctx(thread, self.ctx)
-        # thread.start()
-        # c1, c2 = st.columns([2, 1])
-        # User chat input area
-        # c1.text_input("Chat with me: ",
-        #             # value=st.session_state.prefilled, 
-        #             key="input", 
-        #             label_visibility="hidden", 
-        #             placeholder="Chat with me",
-        #             on_change = self.question_callback, 
-        #             args = [self.callback_done],
-        #             )
-    
-        # Select from sample questions
-        # c2.selectbox(label="Sample questions",
-        #             options=sorted(SAMPLE_QUESTIONS.keys()), 
-        #             key = "prefilled",
-        #             format_func=lambda x: '-----sample questions-----' if x == '' else x,
-        #             label_visibility= "hidden",
-        #             on_change = self.question_callback, 
-        #             args = [self.callback_done],
-        #             )
-
-        # st.text_input("Chat with me: ", "", key="input", on_change = self.question_callback)
-        # self.display_past_sessions()
-        # self.retrieve_conversation()
-        for msg in st.session_state.messages:
-            st.chat_message(msg.role).write(msg.content)
-        self.retrieve_downloads()      
-            # for i in range(len(st.session_state['responses'])):
-            #     try:
-            #         st.chat_message("human").write(st.session_state['questions'][i])
-            #         st.chat_message("ai").write(st.session_state['responses'][i])
-            #     except Exception:
-            #         pass  
-        # Chat input
-        # chat_input = st.chat_input(placeholder="Chat with me:",
-        #                             key="input",)
-        # Hacky way to clear selectbox below
-  
-        # Select from sample questions
-        # sample_questions=st.selectbo      # def switch_input():
-        #     st.session_state.questionInput = st.session_state.prefilled
-        #     st.session_state.prefilled = Nonex(label="Sample questions",
-        #             options=sorted(SAMPLE_QUESTIONS.keys()), 
-        #             key = "prefilled",
-        #             format_func=lambda x: '-----sample questions-----' if x == '' else x,
-        #             label_visibility= "hidden",
-        #             on_change =switch_input, 
-        #             )
-        #TODO sample questions will change to frequently asked questions
-        sample_questions = [
-            "help me generate a cover letter", 
-            "Evaluate my resume",
-            "rewrite my resume using a new template",
-            "tailor my document to a job position",
-        ]
-      
-        # chat_input = st.chat_input(placeholder="Chat with me:",
-                                    # key="input",)
-        chat_input = stDatalist("Chat with me...", sample_questions, key=f"input_{str(st.session_state.input_counter)}")
-        # if prompt := chat_input or st.session_state.questionInput:
-        if prompt := chat_input:
-            # self.question_callback(prompt)
-            st.session_state.messages.append(ChatMessage(role="user", content=prompt))
-            # st.session_state.questionInput=None
-            st.chat_message("human").write(prompt)
-            # st.session_state.questions.append(prompt)
-            self.question = prompt
-            # Note: new messages are saved to history automatically by Langchain during run
-            # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-            # question = self.process_user_input(prompt)
-            # queue = Queue()
-            # task = threading.Thread(
-            #     target=self.new_chat.askAI,
-            #     args=(st.session_state.sessionId,prompt)
-            # )
-            # task.start()
-            container = st.empty()
-            streamHandler = StreamHandler(container)
-            response = self.new_chat.askAI(prompt, callbacks=streamHandler)
-
-            # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
-            if response == "functional" or response == "chronological" or response == "student":
-                self.resume_template_popup(response)
-            else:
-                # st.chat_message("ai").write(response)
-                # st.session_state.responses.append(response)
-                st.session_state.messages.append(ChatMessage(role="assistant", content=response))
-                self.response = response
-            st.session_state["input_counter"] += 1
-
-       
- 
-
-
-
-    # @st.cache_data(experimental_allow_widgets=True)
-    # def about_me_popup(_self) -> None:
-    
-    #     """ Processes user's about me input. """
-
-    #     modal = Modal(title="Let me know you a little better", key="about_popup", max_width=800)
-    #     placeholder = st.empty()
-    #     if st.session_state.get("past", False) and st.session_state.get("present", False) and st.session_state.get("future", False) :
-    #         st.session_state.disabled=False
-    #     else:
-    #         st.session_state.disabled=True
-    #     with placeholder.container():
-    #         with modal.container():
-    #             selected = stx.stepper_bar(steps=["Self Description", "Current Situation", "Career Goals"])
-    #             if selected==0:
-    #                 st.text_input(
-    #                 label="What can I know about you?", 
-    #                 placeholder="Tell me about yourself", 
-    #                 key = "about_past", 
-    #                 on_change=_self.about_me_form_check
-    #                 )
-    #             elif selected==1:
-    #                 st.text_input(
-    #                 label="What takes you here?",
-    #                 placeholder = "Tell me about your present situation",
-    #                 key="about_present",
-    #                 on_change = _self.about_me_form_check
-    #                 )
-    #             elif selected==2:
-    #                 st.text_input(
-    #                 label="What can I do for you?",
-    #                 placeholder = "Tell me about your career goals",
-    #                 key="about_future",
-    #                 on_change=_self.about_me_form_check,
-    #                 )
-    #             submitted = st.button("Submit", on_click=_self.form_callback, disabled=st.session_state.disabled)
-    #             if submitted:
-    #                  save_user_info(st.session_state.dnm_table, _self.userId, "self description", st.session_state.past)
-    #                  st.rerun()
-
-                
-        
-    # def about_me_form_check(self):
-
-    #     # Hacky way to save input text for stepper bar for batch submission
-    #     try:
-    #         st.session_state["past"] = st.session_state.about_past
-    #     except AttributeError:
-    #         pass
-    #     try:
-    #         st.session_state["present"] = st.session_state.about_present
-    #     except AttributeError:
-    #         pass
-    #     try:
-    #         st.session_state["future"] = st.session_state.about_future
-    #     except AttributeError:
-    #         pass
-    
-   
     
 
 
 
-
-
-    # def question_callback(self, prompt):
-        
-    #     prompt = prompt if prompt is not None else st.session_state.prefilled   
-    #     st.chat_message("human").write(prompt)
-    #     st.session_state.questions.append(prompt)
-    #     # Note: new messages are saved to history automatically by Langchain during run
-    #     # with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-    #     question = self.process_user_input(prompt)
-    #     response = self.new_chat.askAI(st.session_state.userid, question,)
-    #     if response == "functional" or response == "chronological" or response == "student":
-    #         self.resume_template_popup(response)
-    #     else:
-    #         st.chat_message("ai").write(response)
-    #         st.session_state.responses.append(response)
-    
-
-        
-
-
-
-    # def question_callback(self, callback_done, append_question=True):
-
-    #     """ Sends user input to chat agent. """
-
-    #     question = None
-    #     try:
-    #         if st.session_state.input!="" or st.session_state.prefilled!="":
-    #             callback_done.set() 
-    #             question = st.session_state.input if st.session_state.input else st.session_state.prefilled      
-    #     except Exception:
-    #         pass
-    #     callback_done.wait()
-    #     if question is not None:
-    #         response = None
-    #         with st.session_state.spinner_placeholder, st.spinner("Please wait..."):
-    #             question = self.process_user_input(question)
-    #             response = self.new_chat.askAI(st.session_state.userid, question, callbacks = None)
-    #             # response="functional"
-    #         if response == "functional" or response == "chronological" or response == "student":
-    #             self.resume_template_popup(response)
-    #         elif response:
-    #             if append_question:
-    #                 st.session_state.questions.append(question)
-    #             st.session_state.responses.append(response)
-    #         st.session_state.questionInput =  st.session_state.input if st.session_state.input else st.session_state.prefilled  
-    #         st.session_state.input = ''    
-    #         st.session_state.prefilled = ''
-    
-
-
-    # def file_upload_popup(self, callback_msg=""):
-
-    #     """Popup for user to upload files. """
-
-    #     # modal = Modal(title="Upload your files", key="file_popup", max_width=600)
-    #     placeholder = st.empty()
-    #     if "file_modal" not in st.session_state:
-    #         st.session_state["file_modal"] =  Modal(title="    ", key="file_popup", max_width=600)
-    #     with placeholder.container():
-    #         with st.session_state.file_modal.container():
-    #             st.write(callback_msg)
-    #             if "file_loading" not in st.session_state:
-    #                 st.session_state["file_loading"]=st.empty()
-    #             col1, _ = st.columns([10, 1])
-    #             with col1:
-    #                 with st.form(key='file_popup_form', clear_on_submit=True):
-    #                     # add_vertical_space(1)
-    #                     st.file_uploader(
-    #                         label="Upload your resume, cover letter, or anything you want to share with me.",
-    #                         type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-    #                         key = "files",
-    #                         # help = "This can be your resume, cover letter, or anything else you want to share with me. ",
-    #                         label_visibility="hidden",
-    #                         accept_multiple_files=True
-    #                         )
-    #                     # add_vertical_space(1)
-    #                     st.form_submit_button(label='Submit', on_click=self.form_callback)  
-
-
-    # def link_share_popup(self, callback_msg=""):
-
-    #     """Popup for user to share url. """
-    
-    #     # modal = Modal(title="Share a link", key="link_popup", max_width=500)
-    #     # placeholder=st.empty()
-    #     if "link_modal" not in st.session_state:
-    #         st.session_state["link_modal"] =  Modal(title="   ", key="link_popup", max_width=500)
-    #     with placeholder.container():
-    #         with st.session_state.link_modal.container():
-    #             st.write(callback_msg)
-    #             if "link_loading" not in st.session_state:
-    #                 st.session_state["link_loading"]=st.empty()
-    #             col1, _ = st.columns([10, 1])
-    #             with col1:
-    #                 with st.form(key="link_popup_form", clear_on_submit=True):
-    #                     st.text_area(
-    #                         label="", 
-    #                         placeholder="This can be a job posting url for example", 
-    #                         key = "links", 
-    #                         # label_visibility="hidden",
-    #                         help="If the link does not work, try saving the content and upload it as a file.",
-    #                         )
-    #                     st.form_submit_button(label="Submit", on_click=self.form_callback)
 
     # def retrieve_conversation(self):
 
@@ -944,12 +632,6 @@ class Chat():
                 filename = str(uuid.uuid4())+file_ext
                 tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
                 end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", Path(filename).stem+'.txt')
-                # if st.session_state.storage=="LOCAL":
-                #     with open(tmp_save_path, 'wb') as f:
-                #         f.write(uploaded_file.getvalue())
-                # elif st.session_state.storage=="CLOUD":
-                #     st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-                #     print("Successful written file to S3")
                 write_file(uploaded_file.getvalue(), tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
                     end_paths.append(end_path)
@@ -967,62 +649,6 @@ class Chat():
             else:
                 delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 st.toast(f"Failed processing your material. Please try again!")
-
-
-
-
-    # def process_file(self, uploaded_files: Any) -> None:
-
-    #     """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
-    #     # with st.session_state.file_loading, st.spinner("Processing..."):
-    #     # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-    #     for uploaded_file in uploaded_files:
-    #         file_ext = Path(uploaded_file.name).suffix
-    #         filename = str(uuid.uuid4())+file_ext
-    #         tmp_save_path = os.path.join(st.session_state.temp_path, st.session_state.sessionId, filename)
-    #         end_path =  os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads", Path(filename).stem+'.txt')
-    #         if st.session_state.storage=="LOCAL":
-    #             with open(tmp_save_path, 'wb') as f:
-    #                 f.write(uploaded_file.getvalue())
-    #         elif st.session_state.storage=="CLOUD":
-    #             st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=st.session_state.bucket_name, Key=tmp_save_path)
-    #             print("Successful written file to S3")
-    #         # Convert file to txt and save it 
-    #         convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client) 
-    #         content_safe, content_type, content_topics = check_content(end_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #         print(content_type, content_safe, content_topics) 
-    #         if content_safe and content_type!="empty":
-    #             self.update_entities(content_type, content_topics, end_path)
-    #             st.toast(f"your {content_type} is successfully submitted")
-    #         else:
-    #             delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #             delete_file(tmp_save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #             st.toast(f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
-    #             # self.file_upload_popup(callback_msg=f"Failed processing {Path(uploaded_file.name).root}. Please try another file!")
-        
-        
-
-    # def process_link(self, links: Any) -> None:
-
-    #     """ Processes user shared links including converting all format to txt, checking content safety, and categorizing content type """
-    #     # with st.session_state.link_loading, st.spinner("Processing..."):
-    #     # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-    #     end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "chat", "uploads", str(uuid.uuid4())+".txt")
-    #     links = re.findall(r'(https?://\S+)', links)
-    #     if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
-    #         content_safe, content_type, content_topics = check_content(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #         print(content_type, content_safe, content_topics) 
-    #         if (content_safe and content_type!="empty" and content_type!="browser error"):
-    #             self.update_entities(content_type,content_topics, end_path)
-    #             st.toast(f"your {content_type} is successfully submitted")
-    #         else:
-    #             #TODO: second browser reader for special links such as the OnlinePDFReader: https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf
-    #             delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #             st.toast(f"Failed processing {str(links)}. Please try another link!")
-    #             # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
-    #     else:
-    #         st.toast(f"Failed processing {str(links)}. Please try another link!")
-    #         # self.link_share_popup(callback_msg=f"Failed processing {str(links)}. Please try another link!")
 
 
 
@@ -1114,12 +740,6 @@ class Chat():
 
         """
 
-        # if st.session_state.storage=="LOCAL":
-        #     with open(file, 'rb') as f:
-        #         data = f.read() 
-        # elif st.session_state.storage=="CLOUD":
-        #     object = st.session_state.s3_client.get_object(Bucket=st.session_state.bucket_name, Key=file)
-        #     data = object['Body'].read()
         data = read_file(file, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
         bin_str = base64.b64encode(data).decode() 
         href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'

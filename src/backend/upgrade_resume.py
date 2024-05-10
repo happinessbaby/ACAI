@@ -185,8 +185,50 @@ def evaluate_resume_fields(generated_response: Dict[str, str], field: str, field
         with open(f"{field}_evaluation.txt", "x") as f:
            f.write(evaluation)
 
+def customize_resume(resume="", posting_path="", about_me=""):
+
+    resume_content = read_txt(resume, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    if about_me!="":
+        pursuit_dict = extract_pursuit_information(about_me)
+        job = pursuit_dict.get("job", "")
+        company = pursuit_dict.get("company", "")
+        if job!="":
+            job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
+                            In 100 words or less, summarize your research result. """
+            job_description = get_web_resources(job_query)  
+    if posting!="":
+        prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
+            {text} \n
+            Focus on roles and skills involved for this job. Do not include information irrelevant to this specific position.
+        """
+        job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
+        pursuit_dict = extract_pursuit_information(posting)
+        company = pursuit_dict.get("company", "")
+        job = pursuit_dict.get("job", "")
+    if company !="":
+        company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
+                            In 50 words or less, summarize your research result.                 
+                            Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
+        company_description = get_web_resources(company_query)   
+    query = f"""  You are an expert resume advisor. 
+        Generate a list of relevant information that can be added to or replaced in the resume given the job description, job specification, and company description, whichever is available. 
+        resume content: {resume_content}\n
+        job description: {job_description} \n
+        job specification: {job_specification} \n
+        company description: {company_description} \n
+        Please provide your reasoning as well. Please format your output as in the following example;
+        Things to add or replace in the resume:
+        1. Communication skills: communication skills is listed in the job description but not in the resume
+        The above is just an example. Please ONLY use the resume content and job description to generate your answer. 
+        """        
+    tools = create_search_tools("google", 3)
+    response = generate_multifunction_response(query, tools)
+    return response
+
+
 @memoized
-def research_resume_type(resume_file: str, posting_path: str)-> str:
+def research_resume_type(resume_file: str,)-> str:
     
     """ Researches the type of resume most suitable for the applicant. 
     
@@ -203,11 +245,11 @@ def research_resume_type(resume_file: str, posting_path: str)-> str:
     """
 
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    if posting_content!="":
-        job = extract_pursuit_information(posting_content).get("job", "")
-    else:
-        job = extract_pursuit_information(resume_content).get("job", "")
+    # posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # if posting_content!="":
+    #     job = extract_pursuit_information(posting_content).get("job", "")
+    # else:
+    job = extract_pursuit_information(resume_content).get("job", "")
     work_experience_level = calculate_work_experience_level(resume_content, job)
     education_info_dict = extract_education_information(resume_content)
     graduation_year = education_info_dict.get("graduation year", "")
@@ -466,6 +508,49 @@ def reformat_student_resume(resume_file="", posting_path="", template_file="") -
 #    return evaluate_resume(my_job_title=job, company=company, resume_file=resume_file, posting_path=job_post_link)
       
 
+def create_resume_customize_writer_tool() -> List[Tool]:
+
+    """ Agent tool that calls the function that customizes resume. """
+
+    name = "resume_customize_writer"
+    parameters = '{{"job_post_file":"<job_post_file>", "resume_file":"<resume_file>"}}'
+    description = f""" Customizes and tailors resume to a job position. 
+    Input should be a single string strictly in the following JSON format: {parameters} """
+    tools = [
+        Tool(
+        name = name,
+        func = process_resume,
+        description = description, 
+        verbose = False,
+        handle_tool_error=handle_tool_error,
+        )
+    ]
+    print("Succesfully created resume customize wrtier tool.")
+    return tools
+
+def process_resume(json_request: str) -> str:
+
+    try:
+        args = json.loads(process_json(json_request))
+    except JSONDecodeError as e:
+        print(f"JSON DECODER ERROR: {e}")
+        return "Format in JSON and try again."
+    if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
+        return """ Ask user to upload their resume. """
+    else:
+        resume = args["resume_file"]
+    if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>") and ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+        return """ASk user to provide job positing or describe which position to tailor their cover letter to."""
+    else:
+        if ("about_me" not in args or args["about_me"] == "" or args["about_me"]=="<about_me>"):
+            about_me = ""
+        else:
+            about_me = args["about_me"]
+        if ("job_post_file" not in args or args["job_post_file"]=="" or args["job_post_file"]=="<job_post_file>"):
+            posting_path = ""
+        else:
+            posting_path = args["job_post_file"]
+    return customize_resume(resume=resume,  posting_path=posting_path, about_me=about_me)
 
 
 def processing_resume(json_request: str) -> None:
@@ -532,7 +617,7 @@ def redesign_resume_template(json_request:str):
     """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
     When there is resume_template_file in the prompt, use the "resume_writer" tool instead.
-    Input should be a single string strictly in the followiwng JSON format: '{{"resume_file":"<resume_file>", "job_posting_file":"<job_posting_file>"}}' \n
+    Input should be a single string strictly in the followiwng JSON format: '{{"resume_file":"<resume_file>"}}' \n
     Output should be exactly one of the following words and nothing else: student, chronological, or functional"""
 
     try:
@@ -545,11 +630,7 @@ def redesign_resume_template(json_request:str):
       return "Can you provide your resume file and an optional job post link? "
     else:
         resume_file = args["resume_file"]
-    if ("job_posting_file" not in args or args["job_posting_file"]=="" or args["job_posting_file"]=="<job_posting_file>"):
-        posting_path = ""
-    else:
-        posting_path = args["job_posting_file"]
-    resume_type= research_resume_type(resume_file, posting_path)
+    resume_type= research_resume_type(resume_file)
     return resume_type
 
 

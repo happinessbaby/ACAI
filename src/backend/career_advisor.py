@@ -2,42 +2,31 @@
 import os
 import openai
 from pathlib import Path
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain_community.embeddings import OpenAIEmbeddings
-from utils.common_utils import check_content
-from utils.agent_tools import search_user_material, search_all_chat_history, file_loader
-from utils.langchain_utils import (create_vectorstore, create_summary_chain,
-                             split_doc, CustomOutputParser, CustomPromptTemplate, retrieve_vectorstore )
+from utils.agent_tools import search_user_material, search_all_chat_history, design_resume_template, resume_template_design_tool
+from utils.langchain_utils import  CustomOutputParser, CustomPromptTemplate, retrieve_vectorstore 
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory,  ChatMessageHistory
-from langchain.agents import AgentType, Tool, load_tools, initialize_agent, Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from langchain.agents import AgentType, Tool, load_tools, initialize_agent, Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, create_structured_chat_agent
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
-from langchain.schema import messages_from_dict, messages_to_dict, AgentAction
 from langchain.agents import AgentExecutor, ZeroShotAgent
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.callbacks import  StdOutCallbackHandler, FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
 from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
-from langchain.vectorstores import FAISS
-# from feast import FeatureStore
-import pickle
-import json
 import langchain
 import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
 from utils.basic_utils import convert_to_txt, read_txt
-from utils.openai_api import get_completion
-from utils.agent_tools import create_wiki_tools, create_search_tools, create_retriever_tools
 from langchain.schema import OutputParserException
 from multiprocessing import Process, Queue, Value
-from backend.generate_cover_letter import  create_cover_letter_generator_tool
-from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
-from backend.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
+# from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
+# from todo_tmp.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
 from typing import List, Dict, Any
-from json import JSONDecodeError
-from langchain.tools import tool
 import re
 import asyncio
 from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
@@ -47,7 +36,13 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain.cache import InMemoryCache
 from langchain.tools import StructuredTool
 from langchain.globals import set_llm_cache
-from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain import hub
+from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
+from langchain.agents.format_scratchpad.openai_tools import (
+    format_to_openai_tool_messages,
+)
+
 
 
 
@@ -89,7 +84,6 @@ word_count = 100
 
 class ChatController():
 
-    # llm = ChatOpenAI(streaming=True, callbacks=[StreamingStdOutCallbackHandler()], temperature=0, cache = False)
     # chat_memory = ReadOnlySharedMemory(memory=chat_memory)
     # retry_decorator = _create_retry_decorator(llm)
     set_llm_cache(InMemoryCache())
@@ -97,7 +91,7 @@ class ChatController():
 
     def __init__(self, sessionId, chat_memory=None):
         self.sessionId = sessionId
-        self.llm = ChatOpenAI(model="gpt-4",temperature=0, cache = False,streaming=True)
+        self.llm = ChatOpenAI(temperature=0, cache = False,)
         # self.llm.callbacks = [self.streamHandler]
         self.embeddings = OpenAIEmbeddings()
         if chat_memory is not None:
@@ -123,14 +117,14 @@ class ChatController():
         """ Initializes main chat, a CHAT_CONVERSATIONAL_REACT_DESCRIPTION agent:  https://python.langchain.com/docs/modules/agents/agent_types/chat_conversation_agent#using-a-chat-model """
     
         # initialize tools
-        cover_letter_tool = create_cover_letter_generator_tool()
+        # cover_letter_tool = create_cover_letter_generator_tool()
         # cover_letter_tool = [cover_letter_generator]
-        cover_letter_customize_tool = create_cover_letter_customize_writer_tool()
-        personal_statement_customize_tool = create_personal_statement_customize_writer_tool()
-        resume_customize_tool = create_resume_customize_writer_tool()
-        resume_evaluator_tool = create_resume_evaluator_tool()
-        resume_rewriter_tool = create_resume_rewriter_tool()
-        resume_template_tool = [redesign_resume_template]
+        # cover_letter_customize_tool = create_cover_letter_customize_writer_tool()
+        # personal_statement_customize_tool = create_personal_statement_customize_writer_tool()
+        # resume_customize_tool = create_resume_customize_writer_tool()
+        # resume_evaluator_tool = create_resume_evaluator_tool()
+        # resume_rewriter_tool = create_resume_rewriter_tool()
+        resume_template_tool = [resume_template_design_tool]
         # resume_template_tool = create_resume_template_tool()
         # resume_evaluator_tool = [resume_evaluator]
         user_material_tool = [search_user_material]
@@ -175,7 +169,8 @@ class ChatController():
         # wiki tool
         # wiki_tool = create_wiki_tools()
         # gather all the tools together
-        self.tools =  cover_letter_tool + resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool + general_tool  + personal_statement_customize_tool + cover_letter_customize_tool + user_material_tool  + requests_get
+        # self.tools =  resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool + general_tool + user_material_tool  + requests_get
+        self.tools =  resume_template_tool + general_tool + user_material_tool  + requests_get
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")
@@ -187,7 +182,7 @@ class ChatController():
         # self.chat_history=[]
         # initiate prompt template
         # You are provided with information about entities the Human mentioned. If available, they are very important.
-        template = """Your name is Acai. You are a career AI advisor. The following is a friendly conversation between a human and you. 
+        template = """You are a career AI advisor. The following is a friendly conversation between a human and you. 
 
         You are talkative and provides lots of specific details from its context.
           
@@ -206,6 +201,7 @@ class ChatController():
         If you encounter any problems communicating with Human, follow the Instruction below, if available. 
 
         Instruction: {instruction}
+
         """
 
 
@@ -214,35 +210,25 @@ class ChatController():
         # AI:
 
 
-        # OPTION 1: agent = CHAT_CONVERSATIONAL_REACT_DESCRIPTION
-        # initialize CHAT_CONVERSATIONAL_REACT_DESCRIPTION agent
+        ## OPTION 1: agent = CHAT_CONVERSATIONAL_REACT_DESCRIPTION
+        # Cons: does not execute tool inputs correctly unless using GPT-4 model
         # self.chat_memory.output_key = "output"  
-        self.chat_agent  = initialize_agent(self.tools, 
-                                            self.llm, 
-                                            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION, 
-                                            # verbose=True, 
-                                            memory=self.chat_memory, 
-                                            return_intermediate_steps = True,
-                                            handle_parsing_errors="Check your output and make sure it conforms!",
-                                            callbacks = [self.Loghandler],
-                                            )
-        # modify default agent prompt
-        prompt = self.chat_agent.agent.create_prompt(system_message=template, input_variables=['chat_history', 'input', 'entities', 'instruction', 'agent_scratchpad'], tools=self.tools)
-        self.chat_agent.agent.llm_chain.prompt = prompt
+        # self.chat_agent  = initialize_agent(self.tools, 
+        #                                     self.llm, 
+        #                                     agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION, 
+        #                                     # verbose=True, 
+        #                                     memory=self.chat_memory, 
+        #                                     return_intermediate_steps = True,
+        #                                     handle_parsing_errors="Check your output and make sure it conforms!",
+        #                                     callbacks = [self.Loghandler],
+        #                                     )
+        # # modify default agent prompt
+        # prompt = self.chat_agent.agent.create_prompt(system_message=template, input_variables=['chat_history', 'input', 'entities', 'instruction', 'agent_scratchpad'], tools=self.tools)
+        # self.chat_agent.agent.llm_chain.prompt = prompt
 
-        # Option 2: structured chat agent for multi input tools, currently cannot get to use tools
-        # suffix = """Begin! Reminder to ALWAYS respond with a valid json blob of a single action. 
-        # Use tools if necessary. Respond directly if appropriate. 
-        
-        # You are provided with information about entities the Human mentioned. If available, they are very important.
 
-        # Always check the relevant entity information before answering a question.
-
-        # Relevant entity information: {entities}
-    
-        # Format is Action:```$JSON_BLOB```then Observation:.\nThought:"""
-
-        # chat_history = MessagesPlaceholder(variable_name="chat_history")
+        # Option 2: structured chat agent for multi input tools, 
+        # Cons: currently cannot get to use tool
         # self.chat_agent = initialize_agent(
         #     self.tools, 
         #     self.llm, 
@@ -250,19 +236,44 @@ class ChatController():
         #     verbose=True, 
         #     memory=self.chat_memory, 
         #     agent_kwargs = {
-        #         "memory_prompts": [chat_history],
-        #         "input_variables": ["input", "agent_scratchpad", "chat_history", 'entities'],
-        #         'suffix': suffix,
+        #         "memory_prompts": [MessagesPlaceholder(variable_name="chat_history")],
+        #         "input_variables": ["input", "agent_scratchpad", "instruction", "chat_history", 'entities'],
+        #         'prefix': template,
         #     },
-        #     allowed_tools=tool_names,
+        #     # allowed_tools=tool_names,
         # )
 
+        # OPTION 3: Custom agent (https://python.langchain.com/docs/modules/agents/how_to/custom_agent/)
+        MEMORY_KEY = "chat_history"
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    template,
+                ),
+                ("user", "{input}"),
+                MessagesPlaceholder(variable_name="entities"),
+                MessagesPlaceholder(variable_name="instruction"),
+                MessagesPlaceholder(variable_name=MEMORY_KEY),
+                MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ]
+        )
 
-        # OPTION 3: agent = custom LLMSingleActionAgent
-        # agent = self.create_custom_llm_agent()
-        # self.chat_agent = AgentExecutor.from_agent_and_tools(
-        #     agent=agent, tools=self.tools, verbose=True, memory=memory
-        # )
+        llm_with_tools = self.llm.bind_tools(self.tools)
+        agent = (
+            {
+                "input": lambda x: x["input"],
+                "agent_scratchpad": lambda x: format_to_openai_tool_messages(
+                    x["intermediate_steps"]
+                ),
+            }
+            | prompt
+            | llm_with_tools
+            | OpenAIToolsAgentOutputParser()
+        )
+
+        self.chat_agent = AgentExecutor(agent=agent, tools=self.tools, verbose=True)
+
 
         # Option 4: agent = conversational retrieval agent
 
@@ -460,8 +471,9 @@ class ChatController():
         try:    
             # BELOW IS USED WITH CONVERSATIONAL RETRIEVAL AGENT (grader_agent and interviewer)
             print([tools.name for tools in self.tools])
-            response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
-            # response = self.chat_agent.stream({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            # response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction}, callbacks=[callbacks])
+            # response = self.chat_agent({"input": user_input, "chat_history":[], "entities": self.entities, "instruction": self.instruction})
+            response = self.chat_agent({"input": user_input, "chat_history":self.chat_memory.chat_memory.messages, "entities": self.entities, "instruction": self.instruction})
             # for res in response:
             #     print(res.get("output", "Sorry, something happened, please try again."), flush=True)
             #     return res.get("output", "Sorry, something happened, please try again.")
