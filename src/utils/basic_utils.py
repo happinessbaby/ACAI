@@ -30,6 +30,10 @@ import codecs
 import json
 import decimal
 import requests
+from docx import Document
+from odf import text, teletype
+from odf.opendocument import load
+from io import BytesIO
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -46,8 +50,10 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
                 os.rename(file, output_path)
             elif (file_ext=='.pdf'): 
                 convert_pdf_to_txt(file, output_path)
-            elif (file_ext=='.odt' or file_ext=='.docx'):
-                convert_doc_to_txt(file, file_ext, output_path)
+            elif (file_ext=='.docx'):
+                convert_doc_to_txt(file, output_path)
+            elif (file_ext=='.odt' ):
+                convert_odt_to_txt(file, output_path)
             elif (file_ext==".log"):
                 convert_log_to_txt(file, output_path)
             elif (file_ext==".pptx"):
@@ -61,8 +67,6 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
     except Exception as e:
         print(e)
         return False
-
-
 
 
 def convert_log_to_txt(file, output_path):
@@ -95,16 +99,37 @@ def convert_pdf_to_txt(pdf_file, output_path):
         f.close()
 
 #TODO: needs to find the best docx to txt converter that takes care of special characters best
-def convert_doc_to_txt(doc_file, file_ext, output_path):
-        
-    text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
-    print(text)
+def convert_doc_to_txt(doc_file, output_path):
+    doc = Document(doc_file)
+    # text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
+    # print(text)
     with open(output_path, "w") as f:
-        f.write(text)
-        f.close()
+        for paragraph in doc.paragraphs:
+            f.write(paragraph.text + '\n')
         
+def convert_odt_to_txt(odt_file, txt_file):
+    doc = load(odt_file)
+    text_content = []
+    for paragraph in doc.getElementsByType(text.P):
+        text_content.append(teletype.extractText(paragraph))
+    
+    with open(txt_file, 'w', encoding='utf-8') as f:
+        for line in text_content:
+            f.write(line + '\n')
 
-
+def convert_txt_to_doc(txt_file, output_path, storage="LOCAL", s3=None, bucket_name=None):
+    doc = Document()
+    with open(txt_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            doc.add_paragraph(line.strip())
+    if storage=="LOCAL":
+        doc.save(output_path)
+    elif storage=="CLOUD":
+         # Save DOCX to memory
+        docx_bytes = BytesIO()
+        doc.save(docx_bytes)
+        # Upload DOCX to S3
+        s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
 
 def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
 
@@ -473,12 +498,12 @@ class DecimalEncoder(json.JSONEncoder):
 
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
-    html_to_text(
-        "https://algs4.cs.princeton.edu/41graph/",
-        save_path =f"./test.txt")
+    # html_to_text(
+    #     "https://algs4.cs.princeton.edu/41graph/",
+    #     save_path =f"./test.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
-
+    convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
 
 
 

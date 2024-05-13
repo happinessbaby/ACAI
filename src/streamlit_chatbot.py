@@ -239,11 +239,11 @@ class Chat():
         # st.markdown(textinput_styl, unsafe_allow_html=True)
         # st.markdown(selectbox_styl, unsafe_allow_html=True)
         # st.session_state["selected"]=None 
-        if st.session_state.cover_letter_modal.is_open():
-            print("cover letter modal is open")
-            _self.cover_letter_popup()
-        if st.session_state.resume_modal.is_open():
-            _self.resume_popup()
+        # if st.session_state.cover_letter_modal.is_open():
+        #     print("cover letter modal is open")
+        #     _self.cover_letter_popup()
+        # if st.session_state.resume_modal.is_open():
+            # _self.resume_popup()
         with st._main:
 
             # if "initial_resume" not in st.session_state:
@@ -381,6 +381,15 @@ class Chat():
             st.session_state.cl_disabled=False
         else:
             st.session_state.cl_disabled=True
+        options = ("pick from a template", "write a creative draft")   
+        selected = st.selectbox(f"How would you like your cover letter? {st.session_state.cl_type_checkmark}",  
+                                    options,
+                                  index= options.index(st.session_state["cl_type_selection"]) if "cl_type_selection" in st.session_state else None, 
+                                 placeholder="Please make a selection...", 
+                                 key="cl_type_selectionx" )
+        if selected:
+            st.session_state.cl_type_checkmark="✅"
+            st.session_state["cl_type_selection"]=selected
         resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
                                 key="resume",
                                 type=["pdf","odt", "docx","txt"], 
@@ -400,23 +409,21 @@ class Chat():
             job_description = st.text_area("Job description", key="job_descriptionx", value=st.session_state.job_description if "job_description" in st.session_state else "")
             if job_description:
                 st.session_state.job_posting_checkmark="✅"
-                st.session_state["job_description"] = job_description       
-        selection = st.selectbox(f"How would you like your cover letter? {st.session_state.cl_type_checkmark}", ("pick from a template", "write a creative draft"), index=None, placeholder="Please make a selection..", key="cl_type_selectionx" )
-        if selection:
-            st.session_state.cl_type_checkmark="✅"
-            st.session_state["cl_type_selection"]=selection
+                st.session_state["job_description"] = job_description   
         conti = st.button("next", key="next_resume_button", type="primary", disabled=st.session_state.cl_disabled, on_click=self.selection_callback, args=("cover letter", ))
 
 
     def selection_callback(self, type, ):
         # self.form_callback()
         if type=="cover letter":
-            if st.session_state.cl_type_selection == "pick from a template":
+            options = ("pick from a template", "write a creative draft") 
+            # selection = options[st.session_state.cl_type_selection]
+            if st.session_state.cl_type_selection == options[0]:
                 generate_preformatted_cover_letter(st.session_state["resume_path"],
                                                     st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                                     st.session_state["job_description"] if "job_description" in st.session_state else "")
                 print("Successfully generated preformatted cover letter")
-            elif st.session_state.cl_type_selection == "write a creative craft":
+            elif st.session_state.cl_type_selection == options[1]:
                 generate_basic_cover_letter(resume_file=st.session_state["resume_path"], 
                                             posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                             about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "")

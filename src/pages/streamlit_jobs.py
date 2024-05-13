@@ -10,7 +10,7 @@ STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
 login_file = os.environ["LOGIN_FILE_PATH"]
 db_path=os.environ["LANCEDB_PATH"]
-user_file=os.environ["USER_FILE"]
+user_profile_file=os.environ["USER_PROFILE_FILE"]
 
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
@@ -41,7 +41,7 @@ class Job():
     @st.cache_data()
     def _init_session_states(_self, ):
             # Open users profile file
-        with open(user_file, 'r') as file:
+        with open(user_profile_file, 'r') as file:
             try:
                 users = json.load(file)
             except JSONDecodeError:

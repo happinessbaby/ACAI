@@ -106,7 +106,7 @@ if STORAGE=="S3":
 else:
     bucket_name=None
     s3=None
-user_file=os.environ["USER_FILE"]
+user_profile_file=os.environ["USER_PROFILE_FILE"]
       
 
 
@@ -670,7 +670,35 @@ def calculate_work_experience_level(content: str, job_title:str,  llm=ChatOpenAI
     print(f"Successfully calculated work experience level: {response}")
     return response
 
+def research_relevancy_in_resume(resume_content, job_specification):
 
+    query_relevancy = f""" You are an expert resume advisor. 
+    
+     Step 1: Determine the relevant and irrelevant information contained in the resume content delimited with {delimiter} characters.
+
+      resume content: {delimiter}{resume_content}{delimiter} \n
+
+      Generate a list of irrelevant information that should not be included according to the following job specification/job description .
+
+      job specification: {job_specification}
+
+        Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
+        
+        For example, your answer may look like this:
+
+        Relevant information:
+
+        1. Python, Spark: Spark and Python are languages/tools listed in the job specification
+
+        Irrelevant information:
+
+        1. Education in Management of Human Resources is not directly related to skills required for a [job title] at [company] that required these [skills] instead 
+
+
+        """
+    tool = create_search_tools("google", 1)
+    relevancy = generate_multifunction_response(query_relevancy, tool)
+    return relevancy
 
 
 
@@ -870,12 +898,17 @@ def get_generated_responses(resume_path="",about_job="", posting_path="", progra
         posting = read_txt(posting_path)
         prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
             {text} \n
-            Focus on the roles and skills involved for this job. Extract any ATS-friendly keyword or key phrases from the job posting too.
-             
-            Do not include information irrelevant to this specific position.
+            Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
         """
         job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
         generated_responses.update({"job specification": job_specification})
+    elif about_job:
+        posting = about_job
+        prompt = f"""Summarize the following job posting in 100 words or less:
+                {posting}"""
+        job_specification = get_completion(prompt)
+        generated_responses.update({"job specification": job_specification})
+    if posting:
         job_keywords = extract_posting_keywords(posting)
         generated_responses.update({"job keywords": job_keywords})
         pursuit_info_dict1 = extract_pursuit_information(posting)
@@ -894,23 +927,13 @@ def get_generated_responses(resume_path="",about_job="", posting_path="", progra
         pursuit_info_dict2 = extract_pursuit_information(posting)
         for key, value in pursuit_info_dict.items():
             if value == -1:
-                pursuit_info_dict[key]=pursuit_info_dict2[key]
-
-    if about_job!="" and about_job!="-1":
-        pursuit_info_dict0 = extract_pursuit_information(about_job)
-        for key, value in pursuit_info_dict.items():
-            if value == -1:
-                pursuit_info_dict[key]=pursuit_info_dict0[key]
-        # generated_responses.update({"about me": about_me})
-        
+                pursuit_info_dict[key]=pursuit_info_dict2[key]        
 
     if resume_path!="":
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         personal_info_dict = extract_personal_information(resume_content)
         generated_responses.update(personal_info_dict)
         field_content = extract_resume_fields3(resume_content)
-        # field_names = list(field_content.keys())
-        # generated_responses.update({"field names": field_names})
         generated_responses.update(field_content)
         if pursuit_info_dict["job"] == -1:
             pursuit_info_dict["job"] = extract_pursuit_information(resume_content).get("job", "")
@@ -921,11 +944,11 @@ def get_generated_responses(resume_path="",about_job="", posting_path="", progra
 
     generated_responses.update(pursuit_info_dict)
     if generate_specifics:
-        generated_responses = generate_job_specific_info(generated_responses)
+        generated_responses = research_job_specific_info(generated_responses)
 
     return generated_responses
 
-def generate_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
+def research_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
 
     """ These are generated job specific, case speciifc information for downstream purposes. """
      
@@ -1251,7 +1274,7 @@ def create_profile_summary(userId: str) -> str:
     llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
     llm_chain = LLMChain(llm=llm, prompt=prompt)
     loader = JSONLoader(
-        file_path='./user_file.json',
+        file_path=user_profile_file,
         jq_schema=f'.{userId}',
         text_content=False)
     data = loader.load()

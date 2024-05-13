@@ -47,7 +47,7 @@ STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
 login_file = os.environ["LOGIN_FILE_PATH"]
 db_path=os.environ["LANCEDB_PATH"]
-user_file=os.environ["USER_FILE"]
+user_profile_file=os.environ["USER_PROFILE_FILE"]
 # store = FeatureStore("./my_feature_repo/")
 
 # st.set_page_config(initial_sidebar_state="collapsed")
@@ -98,7 +98,7 @@ class User():
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
         # Open users profile file
-        with open(user_file, 'r') as file:
+        with open(user_profile_file, 'r') as file:
             try:
                 users = json.load(file)
             except JSONDecodeError:
@@ -432,7 +432,7 @@ class User():
         print("profile summary",  summary)
         st.session_state["users"][self.userId]["summary"] = summary
          # Save the updated user profiles back to the JSON file
-        with open(user_file, 'w') as file:
+        with open(user_profile_file, 'w') as file:
             json.dump(st.session_state["users"], file, indent=2)
         data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
         print(data)
