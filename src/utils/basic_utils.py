@@ -474,8 +474,8 @@ class DecimalEncoder(json.JSONEncoder):
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
     html_to_text(
-        "https://www.monster.com/career-advice/article/100-potential-interview-questions",
-        save_path =f"./interview_data/general01.txt")
+        "https://algs4.cs.princeton.edu/41graph/",
+        save_path =f"./test.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
 

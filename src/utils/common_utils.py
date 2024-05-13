@@ -145,7 +145,9 @@ def extract_personal_information(resume: str,  llm = ChatOpenAI(temperature=0, m
                                         description="Extract the email address of the applicant. If this information is not found, output -1")
     phone_schema = ResponseSchema(name="phone",
                                         description="Extract the phone number of the applicant. If this information is not found, output -1")
-    address_schema = ResponseSchema(name="address",
+    city_schema = ResponseSchema(name="city",
+                                        description="Extract the home address of the applicant. If this information is not found, output -1")
+    state_schema = ResponseSchema(name="state",
                                         description="Extract the home address of the applicant. If this information is not found, output -1")
     linkedin_schema = ResponseSchema(name="linkedin", 
                                  description="Extract the LinkedIn html in the resume. If this information is not found, output -1")
@@ -155,7 +157,8 @@ def extract_personal_information(resume: str,  llm = ChatOpenAI(temperature=0, m
     response_schemas = [name_schema, 
                         email_schema,
                         phone_schema, 
-                        address_schema, 
+                        city_schema,
+                        state_schema, 
                         linkedin_schema,
                         website_schema,
                         ]
@@ -170,7 +173,9 @@ def extract_personal_information(resume: str,  llm = ChatOpenAI(temperature=0, m
 
     phone: Extract the phone number of the applicant. If this information is not found, output -1\
     
-    address: Extract the home address of the applicant. If this information is not found, output -1\
+    city: Extract the home address of the applicant. If this information is not found, output -1\
+    
+    state: Extract the home address of the applicant. If this information is not found, output -1\
 
     linkedin: Extract the LinkedIn html in the resume. If this information is not found, output -1\
 
@@ -409,21 +414,6 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     return field_info_dict
 
 
-
-
-# def extract_job_title(resume: str) -> str:
-
-#     """ Extracts job title from resume. """
-
-#     response = get_completion(f"""Read the resume closely. It is delimited with {delimiter} characters. 
-                              
-#                               Output a likely job position that this applicant is currently holding or a possible job position he or she is applying for.
-                              
-#                               resume: {delimiter}{resume}{delimiter}. \n
-                              
-#                               Response with only the job position, no punctuation or other text. """)
-#     print(f"Successfull extracted job title: {response}")
-#     return response
 
 def extract_positive_qualities(content: str, llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)) -> str:
 
@@ -866,19 +856,11 @@ def search_related_samples(job_title: str, directory: str) -> List[str]:
 #     return tools, tool_names
 
 
-def generate_user_info(content):
-
-    """ Extract user information from content to be saved and used in profile page. """
-
-    
-
-
-
 
 
 
 # one of the most important functions
-def get_generated_responses(resume_path="",about_me="", posting_path="", program_path="") -> Dict[str, str]: 
+def get_generated_responses(resume_path="",about_job="", posting_path="", program_path="", generate_specifics=False) -> Dict[str, str]: 
 
     # Get personal information from resume
     generated_responses={}
@@ -914,12 +896,12 @@ def get_generated_responses(resume_path="",about_me="", posting_path="", program
             if value == -1:
                 pursuit_info_dict[key]=pursuit_info_dict2[key]
 
-    if about_me!="" and about_me!="-1":
-        pursuit_info_dict0 = extract_pursuit_information(about_me)
+    if about_job!="" and about_job!="-1":
+        pursuit_info_dict0 = extract_pursuit_information(about_job)
         for key, value in pursuit_info_dict.items():
             if value == -1:
                 pursuit_info_dict[key]=pursuit_info_dict0[key]
-        generated_responses.update({"about me": about_me})
+        # generated_responses.update({"about me": about_me})
         
 
     if resume_path!="":
@@ -938,6 +920,9 @@ def get_generated_responses(resume_path="",about_me="", posting_path="", program
         generated_responses.update({"work experience level": work_experience})
 
     generated_responses.update(pursuit_info_dict)
+    if generate_specifics:
+        generated_responses = generate_job_specific_info(generated_responses)
+
     return generated_responses
 
 def generate_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
@@ -957,7 +942,7 @@ def generate_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str,
         job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
                         In 100 words or less, summarize your research result. """
         job_description = get_web_resources(job_query)  
-        generated_responses.update({"job description": job_description})
+        generated_responses.update({"job specification": job_description})
 
     if company!=-1:
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       

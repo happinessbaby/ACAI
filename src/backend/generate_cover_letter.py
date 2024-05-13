@@ -8,7 +8,7 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from utils.basic_utils import read_txt, process_json
-from utils.common_utils import (extract_personal_information, get_web_resources,  retrieve_from_db, get_generated_responses, search_related_samples)
+from utils.common_utils import (extract_personal_information, get_web_resources, extract_pursuit_information, retrieve_from_db, get_generated_responses, search_related_samples, generate_job_specific_info)
 from datetime import date
 from pathlib import Path
 import json
@@ -21,6 +21,8 @@ from utils.agent_tools import create_search_tools, create_sample_tools
 from langchain.tools import tool
 from docx import Document
 import boto3
+from docxtpl import DocxTemplate	
+from docx import Document
 
 
 
@@ -55,7 +57,7 @@ else:
     bucket_name=None
     s3=None
       
-def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_path="") -> None:
+def generate_basic_cover_letter(about_job="" or "-1", resume_file="",  posting_path="") -> None:
     
     """ Main function that generates the cover letter.
     
@@ -77,7 +79,7 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     # Get resume info
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    info_dict = get_generated_responses(resume_path=resume_file, about_me=about_me, posting_path=posting_path)
+    info_dict = get_generated_responses(resume_path=resume_file, about_job=about_job, posting_path=posting_path)
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
     job_specification = info_dict.get("job specification", "")
@@ -210,6 +212,53 @@ def generate_basic_cover_letter(about_me="" or "-1", resume_file="",  posting_pa
         s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return "Successfully generated the cover letter. Tell the user to check the Download your files tab at the sidebar to download their file. "  
 
+def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_description='', save_path="./test_cover_letter.docx"):
+    
+    template_file = "./backend/cover_letter_templates/template1.docx"
+    cover_letter_template = DocxTemplate(template_file)
+    info_dict = get_generated_responses(resume_path=resume_file, posting_path=job_posting_file, generate_specifics=True)
+    # resume=read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # personal_dict = extract_personal_information(resume)
+    # if job_posting_file:
+    #   job_posting = read_txt(job_posting_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # else:
+    #   job_posting = job_description
+    # pursuit_dict = extract_pursuit_information(job_posting)
+    # job_specific_dict = generate_job_specific_info(pursuit_dict)
+    # highest_education_level = info_dict.get("highest education level", "")
+    # work_experience_level = info_dict.get("work experience level", "")
+    # job_specification = info_dict.get("job specification", "")
+    # job_description = info_dict.get("job description", "")
+    # company_description = info_dict.get("company description", "")
+    # company = info_dict.get("company", "")
+    # job = info_dict.get("job", "")
+    # name = info_dict.get("name", "")
+    # phone = info_dict.get("phone", "")
+    # email = info_dict.get("email", "")
+    # personal_dict.update(pursuit_dict)
+    # info_dict=personal_dict
+    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    personal_context = {
+        "NAME": func("name", "YOUR NAME"),
+        "CITY": func("city", "YOUR CITY"),
+        "STATE": func("state", "YOUR STATE"),
+        "PHONE": func("phone", "YOUR PHONE"),
+        "EMAIL": func("email", "YOUR EMAIL"),
+        "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
+        "WEBSITE": func("website", "YOUR WEBSITE"),
+        "JOB": func("job", "JOB TITLE"),
+        "COMPANY": func("company", "COMPANY"),
+        "COMPANY_MISSION": func("company description", "INSERT COMPANY'S MISSION"),
+        "JOB_SPECIFICATION": func("job specification", "INSERT JOB A SHORT DESCRIPTION")
+    }
+    # context = {key: None for key in context_keys}
+
+
+    # # context[key] = content
+    # context.update(personal_context)
+    cover_letter_template.render(personal_context)
+    cover_letter_template.save(save_path) 
+    print("Sucessfully written cover letter")
 
 # @tool(return_direct=True)
 # def cover_letter_generator(json_request:str) -> str:
