@@ -8,7 +8,7 @@ import openai
 import os
 import uuid
 from backend.mock_interviewer import InterviewController
-from callbacks.capturing_callback_handler import playback_callbacks
+# from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file, move_file
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, get_generated_responses, get_web_resources
