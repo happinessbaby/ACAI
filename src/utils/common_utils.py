@@ -1,7 +1,6 @@
 import openai
 from utils.openai_api import get_completion, get_completion_from_messages
-from langchain.chat_models import ChatOpenAI
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAI, ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate,  StringPromptTemplate
 from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
@@ -78,6 +77,7 @@ from linkedin_api import Linkedin
 from time import sleep 
 from selenium import webdriver 
 from unstructured.partition.html import partition_html
+from dateutil import parser
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -430,7 +430,31 @@ def extract_positive_qualities(content: str, llm=ChatOpenAI(model="gpt-3.5-turbo
     print(f"Successfully extracted positive qualities: {response}")
     return response
 
-def extract_posting_keywords(posting_content:str, llm = OpenAI()) -> List[str]:
+class Keywords(BaseModel):
+    """Information about a job posting."""
+
+    # ^ Doc-string for the entity Person.
+    # This doc-string is sent to the LLM as the description of the schema Keywords,
+    # and it can help to improve extraction results.
+
+    # Note that:
+    # 1. Each field is an `optional` -- this allows the model to decline to extract it!
+    # 2. Each field has a `description` -- this description is used by the LLM.
+    # Having a good description can help improve extraction results.
+    ATS_keywords: Optional[List[str]] = Field(
+        default=-1, description="Application Tracking System (ATS) keywords in the job posting, ignore job benefits"
+        )
+    repetitive_phrases: Optional[List[str]] = Field(
+        default=-1, description="Repetitive phrases (2 or 3 words) that appears in the job posting, ignore job benefits"
+    )
+    competencies: Optional[List[str]] = Field(
+        default=-1, description="Traits/desired competencies sought in a candidate in the job posting"
+    )
+    responsibilities: Optional[List[str]] = Field(
+        default=-1, description="Job duties/qualifications/hard skills in the job posting"
+    )
+
+def extract_posting_keywords(posting_content:str, llm = ChatOpenAI()) -> List[str]:
 
     """ Extract the ATS keywords and key phrases from job posting. 
     
@@ -444,32 +468,31 @@ def extract_posting_keywords(posting_content:str, llm = OpenAI()) -> List[str]:
 
         Returns:
 
-            list of keywords and key phrases
+            lists of ATS keywords and key phrases
 
         
     """
 
-    query = """Extract all the ATS keywords and phrases, job specific description with regard to skills, responsibilities, roles, requirements from the job posting below.
-
-    Ignore job benefits and salary. 
-
-    Please output everything verbatim. 
-
-    job posting: {job_posting}
-
-    {format_instructions}
-    """
-    output_parser = CommaSeparatedListOutputParser()
-    format_instructions = output_parser.get_format_instructions()
-    prompt = PromptTemplate(
-        template=query,
-        input_variables=["job_posting"],
-        partial_variables={"format_instructions": format_instructions}
-    )
-    chain = LLMChain(llm=llm, prompt=prompt, output_key="ats")
-    response = chain.run({"job_posting": posting_content})
-    print(f"Successfully extracted ATS keywords from posting: {response} ")
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{posting}"),
+            ]
+        )
+    runnable = prompt | llm.with_structured_output(schema=Keywords)
+    response = runnable.invoke({"posting": posting_content}).dict()
+    print(response)
     return response
+
 
 
 
@@ -594,8 +617,55 @@ def extract_posting_keywords(posting_content:str, llm = OpenAI()) -> List[str]:
 #     # except Exception as e:
 #     #     raise e
 #     return response
+class Job(BaseModel):
+    job_title: Optional[str] = Field(
+        default=-1, description="the job position"
+        )
+    start_date: Optional[str] = Field(
+      default=-1, description = "the start date of the job position if available"
+      )
+    end_date: Optional[str] = Field(
+      default=-1, description = "the end date of the job position if available"
+      )
+class Jobs(BaseModel):
+    """Extracted data about people."""
 
+    # Creates a model so that we can extract multiple entities.
+    jobs: List[Job]
+def extract_job_titles(experience_content: str, llm=ChatOpenAI()) -> List[str]:
 
+    """Extract job titles from resume """
+
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{work_experience}"),
+            ]
+        )
+    runnable = prompt | llm.with_structured_output(schema=Jobs)
+    response = runnable.invoke({"work_experience": experience_content}).dict()
+    print(response)
+    return response
+
+def calculate_work_experience_years(start_date, end_date) -> Optional[int]:
+     
+    try:
+        start_date = parser.parse(start_date, default=datetime(1900, 1, 1)) 
+        end_date = parser.parse(start_date, default=datetime(1900, 1, 1)) 
+        year_difference = start_date.year - end_date.year
+    except Exception:
+        year_difference = -1
+    return year_difference
+    
 
 def calculate_graduation_years(graduation_year:str) -> Optional[int]:
 
@@ -606,7 +676,7 @@ def calculate_graduation_years(graduation_year:str) -> Optional[int]:
     try:
         years = int(this_year)-int(graduation_year)
     except Exception:
-        return None
+        years=-1
     print(f"Successfully calculated years since graduation: {years}")
     return years
 
@@ -888,11 +958,98 @@ def search_related_samples(job_title: str, directory: str) -> List[str]:
 
 
 # one of the most important functions
-def get_generated_responses(resume_path="",about_job="", posting_path="", program_path="", generate_specifics=False) -> Dict[str, str]: 
+# def get_generated_responses(resume_path="",about_job="", posting_path="", program_path="", generate_specifics=False) -> Dict[str, str]: 
 
-    # Get personal information from resume
-    generated_responses={}
+#     # Get personal information from resume
+#     generated_responses={}
+#     # pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
+#     # job_posting_info_dict={"job postings": {}}
+
+#     # if (Path(posting_path).is_file()):
+#     #     posting = read_txt(posting_path)
+#     #     prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
+#     #         {text} \n
+#     #         Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
+#     #     """
+#     #     job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
+#     #     job_posting_info_dict["job postings"].update({"job posting summary": job_specification})
+#     # elif about_job:
+#     #     posting = about_job
+#     #     prompt = f"""Summarize the following job description/job posting in 100 words or less:
+#     #             {posting}"""
+#     #     job_specification = get_completion(prompt)
+#     #     job_posting_info_dict.update({"job posting summary": job_specification})
+#     # if posting:
+#     #     job_posting_info = extract_posting_keywords(posting)
+#     #     job_posting_info_dict.update(job_posting_info)
+#     #     pursuit_info_dict1 = extract_pursuit_information(posting)
+#     #     for key, value in pursuit_info_dict.items():
+#     #         if value == -1:
+#     #             pursuit_info_dict[key]=pursuit_info_dict1[key]
+
+#     # if (Path(program_path).is_file()):
+#     #     posting = read_txt(program_path)
+#     #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
+#     #         {text} \n
+#     #         Focus on the uniqueness, classes, requirements involved. Do not include information irrelevant to this specific program.
+#     #     """
+#     #     program_specification = create_summary_chain(program_path, prompt_template, chunk_size=4000)
+#     #     generated_responses.update({"program specification": program_specification})
+#     #     pursuit_info_dict2 = extract_pursuit_information(posting)
+#     #     for key, value in pursuit_info_dict.items():
+#     #         if value == -1:
+#     #             pursuit_info_dict[key]=pursuit_info_dict2[key]        
+
+#     if resume_path!="":
+#         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+#         personal_info_dict = extract_personal_information(resume_content)
+#         generated_responses.update(personal_info_dict)
+#         field_content = extract_resume_fields3(resume_content)
+#         generated_responses.update(field_content)
+#         if pursuit_info_dict["job"] == -1:
+#             pursuit_info_dict["job"] = extract_pursuit_information(resume_content).get("job", "")
+#         work_experience = calculate_work_experience_level(resume_content, pursuit_info_dict["job"])
+#         education_info_dict = extract_education_information(resume_content)
+#         generated_responses.update(education_info_dict)
+#         generated_responses.update({"work experience level": work_experience})
+
+#     # generated_responses.update(pursuit_info_dict)
+#     # generated_responses.update(job_posting_info_dict)
+#     # if generate_specifics:
+#     #     generated_responses = research_job_specific_info(generated_responses)
+
+#     return generated_responses
+
+def get_resume_info(resume_path=""):
+
+    resume_info_dict = {resume_path: {}}
+    if (Path(resume_path).is_file()):
+        resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        personal_info_dict = extract_personal_information(resume_content)
+        resume_info_dict[resume_path]["contact"].update(personal_info_dict)
+        # Extract general resume fields
+        field_content = extract_resume_fields3(resume_content)
+        resume_info_dict[resume_path]["resume fields"].update(field_content)
+        # Extract education specific information
+        education_info_dict = extract_education_information(resume_content)
+        resume_info_dict[resume_path]["education"].update(education_info_dict)
+        if education_info_dict["graduation year"]:
+            years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
+            resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
+        else:
+            resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
+        # Extract job experience specific information
+        jobs = extract_job_titles(resume_content)
+        resume_info_dict[resume_path].update(jobs)
+
+    print(resume_info_dict)
+    return resume_info_dict
+
+
+def get_job_posting_info(posting_path="", about_job="", ):
     pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
+    job_posting = posting_path if posting_path else about_job[:10]
+    job_posting_info_dict={job_posting: {}}
 
     if (Path(posting_path).is_file()):
         posting = read_txt(posting_path)
@@ -901,96 +1058,92 @@ def get_generated_responses(resume_path="",about_job="", posting_path="", progra
             Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
         """
         job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
-        generated_responses.update({"job specification": job_specification})
+        job_posting_info_dict[job_posting].update({"summary": job_specification})
     elif about_job:
         posting = about_job
-        prompt = f"""Summarize the following job posting in 100 words or less:
+        prompt = f"""Summarize the following job description/job posting in 100 words or less:
                 {posting}"""
         job_specification = get_completion(prompt)
-        generated_responses.update({"job specification": job_specification})
+        job_posting_info_dict[job_posting].update({"summary": job_specification})
     if posting:
-        job_keywords = extract_posting_keywords(posting)
-        generated_responses.update({"job keywords": job_keywords})
+        job_posting_info = extract_posting_keywords(posting)
+        job_posting_info_dict[job_posting].update(job_posting_info)
         pursuit_info_dict1 = extract_pursuit_information(posting)
         for key, value in pursuit_info_dict.items():
             if value == -1:
                 pursuit_info_dict[key]=pursuit_info_dict1[key]
+        job_posting_info_dict[job_posting].update(pursuit_info_dict)
 
-    if (Path(program_path).is_file()):
-        posting = read_txt(program_path)
-        prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
-            {text} \n
-            Focus on the uniqueness, classes, requirements involved. Do not include information irrelevant to this specific program.
-        """
-        program_specification = create_summary_chain(program_path, prompt_template, chunk_size=4000)
-        generated_responses.update({"program specification": program_specification})
-        pursuit_info_dict2 = extract_pursuit_information(posting)
-        for key, value in pursuit_info_dict.items():
-            if value == -1:
-                pursuit_info_dict[key]=pursuit_info_dict2[key]        
-
-    if resume_path!="":
-        resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-        personal_info_dict = extract_personal_information(resume_content)
-        generated_responses.update(personal_info_dict)
-        field_content = extract_resume_fields3(resume_content)
-        generated_responses.update(field_content)
-        if pursuit_info_dict["job"] == -1:
-            pursuit_info_dict["job"] = extract_pursuit_information(resume_content).get("job", "")
-        work_experience = calculate_work_experience_level(resume_content, pursuit_info_dict["job"])
-        education_info_dict = extract_education_information(resume_content)
-        generated_responses.update(education_info_dict)
-        generated_responses.update({"work experience level": work_experience})
-
-    generated_responses.update(pursuit_info_dict)
-    if generate_specifics:
-        generated_responses = research_job_specific_info(generated_responses)
-
-    return generated_responses
-
-def research_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
-
-    """ These are generated job specific, case speciifc information for downstream purposes. """
-     
-    job = generated_responses["job"]
-    company = generated_responses["company"]
-    institution = generated_responses["institution"]
-    program = generated_responses["program"]
-
-    if job!=-1 and generated_responses.get("job keywords", "")=="":
-        job_keywords = get_web_resources(f"Research some ATS-friendly keywords and key phrases for {job}.")
-        generated_responses.update({"job keywords": job_keywords})
-
-    if job!=-1 and generated_responses.get("job specification", "")=="":
-        job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
-                        In 100 words or less, summarize your research result. """
-        job_description = get_web_resources(job_query)  
-        generated_responses.update({"job specification": job_description})
-
+    company = pursuit_info_dict["company"]
     if company!=-1:
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
                             In 50 words or less, summarize your research result.                 
                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
         company_description = get_web_resources(company_query)
-        generated_responses.update({"company description": company_description})
+        job_posting_info_dict[job_posting].update({"company description": company_description})
+    else:
+        job_posting_info_dict[job_posting].update({"company description": -1})
+    print(job_posting_info_dict)
+    return job_posting_info_dict
 
-    if institution!=-1:
-        institution_query = f""" Research {institution}'s culture, mission, and values.   
-                        In 50 words or less, summarize your research result.                     
-                        Look up the exact name of the institution. If it doesn't exist or the search result does not return an institution output -1."""
-        institution_description = get_web_resources(institution_query)
-        generated_responses.update({"institution description": institution_description})
 
-    if program!=-1 and  generated_responses.get("program specification", "")=="":
-        program_query = f"""Research the degree program in the institution provided below. 
-        Find out what {program} at the institution {institution} involves, and what's special about the program, and why it's worth pursuing.    
-        In 100 words or less, summarize your research result.  
-        If institution is -1, research the general program itself.
-        """
-        program_description = get_web_resources(program_query)   
-        generated_responses.update({"program description": program_description})
 
-    return generated_responses 
+
+    # if (Path(program_path).is_file()):
+    #     posting = read_txt(program_path)
+    #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
+    #         {text} \n
+    #         Focus on the uniqueness, classes, requirements involved. Do not include information irrelevant to this specific program.
+    #     """
+    #     program_specification = create_summary_chain(program_path, prompt_template, chunk_size=4000)
+    #     pursuit_info_dict2 = extract_pursuit_information(posting)
+    #     for key, value in pursuit_info_dict.items():
+    #         if value == -1:
+    #             pursuit_info_dict[key]=pursuit_info_dict2[key]   
+
+# def research_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
+
+#     """ These are generated job specific, case speciifc information for downstream purposes. """
+     
+#     job = generated_responses["job"]
+#     company = generated_responses["company"]
+#     institution = generated_responses["institution"]
+#     program = generated_responses["program"]
+
+#     if job!=-1 and generated_responses.get("job keywords", "")=="":
+#         job_keywords = get_web_resources(f"Research some ATS-friendly keywords and key phrases for {job}.")
+#         generated_responses.update({"job keywords": job_keywords})
+
+#     if job!=-1 and generated_responses.get("job specification", "")=="":
+#         job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
+#                         In 100 words or less, summarize your research result. """
+#         job_description = get_web_resources(job_query)  
+#         generated_responses.update({"job specification": job_description})
+
+#     if company!=-1:
+#         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
+#                             In 50 words or less, summarize your research result.                 
+#                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
+#         company_description = get_web_resources(company_query)
+#         generated_responses.update({"company description": company_description})
+
+#     if institution!=-1:
+#         institution_query = f""" Research {institution}'s culture, mission, and values.   
+#                         In 50 words or less, summarize your research result.                     
+#                         Look up the exact name of the institution. If it doesn't exist or the search result does not return an institution output -1."""
+#         institution_description = get_web_resources(institution_query)
+#         generated_responses.update({"institution description": institution_description})
+
+#     if program!=-1 and  generated_responses.get("program specification", "")=="":
+#         program_query = f"""Research the degree program in the institution provided below. 
+#         Find out what {program} at the institution {institution} involves, and what's special about the program, and why it's worth pursuing.    
+#         In 100 words or less, summarize your research result.  
+#         If institution is -1, research the general program itself.
+#         """
+#         program_description = get_web_resources(program_query)   
+#         generated_responses.update({"program description": program_description})
+
+#     return generated_responses 
 
     
     
@@ -1225,8 +1378,7 @@ def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) ->
     # else:
     #     raise Exception(f"Content checking failed for {file_path}")
     
-def process_resume(resume):
-    print("")
+
 
 def process_linkedin(userId, url):
 

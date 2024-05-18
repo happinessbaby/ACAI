@@ -1,0 +1,33 @@
+{
+    "resume_path": {
+        "contact": {
+            "name":"str or -1",
+            "email":"str or -1",
+            "phone": "str or -1",
+            "city": "str or -1",
+            "state":"str or -1",
+            "linkedin": "str or -1",
+            "website": "str or -1"
+
+        }, 
+        "resume fields": {
+            "personal contact": "str or -1",
+            "work experience":"str or -1",
+            "education":"str or -1",
+            "summary or objective":"str or -1",
+            "skills":"str or -1",
+            "awards and honors":"str or -1",
+            "professional accomplishment":"str or -1",
+            "certification":"str or -1"
+        },
+        "education": {
+            "degree":"str or -1",
+            "study":"str or -1",
+            "graduation year":"str or -1",
+            "gpa":"str or -1"
+        },
+        "work experience": [
+            {"job_title": "str 0r -1", "start_date": "str or -1", "end_date": "str or -1"}
+        ]
+    }
+}

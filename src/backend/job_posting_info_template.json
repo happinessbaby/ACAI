@@ -1,0 +1,14 @@
+{
+    "job_posting_path": {
+        "job": "str or -1",
+        "company": "str or -1",
+        "institution": "str or -1",
+        "program": "str or -1",
+        "summary": "str",
+        "company description": "str or -1",
+        "ATS_keywords": "List[str] or -1",
+        "repetitive_phrases": "List[str] or -1",
+        "competencies":"List[str] or -1",
+        "responsibilities":"List[str] or -1"
+    }
+}

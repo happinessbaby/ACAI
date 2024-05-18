@@ -8,8 +8,9 @@ from langchain.output_parsers import CommaSeparatedListOutputParser
 from langchain.prompts import PromptTemplate
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
+from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json
-from utils.common_utils import (get_web_resources, retrieve_from_db,  get_generated_responses,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
+from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
                             search_related_samples,  extract_personal_information)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error
 from utils.agent_tools import create_search_tools, create_sample_tools
@@ -185,46 +186,48 @@ def evaluate_resume_fields(generated_response: Dict[str, str], field: str, field
         with open(f"{field}_evaluation.txt", "x") as f:
            f.write(evaluation)
 
-def customize_resume(resume="", posting_path="", about_me=""):
+def customize_resume(resume_file="", posting_path="", about_job=""):
 
-    resume_content = read_txt(resume, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    if about_me!="":
-        pursuit_dict = extract_pursuit_information(about_me)
+    if about_job!="":
+        pursuit_dict = extract_pursuit_information(about_job)
         job = pursuit_dict.get("job", "")
         company = pursuit_dict.get("company", "")
-        if job!="":
+        if job:
             job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
                             In 100 words or less, summarize your research result. """
             job_description = get_web_resources(job_query)  
     if posting!="":
-        prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
-            {text} \n
-            Focus on roles and skills involved for this job. Do not include information irrelevant to this specific position.
-        """
-        job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
         pursuit_dict = extract_pursuit_information(posting)
         company = pursuit_dict.get("company", "")
         job = pursuit_dict.get("job", "")
-    if company !="":
+        if job:
+            prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
+                {text} \n
+                Focus on roles and skills involved for this job. Do not include information irrelevant to this specific position.
+            """
+            job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
+            print("Job specificaiton from summary chain:", job_specification)
+    if company:
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
                             In 50 words or less, summarize your research result.                 
                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
         company_description = get_web_resources(company_query)   
-    query = f"""  You are an expert resume advisor. 
-        Generate a list of relevant information that can be added to or replaced in the resume given the job description, job specification, and company description, whichever is available. 
-        resume content: {resume_content}\n
-        job description: {job_description} \n
-        job specification: {job_specification} \n
-        company description: {company_description} \n
-        Please provide your reasoning as well. Please format your output as in the following example;
-        Things to add or replace in the resume:
-        1. Communication skills: communication skills is listed in the job description but not in the resume
-        The above is just an example. Please ONLY use the resume content and job description to generate your answer. 
-        """        
-    tools = create_search_tools("google", 3)
-    response = generate_multifunction_response(query, tools)
-    return response
+    # query = f"""  You are an expert resume advisor. 
+    #     Generate a list of relevant information that can be added to or replaced in the resume given the job description, job specification, and company description, whichever is available. 
+    #     resume content: {resume_content}\n
+    #     job description: {job_description} \n
+    #     job specification: {job_specification} \n
+    #     company description: {company_description} \n
+    #     Please provide your reasoning as well. Please format your output as in the following example;
+    #     Things to add or replace in the resume:
+    #     1. Communication skills: communication skills is listed in the job description but not in the resume
+    #     The above is just an example. Please ONLY use the resume content and job description to generate your answer. 
+    #     """        
+    # tools = create_search_tools("google", 3)
+    # response = generate_multifunction_response(query, tools)
+    # return response
 
 
 @memoized
@@ -685,8 +688,9 @@ def create_resume_rewriter_tool() -> List[Tool]:
 if __name__ == '__main__':
     resume_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt"
     posting_path= "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/rov.txt"
-    template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
-    reformat_functional_resume(resume_file=resume_file, posting_path=posting_path, template_file=template_file)
+    # template_file = "/home/tebblespc/GPT-Projects/ACAI/ACAI/src/backend/resume_templates/functional/functional1.docx"
+    # reformat_functional_resume(resume_file=resume_file, posting_path=posting_path, template_file=template_file)
+    customize_resume(resume_file=resume_file, posting_path=posting_path)
     # evaluate_resume(my_job_title =my_job_title, company = company, resume_file=my_resume_file, posting_path = job_posting)
     # evaluate_resume(resume_file=my_resume_file)
 

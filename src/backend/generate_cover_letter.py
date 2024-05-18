@@ -9,7 +9,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from utils.basic_utils import read_txt, process_json, convert_doc_to_txt, write_file
 from utils.common_utils import (extract_personal_information, get_web_resources, extract_pursuit_information,
-                                 retrieve_from_db, get_generated_responses, search_related_samples, research_relevancy_in_resume)
+                                 retrieve_from_db,  search_related_samples, research_relevancy_in_resume)
 from datetime import date
 from pathlib import Path
 import json
