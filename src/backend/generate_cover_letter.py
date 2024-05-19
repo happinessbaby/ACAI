@@ -24,6 +24,7 @@ from docx import Document
 import boto3
 from docxtpl import DocxTemplate	
 from docx import Document
+from datetime import datetime
 
 
 
@@ -221,6 +222,7 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     cover_letter_template = DocxTemplate(template_file)
     resume_dict = get_resume_info(resume_path=resume_file, )
     job_posting_dict= get_job_posting_info(posting_path=job_posting_file, about_job=job_description, )
+    info_dict=resume_dict+job_posting_dict
     func = lambda key, default: default if key not in info_dict or info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
@@ -232,6 +234,7 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
         "WEBSITE": func("website", "YOUR WEBSITE"),
         "JOB": func("job", "JOB TITLE"),
         "COMPANY": func("company", "COMPANY"),
+        "DATE": datetime.today()
     }
     cover_letter_template.render(personal_context)
     cover_letter_template.save(save_path) 
@@ -245,9 +248,9 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     hard_skills = job_posting_dict.get("hard_skills", "")
     my_soft_skills = resume_dict["skills"].get("soft_skills", "")
     my_hard_skills = resume_dict["skills"].get("hard_skills", "")
-    my_work_experience = resume_dict.get("jobs", "")
-    relevant_hard_skills = research_relevancy_in_resume(my_hard_skills, hard_skills, "skills")
-    relevant_soft_skills = research_relevancy_in_resume(my_soft_skills, soft_skills, "skills")
+    my_responsibilities = str(resume_dict.get("jobs", ""))
+    relevant_hard_skills = research_relevancy_in_resume(my_hard_skills, hard_skills, "hard skills")
+    relevant_soft_skills = research_relevancy_in_resume(my_soft_skills, soft_skills, "soft skills")
     relevant_responsibilities = research_relevancy_in_resume(my_responsibilities, duties, "responsibilities")
     prompt = """You are a professional cover letter writer. A Human candidate has asked you to generate a cover letter for them using a template. The template is given below:
     

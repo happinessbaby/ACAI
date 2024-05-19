@@ -11,7 +11,7 @@ from langchain.agents import AgentType, Tool, initialize_agent, create_json_agen
 from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json
 from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
-                            search_related_samples,  extract_personal_information, get_resume_info, get_job_posting_info)
+                            search_related_samples,  extract_personal_information, get_resume_info, get_job_posting_info, research_relevancy_in_resume)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
@@ -195,6 +195,12 @@ def tailor_resume(resume_file="", posting_path="", about_job=""):
     my_objective = get_resume_info["other fields"].get("summary or objective", "")
     my_soft_skills = get_resume_info["skills"].get("soft_skills", "")
     my_hard_skills = get_resume_info["skills"].get("hard_skills", "")
+    soft_skills = job_posting_dict["soft_skills"]
+    hard_skills = job_posting_dict["hard_skills"]
+    repetitive_phrases = job_posting_dict["repetitive_phrases"]
+    research_relevancy_in_resume(my_soft_skills, soft_skills, "intersection")
+    # For summary, skills, experience sections, add relevant job posting things
+    # For irrelevant things, make them into transferrable skills
     # query = f"""  You are an expert resume advisor. 
     #     Generate a list of relevant information that can be added to or replaced in the resume given the job description, job specification, and company description, whichever is available. 
     #     resume content: {resume_content}\n

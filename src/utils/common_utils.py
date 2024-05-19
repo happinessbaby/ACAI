@@ -668,7 +668,18 @@ def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
     return response
 
 
-
+class Skill(BaseModel):
+    skill:Optional[List[str]] = Field(
+        default=-1, description="a skill listed "
+    )
+    example:Optional[List[str]] = Field(
+        default=-1, description="how the skill is demonstrated, an elaboration of the skill, or examples"
+    )
+    type: Optional[str] = Field(
+        default=-1, description="type of skill, please categorize it as hard skill or soft skill only"
+    )
+class Skills(BaseModel):
+    skills : List[Skill]
 def research_skills(resume_content: str,  llm=ChatOpenAI()):
 
     """ Extracts soft skills and hard skills in the resume"""
@@ -680,7 +691,25 @@ def research_skills(resume_content: str,  llm=ChatOpenAI()):
     """
     prompt = PromptTemplate.from_template(query)
     chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=3, verbose=True)
-    response = chain.run({})
+    content = chain.run({})
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{content}"),
+            ]
+        )
+    runnable = prompt | llm.with_structured_output(schema=Skills)
+    response = runnable.invoke({"content": content}).dict()
+    print(response)
     return response
 
 
@@ -769,13 +798,13 @@ def calculate_work_experience_level(content: str, job_title:str,  llm=ChatOpenAI
     print(f"Successfully calculated work experience level: {response}")
     return response
 
-def research_relevancy_in_resume(resume_content, job_description, resume_content_type="", job_description_type=""):
+def research_relevancy_in_resume(resume_content, job_description, job_description_type="", llm=ChatOpenAI()):
 
     query_relevancy = f""" You are an expert resume advisor that helps a candidate match to a job. 
     
      You are given the {job_description_type} of a job description along with some of the candidate's resume content.
      
-     Generate a list of related {resume_content_type} in the resume content that reflects how the candidate would match to the {job_description_type}. 
+     Generate a list of related content in the resume content that reflects how the candidate would match to the {job_description_type}. 
      
     job description: {job_description} \n
 
@@ -783,8 +812,11 @@ def research_relevancy_in_resume(resume_content, job_description, resume_content
         
     Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
         """
-    tool = create_search_tools("google", 1)
-    relevancy = generate_multifunction_response(query_relevancy, tool)
+    # tool = create_search_tools("google", 1)
+    # relevancy = generate_multifunction_response(query_relevancy, tool)
+    prompt = PromptTemplate.from_template(query_relevancy)
+    chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=3, verbose=True)
+    relevancy = chain.run({})
     print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
     return relevancy
 
@@ -1040,7 +1072,7 @@ def search_related_samples(job_title: str, directory: str) -> List[str]:
 
 def get_resume_info(resume_path=""):
 
-    resume_info_dict = {resume_path: {}}
+    resume_info_dict = {resume_path: {"contact": {}, "other fields": {}, "education": {}, "skills":{}}}
     if (Path(resume_path).is_file()):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         # Extract contact information
@@ -1065,6 +1097,8 @@ def get_resume_info(resume_path=""):
         resume_info_dict[resume_path]["other fields"].update(field_content)
 
     print(resume_info_dict)
+    with open('./test_resume_info.json', 'w') as json_file:
+        json.dump(resume_info_dict, json_file, indent=4)
     return resume_info_dict
 
 
@@ -1106,6 +1140,8 @@ def get_job_posting_info(posting_path="", about_job="", ):
     else:
         job_posting_info_dict[job_posting].update({"company description": -1})
     print(job_posting_info_dict)
+    with open('./test_job_posting_info.json', 'w') as json_file:
+        json.dump(job_posting_info_dict, json_file, indent=4)
     return job_posting_info_dict
 
 

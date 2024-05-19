@@ -1,0 +1,63 @@
+{
+    "./my_material/deloitte.txt": {
+        "summary": "\nDeloitte US is seeking a Data Scientist Consultant in Huntsville, AL to join their Regulatory Compliance team and help clients achieve their mission goals through successful implementation of regulatory, mission, or compliance programs. The ideal candidate will have 2+ years of experience, a Bachelor's degree, and an active DoD Secret clearance. They will be responsible for understanding clients' business and data requirements, providing strategic advice on data infrastructure and technologies, defining key operation and data risk indicators, delivering actionable insights through data analytics and visualization, and assisting in the integration of data from various sources. This role requires strong communication, problem-solving, and analytical skills, and experience with data applications and database systems is preferred. ",
+        "ATS_keywords": [
+            "Data Scientist Consultant",
+            "AI & Analytics",
+            "Regulatory & Legal Support",
+            "Huntsville",
+            "Alabama",
+            "United States",
+            "Bachelor's degree",
+            "DoD Secret clearance",
+            "Microsoft Power BI",
+            "Psypark Programming",
+            "Palantir Foundry",
+            "Tableau",
+            "Deloitte Advisory"
+        ],
+        "repetitive_phrases": [
+            "data analytics",
+            "regulatory demands",
+            "data modeling",
+            "data infrastructure",
+            "compliance risks"
+        ],
+        "qualifications": [
+            "Bachelor\u2019s degree",
+            "2+ years of relevant experience",
+            "Active DoD Secret clearance",
+            "Proficiency in verbal and written communication skills",
+            "Excellent problem solving and critical thinking skills",
+            "Ability to synthesize data and convey information in a meaningful way"
+        ],
+        "duties": [
+            "Help clients understand their business and data requirements",
+            "Develop data sourcing and architecture strategies",
+            "Assess clients\u2019 current state regarding their data infrastructure",
+            "Define and calculate key operations and data risk indicator metrics",
+            "Deliver actionable insights using data visualization",
+            "Perform data analytics to answer RFIs",
+            "Assist integration of data from unique sources",
+            "Perform data modeling such as categorization and assist in wargame planning"
+        ],
+        "hard_skills": [
+            "Microsoft Power BI",
+            "Psypark Programming",
+            "Palantir Foundry",
+            "Tableau"
+        ],
+        "soft_skills": [
+            "Verbal and written communication",
+            "Problem solving",
+            "Critical thinking",
+            "Research",
+            "Data synthesis"
+        ],
+        "job": "Data Scientist Consultant",
+        "company": "Deloitte US",
+        "institution": -1,
+        "program": -1,
+        "company description": "Deloitte US is a global professional services firm that prioritizes respect, fairness, development, and well-being. They foster an inclusive culture and embrace diversity. Their mission is to deliver measurable impact through collaboration across businesses, geographies, and skills. They are committed to ethics, human rights, and society/environment."
+    }
+}
