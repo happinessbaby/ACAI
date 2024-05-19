@@ -10,15 +10,12 @@
             "website": "str or -1"
 
         }, 
-        "resume fields": {
-            "personal contact": "str or -1",
-            "work experience":"str or -1",
-            "education":"str or -1",
+        "other fields": {
             "summary or objective":"str or -1",
-            "skills":"str or -1",
             "awards and honors":"str or -1",
             "professional accomplishment":"str or -1",
-            "certification":"str or -1"
+            "certification":"str or -1",
+            "projects": "str or -1"
         },
         "education": {
             "degree":"str or -1",
@@ -26,8 +23,12 @@
             "graduation year":"str or -1",
             "gpa":"str or -1"
         },
-        "work experience": [
-            {"job_title": "str 0r -1", "start_date": "str or -1", "end_date": "str or -1"}
-        ]
+        "work_experience": [
+            {"job_title": "str or -1", "start_date": "str or -1", "end_date": "str or -1", "responsibilities":"str or -1"}
+        ],
+        "skills": {
+            "hard_skills": "",
+            "soft_skills": ""
+        }
     }
 }

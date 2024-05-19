@@ -8,7 +8,9 @@
         "company description": "str or -1",
         "ATS_keywords": "List[str] or -1",
         "repetitive_phrases": "List[str] or -1",
-        "competencies":"List[str] or -1",
-        "responsibilities":"List[str] or -1"
+        "qualifications":"List[str] or -1",
+        "duties":"List[str] or -1",
+        "hard_skills": "List[str] or -1",
+        "soft_skills": "List[str] or -1"
     }
 }

@@ -50,7 +50,7 @@ from st_btn_select import st_btn_select
 from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
 from backend.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
-from backend.upgrade_resume import evaluate_resume, research_resume_type, reformat_chronological_resume, reformat_student_resume, reformat_functional_resume, customize_resume
+from backend.upgrade_resume import evaluate_resume, research_resume_type, reformat_chronological_resume, reformat_student_resume, reformat_functional_resume, tailor_resume
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your
@@ -449,7 +449,7 @@ class Chat():
                 resume_type=research_resume_type(st.session_state["resume_path"])
                 self.template_popup(resume_type)
         elif st.session_state.cl_type_selection==options[4]:
-            customize_resume(resume_file=st.session_state["resume_path"], 
+            tailor_resume(resume_file=st.session_state["resume_path"], 
                                         posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                         about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "")
 

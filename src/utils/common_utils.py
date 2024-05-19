@@ -345,17 +345,17 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     
     """
 
-    field_names = ["Personal Information", "Work Experience", "Education", "Summary or Objective", "Skills", "Awards and Honors", "Voluntary Experience", "Activities and Hobbies", "Professional Accomplishment"]
-    contact_schema = ResponseSchema(name="personal contact",
-                             description="Extract the personal contact section of the resume. If this information is not found, output -1")
-    work_schema = ResponseSchema(name="work experience",
-                                        description="Extract the work experience section of the resume. If this information is not found, output -1")
-    education_schema = ResponseSchema(name="education",
-                                        description="Extract the education section of the resume. If this information is not found, output -1")
+    # field_names = ["Personal Information", "Work Experience", "Education", "Summary or Objective", "Skills", "Awards and Honors", "Voluntary Experience", "Activities and Hobbies", "Professional Accomplishment"]
+    # contact_schema = ResponseSchema(name="personal contact",
+    #                          description="Extract the personal contact section of the resume. If this information is not found, output -1")
+    # work_schema = ResponseSchema(name="work experience",
+    #                                     description="Extract the work experience section of the resume. If this information is not found, output -1")
+    # education_schema = ResponseSchema(name="education",
+    #                                     description="Extract the education section of the resume. If this information is not found, output -1")
     objective_schema = ResponseSchema(name="summary or objective",
                                         description="Extract the summary of objective section of the resume. If this information is not found, output -1")
-    skills_schema = ResponseSchema(name="skills", 
-                                 description="Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1")
+    # skills_schema = ResponseSchema(name="skills", 
+    #                              description="Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1")
     awards_schema = ResponseSchema(name="awards and honors", 
                                    description="Extract the awards and honors sections of the resume.  If this information is not found, output -1")
     accomplishments_schema = ResponseSchema(name="professional accomplishment", 
@@ -363,32 +363,33 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
                                    Professional accomplishment should be composed of trainings, skills, projects that the applicant learned or has done. 
                                    .  If this information is not found, output -1""")
     certification_schema = ResponseSchema(name="certification", 
-                                description="""Extract the certification sections of the resume. Extract only names of certifications, names of certifying agencies, if applicable,  
+                                description="""Extract the certification sections of the resume. Extract names of certifications, names of certifying agencies, if applicable,  
                                                 dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1""")
+    project_schema = ResponseSchema(name="projects", 
+                                    description="Extract the project section of the resume. If this information is not fount, output -1")
     
-    response_schemas = [contact_schema, 
-                        work_schema,
-                        education_schema, 
+    response_schemas = [
+                        # contact_schema, 
+                        # work_schema,
+                        # education_schema, 
                         objective_schema, 
-                        skills_schema,
+                        # skills_schema,
                         awards_schema,
                         accomplishments_schema,
                         certification_schema,
+                        project_schema,
                         ]
 
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     format_instructions = output_parser.get_format_instructions()
+    # personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
+    # work experience: Extract the work experience section of the resume. If this information is not found, output -1\
+    # education: Extract the education section of the resume. If this information is not found, output -1\
+    # skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
     template_string = """For the following text, delimited with {delimiter} chracters, extract the following information:
-
-    personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
-
-    work experience: Extract the work experience section of the resume. If this information is not found, output -1\
-
-    education: Extract the education section of the resume. If this information is not found, output -1\
     
     summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
 
-    skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
 
     awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
     
@@ -397,7 +398,9 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
                                 If this information is not found, output -1\
                     
     certification: Extract the certification sections of the resume. Extract only names of certification, names of certifying agencies, if applicable,  
-                    dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1
+                    dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1 \
+    
+    projects: Extract the project section of the resume. If this information is not fount, output -1 \
 
     text: {delimiter}{text}{delimiter}
 
@@ -447,11 +450,17 @@ class Keywords(BaseModel):
     repetitive_phrases: Optional[List[str]] = Field(
         default=-1, description="Repetitive phrases (2 or 3 words) that appears in the job posting, ignore job benefits"
     )
-    competencies: Optional[List[str]] = Field(
-        default=-1, description="Traits/desired competencies sought in a candidate in the job posting"
+    qualifications: Optional[List[str]] = Field(
+        default=-1, description="Traits/qualifications sought in a candidate in the job posting"
     )
-    responsibilities: Optional[List[str]] = Field(
-        default=-1, description="Job duties/qualifications/hard skills in the job posting"
+    duties: Optional[List[str]] = Field(
+        default=-1, description="Job duties/responsibilities in the job posting"
+    )
+    hard_skills:Optional[List[str]] = Field(
+        default=-1, description="Hard skills in the job posting"
+    )
+    soft_skills:Optional[List[str]] = Field(
+        default=-1, description="Soft skills in the job posting"
     )
 
 def extract_posting_keywords(posting_content:str, llm = ChatOpenAI()) -> List[str]:
@@ -627,12 +636,14 @@ class Job(BaseModel):
     end_date: Optional[str] = Field(
       default=-1, description = "the end date of the job position if available"
       )
+    responsibilities: Optional[str] = Field(
+      default=-1, description = "the responsibilities or roles of the job position"
+      )
 class Jobs(BaseModel):
     """Extracted data about people."""
-
     # Creates a model so that we can extract multiple entities.
-    jobs: List[Job]
-def extract_job_titles(experience_content: str, llm=ChatOpenAI()) -> List[str]:
+    work_experience: List[Job]
+def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
     """Extract job titles from resume """
 
@@ -648,13 +659,31 @@ def extract_job_titles(experience_content: str, llm=ChatOpenAI()) -> List[str]:
         # Please see the how-to about improving performance with
         # reference examples.
         # MessagesPlaceholder('examples'),
-        ("human", "{work_experience}"),
+        ("human", "{content}"),
             ]
         )
     runnable = prompt | llm.with_structured_output(schema=Jobs)
-    response = runnable.invoke({"work_experience": experience_content}).dict()
+    response = runnable.invoke({"content": content}).dict()
     print(response)
     return response
+
+
+
+def research_skills(resume_content: str,  llm=ChatOpenAI()):
+
+    """ Extracts soft skills and hard skills in the resume"""
+    query = f"""Extract the soft and hard skills from the resume.
+    Soft skills examples are problem-solving, communication, time management, etc.
+    Hard skills are specific for an industry or a job. They are usually techincal.
+    Please draw all your answers from the resume content:
+    resume: {resume_content}
+    """
+    prompt = PromptTemplate.from_template(query)
+    chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=3, verbose=True)
+    response = chain.run({})
+    return response
+
+
 
 def calculate_work_experience_years(start_date, end_date) -> Optional[int]:
      
@@ -740,34 +769,23 @@ def calculate_work_experience_level(content: str, job_title:str,  llm=ChatOpenAI
     print(f"Successfully calculated work experience level: {response}")
     return response
 
-def research_relevancy_in_resume(resume_content, job_specification):
+def research_relevancy_in_resume(resume_content, job_description, resume_content_type="", job_description_type=""):
 
-    query_relevancy = f""" You are an expert resume advisor. 
+    query_relevancy = f""" You are an expert resume advisor that helps a candidate match to a job. 
     
-     Step 1: Determine the relevant and irrelevant information contained in the resume content delimited with {delimiter} characters.
+     You are given the {job_description_type} of a job description along with some of the candidate's resume content.
+     
+     Generate a list of related {resume_content_type} in the resume content that reflects how the candidate would match to the {job_description_type}. 
+     
+    job description: {job_description} \n
 
-      resume content: {delimiter}{resume_content}{delimiter} \n
-
-      Generate a list of irrelevant information that should not be included according to the following job specification/job description .
-
-      job specification: {job_specification}
-
-        Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
+    resume content: {resume_content} \n
         
-        For example, your answer may look like this:
-
-        Relevant information:
-
-        1. Python, Spark: Spark and Python are languages/tools listed in the job specification
-
-        Irrelevant information:
-
-        1. Education in Management of Human Resources is not directly related to skills required for a [job title] at [company] that required these [skills] instead 
-
-
+    Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
         """
     tool = create_search_tools("google", 1)
     relevancy = generate_multifunction_response(query_relevancy, tool)
+    print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
     return relevancy
 
 
@@ -1025,11 +1043,9 @@ def get_resume_info(resume_path=""):
     resume_info_dict = {resume_path: {}}
     if (Path(resume_path).is_file()):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        # Extract contact information
         personal_info_dict = extract_personal_information(resume_content)
         resume_info_dict[resume_path]["contact"].update(personal_info_dict)
-        # Extract general resume fields
-        field_content = extract_resume_fields3(resume_content)
-        resume_info_dict[resume_path]["resume fields"].update(field_content)
         # Extract education specific information
         education_info_dict = extract_education_information(resume_content)
         resume_info_dict[resume_path]["education"].update(education_info_dict)
@@ -1039,8 +1055,14 @@ def get_resume_info(resume_path=""):
         else:
             resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
         # Extract job experience specific information
-        jobs = extract_job_titles(resume_content)
+        jobs = extract_job_experiences(resume_content)
         resume_info_dict[resume_path].update(jobs)
+        # Extract hard skills and soft skills
+        skills = research_skills(resume_content)
+        resume_info_dict[resume_path].update(skills)
+        # Extract other resume fields
+        field_content = extract_resume_fields3(resume_content)
+        resume_info_dict[resume_path]["other fields"].update(field_content)
 
     print(resume_info_dict)
     return resume_info_dict

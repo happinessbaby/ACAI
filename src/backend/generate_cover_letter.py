@@ -8,7 +8,7 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from utils.basic_utils import read_txt, process_json, convert_doc_to_txt, write_file
-from utils.common_utils import (extract_personal_information, get_web_resources, extract_pursuit_information,
+from utils.common_utils import (extract_personal_information, get_web_resources, extract_pursuit_information,get_resume_info, get_job_posting_info,
                                  retrieve_from_db,  search_related_samples, research_relevancy_in_resume)
 from datetime import date
 from pathlib import Path
@@ -80,7 +80,8 @@ def generate_basic_cover_letter(about_job="" or "-1", resume_file="",  posting_p
     local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     # Get resume info
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    info_dict = get_generated_responses(resume_path=resume_file, about_job=about_job, posting_path=posting_path)
+    info_dict = get_resume_info(resume_path=resume_file, 
+                                about_job=about_job, posting_path=posting_path)
     highest_education_level = info_dict.get("highest education level", "")
     work_experience_level = info_dict.get("work experience level", "")
     job_specification = info_dict.get("job specification", "")
@@ -218,7 +219,8 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     # Part 1: Insert user information into template
     template_file = "./backend/cover_letter_templates/template1.docx"
     cover_letter_template = DocxTemplate(template_file)
-    info_dict = get_generated_responses(resume_path=resume_file, posting_path=job_posting_file, about_job=job_description, generate_specifics=True)
+    resume_dict = get_resume_info(resume_path=resume_file, )
+    job_posting_dict= get_job_posting_info(posting_path=job_posting_file, about_job=job_description, )
     func = lambda key, default: default if key not in info_dict or info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
@@ -235,28 +237,35 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     cover_letter_template.save(save_path) 
 
     # Part 2: Compose cover letter draft with additional information
-    company_description=info_dict.get("company description", "")
-    job_specification=info_dict.get("job specification", "")
-    skills = info_dict.get("skills", "")
-    work_experience = info_dict.get("work experience", "")
-    relevancy = research_relevancy_in_resume(skills+"\n"+work_experience, job_specification)
-
-    prompt = """You are a professional cover letter writer. A Human client has asked you to generate a cover letter for them using a template. The template is given below:
+    company_description=job_posting_dict.get("company description", "")
+    duties = job_posting_dict.get("duties", "")
+    traits=job_posting_dict.get("qualifications", "")
+    important_keywords = job_posting_dict.get("repetitive_phrases", "")
+    soft_skills=job_posting_dict.get("soft_skills", "")
+    hard_skills = job_posting_dict.get("hard_skills", "")
+    my_soft_skills = resume_dict["skills"].get("soft_skills", "")
+    my_hard_skills = resume_dict["skills"].get("hard_skills", "")
+    my_work_experience = resume_dict.get("jobs", "")
+    relevant_hard_skills = research_relevancy_in_resume(my_hard_skills, hard_skills, "skills")
+    relevant_soft_skills = research_relevancy_in_resume(my_soft_skills, soft_skills, "skills")
+    relevant_responsibilities = research_relevancy_in_resume(my_responsibilities, duties, "responsibilities")
+    prompt = """You are a professional cover letter writer. A Human candidate has asked you to generate a cover letter for them using a template. The template is given below:
     
     Cover letter template {cover_letter_template}      
 
     There are still missing information in brackets that needs to be filled in. Your job is to help fill in the rest of the cover letter with the following information:
 
     Company mission: {company_mission} \
-
-    Job specification: {job_specification} \
     
-    client's Relevant skills and experience: {relevant_skills} \
+    candidate's relevant hard skills: {relevant_hard_skills} \
+    
+    candidate's relevant soft skills: {relevant_soft_skills} \
+    
+    candidate's relevant work experience responsibilities: {relevant_responsibilities}
     
     Please output the cover letter only. 
     
     """
-
     tmp_filename= Path(save_path).stem+Path(save_path).suffix
     convert_doc_to_txt(save_path, "docx", tmp_filename)
     cover_letter = read_txt(tmp_filename)
@@ -265,9 +274,10 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     # print(prompt_template.messages[0].prompt.input_variables)
     cover_letter_message = prompt_template.format_messages(
                     cover_letter_template=cover_letter,
-                    job_specification = job_specification,
                     company_mission=company_description,
-                    relevant_skills=relevancy, )
+                    relevant_hard_skills=relevant_hard_skills,
+                     relevant_soft_skills=relevant_soft_skills, 
+                     relevant_responsibilities=relevant_responsibilities,)
     my_cover_letter = llm(cover_letter_message).content
     print(f"Sucessfully written cover letter: {my_cover_letter}")
     write_file(my_cover_letter, "./cl_final_test.txt")
