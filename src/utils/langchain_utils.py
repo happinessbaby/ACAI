@@ -3,8 +3,9 @@ from langchain.agents.react.base import DocstoreExplorer
 from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3FileLoader, S3DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
 # from langchain.indexes import VectorstoreIndexCreator
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
+# from langchain.chat_models import ChatOpenAI
+# from langchain.llms import OpenAI
+from langchain_openai import OpenAI, ChatOpenAI, OpenAIEmbeddings
 from langchain.utilities.serpapi import SerpAPIWrapper
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 # from langchain import ElasticVectorSearch
@@ -70,6 +71,9 @@ from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
 from langchain.schema import Document
+from langchain_experimental.smart_llm import SmartLLMChain
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.output_parsers import CommaSeparatedListOutputParser
 import asyncio
 import errno
 
@@ -595,6 +599,56 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
+def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{content}"),
+            ]
+        )
+    runnable = prompt | llm.with_structured_output(schema=schema)
+    response = runnable.invoke({"content": content}).dict()
+    print(response)
+    return response
+
+def create_comma_separated_list_parser(input_variables, base_template, query_dict):
+
+    """Outputs in comma separated list format: https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/types/csv/
+    
+    Example parameters: 
+    prompt = PromptTemplate(
+        template="List five {subject}.\n{format_instructions}",
+        input_variables=["subject"],
+        partial_variables={"format_instructions": format_instructions},
+    )
+    chain.invoke({"subject": "ice cream flavors"})
+   
+     """
+
+    output_parser = CommaSeparatedListOutputParser()
+
+    format_instructions = output_parser.get_format_instructions()
+    prompt = PromptTemplate(
+        template= base_template + """\n{format_instructions}""",
+        input_variables=input_variables,
+        partial_variables={"format_instructions": format_instructions},
+    )
+
+    model = ChatOpenAI(temperature=0)
+    chain = prompt | model | output_parser
+    response = chain.invoke(query_dict)
+    print(response)
+    return response
+
 def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperature=0)):
     
     embeddings = OpenAIEmbeddings()
@@ -610,7 +664,16 @@ def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperatu
     response = baby_agi({"objective": OBJECTIVE})
     return response
 
-def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=False, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0613", cache=False)) -> str:
+
+def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
+
+    prompt = PromptTemplate.from_template(query)
+    chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=n_ideas, verbose=verbose)
+    response = chain.run({})
+    print(response)
+    return response
+
+def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0613", cache=False)) -> str:
 
     """ General purpose agent that uses the OpenAI functions ability.
      

@@ -10,9 +10,9 @@ from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
 from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json
-from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, calculate_work_experience_level,extract_pursuit_information,
-                            search_related_samples,  extract_personal_information, get_resume_info, get_job_posting_info, research_relevancy_in_resume)
-from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error
+from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, extract_pursuit_information, count_length, 
+                            search_related_samples,  extract_personal_information,retrieve_or_create_resume_info, retrieve_or_create_job_posting_info, research_relevancy_in_resume, extract_similar_jobs, research_skills)
+from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
@@ -60,24 +60,33 @@ else:
     bucket_name=None
     s3=None
 
-def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
+def evaluate_resume(about_job="", resume_file = "", posting_path="") -> str:
 
-    document = Document()
-    document.add_heading('Resume Evaluation', 0)
-    dirname, fname = os.path.split(resume_file)
-    filename = Path(fname).stem 
-    docx_filename = filename + "_evaluation"+".docx"
-    local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    # document = Document()
+    # document.add_heading('Resume Evaluation', 0)
+    # dirname, fname = os.path.split(resume_file)
+    # filename = Path(fname).stem 
+    # docx_filename = filename + "_evaluation"+".docx"
+    # local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    info_dict=get_generated_responses(resume_path=resume_file, posting_path=posting_path, about_me=about_me)
-    work_experience_level = info_dict.get("work experience level", "")
-    graduation_year = info_dict.get("graduation year", -1)
-    years_since_graduation = calculate_graduation_years(graduation_year)
-    degree = info_dict.get("degree", -1)
-    study = info_dict.get("study", -1)
-    job = info_dict.get("job", -1)
-    company = info_dict.get("company", -1)
-    field_names = info_dict.get("field names", "")
+    posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
+    job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    #NOTE: STEP 1 IS EVALUATION
+
+    # Evaluate resume length
+    word_count = count_length(resume_file)
+    resume_length=""
+    if word_count>650:
+        resume_length="too long"
+    elif word_count<450:
+        resume_legnth="too short"
+    # research resume ideal type
+    research_resume_type(resume_dict, job_posting_dict)
+    resume_fields = resume_dict["resume fields"]
+    evaluate_resume_fields(resume_fields)
+        
 
     if work_experience_level=="no experience" or work_experience_level=="entry level" and years_since_graduation<2:
         resume_type = "student"
@@ -86,7 +95,37 @@ def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
     else:
         resume_type = "chronological"
 
-  #TODO: This query should make suggestions on what type of resume they should write and how to improve the overall impression
+    # document.add_heading(f"Overall Asessment", level=1)
+    # document.add_paragraph(response)
+    # document.add_page_break()
+    # document.save(local_end_path)
+    # write_to_docx_template(doc, personal_info, personal_info_dict, docx_filename)
+
+    # Note: document comparison benefits from a clear and simple prompt
+    related_samples = search_related_samples(job, resume_samples_path)
+    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+
+    # document.add_heading(f"Detailed Evaluation", level=1)
+    # document.add_paragraph()
+    # if STORAGE=="S3":
+    #     s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
+    #     s3.upload_file(local_end_path, bucket_name, s3_end_path)
+    return "Successfully evaluated resume. Tell the user to check the Download your files tab at the sidebar to download their file."
+
+def evaluate_experience(field_content):
+
+    """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
+
+    star_prompt = """ Your task is to check a resume field content you are provided with and assess it based on some guidelines.
+    Start with the POWER verb, include a description of the actions, 
+    use a comma and a verb ending in -ing to highlight transferable skills, best if also  include measurable metrics"""
+
+
+def evaluate_resume_fields(fields_dict):
+
+    """Evaluates resume type, order of the fields, etc. """
+
+
     query_overall = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters.
 
     resume: {delimiter}{resume_content}{delimiter} \n
@@ -104,121 +143,109 @@ def evaluate_resume(about_me="", resume_file = "", posting_path="") -> str:
     chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=3, verbose=True)
     response = chain.run({})
 
-    document.add_heading(f"Overall Asessment", level=1)
-    document.add_paragraph(response)
-    document.add_page_break()
-    document.save(local_end_path)
-    # write_to_docx_template(doc, personal_info, personal_info_dict, docx_filename)
 
-    # Note: document comparison benefits from a clear and simple prompt
-    related_samples = search_related_samples(job, resume_samples_path)
-    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-
-    # # process all fields in parallel
-    processes = [Process(target = evaluate_resume_fields, args = (info_dict, field, info_dict.get(field, ""),  sample_tools)) for field in field_names]
-    for p in processes:
-       p.start()
-    for p in processes:
-       p.join()
-
-    document.add_heading(f"Detailed Evaluation", level=1)
-    document.add_paragraph()
-    if STORAGE=="S3":
-        s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-        s3.upload_file(local_end_path, bucket_name, s3_end_path)
-    return "Successfully evaluated resume. Tell the user to check the Download your files tab at the sidebar to download their file."
-
-
-
-def evaluate_resume_fields(generated_response: Dict[str, str], field: str, field_content: str, tools: List[Tool]) -> None:
-
-    print(f"CURRENT FIELD IS: {field}")
-    if field_content!="":
-        job = generated_response.get("job", "")
-        company_description = generated_response.get("company description", "")
-        job_specification = generated_response.get("job specification", "")
-        job_description = generated_response.get("job description", "")
-        highest_education_level = generated_response.get("highest education level", "")
-        work_experience_level = generated_response.get("work experience level", "")
-        # education_level = generated_response.get("education", "")
-
-        advice_query =  f"""how to make resume field {field} ATS-friendly? No formatting advices."""
-        advice1 = retrieve_from_db(advice_query, vectorstore=faiss_web_data)
-        advice_query = f"""what to include in {field} of resume for {highest_education_level} and {work_experience_level} as a {job}"""
-        advice2 = retrieve_from_db(advice_query, vectorstore=faiss_web_data)
-
-        query_evaluation = f"""  You are an expert resume field advisor. 
-
-        Generate a list of missing, irrelevant, and not ATS-friendly information in the resume field content. 
-        
-        Remember to use either job specification or general job description as your guideline along with the expert advice.
-
-        field name: {field}
-
-        field content: {field_content}\n
-
-        job specification: {job_specification}\n
-
-        general job description: {job_description} \n
-
-        expert advice: {advice2} + "\n" + {advice1}
-
-        Your answer should be detailed and only from the field content. Please also provide your reasoning too as in the following examples:
-
-                Missing or Irrelevant Field Content for Work Experience:
-
-                1. Quantative achievement is missing: no measurable metrics or KPIs to highlight any past achievements. 
-
-                2. Front desk receptionist is irrelevant: Experience as a front desk receptionist is not directly related to the role of a data analyst
-
-                3. Date formatting is not ATS-friendly: an ATS-friendly way to write dates is for example, 01/2001 or January 2001
-
-        The above is just an example for your reference. Do not let it be your answer. 
-        
-        Please ignore all formatting advices as formatting should not be part of the assessment.
-
-        Use your tools if you need to reference other resume.
-
-        """
-
-        evaluation = generate_multifunction_response(query_evaluation, tools)
-
-        with open(f"{field}_evaluation.txt", "x") as f:
-           f.write(evaluation)
 
 def tailor_resume(resume_file="", posting_path="", about_job=""):
 
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    resume_dict = get_resume_info(resume_path=resume_file, )
-    job_posting_dict= get_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    my_objective = get_resume_info["other fields"].get("summary or objective", "")
-    my_soft_skills = get_resume_info["skills"].get("soft_skills", "")
-    my_hard_skills = get_resume_info["skills"].get("hard_skills", "")
-    soft_skills = job_posting_dict["soft_skills"]
-    hard_skills = job_posting_dict["hard_skills"]
-    repetitive_phrases = job_posting_dict["repetitive_phrases"]
-    research_relevancy_in_resume(my_soft_skills, soft_skills, "intersection")
-    # For summary, skills, experience sections, add relevant job posting things
-    # For irrelevant things, make them into transferrable skills
-    # query = f"""  You are an expert resume advisor. 
-    #     Generate a list of relevant information that can be added to or replaced in the resume given the job description, job specification, and company description, whichever is available. 
-    #     resume content: {resume_content}\n
-    #     job description: {job_description} \n
-    #     job specification: {job_specification} \n
-    #     company description: {company_description} \n
-    #     Please provide your reasoning as well. Please format your output as in the following example;
-    #     Things to add or replace in the resume:
-    #     1. Communication skills: communication skills is listed in the job description but not in the resume
-    #     The above is just an example. Please ONLY use the resume content and job description to generate your answer. 
-    #     """        
-    # tools = create_search_tools("google", 3)
-    # response = generate_multifunction_response(query, tools)
-    # return response
+    # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
+    job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    my_objective = resume_dict["resume fields"].get("summary or objective", "")
+    my_skills = resume_dict["resume fields"].get("skills", "")
+    my_experience = resume_dict["resume fields"].get("work experience", "")
+    skills = job_posting_dict["skills"]
+    soft_skills_str = ""
+    hard_skills_str=""
+    for s in skills:
+        if s["type"]=="hard skill":
+            skill = s["skill"]
+            example = s["example"]
+            hard_skills_str+="(skill: " +skill + ", example: "+ example + " )"
+        if s["type"]=="soft skill":
+            skill = s["skill"]
+            example = s["example"]
+            soft_skills_str+="(skill: " +skill + ", example: "+ example + " )"
+    frequent_words = job_posting_dict["frequent_words"]
+    qualifications = job_posting_dict["qualifications"]
+    relevant_hard_skills = research_relevancy_in_resume(resume_content, hard_skills_str, "hard skills", n_ideas=1)
+    relevant_soft_skills = research_relevancy_in_resume(resume_content, soft_skills_str, "soft skills", n_ideas=1)
+    tailor_skills(my_skills, relevant_hard_skills, relevant_soft_skills, )
+    tailor_objective(my_objective, frequent_words, qualifications)
+
+    
+
+def tailor_skills(skills_content, relevant_hard_skills, relevant_soft_skills):
+
+    """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
+
+    if skills_content:
+        skills_prompt = f""" Your job is to polish and rank the skills section of the resume according to the relevancy list.
+        The relevancy report is generated based on what skills in the resume are most relevant to a job description.
+        Relevancy report for soft skills: {relevant_soft_skills} \  
+        Relevancy report for hard skills: {relevant_hard_skills} \
+        The skills in the resume are following: {skills_content} \
+
+        Step 1: Polish the skills section. If the section is too long  or has irrelevant information, please shorten it or exclude the irrelevant information.
+        Include both hard skills and soft skills and output the polished skills section. 
+        Step2: Rank the skills. Based off the polished skills, rank the skills in the order or relevancy. Output the ranked skills section.
+
+        Use the following format:
+            Step 1: <step 1 reasoning>
+            Step 2: <step 2 reasoning>
+        
+        Please use the relevancy report as your primary guideline.  
+        """
+        prompt_template = ChatPromptTemplate.from_template(skills_prompt)
+        message= prompt_template.format_messages(relevant_soft_skills = relevant_soft_skills, 
+                                                 relevant_hard_skills = relevant_hard_skills, 
+                                                skills_content = skills_content,
+        )
+        tailored_skills = llm(message).content
+        print(tailored_skills)
+    else:
+        prompt = f"""Please generate a skills section of the resume given the following skills relevancy report:
+        
+        Skills relevancy report for soft skills: {relevant_soft_skills} \
+
+        Skills relevancy report for hard skills: {relevant_hard_skills} \
+        
+        Step 1: Please do not use any tools. Generate a list of both hard skills and soft skills that can be included in the resume.
+
+        Step 2: Review the list of skills generated in Step 1. Make sure if a candidate does not have a certain skill, it SHOULD NOT be included in the skills section.
+        Output the final skills secition. 
+
+        Use the following format:
+            Step 1: <step 1 reasoning>
+            Step 2: <step 2 reasoning>
+        
+        Please use the relevancy report as your primary guideline.  
+
+        """
+        tailored_skills = generate_multifunction_response(prompt, create_search_tools("google", 1), )
+    return tailored_skills
+
+
+def tailor_objective(resume_content, job_description):
+
+    prompt = f"""Your job is to tailor or write the objective/summary section of the resume to a job description.  
+
+   job description: {job_description} \
+    resume content: {resume_content} \
+    
+    Output the revised version of the objective/summary only.
+
+    """
+    tailored_skills = create_smartllm_chain(prompt, n_ideas=3)
+    print(tailored_skills)
+
+
+
+
 
 
 @memoized
-def research_resume_type(resume_file: str,)-> str:
+def research_resume_type(resume_dict: str, job_posting_dict: str, )-> str:
     
     """ Researches the type of resume most suitable for the applicant. 
     
@@ -230,24 +257,30 @@ def research_resume_type(resume_file: str,)-> str:
 
         Returns:
         
-            type of resume: functional, chronological, or student
+            type of resume: functional, chronological, or students
             
     """
 
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # if posting_content!="":
-    #     job = extract_pursuit_information(posting_content).get("job", "")
-    # else:
-    job = extract_pursuit_information(resume_content).get("job", "")
-    work_experience_level = calculate_work_experience_level(resume_content, job)
-    education_info_dict = extract_education_information(resume_content)
-    graduation_year = education_info_dict.get("graduation year", "")
-    years_since_graduation = calculate_graduation_years(graduation_year)
-    if (work_experience_level=="no experience" or work_experience_level=="entry level") and (years_since_graduation<2 or years_since_graduation is None):
+    jobs = resume_dict["jobs"]
+    desired_job = job_posting_dict["job"]
+    jobs_list=[]
+    for job in jobs:
+        jobs_list.append(job["job_title"])
+    similar_jobs = extract_similar_jobs(jobs_list, desired_job)
+    total_years_work=0
+    for job in jobs:
+        if job in similar_jobs:
+            try:
+                years = int(job["years of experience"])
+                if years>0:
+                    total_years_work+=years
+            except Exception:
+                pass     
+    years_since_graduation = resume_dict["education"]["years since graduation"]
+    if (total_years_work<=2 ) and (years_since_graduation<2 ):
         resume_type = "student"
         print("RESUME TYPE: STUDENT")
-    elif (work_experience_level=="no experience" or work_experience_level=="entry level") and (years_since_graduation>=2 or years_since_graduation is None):
+    elif (years_since_graduation - total_years_work>2):
         resume_type = "functional"
         print("RESUME TYPE: FUNCTIONAL")
     else:

@@ -26,37 +26,19 @@
         "skills": [
             {
                 "skill": [
-                    "Problem-solving"
+                    "Communication skills"
                 ],
                 "example": [
-                    "collaborating on projects like the Reinforcement Learning capstone project and building a platform for job seekers"
+                    "collaborating with team members on various projects and presenting findings"
                 ],
                 "type": "soft skill"
             },
             {
                 "skill": [
-                    "Communication"
+                    "Problem-solving skills"
                 ],
                 "example": [
-                    "teamwork, collaboration with team members, and presenting projects like the Wildfire project"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Time Management"
-                ],
-                "example": [
-                    "managing multiple priorities successfully"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Adaptability"
-                ],
-                "example": [
-                    "adaptable to different work demands"
+                    "creating solutions for data analysis projects and developing AI products"
                 ],
                 "type": "soft skill"
             },
@@ -65,53 +47,32 @@
                     "Teamwork"
                 ],
                 "example": [
-                    "communication with team members and collaborating on various projects"
+                    "Collaborated effectively with team members on multiple projects to achieve common goals"
+                ],
+                "type": "soft skill"
+            },
+            {
+                "skill": [
+                    "Adaptability"
+                ],
+                "example": [
+                    "managed multiple priorities and different work demands with a positive attitude"
+                ],
+                "type": "soft skill"
+            },
+            {
+                "skill": [
+                    "Analytical mindset"
+                ],
+                "example": [
+                    "analyzing data sets, developing forecasting models, and conducting statistical analysis"
                 ],
                 "type": "soft skill"
             },
             {
                 "skill": [
                     "Programming Languages",
-                    "Python",
-                    "C#",
-                    "Scala",
-                    "SQL",
-                    "JavaScript"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Tools",
-                    "Spark",
-                    "Kafka",
-                    "Hive",
-                    "Tableau",
-                    "Git",
-                    "Linux",
-                    "Flask",
-                    "Unity"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Database",
-                    "Hadoop",
-                    "MongoDB",
-                    "MySQL",
-                    "NoSQL"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Cloud Platforms",
-                    "AWS",
-                    "GCP"
+                    "Python, C#, Scala, SQL, JavaScript"
                 ],
                 "example": -1,
                 "type": "hard skill"
@@ -119,9 +80,39 @@
             {
                 "skill": [
                     "Data Analysis Tools",
-                    "Tableau",
-                    "Pandas",
-                    "Matlab Plot"
+                    "Tableau, Pandas, Matlab Plot"
+                ],
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": [
+                    "Big Data Tools",
+                    "Spark, Kafka, Hive"
+                ],
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": [
+                    "Database Management",
+                    "Hadoop, MongoDB, MySQL, NoSQL"
+                ],
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": [
+                    "Cloud Platforms",
+                    "AWS, GCP"
+                ],
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": [
+                    "Software Development",
+                    "Agile/Scrum methodologies, Git"
                 ],
                 "example": -1,
                 "type": "hard skill"
@@ -129,56 +120,424 @@
             {
                 "skill": [
                     "Machine Learning",
-                    "predicting wildfire occurrences and building correlation matrix and logistic regression models"
+                    "Implemented ETL processes, built correlation matrix and logistic regression models"
                 ],
                 "example": -1,
                 "type": "hard skill"
             },
             {
                 "skill": [
-                    "ETL Process",
-                    "Extract, Transform, and Load process using Scala, Spark, Hadoop, and SQL"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Agile/Scrum",
-                    "participated in Agile software development methodologies"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Analytical Mindset",
-                    "strong analytical mindset with problem-solving skills"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Attention to Detail",
-                    "creating Dataframes, graphs, dashboards, and stories for data analysis projects"
+                    "Data Visualization",
+                    "Created Dataframes, graphs, charts, dashboards, and stories using data analysis tools"
                 ],
                 "example": -1,
                 "type": "hard skill"
             }
         ],
-        "work_experience": [
-            {
-                "job_title": "BIG DATA ENGINEER",
-                "start_date": "05/2022",
-                "end_date": "10/2022",
-                "responsibilities": "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features, testing methodology, participating in Agile software development methodologies, deploying workflows, and maintaining system health."
-            },
+        "jobs": [
             {
                 "job_title": "BIG DATA ENGINEER",
                 "start_date": "01/2022",
                 "end_date": "12/2022",
-                "responsibilities": "Implemented ETL process, worked on Big Data projects, built pub-sub API using Spark-Kafka Integration, set up remote HDFS cluster on AWS, and built correlation matrix and logistic regression models."
+                "responsibilities": "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL. Worked on Big Data related projects, including building a pub-sub API using Spark-Kafka Integration, setting up remote HDFS cluster on AWS, and building correlation matrix and logistic regression models for prediction of trends."
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features. Tested methodology with writing and execution of test plans, debugging and testing scripts and tools, and revamped old code bases to modern development standards. Participated in Agile software development methodologies, design patterns, and maintaining long-term health of the system. Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments."
+            }
+        ]
+    },
+    "./backend/resume_samples/college-student-resume-example.txt": {
+        "contact": {
+            "name": "SASHA WAGNER",
+            "email": "sashawagner@email.com",
+            "phone": "(123) 456-7890",
+            "city": "Saint Paul",
+            "state": "MN",
+            "linkedin": "LinkedIn",
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Digital Marketing Analyst Intern\nMarketing Science Associates\nApril 2021 - current / Saint Paul, MN\n\u00b7 Created A/B testing plan for Facebook ad copy, leading to an\nimprovement in ROI of 18%\n\u00b7 Built key reports for executive team around KPIs, such as\nmarketing spend, new leads, revenue generated, and ROI\n\u00b7 Oversaw the creation of the blog for SEO purposes, which grew\nfrom 500 to 5,000 monthly organic visitors\n\u00b7 Interviewed clients to understand their product positioning to\nincorporate into ad copy, resulting in client satisfaction of 96%\n\u00b7 Designed weekly email campaigns to target potential\nsubscribers, increasing subscriptions by 12%\n\u00b7 Gathered data and insights, and discussed trends with team of 3\nother interns and 4 analysts to set new goals",
+            "summary or objective": "Soon-to-be marketing graduate (2022) with a passion for developing\nscalable acquisition strategies through paid advertising and SEO. I\nhave experience creating and improving campaigns in the context of\na big team, and I worked independently to help local organizations\nstart and grow user acquisition, skills that will positively impact\nstrategic development and execution at Pacsun.",
+            "skills": "Salesforce\nMicrosoft Excel, Word,\nPowerpoint\nPaid acquisition (Facebook,\nGoogle, LinkedIn, Instagram,\nretargeting)\nGoogle Analytics\nSEO",
+            "awards and honors": -1,
+            "professional accomplishment": -1,
+            "certification": -1,
+            "projects": "Local SEO boost\n\u00b7 Helped local boutiques grow their online presence, boosting\ntheir organic search tra\ufb03c by an average of 60%\n\u00b7 Instructed clients in best SEO practices to see an average\nincrease in sales from online channels of $2.5K per month after\nimplementation\nPaid ads for animal shelter\n\u00b7 Partnered with local animal shelter to build a paid advertising\ncampaign on Facebook and Instagram, resulting in a reduction\nin cost per lead of 53%\n\u00b7 Iterated on ad copy, placement, and images to ultimately\nimprove conversion rate by 134%"
+        },
+        "education": {
+            "degree": "B.S. in Marketing",
+            "study": "Marketing",
+            "graduation year": "May 2022",
+            "gpa": "3.65",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "effectively interviewing clients, collaborating with a team of interns and analysts, and creating reports for the executive team",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "creating A/B testing plans, analyzing data to set new goals, and improving campaigns for local organizations",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "overseeing multiple tasks such as blog creation, report building, and campaign design",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "working effectively with a team of interns and analysts to analyze data, discuss trends, and set new goals",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Salesforce",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Microsoft Excel, Word, PowerPoint",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Paid acquisition (Facebook, Google, LinkedIn, Instagram, retargeting)",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Google Analytics",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "SEO",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Marketing Research",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Consumer Behavior",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Salesforce Management",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Electronic Commerce",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Advertising and Sales Promotion",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Principles of Selling",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Digital Marketing Analyst",
+                "start_date": "April 2021",
+                "end_date": "current",
+                "responsibilities": [
+                    "Created A/B testing plan for Facebook ad copy",
+                    "Built key reports for executive team around KPIs",
+                    "Oversaw the creation of the blog for SEO purposes",
+                    "Interviewed clients to understand their product positioning",
+                    "Designed weekly email campaigns to target potential subscribers",
+                    "Gathered data and insights to set new goals"
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample1.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "- MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\n- Basic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n- Developed and maintained accounting records for up to fifty bank accounts.\n- Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n- Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n- Formulated intricate pro-forma budgets.\n- Calculated and implemented depreciation/amortization schedules.\n\nInformation Systems Analysis and Problem Solving\n- Converted manual to computerized accounting systems for two organizations.\n- Analyzed and successfully reprogrammed software to meet customer requirements.\n- Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving skills",
+                "example": "Converting manual to computerized accounting systems and analyzing software to meet customer requirements. Troubleshooting and resolving issues during the transition to computerized systems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication skills",
+                "example": "Effectively communicating with various organizations to maintain accounting records, prepare financial statements, and navigate audits. Providing clear and concise explanations during financial audits.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects and meeting deadlines in a fast-paced environment. Efficiently prioritizing tasks to ensure timely completion.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Developing and maintaining accounting records, formulating financial statements, preparing payroll reports, budgets, and depreciation/amortization schedules. Creating detailed financial reports and analyzing financial data accurately.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Converting manual to computerized accounting systems, analyzing software, proficiency in software programs like MS Office, QuickBooks, and knowledge of MS Access, SQL, Visual Basic, and C++. Implementing software solutions to enhance accounting processes.",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample2.txt": {
+        "contact": {
+            "name": "imasample2",
+            "email": "imasample2@xxx.com",
+            "phone": "(402) 291-5432",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Senior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\n\u2022 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\u2022 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\u2022 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\u2022 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\n\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\n\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon",
+            "summary or objective": "Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills",
+            "skills": "Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop",
+            "awards and honors": -1,
+            "professional accomplishment": -1,
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "BS in Business Administration with Marketing Emphasis",
+            "study": "Marketing",
+            "graduation year": "June, 20xx",
+            "gpa": "3.56/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "Effectively assisting college students as an Academic Tutor and coordinating advertising activities for the student newspaper",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "Researching story ideas, resolving customer issues, and managing accounts receivable discrepancies",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Balancing accounts, managing daily deposits, and organizing systems to recover lost checks",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Marketing",
+                "example": "Coursework in Principles of Marketing and practical experience in advertising coordination",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Business communication",
+                "example": "Coursework in Business Communication and writing articles for the newsletter",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Public relations",
+                "example": "Coursework in Public Relations and volunteer work for the Publicity Committee",
+                "type": "hard skill"
+            },
+            {
+                "skill": "MS Office (Word, Excel, PowerPoint)",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "PhotoShop",
+                "example": "Skill in graphic design using this software",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Academic Tutor",
+                "start_date": "20xx",
+                "end_date": "present",
+                "responsibilities": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ]
+            },
+            {
+                "job_title": "Senior Accounts Receivable Clerk",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Researched story ideas, wrote articles and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized system to stop payment and replace all checks."
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample7.txt": {
+        "contact": {
+            "name": "imasample7",
+            "email": "imasample7@xxx.com",
+            "phone": "(402) 555-9876",
+            "city": "Omaha",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Writing Tutor and Test Administrator, Bellevue University, Bellevue, NE (20xx \u2013 20xx)\n\n\uf0b7 Assisted in the preparation and administration of various assessment instruments, including\nCLEP, DANTES and placement tests.\n\n\uf0b7 Provided tutorial assistance to undergraduate and graduate students in the area of\nwriting/composition.\n\n\uf0b7 Advised and assisted international students with writing assignments to help them strengthen\ntheir English language skills.\n\nResearch Assistant, University of Nebraska Medical Center, Omaha, NE (Summer 20xx, 20xx)\n\n\uf0b7 Assisted child psychologist in a two-part Summer Research Enrichment Program, including\nobservations of client behavior, data entry and preparation of research reports.\n\n\uf0b7 Performed literature searches and prepared summary reports for a major research project\ninvolving the study of individuals with disabilities.",
+            "summary or objective": "To obtain a Graduate Assistantship where strong academic background and excellent\ncommunication skills can be utilized to help college students achieve their educational goals.",
+            "skills": "-1",
+            "awards and honors": "Listed in Who\u2019s Who Among Students in American Colleges and Universities\n\nMember, Pi Gamma Mu and Alpha Chi Honor Societies\n\nPresident, Behavioral and Social Sciences Student Organization, Bellevue University\n\nVolunteer Contributor, The VUE, Bellevue University Student Newspaper\n\nMember, Bellevue University Student Advisory Council",
+            "professional accomplishment": "-1",
+            "certification": "-1",
+            "projects": "-1"
+        },
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Psychology, Sociology",
+            "graduation year": "20xx",
+            "gpa": "4.00/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Excellent communication skills",
+                "example": "experience assisting international students with writing assignments",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "assisting in the preparation and administration of assessment instruments",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management skills",
+                "example": "managing multiple responsibilities as a writing tutor, test administrator, and research assistant",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Leadership skills",
+                "example": "serving as President of the Behavioral and Social Sciences Student Organization",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Research skills",
+                "example": "conducting literature searches, data entry, and preparing research reports",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Writing skills",
+                "example": "providing tutorial assistance in writing/composition and contributing to the student newspaper",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Knowledge in psychology and sociology",
+                "example": "coursework and academic achievements in these areas",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Technical skills in using assessment instruments such as CLEP, DANTES, and placement tests",
+                "example": "assisting in their preparation and administration",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Writing Tutor and Test Administrator",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted in the preparation and administration of various assessment instruments",
+                    "Provided tutorial assistance to undergraduate and graduate students in writing/composition",
+                    "Advised and assisted international students with writing assignments"
+                ]
+            },
+            {
+                "job_title": "Research Assistant",
+                "start_date": "Summer 20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted child psychologist in a Summer Research Enrichment Program",
+                    "Performed literature searches and prepared summary reports for a research project"
+                ]
             }
         ]
     }

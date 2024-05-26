@@ -10,25 +10,35 @@
             "website": "str or -1"
 
         }, 
-        "other fields": {
+        "resume fields": {
             "summary or objective":"str or -1",
             "awards and honors":"str or -1",
             "professional accomplishment":"str or -1",
             "certification":"str or -1",
-            "projects": "str or -1"
+            "projects": "str or -1", 
+            "skills": "str or -1",
+            "work experience": "str or -1" 
         },
         "education": {
             "degree":"str or -1",
             "study":"str or -1",
             "graduation year":"str or -1",
-            "gpa":"str or -1"
+            "gpa":"str or -1",
+            "years since graduation": "positve int, else -1"
         },
-        "work_experience": [
-            {"job_title": "str or -1", "start_date": "str or -1", "end_date": "str or -1", "responsibilities":"str or -1"}
+        "jobs": [
+            {"job_title": "str or -1", 
+            "start_date": "str or -1", 
+            "end_date": "str or -1", 
+            "responsibilities":"str or -1", 
+            "years of experience": "positive int, else -1"
+            }
         ],
-        "skills": {
-            "hard_skills": "",
-            "soft_skills": ""
-        }
+        "skills": [
+            {"skill": "str or -1", 
+            "example": "str or -1", 
+            "type": "str or -1"
+            }
+        ]
     }
 }

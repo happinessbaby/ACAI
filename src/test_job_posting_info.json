@@ -1,63 +1,98 @@
 {
-    "./my_material/deloitte.txt": {
-        "summary": "\nDeloitte US is seeking a Data Scientist Consultant in Huntsville, AL to join their Regulatory Compliance team and help clients achieve their mission goals through successful implementation of regulatory, mission, or compliance programs. The ideal candidate will have 2+ years of experience, a Bachelor's degree, and an active DoD Secret clearance. They will be responsible for understanding clients' business and data requirements, providing strategic advice on data infrastructure and technologies, defining key operation and data risk indicators, delivering actionable insights through data analytics and visualization, and assisting in the integration of data from various sources. This role requires strong communication, problem-solving, and analytical skills, and experience with data applications and database systems is preferred. ",
-        "ATS_keywords": [
-            "Data Scientist Consultant",
-            "AI & Analytics",
-            "Regulatory & Legal Support",
-            "Huntsville",
-            "Alabama",
-            "United States",
-            "Bachelor's degree",
-            "DoD Secret clearance",
-            "Microsoft Power BI",
-            "Psypark Programming",
-            "Palantir Foundry",
-            "Tableau",
-            "Deloitte Advisory"
+    "./my_material/rov.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Driving problem-solving with autonomy and the ability to solve problems with creativity and little direction.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Communicate, support, and strategize with business, tech, and data teams stakeholders and also communicate recommendations to leadership.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time Management",
+                "example": "Ability to work on multiple projects and prioritize tasks effectively.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "SQL Querying",
+                "example": "Extensive experience in building SQL queries across complex relational database experience is required.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data Visualization",
+                "example": "Proficiency in visualization tools such as Looker or Tableau is needed to build compelling visualizations and interactive dashboards.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Advanced Analytics",
+                "example": "Conducting hands-on advanced analytics using multiple data sources and identifying opportunities to use advanced analytics to develop new strategies.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data Modeling and ETL",
+                "example": "Experience in designing scalable data models and ETLs is necessary for the Data Analyst position.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Digital Marketing Analysis",
+                "example": "Minimum of 2+ years of experience in complex business analysis, digital analysis, or marketing analysis role is required.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Statistics",
+                "example": "Using statistics to identify the significance, noise, and correlation in data.",
+                "type": "hard skill"
+            }
         ],
-        "repetitive_phrases": [
-            "data analytics",
-            "regulatory demands",
-            "data modeling",
-            "data infrastructure",
-            "compliance risks"
+        "summary": "\nJob Title: Data Analyst\nCompany: RVO Health\nSummary: The Data Analyst for RVO Health will be responsible for utilizing advanced analytics, business intelligence, and data science to drive success and enhance the user experience. They will work closely with business, tech, and data teams to understand processes, solve problems, and make recommendations for marketing and business strategies. The ideal candidate will have a minimum of 2 years experience in complex business, digital, or marketing analysis, proficiency in visualization tools and SQL, and the ability to synthesize data into impactful insights. This position will require working in the Atlanta office three days per week, with the option to work remotely two days per week. RVO Health offers a comprehensive benefits package and is an equal opportunity employer.",
+        "ATS_keywords": [
+            "Data Analyst",
+            "SQL",
+            "Tableau",
+            "data science",
+            "analytics",
+            "visualization",
+            "ETL",
+            "business analysis",
+            "marketing analysis",
+            "digital analysis",
+            "strategic insights",
+            "statistical analysis"
+        ],
+        "frequent_words": [
+            "RVO Health",
+            "Data Analyst",
+            "business",
+            "data",
+            "analytics",
+            "health",
+            "marketing"
         ],
         "qualifications": [
-            "Bachelor\u2019s degree",
-            "2+ years of relevant experience",
-            "Active DoD Secret clearance",
-            "Proficiency in verbal and written communication skills",
-            "Excellent problem solving and critical thinking skills",
-            "Ability to synthesize data and convey information in a meaningful way"
+            "2+ years of experience in complex business analysis, digital analysis, or marketing analysis role",
+            "proficiency in visualization tools such as Looker or Tableau",
+            "experience in building SQL queries across complex relational database",
+            "experience designing scalable data models and ETLs",
+            "ability to solve problems with creativity and little direction",
+            "ability to synthesize data into impactful insights and communicate recommendations to leadership",
+            "effective interpersonal and communication skills"
         ],
         "duties": [
-            "Help clients understand their business and data requirements",
-            "Develop data sourcing and architecture strategies",
-            "Assess clients\u2019 current state regarding their data infrastructure",
-            "Define and calculate key operations and data risk indicator metrics",
-            "Deliver actionable insights using data visualization",
-            "Perform data analytics to answer RFIs",
-            "Assist integration of data from unique sources",
-            "Perform data modeling such as categorization and assist in wargame planning"
+            "Provide strategic insights derived from digital marketing, web event, sales, and coaching data",
+            "Use statistics to identify the significance, noise, and correlation in data",
+            "Conduct hands-on advanced analytics using multiple data sources",
+            "Build relationships with business teams and data science teams",
+            "Build compelling visualizations and interactive dashboards",
+            "Work with data science, data engineers, and business teams to build scalable and effective data products",
+            "Identify opportunities to use advanced analytics to develop new strategies and improve business performance"
         ],
-        "hard_skills": [
-            "Microsoft Power BI",
-            "Psypark Programming",
-            "Palantir Foundry",
-            "Tableau"
-        ],
-        "soft_skills": [
-            "Verbal and written communication",
-            "Problem solving",
-            "Critical thinking",
-            "Research",
-            "Data synthesis"
-        ],
-        "job": "Data Scientist Consultant",
-        "company": "Deloitte US",
+        "job": "Data Analyst",
+        "company": "RVO Health",
         "institution": -1,
         "program": -1,
-        "company description": "Deloitte US is a global professional services firm that prioritizes respect, fairness, development, and well-being. They foster an inclusive culture and embrace diversity. Their mission is to deliver measurable impact through collaboration across businesses, geographies, and skills. They are committed to ethics, human rights, and society/environment."
+        "company description": "RVO Health is a healthcare company that develops, operates, and manages various health-focused brands and companies. Their mission is to improve the quality of healthcare by providing innovative solutions that enhance patient outcomes. They prioritize patient-centric care, embrace innovation and technology, foster collaboration and teamwork, operate with integrity and transparency, and prioritize professional development."
     }
 }

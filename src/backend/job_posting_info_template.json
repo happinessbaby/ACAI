@@ -7,10 +7,11 @@
         "summary": "str",
         "company description": "str or -1",
         "ATS_keywords": "List[str] or -1",
-        "repetitive_phrases": "List[str] or -1",
+        "frequent_words": "List[str] or -1",
         "qualifications":"List[str] or -1",
         "duties":"List[str] or -1",
-        "hard_skills": "List[str] or -1",
-        "soft_skills": "List[str] or -1"
+        "skills": [
+            {"skill": "str or -1", "example": "str or -1", "type": "str or -1s"}
+        ]
     }
 }

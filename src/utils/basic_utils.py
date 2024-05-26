@@ -425,6 +425,8 @@ def process_json(json_str: str) -> str:
 
     return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
+
+
 class memoized(object):
 
     '''Decorator. Caches a function's return value each time it is called.
@@ -498,12 +500,12 @@ class DecimalEncoder(json.JSONEncoder):
 
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
-    # html_to_text(
-    #     "https://algs4.cs.princeton.edu/41graph/",
-    #     save_path =f"./test.txt")
+    html_to_text(
+       "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
+        save_path =f"./web_data/career_satisfaction.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
-    convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
+    # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
 
 
 
