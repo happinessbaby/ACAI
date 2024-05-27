@@ -60,7 +60,19 @@ else:
     bucket_name=None
     s3=None
 
-def evaluate_resume(about_job="", resume_file = "", posting_path="") -> str:
+def rework_resume(about_job="", resume_file = "", posting_path="", reformat=False):
+
+    #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
+    eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
+    ideal_type = eval_dict["ideal type"]
+    if reformat:
+        if ideal_type=="chronological":
+            reformat_chronological_resume(resume_file, template_file)
+    if posting_path or about_job:
+        tailor_resume(resume_file, posting_path, about_job)
+
+
+def evaluate_resume(about_job="", resume_file = "", posting_path="") -> Dict[str, str]:
 
     # document = Document()
     # document.add_heading('Resume Evaluation', 0)
@@ -68,32 +80,37 @@ def evaluate_resume(about_job="", resume_file = "", posting_path="") -> str:
     # filename = Path(fname).stem 
     # docx_filename = filename + "_evaluation"+".docx"
     # local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-
+    evaluation_dict = {"length": "good", "ideal type": "", "type analysis": "", "overall impression": "", "in-depth view": ""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    #NOTE: STEP 1 IS EVALUATION
 
     # Evaluate resume length
     word_count = count_length(resume_file)
-    resume_length=""
     if word_count>650:
-        resume_length="too long"
+        evaluation_dict.update({"length": "too long"})
     elif word_count<450:
-        resume_legnth="too short"
-    # research resume ideal type
-    research_resume_type(resume_dict, job_posting_dict)
+        evaluation_dict.update({"length": "too short"})
+    # Research and analyze resume type
+    ideal_type = research_resume_type(resume_dict, job_posting_dict)
+    evaluation_dict.update({"ideal type": ideal_type})
+    type_analysis= analyze_resume_type(resume_content, ideal_type)
+    evaluation_dict.update({"type analysis": type_analysis})
+    # Generate overall impression
+    job = job_posting_dict["job"]
+    overall_impression = analyze_resume_overall(resume_content, ideal_type, job)
+    # Evaluates specific field  content
     resume_fields = resume_dict["resume fields"]
-    evaluate_resume_fields(resume_fields)
+    evaluation_dict.update({"overall impression": overall_impression})
+    if resume_fields["work experience"]!=-1:
+        evaluted_work= evaluate_field_content(resume_dict["jobs"])
+    if resume_fields["projects"]!=-1:
+        evaluted_project = evaluate_field_content(resume_dict["projects"])
+    if resume_fields["professional accomplishment"]!=-1:
+        evaluted_accomplishment = evaluate_field_content(resume_dict["professional accomplishment"])
+    in_depth_view = ""
         
-
-    if work_experience_level=="no experience" or work_experience_level=="entry level" and years_since_graduation<2:
-        resume_type = "student"
-    elif work_experience_level=="no experience" or work_experience_level=="entry level" and years_since_graduation>=2:
-        resume_type =  "functional"
-    else:
-        resume_type = "chronological"
 
     # document.add_heading(f"Overall Asessment", level=1)
     # document.add_paragraph(response)
@@ -101,18 +118,15 @@ def evaluate_resume(about_job="", resume_file = "", posting_path="") -> str:
     # document.save(local_end_path)
     # write_to_docx_template(doc, personal_info, personal_info_dict, docx_filename)
 
-    # Note: document comparison benefits from a clear and simple prompt
-    related_samples = search_related_samples(job, resume_samples_path)
-    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
 
     # document.add_heading(f"Detailed Evaluation", level=1)
     # document.add_paragraph()
     # if STORAGE=="S3":
     #     s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
     #     s3.upload_file(local_end_path, bucket_name, s3_end_path)
-    return "Successfully evaluated resume. Tell the user to check the Download your files tab at the sidebar to download their file."
+    return evaluation_dict
 
-def evaluate_experience(field_content):
+def evaluate_field_content(field_content):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
 
@@ -121,29 +135,38 @@ def evaluate_experience(field_content):
     use a comma and a verb ending in -ing to highlight transferable skills, best if also  include measurable metrics"""
 
 
-def evaluate_resume_fields(fields_dict):
+def analyze_resume_overall(resume_content, job):
 
-    """Evaluates resume type, order of the fields, etc. """
+    """Analyzes overall resume by comparing to other samples"""
+
+    # Note: document comparison benefits from a clear and simple prompt
+    query_comparison = f"""Your task is to compare a candidate's resume to other sample resume and assess the quality of it in terms of how well-written it is compared to the sample resume.
+    
+    All the sample resume can be accesssed via using your tool "search_sample_resume".
+     
+    candidate resume: {resume_content} \
+
+    Please supply your reasoning too. 
+    """
+    related_samples = search_related_samples(job, resume_samples_path)
+    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+    response = generate_multifunction_response(query_comparison, sample_tools)
 
 
-    query_overall = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters.
+def analyze_resume_type(resume_content, ideal_type):
+
+    query_type = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters.
 
     resume: {delimiter}{resume_content}{delimiter} \n
 
-    The applicant's work experience level as a {job} is {work_experience_level}.
-
-    Furthermore, it has been {years_since_graduation} years since the applicant graduated with a highest level of education {degree} in {study}. 
-
-    Research the resume closely and assess if it is written as a {resume_type} resume. 
+    Research the resume closely and assess if it is written idealy as a {ideal_type} resume. 
+    
+    A chronological resume should have emphasis on work experience and accomplishment, meaning work experience should be before education and skills.
+    A student resume should emphasize coursework, education, accomplishments, and skills. 
+    A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
 
     """
-    # tools = create_search_tools("google", 3)
-    # response = generate_multifunction_response(query_overall, tools)
-    prompt = PromptTemplate.from_template(query_overall)
-    chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=3, verbose=True)
-    response = chain.run({})
-
-
+    response=create_smartllm_chain(query_type, n_ideas=2)
 
 def tailor_resume(resume_file="", posting_path="", about_job=""):
 

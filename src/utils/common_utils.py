@@ -636,10 +636,10 @@ def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
 class Project(BaseModel):
     title: Optional[str] = Field(
-        default=-1, description="the name of the project or professional accomplishment"
+        default=-1, description="the name of the project or professional accomplishment, this should not be in the work experience section"
     )
     description: Optional[List[str]] = Field(
-        default=-1, description = "list of accomplishements or details about the project"
+        default=-1, description = "list of accomplishements or details about the project, this should not be in the work experience section"
     )
 class Projects(BaseModel):
     projects: List[Project]
@@ -1052,35 +1052,46 @@ def create_resume_info(resume_path=""):
     resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
     if (Path(resume_path).is_file()):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        # Extract resume fields
+        field_content = extract_resume_fields3(resume_content)
+        resume_info_dict[resume_path]["resume fields"].update(field_content)
         # Extract contact information
-        personal_info_dict = extract_personal_information(resume_content)
-        resume_info_dict[resume_path]["contact"].update(personal_info_dict)
+        if field_content["personal contact"]!=-1:
+            personal_info_dict = extract_personal_information(resume_content)
+            resume_info_dict[resume_path]["contact"].update(personal_info_dict)
         # Extract education specific information
-        education_info_dict = extract_education_information(resume_content)
-        resume_info_dict[resume_path]["education"].update(education_info_dict)
-        if education_info_dict["graduation year"]:
-            years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
-            resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
-        else:
-            resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
+        if field_content["education"]!=-1:
+            education_info_dict = extract_education_information(resume_content)
+            resume_info_dict[resume_path]["education"].update(education_info_dict)
+            if education_info_dict["graduation year"]:
+                years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
+                resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
+            else:
+                resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
         # Extract job experience specific information
-        jobs = extract_job_experiences(resume_content)
-        for i in range(len(jobs["jobs"])):
-            years_experience = calculate_work_experience_years(jobs[i]["start_date"], jobs[i]["end_date"])
-            jobs[i].update({"years of experience": years_experience})
+        if field_content["work experience"]!=-1:
+            jobs = extract_job_experiences(resume_content)
+            jobs_list = jobs["jobs"]
+            for i in range(len(jobs_list)):
+                years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
+                jobs_list[i].update({"years of experience": years_experience})
             # if years_experience>=0 and years_experience<2:
             #     jobs[i].update({"level": "entry level"})
             # elif years_experience>2 and years_experience<=5:
             #     jobs[i].update({"level": "junior level"})
             # elif years_experience>5 and years_experience<=10:
             #     jobs[i].update({"level": "senior level"})
-        resume_info_dict[resume_path].update(jobs)
+            resume_info_dict[resume_path].update({"work experience": jobs_list})
+        if field_content["projects"]!=-1:
+            projects = extract_projects_accomplishments(resume_content)
+            resume_info_dict[resume_path].update(projects)
+        if field_content["professional accomplishment"]!=-1:
+            accomplishments = extract_projects_accomplishments(resume_content)
+            accomplishments["professional accomplishment"] = accomplishments.pop("projects")
+            resume_info_dict[resume_path].update(accomplishments)
         # Extract hard skills and soft skills
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
-        # Extract other resume fields
-        field_content = extract_resume_fields3(resume_content)
-        resume_info_dict[resume_path]["resume fields"].update(field_content)
 
     print(resume_info_dict)
     with open('./test_resume_info.json', 'a') as json_file:

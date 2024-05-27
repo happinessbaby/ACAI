@@ -1,154 +1,4 @@
 {
-    "./my_material/resume2023v4.txt": {
-        "contact": {
-            "name": "YUEQI PENG",
-            "email": "YUEQIPENG2021@GMAIL.COM",
-            "phone": "(205) 519-1594",
-            "city": "BIRMINGHAM",
-            "state": "AL",
-            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
-            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
-        },
-        "other fields": {
-            "summary or objective": "Hardworking and dependable candidate successful at managing multiple priorities with a positive attitude. Values teamwork and is adaptable to different work demands. Passionate about programming and has a keen interest in developing AI products. Skilled in multiple programming languages, frameworks, and tools including Python, C#, Scala, SQL, JavaScript, Spark, Tableau. Possesses strong communication skills in a team environment and has a strong analytical mindset with problem-solving skills.",
-            "awards and honors": -1,
-            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and used them to create Dataframes, graphs and charts, dashboards and stories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing pricing trends, developing forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement Learning capstone project on saving space in 3D box packing for logistic companies and showcased project\u2019s business values and increased KPI for percentage of space packed from 70% to 75% when comparing AI\u2019s box packing plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help job seekers write cover letters, improve and tailor their resume, and practice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level design for a new feature to be added to an ongoing project that involved near live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and presenting a Wildfire project using Spark and SQL and used ML to predict the occurrence of wildfires in U.S. with respect to the climate, geography, and other predicative factors.",
-            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
-            "projects": "- Collaborated with other team members in creating a Reinforcement Learning capstone project on saving space in 3D box packing for logistic companies and showcased project\u2019s business values and increased KPI for percentage of space packed from 70% to 75% when comparing AI\u2019s box packing plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help job seekers write cover letters, improve and tailor their resume, and practice for mock interview\n- Collaborated with other team members in designing, coding, and presenting a Wildfire project using Spark and SQL and used ML to predict the occurrence of wildfires in U.S. with respect to the climate, geography, and other predicative factors."
-        },
-        "education": {
-            "degree": "Bachelors of Arts",
-            "study": "Mathematics",
-            "graduation year": "2013",
-            "gpa": "-1",
-            "years since graduation": 11
-        },
-        "skills": [
-            {
-                "skill": [
-                    "Communication skills"
-                ],
-                "example": [
-                    "collaborating with team members on various projects and presenting findings"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Problem-solving skills"
-                ],
-                "example": [
-                    "creating solutions for data analysis projects and developing AI products"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Teamwork"
-                ],
-                "example": [
-                    "Collaborated effectively with team members on multiple projects to achieve common goals"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Adaptability"
-                ],
-                "example": [
-                    "managed multiple priorities and different work demands with a positive attitude"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Analytical mindset"
-                ],
-                "example": [
-                    "analyzing data sets, developing forecasting models, and conducting statistical analysis"
-                ],
-                "type": "soft skill"
-            },
-            {
-                "skill": [
-                    "Programming Languages",
-                    "Python, C#, Scala, SQL, JavaScript"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Data Analysis Tools",
-                    "Tableau, Pandas, Matlab Plot"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Big Data Tools",
-                    "Spark, Kafka, Hive"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Database Management",
-                    "Hadoop, MongoDB, MySQL, NoSQL"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Cloud Platforms",
-                    "AWS, GCP"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Software Development",
-                    "Agile/Scrum methodologies, Git"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Machine Learning",
-                    "Implemented ETL processes, built correlation matrix and logistic regression models"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            },
-            {
-                "skill": [
-                    "Data Visualization",
-                    "Created Dataframes, graphs, charts, dashboards, and stories using data analysis tools"
-                ],
-                "example": -1,
-                "type": "hard skill"
-            }
-        ],
-        "jobs": [
-            {
-                "job_title": "BIG DATA ENGINEER",
-                "start_date": "01/2022",
-                "end_date": "12/2022",
-                "responsibilities": "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL. Worked on Big Data related projects, including building a pub-sub API using Spark-Kafka Integration, setting up remote HDFS cluster on AWS, and building correlation matrix and logistic regression models for prediction of trends."
-            },
-            {
-                "job_title": "BIG DATA ENGINEER",
-                "start_date": "05/2022",
-                "end_date": "10/2022",
-                "responsibilities": "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features. Tested methodology with writing and execution of test plans, debugging and testing scripts and tools, and revamped old code bases to modern development standards. Participated in Agile software development methodologies, design patterns, and maintaining long-term health of the system. Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments."
-            }
-        ]
-    },
     "./backend/resume_samples/college-student-resume-example.txt": {
         "contact": {
             "name": "SASHA WAGNER",
@@ -537,6 +387,153 @@
                 "responsibilities": [
                     "Assisted child psychologist in a Summer Research Enrichment Program",
                     "Performed literature searches and prepared summary reports for a research project"
+                ]
+            }
+        ]
+    },
+
+    "./my_material/resume2023v4.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "YUEQI PENG\n\nBIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated through creating forecasting models, analyzing pricing trends, and developing AI projects.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Shown through collaborating with team members on various projects and presenting findings.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Highlighted by working with cross-functional teams, communicating effectively, and collaborating on projects.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Adaptability",
+                "example": "Mentioned in the summary as being adaptable to different work demands.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Analytical mindset",
+                "example": "Demonstrated through data analysis, feature engineering, and statistical modeling.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming languages",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Tools",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud platforms",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data analysis tools",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "ETL process",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine Learning",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Agile/Scrum",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile software development methodologies",
+                    "Deployed workflows through continuous integration",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process",
+                    "Worked on Big Data related projects",
+                    "Built a pub-sub API using Spark-Kafka Integration",
+                    "Set up remote HDFS cluster on AWS",
+                    "Built correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project on 3D Box Packing",
+                "description": [
+                    "Increased percentage of space packed from 70% to 75% by comparing AI's box packing plan to human experts']},{",
+                    "description:[",
+                    "Used large language model to build a platform for job seekers to improve resume and interview skills"
+                ]
+            },
+            {
+                "title": "Wildfire Project with Spark and SQL",
+                "description": [
+                    "Predicted occurrence of wildfires in U.S. based on climate, geography, and other factors"
                 ]
             }
         ]
