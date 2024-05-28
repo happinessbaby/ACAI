@@ -47,6 +47,7 @@ delimiter1 = "````"
 delimiter2 = "////"
 delimiter3 = "<<<<"
 delimiter4 = "****"
+eval_dict=None
 
 if STORAGE=="S3":
     bucket_name = os.envrion["BUCKET_NAME"]
@@ -60,32 +61,28 @@ else:
     bucket_name=None
     s3=None
 
-def rework_resume(about_job="", resume_file = "", posting_path="", reformat=False):
+# def rework_resume(about_job="", resume_file = "", posting_path="", evaluate=False, reformat=False, tailor=False, template_file=""):
 
-    #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
-    eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
-    ideal_type = eval_dict["ideal type"]
-    if reformat:
-        if ideal_type=="chronological":
-            reformat_chronological_resume(resume_file, template_file)
-    if posting_path or about_job:
-        tailor_resume(resume_file, posting_path, about_job)
+#     #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
+
+#     if evaluate:
+#         eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
+#     if reformat:
+#         ideal_type = eval_dict["ideal type"] if eval_dict else research_resume_type()
+#         if ideal_type=="chronological":
+#             reformat_chronological_resume(resume_file, template_file)
+#     if tailor:
+#         tailor_resume(resume_file, posting_path, about_job)
 
 
-def evaluate_resume(about_job="", resume_file = "", posting_path="") -> Dict[str, str]:
+def evaluate_resume(resume_file = "", resume_dict={}, pursuit_job="") -> Dict[str, str]:
 
-    # document = Document()
-    # document.add_heading('Resume Evaluation', 0)
-    # dirname, fname = os.path.split(resume_file)
-    # filename = Path(fname).stem 
-    # docx_filename = filename + "_evaluation"+".docx"
-    # local_end_path = os.path.join(local_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    evaluation_dict = {"length": "good", "ideal type": "", "type analysis": "", "overall impression": "", "in-depth view": ""}
+
+    evaluation_dict = {"length": "good", "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
-    job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-
+    # posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
+    # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     # Evaluate resume length
     word_count = count_length(resume_file)
     if word_count>650:
@@ -93,46 +90,39 @@ def evaluate_resume(about_job="", resume_file = "", posting_path="") -> Dict[str
     elif word_count<450:
         evaluation_dict.update({"length": "too short"})
     # Research and analyze resume type
-    ideal_type = research_resume_type(resume_dict, job_posting_dict)
-    evaluation_dict.update({"ideal type": ideal_type})
+    ideal_type = research_resume_type(resume_dict, pursuit_job=pursuit_job)
+    evaluation_dict.update({"ideal_type": ideal_type})
     type_analysis= analyze_resume_type(resume_content, ideal_type)
-    evaluation_dict.update({"type analysis": type_analysis})
+    evaluation_dict.update({"type_analysis": type_analysis})
     # Generate overall impression
-    job = job_posting_dict["job"]
-    overall_impression = analyze_resume_overall(resume_content, ideal_type, job)
+    overall_impression = analyze_resume_overall(resume_content, ideal_type, pursuit_job)
     # Evaluates specific field  content
     resume_fields = resume_dict["resume fields"]
-    evaluation_dict.update({"overall impression": overall_impression})
+    evaluation_dict.update({"overall_impression": overall_impression})
     if resume_fields["work experience"]!=-1:
-        evaluted_work= evaluate_field_content(resume_dict["jobs"])
+        evaluted_work= analyze_field_content(resume_dict["jobs"])
     if resume_fields["projects"]!=-1:
-        evaluted_project = evaluate_field_content(resume_dict["projects"])
+        evaluted_project = analyze_field_content(resume_dict["projects"])
     if resume_fields["professional accomplishment"]!=-1:
-        evaluted_accomplishment = evaluate_field_content(resume_dict["professional accomplishment"])
+        evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
     in_depth_view = ""
-        
-
-    # document.add_heading(f"Overall Asessment", level=1)
-    # document.add_paragraph(response)
-    # document.add_page_break()
-    # document.save(local_end_path)
-    # write_to_docx_template(doc, personal_info, personal_info_dict, docx_filename)
-
-
-    # document.add_heading(f"Detailed Evaluation", level=1)
-    # document.add_paragraph()
-    # if STORAGE=="S3":
-    #     s3_end_path = os.path.join(s3_save_path, dirname.split("/")[-1], "downloads", docx_filename)
-    #     s3.upload_file(local_end_path, bucket_name, s3_end_path)
     return evaluation_dict
 
-def evaluate_field_content(field_content):
+
+
+def analyze_field_content(field_content, field_type):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
-
-    star_prompt = """ Your task is to check a resume field content you are provided with and assess it based on some guidelines.
-    Start with the POWER verb, include a description of the actions, 
-    use a comma and a verb ending in -ing to highlight transferable skills, best if also  include measurable metrics"""
+    if field_type=="work experience" or field_type=="projects" or field_type=="professional accomplishment":
+        star_prompt = f""" Your task is to check a resume field content you are provided with and assess it based on some guidelines.
+        
+        Guildeline: Start with the POWER verb, include a description of the actions, 
+        use a comma and a verb ending in -ing to highlight transferable skills and/or measurable results, best if include measurable metrics.
+        
+        Example: Managed 10 employees by supervising daily operations, scheduling shifts, and holding weekdly staff meetings with strong leadership skills and empath, 
+        resulting in a productive team that collectively won the company's "Most Efficient Department Award" two years in a row
+         
+        field_content: {field_content} """
 
 
 def analyze_resume_overall(resume_content, job):
@@ -168,12 +158,12 @@ def analyze_resume_type(resume_content, ideal_type):
     """
     response=create_smartllm_chain(query_type, n_ideas=2)
 
-def tailor_resume(resume_file="", posting_path="", about_job=""):
+def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={}, job_posting_dict={}):
 
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
-    job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
+    # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     my_objective = resume_dict["resume fields"].get("summary or objective", "")
     my_skills = resume_dict["resume fields"].get("skills", "")
     my_experience = resume_dict["resume fields"].get("work experience", "")
@@ -268,7 +258,7 @@ def tailor_objective(resume_content, job_description):
 
 
 @memoized
-def research_resume_type(resume_dict: str, job_posting_dict: str, )-> str:
+def research_resume_type(resume_dict={}, job_posting_dict={}, pursuit_job="")-> str:
     
     """ Researches the type of resume most suitable for the applicant. 
     
@@ -285,7 +275,10 @@ def research_resume_type(resume_dict: str, job_posting_dict: str, )-> str:
     """
 
     jobs = resume_dict["jobs"]
-    desired_job = job_posting_dict["job"]
+    if job_posting_dict:
+        desired_job = job_posting_dict["job"]
+    elif pursuit_job:
+        desired_job=pursuit_job
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])
@@ -310,6 +303,7 @@ def research_resume_type(resume_dict: str, job_posting_dict: str, )-> str:
         resume_type = "chronological"
         print("RESUME TYPE: CHRONOLOGICAL")
     return resume_type
+
 
 
 def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:

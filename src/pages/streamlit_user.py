@@ -19,7 +19,7 @@ from todo_tmp.streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
-from utils.common_utils import get_generated_responses, check_content, process_linkedin, process_resume, create_profile_summary
+from utils.common_utils import check_content, process_linkedin, create_profile_summary
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
 from langchain.docstore.document import Document

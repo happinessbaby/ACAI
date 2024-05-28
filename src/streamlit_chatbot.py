@@ -14,7 +14,7 @@ from backend.career_advisor import ChatController
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content
+from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info
 import re
 from typing import Any, List, Union
 import multiprocessing as mp
@@ -83,6 +83,7 @@ message_key = {
 "SK": os.environ["SK"],
 }
 topic = "jobs"
+resume_options = ("evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting")   
 # st.write(get_all_cookies())
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
@@ -255,10 +256,15 @@ class Chat():
             st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
             st.markdown("#")
 
-            resume_option = st.button("Resume & Cover Letter", key="resume_button",)
+            resume_option = st.button("Resume", key="resume_button",)
             if resume_option:
-                # _self.selection_popup()
-                _self.template_popup("functional")
+                _self.resume_selection_popup()
+            interview_option = st.button("Mock Interview", key="interview_button")
+            if interview_option:
+                st.switch_page("pages/streamlit_interviewbot.py")
+            job_option = st.button("Job Search", key="job_button")
+            if job_option:
+                st.switch_page("pages/streamlit_jobs.py")
             # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
     
             # st.session_state["selections"] = st_btn_select(("Resume & Cover Letter",'Mock Interview', "Job Search", "My Profile", ""), index=-1,)
@@ -363,34 +369,39 @@ class Chat():
         #     st.write("test")
 
     @st.experimental_dialog("Please fill out the form below")
-    def selection_popup(self,):
+    def resume_selection_popup(self,):
         
-        options = ("pick from a cover letter template", "write a creative cover letter draft", "evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting")   
-        if "cl_type_selection" in st.session_state and "resume_path" in st.session_state and ("job_posting_path" in st.session_state or "job_description" in st.session_state or st.session_state.cl_type_selection in (options[2], options[3])):
-            st.session_state.cl_disabled=False
+     
+        if "type_selection" in st.session_state and "resume_path" in st.session_state and ("job_posting_path" in st.session_state or "job_description" in st.session_state or resume_options[2] not in st.session_state.type_selection ):
+            st.session_state.disabled=False
         else:
-            st.session_state.cl_disabled=True
-        # if "cl_type_selection" not in st.session_state:
-        #     st.session_state.cl_type_checkmark=":red[*]"
+            st.session_state.disabled=True
         if "resume_path" not in st.session_state:
-            if "cl_type_selection" not in st.session_state:
+            if "type_selection" not in st.session_state:
                 st.session_state.resume_checkmark=""
             else:
                 st.session_state.resume_checkmark=":red[(required)]"
         if ("job_posting_path" not in st.session_state and "job_description" not in st.session_state) or ("job_description" in st.session_state and st.session_state["job_description"] is None):
-            if "cl_type_selection" not in st.session_state:
+            if "type_selection" not in st.session_state:
                 st.session_state.job_posting_checkmark=""
-            elif "cl_type_selection" in st.session_state and st.session_state.cl_type_selection in (options[0], options[1], options[4]):
+            elif "type_selection" in st.session_state and resume_options[2] in st.session_state.type_selection:
                 st.session_state.job_posting_checkmark=":red[(required)]"
             else:
                 st.session_state.job_posting_checkmark="(optional)"
+        if "type_selection" not in st.session_state:
+            st.session_state.pursuit_job_checkmark=""
+        elif st.session_state.type_selection==[resume_options[0]]:
+            st.session_state.pursuit_job_checkmark=":red[(required)]"
+        else:
+            st.session_state.pursuit_job_checkmark="(optional)"
         
-        selected = st.selectbox(f"What kind of help do you need?",  
-                                    options,
-                                  index= options.index(st.session_state["cl_type_selection"]) if "cl_type_selection" in st.session_state else None, 
+        selected = st.multiselect(f"What kind of help do you need?",  
+                                    resume_options,
+                                #   index= options.index(st.session_state["cl_type_selection"]) if "cl_type_selection" in st.session_state else None, 
                                  placeholder="Please make a selection...", 
-                                 key="cl_type_selectionx",
+                                 key="type_selectionx",
                                   on_change=self.form_callback )
+        pursuit_job = st.text_input(f"desired job title {st.session_state.pursuit_job_checkmark}", key="pursuit_job", on_change=self.form_callback)
         job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", key="job_posting_radio", options=["job description", "job posting link"])
         if job_posting=="job posting link":
             job_posting_link = st.text_input(label="Job posting link", key="job_posting", on_change=self.form_callback)
@@ -403,35 +414,38 @@ class Chat():
                                 )
         conti = st.button(label="next",
                            key="next_resume_button", 
-                           disabled=st.session_state.cl_disabled, 
-                            on_click=self.selection_callback
+                           disabled=st.session_state.disabled, 
+                            on_click=self.resume_selection_callback
                           )
 
-
-
-  
-    @st.experimental_fragment
-    def selection_callback(self, template=False, template_path="", type="", ):
-
-        options = ("pick from a cover letter template", "write a creative cover letter draft", "evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting")  
+    def cl_selection_callback(self, template=False, template_path="", type="", ):
+        options = ("pick from a cover letter template", "write a creative cover letter draft")  
         # selection = options[st.session_state.cl_type_selection]
-        if st.session_state.cl_type_selection == options[0]:
+        if st.session_state.type_selection == options[0]:
             if template==True:
                 generate_preformatted_cover_letter(st.session_state["resume_path"],
                                                             st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                                             st.session_state["job_description"] if "job_description" in st.session_state else "")
             else:
                 self.template_popup("cover letter")
-        elif st.session_state.cl_type_selection == options[1]:
+        elif st.session_state.type_selection == options[1]:
             generate_basic_cover_letter(resume_file=st.session_state["resume_path"], 
                                         posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                         about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "")
             print("Successfully generated creative cover letter draft")
-        elif st.session_state.cl_type_selection == options[2]:
-            evaluate_resume(resume_file=st.session_state["resume_path"], 
-                                        posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                        about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "")
-        elif st.session_state.cl_type_selection == options[3]:
+
+  
+    @st.experimental_fragment
+    def resume_selection_callback(self, template=False, template_path="", type="", ):
+
+
+        if resume_options[0] in st.session_state.type_selection:
+            st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
+                            resume_dict = st.session_state["resume_dict"], 
+                             pursuit_job = st.session_state["pursuit_job"]
+                             )
+            #TODO: DISPLAY RESULTS ON ANOTHER PAGE
+        if resume_options[1] in st.session_state.type_selection:
             if template==True:
                 if type=="chronological":
                     reformat_chronological_resume(resume_file=st.session_state["resume_path"], 
@@ -446,23 +460,28 @@ class Chat():
                                         posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                         template_file=template_path)
             else:
-                resume_type=research_resume_type(st.session_state["resume_path"])
-                self.template_popup(resume_type)
-        elif st.session_state.cl_type_selection==options[4]:
+                if "eval_dict" not in st.session_state:
+                    resume_type=research_resume_type(resume_dict=st.session_state.resume_dict, job_posting_dict=st.session_state.job_posting_dict, pursuit_job=st.session_state.pursuit_job)
+                else:
+                    resume_type = st.session_state["eval_dict"]["ideal_type"]
+                self.resume_template_popup(resume_type)
+        if resume_options[2] in st.session_state.type_selection:
             tailor_resume(resume_file=st.session_state["resume_path"], 
-                                        posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                        about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "")
+                            posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
+                            about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "",
+                            resume_dict = st.session_state["resume_dict"], 
+                            job_posting_dict = st.session_state["job_posting_dict"])
 
 
     @st.experimental_dialog("Please pick out a template", width="large")
-    def template_popup(self, type):
+    def resume_template_popup(self, type):
         
 
-        if type=="cover letter":
-            thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
-            images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
-            paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
-        elif type=="functional":
+        # if type=="cover letter":
+        #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
+        #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
+        #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
+        if type=="functional":
             thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png"]
             images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png"]
             paths =  ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx"]
@@ -478,6 +497,12 @@ class Chat():
             image_placeholder.image(images[selected_idx])
             path = paths[selected_idx]
             st.form_submit_button("submit", on_click=self.selection_callback, args=(True, path, type, ) )
+        skip = st.button("skip", type="primary")
+        if skip:
+            remove_option =  "redesign my resume with a new template"
+            while remove_option in resume_options:
+                st.session_state.type_selection.remove(remove_option)
+
         # st.button("Next", on_click=self.selection_callback, args=(True, path, type, ))
                 # images=[]
                 # for file in images:
@@ -514,13 +539,8 @@ class Chat():
         # question = self.process_user_input(prompt)
         response = self.new_chat.askAI(prompt,)
         # response = self.new_chat.askAI(st.session_state.sessionId, prompt,)
-        if response == "functional" or response == "chronological" or response == "student":
-            self.resume_template_popup(response)
-        else:
-            # st.chat_message("ai").write(response)
-            # st.session_state.responses.append(response)
-            st.session_state.messages.append(ChatMessage(role="assistant", content=response))
-            self.response = response
+        st.session_state.messages.append(ChatMessage(role="assistant", content=response))
+        self.response = response
         st.rerun()
         
 
@@ -646,10 +666,10 @@ class Chat():
 
         """ Processes form information after form submission. """
         try:
-            selected=st.session_state.cl_type_selectionx
+            selected=st.session_state.type_selectionx
             if selected:
                 # st.session_state.cl_type_checkmark="✅"
-                st.session_state["cl_type_selection"]=selected
+                st.session_state["type_selection"]=selected
         except Exception:
             pass
         try:
@@ -672,14 +692,17 @@ class Chat():
                 if self.check_user_input(job_description, match_topic="job posting or job description"):
                     st.session_state.job_posting_checkmark="✅"
                     st.session_state["job_description"] = job_description   
+                    #TODO: probably needs to send this to another thread
+                    st.session_state["job_posting_dict"]= retrieve_or_create_job_posting_info(about_job=job_description, )
                 else:
                     st.info("Please share a job description here")
         except Exception:
             pass
         # try:
-        #     job_description=st.session_state.job_description
-        #     if job_description:
-        #         st.session_state["about_job"] = job_description
+        #     pursuit_job=st.session_state.pursuit_job
+        #     if pursuit_job:
+        #         st.session_state.pursuit_job=""
+        #         self.process_uploads(job_posting, "job_posting")
         # except Exception:
         #     pass
         try:
@@ -720,30 +743,30 @@ class Chat():
 
 
     # # @st.cache_data(experimental_allow_widgets=True)
-    def resume_template_popup(_self, resume_type:str):
+    # def resume_template_popup(_self, resume_type:str):
 
-        """ Popup window for user to select a resume template based on the resume type. """
+    #     """ Popup window for user to select a resume template based on the resume type. """
 
-        modal = Modal(key="template_popup", title=f"Pick a template", max_width=1000)
-        with modal.container():
-            with st.form( key='template_form', clear_on_submit=True):
-                template_idx = my_component(resume_type, "templates")
-                st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
+    #     modal = Modal(key="template_popup", title=f"Pick a template", max_width=1000)
+    #     with modal.container():
+    #         with st.form( key='template_form', clear_on_submit=True):
+    #             template_idx = my_component(resume_type, "templates")
+    #             st.form_submit_button(label='Submit', on_click=_self.resume_template_callback, args=[resume_type])
 
                             
 
 
-    def resume_template_callback(self, resume_type:str):
+    # def resume_template_callback(self, resume_type:str):
 
-        """ Calls the resume_rewriter tool to rewrite the resume according to the chosen resume template. """
+    #     """ Calls the resume_rewriter tool to rewrite the resume according to the chosen resume template. """
 
-        template_idx = st.session_state.templates
-        print(f"TEMPLATE IDX:{template_idx}")
-        resume_template_file = os.path.join(st.session_state.template_path,resume_type, f"{resume_type}{template_idx}.docx")
-        question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
-        response = self.new_chat.askAI(st.session_state.sessionId, question, callbacks=None,)
-        return st.session_state.responses.append(response)
-        # self.question_callback(self.callback_done, append_question=False)
+    #     template_idx = st.session_state.templates
+    #     print(f"TEMPLATE IDX:{template_idx}")
+    #     resume_template_file = os.path.join(st.session_state.template_path,resume_type, f"{resume_type}{template_idx}.docx")
+    #     question = f"""Please help user rewrite their resume using the resume_rewriter tool with the following resume_template_file:{resume_template_file}. """
+    #     response = self.new_chat.askAI(st.session_state.sessionId, question, callbacks=None,)
+    #     return st.session_state.responses.append(response)
+    #     # self.question_callback(self.callback_done, append_question=False)
 
 
 
@@ -834,6 +857,7 @@ class Chat():
                             if content_safe and content_type=="resume":
                                 st.session_state["resume_path"]= end_path
                                 st.session_state.resume_checkmark="✅"
+                                st.session_state["resume_dict"] = retrieve_or_create_resume_info(resume_path=end_path, )
                             else:
                                 st.session_state.resume_checkmark=":red[*]"
                                 st.info("Please upload your resume here")
@@ -844,6 +868,7 @@ class Chat():
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                     st.session_state.job_posting_checkmark="✅"
+                    st.session_state["job_posting_dict"]= retrieve_or_create_job_posting_info(posting_path=end_path,)
                 else:
                     st.session_state.job_posting_checkmark=":red[*]"
                     st.info("Please upload your job posting link here")
