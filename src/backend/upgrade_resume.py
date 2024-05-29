@@ -75,14 +75,15 @@ else:
 #         tailor_resume(resume_file, posting_path, about_job)
 
 
-def evaluate_resume(resume_file = "", resume_dict={}, pursuit_job="") -> Dict[str, str]:
+def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
 
 
     evaluation_dict = {"length": "good", "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # posting_content = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
-    # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    if job_posting_dict:
+        pursuit_job=job_posting_dict["job"]
+    else:
+        pursuit_job=resume_dict["pursuit_job"]
     # Evaluate resume length
     word_count = count_length(resume_file)
     if word_count>650:
@@ -90,12 +91,12 @@ def evaluate_resume(resume_file = "", resume_dict={}, pursuit_job="") -> Dict[st
     elif word_count<450:
         evaluation_dict.update({"length": "too short"})
     # Research and analyze resume type
-    ideal_type = research_resume_type(resume_dict, pursuit_job=pursuit_job)
+    ideal_type = research_resume_type(resume_dict, pursuit_job=pursuit_job, )
     evaluation_dict.update({"ideal_type": ideal_type})
     type_analysis= analyze_resume_type(resume_content, ideal_type)
     evaluation_dict.update({"type_analysis": type_analysis})
     # Generate overall impression
-    overall_impression = analyze_resume_overall(resume_content, ideal_type, pursuit_job)
+    overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
     # Evaluates specific field  content
     resume_fields = resume_dict["resume fields"]
     evaluation_dict.update({"overall_impression": overall_impression})
@@ -258,7 +259,7 @@ def tailor_objective(resume_content, job_description):
 
 
 @memoized
-def research_resume_type(resume_dict={}, job_posting_dict={}, pursuit_job="")-> str:
+def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     
     """ Researches the type of resume most suitable for the applicant. 
     
@@ -277,8 +278,8 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, pursuit_job="")-> 
     jobs = resume_dict["jobs"]
     if job_posting_dict:
         desired_job = job_posting_dict["job"]
-    elif pursuit_job:
-        desired_job=pursuit_job
+    else:
+        desired_job=resume_dict["pursuit_job"]
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])

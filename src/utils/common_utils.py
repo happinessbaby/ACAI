@@ -10,7 +10,7 @@ from langchain.vectorstores import DocArrayInMemorySearch
 from langchain.agents import AgentType
 from langchain.chains import RetrievalQA,  LLMChain
 from pathlib import Path
-from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright
+from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
@@ -62,6 +62,7 @@ import json
 from json import JSONDecodeError
 import faiss
 import asyncio
+import uuid
 import random
 import base64
 import datetime
@@ -387,27 +388,27 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
 
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     format_instructions = output_parser.get_format_instructions()
-    template_string = """For the following text, delimited with {delimiter} chracters, extract the following information:
     
-    summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
-    skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
+    # summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
+    # skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
 
-    work experience: Extract the work experience section of the resume. If this information is not found, output -1\
+    # work experience: Extract the work experience section of the resume. If this information is not found, output -1\
     
-    personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
+    # personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
     
-    education: Extract the education section of the resume. If this information is not found, output -1\
+    # education: Extract the education section of the resume. If this information is not found, output -1\
 
-    awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
+    # awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
     
-    professional accomplishment: Extract professional accomplishment from the resume that is not work experience. 
-                                Professional accomplishment should be composed of trainings, skills, projects that the applicant learned or has done. 
-                                If this information is not found, output -1\
+    # professional accomplishment: Extract professional accomplishment from the resume that is not work experience. 
+    #                             Professional accomplishment should be composed of trainings, skills, projects that the applicant learned or has done. 
+    #                             If this information is not found, output -1\
                     
-    certification: Extract the certification sections of the resume. Extract only names of certification, names of certifying agencies, if applicable,  
-                    dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1 \
+    # certification: Extract the certification sections of the resume. Extract only names of certification, names of certifying agencies, if applicable,  
+    #                 dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1 \
     
-    projects: Extract the project section of the resume. If this information is not fount, output -1 \
+    # projects: Extract the project section of the resume. If this information is not fount, output -1 \
+    template_string = """For the following text, delimited with {delimiter} chracters, extract the following information:
 
     text: {delimiter}{text}{delimiter}
 
@@ -422,6 +423,17 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     field_info_dict = output_parser.parse(response.content)
     print(f"Successfully extracted resume field info: {field_info_dict}")
     return field_info_dict
+
+def extract_pursuit_job(resume_content):
+
+    """ Extracts the possible job the candidate is pursuing based on resume"""
+
+    prompt = """ Extract the possible job that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
+    
+    It could also be deduced from their work experience. 
+    
+    resume content: {resume_content}"""
+
 
 
 
@@ -1055,6 +1067,9 @@ def create_resume_info(resume_path=""):
         # Extract resume fields
         field_content = extract_resume_fields3(resume_content)
         resume_info_dict[resume_path]["resume fields"].update(field_content)
+        # Extract pursuit job
+        pursuit_job = extract_pursuit_job(resume_content)
+        resume_info_dict[resume_path].update({"pursuit_job": pursuit_job})
         # Extract contact information
         if field_content["personal contact"]!=-1:
             personal_info_dict = extract_personal_information(resume_content)
@@ -1164,6 +1179,33 @@ def retrieve_or_create_job_posting_info(posting_path, about_job,):
       job_posting_dict= create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     return job_posting_dict
 
+def process_uploads(uploads, save_path, sessionId, ):
+
+    print("DDDDDDDDDDDDD")
+    for uploaded_file in uploads:
+        print('processing uploads')
+        file_ext = Path(uploaded_file.name).suffix
+        filename = str(uuid.uuid4())
+        tmp_save_path = os.path.join(save_path, sessionId, "uploads", filename+file_ext)
+        end_path =  os.path.join(save_path, sessionId, "uploads", filename+'.txt')
+        if write_file(uploaded_file.getvalue(), tmp_save_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
+            if convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
+                content_safe, content_type, content_topics = check_content(end_path,  storage=STORAGE, bucket_name=bucket_name, s3=s3)
+                return (content_safe, content_type, content_topics, end_path)
+            else:
+                return None
+        else:
+            return None
+        
+
+def process_links(links, save_path, sessionId, ):
+
+    end_path = os.path.join(save_path, sessionId, "uploads", str(uuid.uuid4())+".txt")
+    if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
+        content_safe, content_type, content_topics = check_content(end_path,  storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        return  (content_safe, content_type, content_topics, end_path)
+    else:
+        return None
     # if (Path(program_path).is_file()):
     #     posting = read_txt(program_path)
     #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:

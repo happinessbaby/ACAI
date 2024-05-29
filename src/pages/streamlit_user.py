@@ -19,7 +19,7 @@ from todo_tmp.streamlit_plannerbot import Planner
 import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
-from utils.common_utils import check_content, process_linkedin, create_profile_summary
+from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, retrieve_or_create_resume_info
 from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
 from langchain.docstore.document import Document
@@ -86,7 +86,7 @@ class User():
         self._init_session_states()
         self._init_user()
 
-    @st.cache_data()
+    # @st.cache_data()
     def _init_session_states(_self, ):
 
         # if _self.cookie is None:
@@ -107,15 +107,15 @@ class User():
         st.session_state["config"] = config
         st.session_state["users"] = users
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
-        st.session_state["location_input"] = ""
-        st.session_state["study"] = ""
-        st.session_state["grad_year"] = ""
-        st.session_state["certification"] = ""
-        st.session_state["career_switch"] = False
-        st.session_state["industry"] = ""
-        st.session_state["self_description"]= ""
-        st.session_state["skill_set"]=""
-        st.session_state["career_goals"]=""
+        # st.session_state["location_input"] = ""
+        # st.session_state["study"] = ""
+        # st.session_state["grad_year"] = ""
+        # st.session_state["certification"] = ""
+        # st.session_state["career_switch"] = False
+        # st.session_state["industry"] = ""
+        # st.session_state["self_description"]= ""
+        # st.session_state["skill_set"]=""
+        # st.session_state["career_goals"]=""
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         # if STORAGE=="CLOUD":
         #     st.session_state["s3_client"] = get_client('s3')
@@ -138,9 +138,9 @@ class User():
         #         os.mkdir(user_dir)
         #     except Exception as e:
         #         pass
-        st.session_state["value0"]=""
-        st.session_state["value1"]=""
-        st.session_state["value2"]=""
+        # st.session_state["value0"]=""
+        # st.session_state["value1"]=""
+        # st.session_state["value2"]=""
 
 
 
@@ -171,10 +171,11 @@ class User():
                 #TODO: display uer profile if not redirected to here
             else:
                 print("user profile does not exists yet")
-                if "init_user1" not in st.session_state:
-                    self.about_user1()
-                if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-                    self.about_user2()
+                self.about_resume_popup()
+                # if "init_user1" not in st.session_state:
+                #     self.about_user1()
+                # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+                #     self.about_user2()
 
     
 
@@ -288,142 +289,190 @@ class User():
                     
 
 
-    def about_user1(self):
+    # def about_user1(self):
 
-        st.markdown("**To get started, please fill out the fields below**")
-        if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
-            st.session_state.disabled1=False
-        else:
-            st.session_state.disabled1=True
-        # st.markdown("**Basic Information**")
-        with st.expander("**Basic information**", expanded=True):
-            c1, c2 = st.columns(2)
-            with c1:
-                #TODO: check default value for user who wants to change their profile info
-                st.text_input("Full name *", key="namex", 
-                              value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
-                              on_change=self.field_check)
-            with c2:
-                st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
-            st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
-        with st.expander("**Education**"):
-            c1, c2 = st.columns([1, 1])
-                # st.text_input("School", key="schoolx")
-            with c2:
-                st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
-            with c1:
-                degree = st.selectbox("Highest level of education *", index=None, options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
-            if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
-                st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
-            certification = st.checkbox("Other certifications")
-            if certification:
-                st.text_area("", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
-        # st.markdown("**Career**")
-        with st.expander("**Career**"):
-            c1, c2 = st.columns([1, 1])
-            # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
-            with c1:
-                st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_check)
-            with c2:
-                st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
-            c1, c2=st.columns([1, 1])
-            with c1:
-                min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_check)
-            with c2: 
-                pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
-            job_unsure=st.checkbox("Not sure about the job")
-            if job_unsure:
-                st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
-            career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.field_check)
-            if career_switch:
-                st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.field_check)
-            location = st.checkbox("Location is important to me")
-            # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
-            if location:
-                location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
-                if location_input=="I want remote work":
-                    st.session_state.location_input = "remote"
-                if location_input == "I have a specific place in mind":
-                    st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
-                if location_input == "work near where I currently live":
-                    if st.checkbox("Share my location"):
-                        loc = get_geolocation()
-                        if loc:
-                            address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-                            st.session_state["location_input"] = address
-        st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
-        st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
+    #     st.markdown("**To get started, please fill out the fields below**")
+    #     if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
+    #         st.session_state.disabled1=False
+    #     else:
+    #         st.session_state.disabled1=True
+    #     # st.markdown("**Basic Information**")
+    #     with st.expander("**Basic information**", expanded=True):
+    #         c1, c2 = st.columns(2)
+    #         with c1:
+    #             #TODO: check default value for user who wants to change their profile info
+    #             st.text_input("Full name *", key="namex", 
+    #                           value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
+    #                           on_change=self.field_check)
+    #         with c2:
+    #             st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
+    #         st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
+
+    #     # st.markdown("**Career**")
+
+    #     st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
+    #     st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
 
 
-    def about_user2(self):
+    # def about_user2(self):
 
-        # with st.form(key="about_me2", clear_on_submit=False):
-        if st.session_state.get("self_description", False):
-        # and st.session_state.get("current_situation", False) and st.session_state.get("career_goals", False) :
-            st.session_state.disabled=False
-        else:
-            st.session_state.disabled=True
-        selected = stx.stepper_bar(steps=["Self Description", "Job Search", "Career Goals"])
-        if selected==0 and st.session_state.value0=="":
-            value0 = st.text_area(
-            label="What can I know about you?", 
-            placeholder="Tell me about yourself, for example, what are your best motivations and values? What's important to you in a job?", 
-            key = "self_descriptionx", 
-            on_change=self.field_check
-            )
-            st.session_state["value0"]=value0
-        elif selected==0 and st.session_state.value0!="":
-            value0=st.text_area(
-            label="What can I know about you?", 
-            value=st.session_state["value0"],
-            key = "self_descriptionx", 
-            on_change=self.field_check
-            )
-            st.session_state["value0"]=value0
-        elif selected==1 and st.session_state.value1=="":
-            value1=st.text_area(
-            label="What are your skills?",
-            placeholder = "Tell me about your skills and talent? What are you especially good at that you want to bring to a workplace?",
-            key="skill_setx",
-            on_change =self.field_check
-            )
-            st.session_state["value1"]=value1
-        elif selected==1 and st.session_state.value1!="":
-            value1=st.text_area(
-            label="What are your skills?",
-            value=st.session_state["value1"],
-            key = "skill_setx",
-            on_change=self.field_check
-            )
-            st.session_state["value1"]=value1
-        elif selected==2 and st.session_state.value2=="":
-            value2=st.text_area(
-            label="What can I do for you?",
-            placeholder = "Tell me about your career goals. Where do you see yourself in 1 year? What about 10 years? What do you want to achieve in life?",
-            key="career_goalsx",
-            on_change=self.field_check,
-            )
-            st.session_state["value2"]=value2
-        elif selected==2 and st.session_state.value2!="":
-            value2=st.text_area(
-            label="What can I do for you?",
-            value=st.session_state["value2"],
-            key = "career_goalsx",
-            on_change=self.field_check
-            )
-            st.session_state["value2"]=value2
+    #     # with st.form(key="about_me2", clear_on_submit=False):
+    #     if st.session_state.get("self_description", False):
+    #     # and st.session_state.get("current_situation", False) and st.session_state.get("career_goals", False) :
+    #         st.session_state.disabled=False
+    #     else:
+    #         st.session_state.disabled=True
+    #     selected = stx.stepper_bar(steps=["Self Description", "Job Search", "Career Goals"])
+    #     if selected==0 and st.session_state.value0=="":
+    #         value0 = st.text_area(
+    #         label="What can I know about you?", 
+    #         placeholder="Tell me about yourself, for example, what are your best motivations and values? What's important to you in a job?", 
+    #         key = "self_descriptionx", 
+    #         on_change=self.field_check
+    #         )
+    #         st.session_state["value0"]=value0
+    #     elif selected==0 and st.session_state.value0!="":
+    #         value0=st.text_area(
+    #         label="What can I know about you?", 
+    #         value=st.session_state["value0"],
+    #         key = "self_descriptionx", 
+    #         on_change=self.field_check
+    #         )
+    #         st.session_state["value0"]=value0
+    #     elif selected==1 and st.session_state.value1=="":
+    #         value1=st.text_area(
+    #         label="What are your skills?",
+    #         placeholder = "Tell me about your skills and talent? What are you especially good at that you want to bring to a workplace?",
+    #         key="skill_setx",
+    #         on_change =self.field_check
+    #         )
+    #         st.session_state["value1"]=value1
+    #     elif selected==1 and st.session_state.value1!="":
+    #         value1=st.text_area(
+    #         label="What are your skills?",
+    #         value=st.session_state["value1"],
+    #         key = "skill_setx",
+    #         on_change=self.field_check
+    #         )
+    #         st.session_state["value1"]=value1
+    #     elif selected==2 and st.session_state.value2=="":
+    #         value2=st.text_area(
+    #         label="What can I do for you?",
+    #         placeholder = "Tell me about your career goals. Where do you see yourself in 1 year? What about 10 years? What do you want to achieve in life?",
+    #         key="career_goalsx",
+    #         on_change=self.field_check,
+    #         )
+    #         st.session_state["value2"]=value2
+    #     elif selected==2 and st.session_state.value2!="":
+    #         value2=st.text_area(
+    #         label="What can I do for you?",
+    #         value=st.session_state["value2"],
+    #         key = "career_goalsx",
+    #         on_change=self.field_check
+    #         )
+    #         st.session_state["value2"]=value2
         
-        submitted = st.button("Submit", on_click=self.form_callback2, disabled=st.session_state.disabled)
-        skip = st.button(label="skip", help="You can come back to this later, but remember, the more information you provide, the better your job search results", type="primary", on_click=self.form_callback2)
+    #     submitted = st.button("Submit", on_click=self.form_callback2, disabled=st.session_state.disabled)
+    #     skip = st.button(label="skip", help="You can come back to this later, but remember, the more information you provide, the better your job search results", type="primary", on_click=self.form_callback2)
         # if submitted:
         #     st.session_state["init_user2"]=True
 
+    @st.experimental_dialog("Let's get started with your resume", width="large")
+    def about_resume_popup(self):
+        if "user_resume_path" in st.session_state:
+            st.session_state.resume_disabled = False
+        else:
+            st.session_state.resume_disabled = True
+        st.markdown("#")
+        # c1, _, c2 = st.columns([5, 1, 3])
+        st.file_uploader(label="Upload your resume",
+                        key="user_resume",
+                            accept_multiple_files=False, 
+                            on_change=self.field_check, 
+                            help="This will become your default resume.")
+        st.markdown("#")
+        st.button(label="submit", on_click=self.form_callback, disabled=st.session_state.resume_disabled)
+
+    def about_future_popup(self):
+
+        st.text_area("Where do you see yourself in 5 years?")
+
+    def about_skills_popup(self):
+
+        st.text_area("What are your skills and talent?")
 
 
-    def form_callback1(self):
+    @st.experimental_dialog("Basic information", )
+    def about_basic_popup(self):
 
-        st.session_state["init_user1"]=True
+        c1, c2 = st.columns(2)
+        with c1:
+            #TODO: check default value for user who wants to change their profile info
+            st.text_input("Full name *", key="namex", 
+                            value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
+                            on_change=self.field_check)
+        with c2:
+            st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
+        st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
+
+
+    @st.experimental_dialog("Desired job benefits", )
+    def about_career_popup(self):
+
+        c1, c2 = st.columns([1, 1])
+        # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
+        with c1:
+            st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_check)
+        with c2:
+            st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
+        c1, c2=st.columns([1, 1])
+        with c1:
+            min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_check)
+        with c2: 
+            pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
+        job_unsure=st.checkbox("Not sure about the job")
+        if job_unsure:
+            st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
+        career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.field_check)
+        if career_switch:
+            st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.field_check)
+        location = st.checkbox("Location is important to me")
+        # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
+        if location:
+            location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
+            if location_input=="I want remote work":
+                st.session_state.location_input = "remote"
+            if location_input == "I have a specific place in mind":
+                st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
+            if location_input == "work near where I currently live":
+                if st.checkbox("Share my location"):
+                    loc = get_geolocation()
+                    if loc:
+                        address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
+                        st.session_state["location_input"] = address
+
+
+    @st.experimental_dialog("Education & Certification", )
+    def about_education_popup(self):
+
+        c1, c2 = st.columns([1, 1])
+            # st.text_input("School", key="schoolx")
+        with c2:
+            st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
+        with c1:
+            degree = st.selectbox("Highest level of education *", index=None, options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
+        if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
+            st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
+        certification = st.checkbox("Other certifications")
+        if certification:
+            st.text_area("", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
+
+
+
+    # def form_callback1(self):
+
+    #     st.session_state["init_user1"]=True
 
                 
     def form_callback2(self):
@@ -439,7 +488,14 @@ class User():
         add_to_lancedb_table(self.userId, data)
         st.session_state["init_user2"]=True
 
-
+    def form_callback(self, type):
+        """"""
+        if type=="resume":
+            resume_dict = retrieve_or_create_resume_info(st.session_state.resume_path, )
+            st.session_state["users"][self.userId]["resume path"] = st.session_state.resume_path
+            st.session_state["users"][self.userId]["resume"] = resume_dict
+            with open(user_profile_file, 'w') as file:
+                json.dump(st.session_state["users"], file, indent=2)
 
 
     # def test_clear(self):
@@ -566,14 +622,26 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["resume"] = st.session_state.resumex
-            if st.session_state.resume:
-                process_resume(st.session_state.resume)
+            resume = st.session_state.user_resume
+            if resume:
+                self.process([resume], "resume")
         except AttributeError:
             pass
 
-    def process_input(self, input_type, input_value):
 
+    def process(self, input_value: Any, input_type:str):
+        if type=="resume":
+            result = process_uploads(input_value, st.session_state.save_path, st.session_state.sessionId, )
+            if result is not None:
+                content_safe, content_type, content_topics, end_path = result
+                if content_safe and content_type=="resume":
+                    st.session_state["user_resume_path"]= end_path
+                else:
+                    print("user didn't upload resume")
+                    st.info("Please update your resume here")
+            else:
+                print("upload didn't work")
+                st.info("That didn't work, please try again.")
         if input_type=="birthday":
             st.session_state.birthday = input_value.strftime('%Y-%m-%d')
             #TODO: get age instead
@@ -623,19 +691,20 @@ class User():
         """Loads from user file and displays profile"""
   
     def update_personal_info(self):
+        """ """
 
         # update user information to vectorstore
         # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
         # record_manager=create_record_manager(self.userId)
         # update_index(docs, record_manager, vectorstore)
-        try:
-            del st.session_state["init_user1"]
-        except Exception:
-            pass
-        if "init_user1" not in st.session_state:
-            self.about_user1()
-        if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-            self.about_user2()
+        # try:
+        #     del st.session_state["init_user1"]
+        # except Exception:
+        #     pass
+        # if "init_user1" not in st.session_state:
+        #     self.about_user1()
+        # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
+        #     self.about_user2()
 
 
 

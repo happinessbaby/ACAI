@@ -16,6 +16,10 @@ credentials:
       email: yueqi@gmail.com
       name: yueqi
       password: $2b$12$XDdZvx7XczYpC6HxnnCem.lpZ6QQ8D3q0tMdQXD3JGv0ourWoOATK
+    yueqipeng:
+      email: yueqipeng2022@gmail.com
+      name: yueqipeng
+      password: $2b$12$7e9ExABkRKEPX8RF6hEm/uHm4Ev54LWSSRSl2uYkYge26PUvsrxw2
 preauthorized:
   emails:
   - melsby@gmail.com
