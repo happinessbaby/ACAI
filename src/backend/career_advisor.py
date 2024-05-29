@@ -124,7 +124,7 @@ class ChatController():
         # resume_customize_tool = create_resume_customize_writer_tool()
         # resume_evaluator_tool = create_resume_evaluator_tool()
         # resume_rewriter_tool = create_resume_rewriter_tool()
-        resume_template_tool = [resume_template_design_tool]
+        # resume_template_tool = [resume_template_design_tool]
         # resume_template_tool = create_resume_template_tool()
         # resume_evaluator_tool = [resume_evaluator]
         user_material_tool = [search_user_material]
@@ -139,7 +139,7 @@ class ChatController():
         # file_sys_tools[0].return_direct = True
         # file_sys_tools[0].description = 'Read file from disk. DO NOT USE THIS TOOL UNLESS YOU ARE TOLD TO DO SO.'
 
-        requests_get = load_tools(["requests_get"])
+        # requests_get = load_tools(["requests_get"])
         # link_download_tool = [binary_file_downloader_html]
         # general vector store tool
         store = retrieve_vectorstore("faiss", faiss_web_data_path)
@@ -170,7 +170,7 @@ class ChatController():
         # wiki_tool = create_wiki_tools()
         # gather all the tools together
         # self.tools =  resume_evaluator_tool + resume_rewriter_tool+ resume_template_tool+ resume_customize_tool + general_tool + user_material_tool  + requests_get
-        self.tools =  resume_template_tool + general_tool + user_material_tool  + requests_get
+        self.tools =  general_tool + user_material_tool 
         # + [tool for tool in file_sys_tools]
         tool_names = [tool.name for tool in self.tools]
         print(f"Chat agent tools: {tool_names}")

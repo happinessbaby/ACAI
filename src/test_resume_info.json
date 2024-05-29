@@ -1,0 +1,1272 @@
+{
+    "./backend/resume_samples/college-student-resume-example.txt": {
+        "contact": {
+            "name": "SASHA WAGNER",
+            "email": "sashawagner@email.com",
+            "phone": "(123) 456-7890",
+            "city": "Saint Paul",
+            "state": "MN",
+            "linkedin": "LinkedIn",
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Digital Marketing Analyst Intern\nMarketing Science Associates\nApril 2021 - current / Saint Paul, MN\n\u00b7 Created A/B testing plan for Facebook ad copy, leading to an\nimprovement in ROI of 18%\n\u00b7 Built key reports for executive team around KPIs, such as\nmarketing spend, new leads, revenue generated, and ROI\n\u00b7 Oversaw the creation of the blog for SEO purposes, which grew\nfrom 500 to 5,000 monthly organic visitors\n\u00b7 Interviewed clients to understand their product positioning to\nincorporate into ad copy, resulting in client satisfaction of 96%\n\u00b7 Designed weekly email campaigns to target potential\nsubscribers, increasing subscriptions by 12%\n\u00b7 Gathered data and insights, and discussed trends with team of 3\nother interns and 4 analysts to set new goals",
+            "summary or objective": "Soon-to-be marketing graduate (2022) with a passion for developing\nscalable acquisition strategies through paid advertising and SEO. I\nhave experience creating and improving campaigns in the context of\na big team, and I worked independently to help local organizations\nstart and grow user acquisition, skills that will positively impact\nstrategic development and execution at Pacsun.",
+            "skills": "Salesforce\nMicrosoft Excel, Word,\nPowerpoint\nPaid acquisition (Facebook,\nGoogle, LinkedIn, Instagram,\nretargeting)\nGoogle Analytics\nSEO",
+            "awards and honors": -1,
+            "professional accomplishment": -1,
+            "certification": -1,
+            "projects": "Local SEO boost\n\u00b7 Helped local boutiques grow their online presence, boosting\ntheir organic search tra\ufb03c by an average of 60%\n\u00b7 Instructed clients in best SEO practices to see an average\nincrease in sales from online channels of $2.5K per month after\nimplementation\nPaid ads for animal shelter\n\u00b7 Partnered with local animal shelter to build a paid advertising\ncampaign on Facebook and Instagram, resulting in a reduction\nin cost per lead of 53%\n\u00b7 Iterated on ad copy, placement, and images to ultimately\nimprove conversion rate by 134%"
+        },
+        "education": {
+            "degree": "B.S. in Marketing",
+            "study": "Marketing",
+            "graduation year": "May 2022",
+            "gpa": "3.65",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "effectively interviewing clients, collaborating with a team of interns and analysts, and creating reports for the executive team",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "creating A/B testing plans, analyzing data to set new goals, and improving campaigns for local organizations",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "overseeing multiple tasks such as blog creation, report building, and campaign design",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "working effectively with a team of interns and analysts to analyze data, discuss trends, and set new goals",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Salesforce",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Microsoft Excel, Word, PowerPoint",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Paid acquisition (Facebook, Google, LinkedIn, Instagram, retargeting)",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Google Analytics",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "SEO",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Marketing Research",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Consumer Behavior",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Salesforce Management",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Electronic Commerce",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Advertising and Sales Promotion",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Principles of Selling",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Digital Marketing Analyst",
+                "start_date": "April 2021",
+                "end_date": "current",
+                "responsibilities": [
+                    "Created A/B testing plan for Facebook ad copy",
+                    "Built key reports for executive team around KPIs",
+                    "Oversaw the creation of the blog for SEO purposes",
+                    "Interviewed clients to understand their product positioning",
+                    "Designed weekly email campaigns to target potential subscribers",
+                    "Gathered data and insights to set new goals"
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample1.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "- MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\n- Basic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n- Developed and maintained accounting records for up to fifty bank accounts.\n- Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n- Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n- Formulated intricate pro-forma budgets.\n- Calculated and implemented depreciation/amortization schedules.\n\nInformation Systems Analysis and Problem Solving\n- Converted manual to computerized accounting systems for two organizations.\n- Analyzed and successfully reprogrammed software to meet customer requirements.\n- Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving skills",
+                "example": "Converting manual to computerized accounting systems and analyzing software to meet customer requirements. Troubleshooting and resolving issues during the transition to computerized systems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication skills",
+                "example": "Effectively communicating with various organizations to maintain accounting records, prepare financial statements, and navigate audits. Providing clear and concise explanations during financial audits.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects and meeting deadlines in a fast-paced environment. Efficiently prioritizing tasks to ensure timely completion.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Developing and maintaining accounting records, formulating financial statements, preparing payroll reports, budgets, and depreciation/amortization schedules. Creating detailed financial reports and analyzing financial data accurately.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Converting manual to computerized accounting systems, analyzing software, proficiency in software programs like MS Office, QuickBooks, and knowledge of MS Access, SQL, Visual Basic, and C++. Implementing software solutions to enhance accounting processes.",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ]
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample2.txt": {
+        "contact": {
+            "name": "imasample2",
+            "email": "imasample2@xxx.com",
+            "phone": "(402) 291-5432",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Senior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\n\u2022 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\u2022 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\u2022 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\u2022 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\n\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\n\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon",
+            "summary or objective": "Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills",
+            "skills": "Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop",
+            "awards and honors": -1,
+            "professional accomplishment": -1,
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "BS in Business Administration with Marketing Emphasis",
+            "study": "Marketing",
+            "graduation year": "June, 20xx",
+            "gpa": "3.56/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "Effectively assisting college students as an Academic Tutor and coordinating advertising activities for the student newspaper",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "Researching story ideas, resolving customer issues, and managing accounts receivable discrepancies",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Balancing accounts, managing daily deposits, and organizing systems to recover lost checks",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Marketing",
+                "example": "Coursework in Principles of Marketing and practical experience in advertising coordination",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Business communication",
+                "example": "Coursework in Business Communication and writing articles for the newsletter",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Public relations",
+                "example": "Coursework in Public Relations and volunteer work for the Publicity Committee",
+                "type": "hard skill"
+            },
+            {
+                "skill": "MS Office (Word, Excel, PowerPoint)",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "PhotoShop",
+                "example": "Skill in graphic design using this software",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Academic Tutor",
+                "start_date": "20xx",
+                "end_date": "present",
+                "responsibilities": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ]
+            },
+            {
+                "job_title": "Senior Accounts Receivable Clerk",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Researched story ideas, wrote articles and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized system to stop payment and replace all checks."
+                ]
+            }
+        ]
+    },
+    "./backend/resume_samples/sample7.txt": {
+        "contact": {
+            "name": "imasample7",
+            "email": "imasample7@xxx.com",
+            "phone": "(402) 555-9876",
+            "city": "Omaha",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "work experience": "Writing Tutor and Test Administrator, Bellevue University, Bellevue, NE (20xx \u2013 20xx)\n\n\uf0b7 Assisted in the preparation and administration of various assessment instruments, including\nCLEP, DANTES and placement tests.\n\n\uf0b7 Provided tutorial assistance to undergraduate and graduate students in the area of\nwriting/composition.\n\n\uf0b7 Advised and assisted international students with writing assignments to help them strengthen\ntheir English language skills.\n\nResearch Assistant, University of Nebraska Medical Center, Omaha, NE (Summer 20xx, 20xx)\n\n\uf0b7 Assisted child psychologist in a two-part Summer Research Enrichment Program, including\nobservations of client behavior, data entry and preparation of research reports.\n\n\uf0b7 Performed literature searches and prepared summary reports for a major research project\ninvolving the study of individuals with disabilities.",
+            "summary or objective": "To obtain a Graduate Assistantship where strong academic background and excellent\ncommunication skills can be utilized to help college students achieve their educational goals.",
+            "skills": "-1",
+            "awards and honors": "Listed in Who\u2019s Who Among Students in American Colleges and Universities\n\nMember, Pi Gamma Mu and Alpha Chi Honor Societies\n\nPresident, Behavioral and Social Sciences Student Organization, Bellevue University\n\nVolunteer Contributor, The VUE, Bellevue University Student Newspaper\n\nMember, Bellevue University Student Advisory Council",
+            "professional accomplishment": "-1",
+            "certification": "-1",
+            "projects": "-1"
+        },
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Psychology, Sociology",
+            "graduation year": "20xx",
+            "gpa": "4.00/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Excellent communication skills",
+                "example": "experience assisting international students with writing assignments",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "assisting in the preparation and administration of assessment instruments",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management skills",
+                "example": "managing multiple responsibilities as a writing tutor, test administrator, and research assistant",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Leadership skills",
+                "example": "serving as President of the Behavioral and Social Sciences Student Organization",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Research skills",
+                "example": "conducting literature searches, data entry, and preparing research reports",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Writing skills",
+                "example": "providing tutorial assistance in writing/composition and contributing to the student newspaper",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Knowledge in psychology and sociology",
+                "example": "coursework and academic achievements in these areas",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Technical skills in using assessment instruments such as CLEP, DANTES, and placement tests",
+                "example": "assisting in their preparation and administration",
+                "type": "hard skill"
+            }
+        ],
+        "jobs": [
+            {
+                "job_title": "Writing Tutor and Test Administrator",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted in the preparation and administration of various assessment instruments",
+                    "Provided tutorial assistance to undergraduate and graduate students in writing/composition",
+                    "Advised and assisted international students with writing assignments"
+                ]
+            },
+            {
+                "job_title": "Research Assistant",
+                "start_date": "Summer 20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted child psychologist in a Summer Research Enrichment Program",
+                    "Performed literature searches and prepared summary reports for a research project"
+                ]
+            }
+        ]
+    },
+
+    "./my_material/resume2023v4.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "YUEQI PENG\n\nBIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated through creating forecasting models, analyzing pricing trends, and developing AI projects.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Shown through collaborating with team members on various projects and presenting findings.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Highlighted by working with cross-functional teams, communicating effectively, and collaborating on projects.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Adaptability",
+                "example": "Mentioned in the summary as being adaptable to different work demands.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Analytical mindset",
+                "example": "Demonstrated through data analysis, feature engineering, and statistical modeling.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming languages",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Tools",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud platforms",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data analysis tools",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "ETL process",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine Learning",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Agile/Scrum",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile software development methodologies",
+                    "Deployed workflows through continuous integration",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process",
+                    "Worked on Big Data related projects",
+                    "Built a pub-sub API using Spark-Kafka Integration",
+                    "Set up remote HDFS cluster on AWS",
+                    "Built correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project on 3D Box Packing",
+                "description": [
+                    "Increased percentage of space packed from 70% to 75% by comparing AI's box packing plan to human experts']},{",
+                    "description:[",
+                    "Used large language model to build a platform for job seekers to improve resume and interview skills"
+                ]
+            },
+            {
+                "title": "Wildfire Project with Spark and SQL",
+                "description": [
+                    "Predicted occurrence of wildfires in U.S. based on climate, geography, and other factors"
+                ]
+            }
+        ]
+    },
+    "./chat_session/68b11ee4-ea22-4bd0-a859-b3ea967d5a7c/uploads/7952269a-656c-4a09-b93b-d2f90146bc69.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "converting manual to computerized accounting systems and reprogramming software to meet customer requirements",
+                "type": "soft"
+            },
+            {
+                "skill": "Communication",
+                "example": "ability to handle multiple projects and work in a fast-paced environment",
+                "type": "soft"
+            },
+            {
+                "skill": "Time management",
+                "example": "managing multiple projects in a deadline-oriented setting",
+                "type": "soft"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "maintaining accounting records, formulating financial statements, preparing payroll records, conducting audits, creating budgets, and implementing depreciation/amortization schedules",
+                "type": "hard"
+            },
+            {
+                "skill": "Information Systems Analysis",
+                "example": "converting manual to computerized systems, reprogramming software, and resolving system problems effectively",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Skills",
+                "example": "proficiency in MS Office, QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "Converted manual to computerized accounting systems for two organizations."
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    },
+    "./chat_session/4c92bab3-0899-422b-a868-c40ba1c8960d/uploads/e7a0e3a1-638d-4af6-aff8-cf8f8dbc82e9.txt": {
+        "contact": {
+            "name": "imasample7",
+            "email": "imasample7@xxx.com",
+            "phone": "(402) 555-9876",
+            "city": "Omaha",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "4321 Country Club Road\nOmaha, Nebraska 68123\n(402) 555-9876\nimasample7@xxx.com",
+            "work experience": "Writing Tutor and Test Administrator, Bellevue University, Bellevue, NE (20xx \u2013 20xx)\n\n\uf0b7 Assisted in the preparation and administration of various assessment instruments, including\nCLEP, DANTES and placement tests.\n\n\uf0b7 Provided tutorial assistance to undergraduate and graduate students in the area of\nwriting/composition.\n\n\uf0b7 Advised and assisted international students with writing assignments to help them strengthen\ntheir English language skills.\n\nResearch Assistant, University of Nebraska Medical Center, Omaha, NE (Summer 20xx, 20xx)\n\n\uf0b7 Assisted child psychologist in a two-part Summer Research Enrichment Program, including\nobservations of client behavior, data entry and preparation of research reports.\n\n\uf0b7 Performed literature searches and prepared summary reports for a major research project\ninvolving the study of individuals with disabilities.",
+            "education": "Bachelor of Arts, Bellevue University, Bellevue NE (20xx)\n\nMajors: Psychology, Sociology\n\nGraduated Summa Cum Laude\n\nDean\u2019s Scholar\n\nRelevant Coursework\n\nFundamentals of Guidance & Counseling\n\nPsychological Assessment\n\nResearch Methods & Psychological Research\n\nGPA: 4.00/4.00\n\nNational Dean\u2019s List\n\nPersonality Theory\n\nLearning Theory\n\nSocial Psychology",
+            "summary or objective": "To obtain a Graduate Assistantship where strong academic background and excellent\ncommunication skills can be utilized to help college students achieve their educational goals.",
+            "skills": "-1",
+            "awards and honors": "Listed in Who\u2019s Who Among Students in American Colleges and Universities\n\nMember, Pi Gamma Mu and Alpha Chi Honor Societies\n\nPresident, Behavioral and Social Sciences Student Organization, Bellevue University\n\nVolunteer Contributor, The VUE, Bellevue University Student Newspaper\n\nMember, Bellevue University Student Advisory Council",
+            "professional accomplishment": "-1",
+            "certification": "-1",
+            "projects": "-1"
+        },
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Psychology, Sociology",
+            "graduation year": "20xx",
+            "gpa": "4.00/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication skills",
+                "example": "providing tutorial assistance to students and assisting international students with writing assignments",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "assisting in the preparation and administration of various assessment instruments and assisting in research projects",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "managing multiple tasks such as data entry, observations, and literature searches",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Writing/composition",
+                "example": "providing tutorial assistance in writing to undergraduate and graduate students",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Research skills",
+                "example": "assisting in research projects, data entry, literature searches, and preparation of research reports",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Administrative skills",
+                "example": "assisting in the preparation and administration of assessment instruments",
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "Writing Tutor and Test Administrator",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted in the preparation and administration of various assessment instruments",
+                    "Provided tutorial assistance to undergraduate and graduate students in writing/composition",
+                    "Advised and assisted international students with writing assignments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Research Assistant",
+                "start_date": "Summer 20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Assisted child psychologist in a Summer Research Enrichment Program",
+                    "Performed literature searches and prepared summary reports for a research project"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Writing Tutor and Test Administrator",
+                "description": [
+                    "Assisted in the preparation and administration of various assessment instruments, including CLEP, DANTES and placement tests.",
+                    "Provided tutorial assistance to undergraduate and graduate students in the area of writing/composition.",
+                    "Advised and assisted international students with writing assignments to help them strengthen their English language skills."
+                ]
+            },
+            {
+                "title": "Research Assistant",
+                "description": [
+                    "Assisted child psychologist in a two-part Summer Research Enrichment Program, including observations of client behavior, data entry and preparation of research reports.",
+                    "Performed literature searches and prepared summary reports for a major research project involving the study of individuals with disabilities."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Writing Tutor and Test Administrator",
+                "description": [
+                    "Assisted in the preparation and administration of various assessment instruments, including CLEP, DANTES and placement tests.",
+                    "Provided tutorial assistance to undergraduate and graduate students in the area of writing/composition.",
+                    "Advised and assisted international students with writing assignments to help them strengthen their English language skills."
+                ]
+            },
+            {
+                "title": "Research Assistant",
+                "description": [
+                    "Assisted child psychologist in a two-part Summer Research Enrichment Program, including observations of client behavior, data entry and preparation of research reports.",
+                    "Performed literature searches and prepared summary reports for a major research project involving the study of individuals with disabilities."
+                ]
+            }
+        ]
+    }, 
+    "./chat_session/0a3b154e-0f47-4181-a62c-9572ea69d514/uploads/8ab8fbb4-051b-4013-a660-8abd595eb2ec.txt": {
+        "contact": {
+            "name": "IM A. SAMPLE",
+            "email": "imasample5@xxx.com",
+            "phone": "(402) 543-1234",
+            "city": "Omaha",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "987 Northridge Drive\nOmaha, Nebraska 68123\n(402) 543-1234\nimasample5@xxx.com",
+            "work experience": "Various Positions of Increasing Responsibility and Leadership\nUnited States Air Force (20xx to present)\n\n\uf0b7 Currently serving as Squadron Operation Superintendent.\n\uf0b7 Scheduled to leave the Air Force in September 20xx.",
+            "education": "Bachelor of Science in Management (20xx)\nBellevue University, Bellevue, Nebraska\nGPA: 4.00/4.00\nDean\u2019s Scholar\nGraduated with Professional Honors\n\nAssociate of Applied Science in Communications Technology (20xx)\nCommunity College of the Air Force",
+            "summary or objective": "Self-motivated, resourceful and dynamic leader with extensive experience and a strong\neducational background in management, training and employee development; exceptional\ncommunication skills and a demonstrated ability to create and manage cohesive, productive work\nteams; proficient in the use of Microsoft Word, Excel and other software applications.",
+            "skills": "Management and Administration\n\uf0b7 Directed, guided and motivated a workforce of up to 300 individuals with diverse technical\nbackgrounds and experiences.\n\uf0b7 Successfully improved work performance of a \u201cmarginal\u201d work team, as evidenced by an\nincrease to a \u201csatisfactory\u201d performance rating after only six months as team leader.\n\uf0b7 Provided day-to-day supervision for an administrative staff of up to sixty employees.\n\uf0b7 Planned, designed and coordinated the programming of computer-based products; designed\nand coordinated computer system testing in facilities throughout the world.\n\uf0b7 Planned, developed and administered annual budgets ranging from $150,000 to $300,000.\n\nTraining and Development\n\uf0b7 Taught college level courses in leadership, management, team building, effective writing and\nspeech communications.\n\uf0b7 Certified as Master Instructor; designed and developed curriculum; selected, trained and\nevaluated other instructors.\n\uf0b7 Advised and educated personnel on ways to enhance and strengthen their promotability and\njob performance; identified and documented career development plans for employees.\n\uf0b7 Provided on-the-job training and guidance for new employees.\n\nCommunication and Counseling\n\uf0b7 Conducted formal investigations and utilized a variety of counseling techniques and\nstrategies to successfully resolve highly complex and sensitive issues involving domestic\nabuse, racial discrimination, minor law infractions and academic failures.\n\uf0b7 Worked one-on-one with customers and employees to enhance self esteem and resolve\ncommunication problems.\n\uf0b7 Marketed and promoted company programs to employees and the general public through a\nvariety of activities including presentations to audiences of over 1000 people.\n\uf0b7 Established and maintained effective working relationships with co-workers, superiors and\nsubordinates to facilitate the achievement of business objectives.",
+            "awards and honors": "-1",
+            "professional accomplishment": "-1",
+            "certification": "Certified as Total Quality Management Facilitator\nQualified Master Air Training Command Instructor in Leadership and Management",
+            "projects": "-1"
+        },
+        "education": {
+            "degree": "Bachelor of Science in Management",
+            "study": "Management",
+            "graduation year": "20xx",
+            "gpa": "4.00/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "Teaching college level courses, conducting formal investigations, resolving communication problems with customers and employees",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Leadership",
+                "example": "Directing, guiding, motivating a workforce, supervising an administrative staff, building effective work teams",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "Improving team performance, resolving complex issues",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Team building",
+                "example": "Creating and managing cohesive work teams",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Managing budgets, coordinating programming and testing activities",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Management and Administration",
+                "example": "Planning, designing, coordinating computer-based products, administering budgets",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Training and Development",
+                "example": "Teaching college courses, designing curriculum, providing on-the-job training and guidance",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Technical skills",
+                "example": "Proficiency in Microsoft Word, Excel, and other software applications",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Total Quality Management",
+                "example": "Certified as a Total Quality Management Facilitator",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Leadership and Management",
+                "example": "Qualified as a Master Air Training Command Instructor in Leadership and Management",
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "Squadron Operation Superintendent",
+                "start_date": "20xx",
+                "end_date": "present",
+                "responsibilities": [
+                    "Currently serving as Squadron Operation Superintendent"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Team Leader",
+                "start_date": "-1",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Successfully improved work performance of a 'marginal' work team, as evidenced by an increase to a 'satisfactory' performance rating after only six months as team leader."
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Directed, guided and motivated a workforce",
+                "description": [
+                    "Successfully improved work performance of a 'marginal' work team",
+                    "Provided day-to-day supervision for an administrative staff",
+                    "Planned, designed and coordinated the programming of computer-based products",
+                    "Planned, developed and administered annual budgets"
+                ]
+            },
+            {
+                "title": "Taught college level courses in leadership and management",
+                "description": [
+                    "Certified as Master Instructor",
+                    "Advised and educated personnel on career development",
+                    "Provided on-the-job training for new employees"
+                ]
+            },
+            {
+                "title": "Conducted formal investigations and utilized counseling techniques",
+                "description": [
+                    "Worked one-on-one with customers and employees to enhance self-esteem",
+                    "Marketed and promoted company programs through presentations",
+                    "Established and maintained effective working relationships"
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Directed, guided and motivated a workforce",
+                "description": [
+                    "Successfully improved work performance of a 'marginal' work team",
+                    "Provided day-to-day supervision for an administrative staff",
+                    "Planned, designed and coordinated the programming of computer-based products",
+                    "Planned, developed and administered annual budgets"
+                ]
+            },
+            {
+                "title": "Taught college level courses in leadership and management",
+                "description": [
+                    "Certified as Master Instructor",
+                    "Advised and educated personnel on career development",
+                    "Provided on-the-job training for new employees"
+                ]
+            },
+            {
+                "title": "Conducted formal investigations and utilized counseling techniques",
+                "description": [
+                    "Worked one-on-one with customers and employees to enhance self-esteem",
+                    "Marketed and promoted company programs through presentations",
+                    "Established and maintained effective working relationships"
+                ]
+            }
+        ]
+    }, 
+    "./chat_session/c1e5c822-6487-4cad-8479-560cf1b54a73/uploads/c5f1716a-d34f-433a-b11b-a569c9c20f9a.txt": {
+        "contact": {
+            "name": "imasample2",
+            "email": "imasample2@xxx.com",
+            "phone": "(402) 291-5432",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "4321 South 55 Street\nBellevue, Nebraska 68005\n(402) 291-5432\nimasample2@xxx.com",
+            "work experience": "Aacademic Tutor (20xx to present)\nBellevue University, Bellevue, NE\n\uf0b7 Assist college students in overcoming deficiencies and\nsuccessfully mastering academic coursework.\n\nSenior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\uf0b7 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\uf0b7 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\uf0b7 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\uf0b7 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\n\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon",
+            "education": "BS in Business Administration with Marketing Emphasis\nBellevue University, Bellevue, NE\n\uf0b7 Expected Graduation Date: June, 20xx\n\uf0b7 GPA to date: 3.56/4.00\nRelevant Coursework\nPrinciples of Marketing\nBusiness Communication\nInternet Marketing\nConsumer Behavior\nPublic Relations\nBusiness Policy & Stretegy",
+            "summary or objective": "OBJECTIVE: Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills",
+            "skills": "Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop",
+            "awards and honors": -1,
+            "professional accomplishment": -1,
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "BS in Business Administration",
+            "study": "Marketing Emphasis",
+            "graduation year": "June, 20xx",
+            "gpa": "3.56/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Communication skills",
+                "example": "Demonstrated through academic tutoring, writing articles for a newsletter, and coordinating advertising for the student newspaper. Strong communication skills are essential for marketing and public relations roles to effectively convey messages to target audiences.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "Shown through resolving customer and staff member issues, balancing accounts, and recovering lost checks. The ability to think critically and solve problems efficiently is crucial in navigating various challenges in the marketing and public relations field.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Evidenced by managing daily accounts receivable deposits and balancing various responsibilities such as academic tutoring and working as an accounts receivable clerk. Effective time management ensures tasks are completed efficiently and deadlines are met in fast-paced marketing environments.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Demonstrated through working with the Publicity Committee for the Brushup Nebraska Paint-A-Thon and training new staff members at Lincoln Financial Group. Collaborating with others is essential in marketing and public relations to achieve common goals and deliver successful campaigns.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Marketing skills",
+                "example": "Acquired through coursework in Principles of Marketing, Internet Marketing, and Public Relations, as well as experience in advertising coordination for the student newspaper. A solid foundation in marketing principles and practical experience in advertising are valuable assets for roles in marketing or public relations.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Business administration skills",
+                "example": "Developed through coursework in Business Policy & Strategy and experience as a Senior Accounts Receivable Clerk. Understanding business strategies and financial management is essential for marketing professionals to make informed decisions and drive successful campaigns.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer skills",
+                "example": "Proficiency in MS Office (Word, Excel, PowerPoint) and PhotoShop, as mentioned in the resume. Strong computer skills are necessary for creating presentations, analyzing data, and designing marketing materials in today's digital marketing landscape.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Language skills",
+                "example": "Bilingual in English and Spanish, which can be beneficial for communication in diverse environments. Being bilingual enhances the candidate's ability to connect with a wider range of audiences and cater to multicultural markets.",
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "Aacademic Tutor",
+                "start_date": "20xx",
+                "end_date": "present",
+                "responsibilities": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Senior Accounts Receivable Clerk",
+                "start_date": "20xx",
+                "end_date": "20xx",
+                "responsibilities": [
+                    "Researched story ideas, wrote articles and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized system to stop payment and replace all checks."
+                ],
+                "years of experience": -1
+            }
+        ]
+    },
+    "./chat_session/67fae9a3-b98f-458b-805e-6ff4d1fd3411/uploads/a5f78742-7a86-48fc-a0b7-faf6c3146ab3.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "(205) 519-1594",
+            "city": -1,
+            "state": -1,
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng-304943214/",
+            "website": "https://github.com/happinessbaby"
+        },
+        "resume fields": {
+            "personal contact": "YUEQI PENG\nMobile: (205) 519-1594\n\nHardworking and dependable\ncandidate successful at managing\nmultiple priorities with a\npositive attitude. Values\nteamwork and adaptable to\ndifferent work demands. Holds a\nanalytical mindset owing to\nbackground in mathematics and\nexperience in Big Data\nengineering. Passionate about\nprogramming and has a keen\ninterest in developing AI\nproducts during free times.",
+            "work experience": "WALMART 05/2022 - 10/2022\n\nBIG DATA ENGINEER\n\n-   Collaborated with cross-functional teams in evaluating and improving\n    low level design of new back-end features that included streaming\n    services and data analytic sectors\n\n-   Tested methodology with writing and execution of test plans,\n    debugging and testing scripts and tools, and revamped old code bases\n    to modern development standards for improved error handling and data\n    handling to meet the functional programming paradigm\n\n-   Participated in Agile development and deployment of the CI/CD\n    pipeline, including testing workflow, writing unit tests, and\n    summarizing biweekly Agile cards\n\n-   Completed all assigned tasks within a timely manner, aided other\n    team members, and took on extra responsibilities to meet team goals\n\nREVATURE 01/2022 - 12/2022\n\nBIG DATA ENGINEER\n\n-   Implemented the complete Extract, Transform, and Load process using\n    tools such as Scala, Spark, Hadoop, and SQL\n\n-   Worked with other members on Big Data related projects, including\n    building a pub-sub API using Spark-Kafka Integration through Kafka\u2019s\n    Consumer and Producer framework, setting up remote HDFS cluster on\n    AWS for downstream data analysis, and building correlation matrix\n    and logistic regression model for prediction of trends using Spark\n    MLLibs",
+            "education": "UNIVERSITY OF CHICAGO, Chicago, IL\n\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "-   Learned Exploratory Data Analysis, feature engineering, and\n    statistical principles and modeling technique through analyzing\n    pricing trends, developing forecasting models, and conducting\n    statistical analysis.\n\n-   Collaborated with other team members in creating a Reinforcement\n    Learning capstone project on saving space in 3D box packing for\n    logistic companies and showcased project\u2019s business values and\n    increased KPI for percentage of space packed from 70% to 75% when\n    comparing AI\u2019s box packing plan to those drafted by human experts",
+            "skills": "Languages: Python, C#, Scala, SQL\n\nTools: Spark, Kafka, Tableau, TensorFlow, Pandas, SciKit Learn, MS\nOffice Suite\n\nDatabase: Hadoop, MongoDB, MySQL, Redis\n\nCloud computing: AWS EC2, GCS",
+            "awards and honors": -1,
+            "professional accomplishment": "FOURTHBRAIN 12/2022 \u2013 04/2023\n\nMachine Learning Engineer Program\n\n-   Learned Exploratory Data Analysis, feature engineering, and\n    statistical principles and modeling technique through analyzing\n    pricing trends, developing forecasting models, and conducting\n    statistical analysis.\n\n-   Collaborated with other team members in creating a Reinforcement\n    Learning capstone project on saving space in 3D box packing for\n    logistic companies and showcased project\u2019s business values and\n    increased KPI for percentage of space packed from 70% to 75% when\n    comparing AI\u2019s box packing plan to those drafted by human experts\n\nTASKIMPETUS INC. 06/2023 \u2013 present\n\n-   Learned data analysis tools such as Tableau, Pandas, and Matlab Plot\n    and used them to create Dataframes, graphs and charts, dashboards\n    and stories for a variety of practical data sets\n\n-   Applied acquired skills and knowledge to successfully complete\n    projects and derive valuable insights for decision-making.",
+            "certification": "FOURTHBRAIN 12/2022 \u2013 04/2023\n\nMachine Learning Engineer Program",
+            "projects": "EMPOWERING JOB SEEKERS WITH LLM (ongoing)\n\n-   Using Large Language Model in building a site that can help job\n    seekers write a cover letter, improve on their resume, and practice\n    for mock interview\n\n3D PACKING WITH REINFORCEMENT LEARNING\n\n-   Designed and Built a 3D bin packing environment in Unity\n\n-   Implemented and managed parallel environment training and curriculum\n    learning using ML-Agents toolkit for better Reinforcement Learning\n    solutions"
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Collaborating with cross-functional teams to evaluate and improve low-level design of new back-end features",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Participation in Agile development, collaborating with team members on projects, and presenting project values to stakeholders",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Completing all assigned tasks within a timely manner and taking on extra responsibilities to meet team goals",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Adaptability",
+                "example": "Being adaptable to different work demands and working on various Big Data projects with different tools and technologies",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Valuing teamwork and collaborating effectively with team members to achieve project goals",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Big Data Engineering",
+                "example": "Experience in implementing the Extract, Transform, and Load process, working with tools like Scala, Spark, Hadoop, and SQL, and building data analytic sectors",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Programming",
+                "example": "Proficient in languages such as Python, C#, Scala, and SQL, as well as tools like TensorFlow, Pandas, and SciKit Learn",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data Analysis",
+                "example": "Acquired skills in data analysis tools such as Tableau, Pandas, and Matlab Plot, used for creating Dataframes, graphs, charts, dashboards, and stories",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud Computing",
+                "example": "Experienced in working with AWS EC2 and GCS for cloud computing purposes",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Certified in Machine Learning Engineer Program, with knowledge in Exploratory Data Analysis, feature engineering, statistical principles, and modeling techniques",
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile development and deployment of the CI/CD pipeline",
+                    "Completed all assigned tasks within a timely manner, aided other team members, and took on extra responsibilities to meet team goals"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load process using tools such as Scala, Spark, Hadoop, and SQL",
+                    "Worked on building a pub-sub API using Spark-Kafka Integration",
+                    "Built correlation matrix and logistic regression model for prediction of trends using Spark MLLibs"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "EMPOWERING JOB SEEKERS WITH LLM",
+                "description": [
+                    "Using Large Language Model in building a site that can help job seekers write a cover letter, improve on their resume, and practice for mock interview"
+                ]
+            },
+            {
+                "title": "3D PACKING WITH REINFORCEMENT LEARNING",
+                "description": [
+                    "Designed and Built a 3D bin packing environment in Unity",
+                    "Implemented and managed parallel environment training and curriculum learning using ML-Agents toolkit for better Reinforcement Learning solutions"
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "EMPOWERING JOB SEEKERS WITH LLM",
+                "description": [
+                    "Using Large Language Model in building a site that can help job seekers write a cover letter, improve on their resume, and practice for mock interview"
+                ]
+            },
+            {
+                "title": "3D PACKING WITH REINFORCEMENT LEARNING",
+                "description": [
+                    "Designed and Built a 3D bin packing environment in Unity",
+                    "Implemented and managed parallel environment training and curriculum learning using ML-Agents toolkit for better Reinforcement Learning solutions"
+                ]
+            }
+        ]
+    },
+    "./chat_session/4f3db8da-160e-44e4-9f31-c277e7c6a874/uploads/84da8efa-5a21-4acd-9166-c2664f827296.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "(205) 519-1594",
+            "city": -1,
+            "state": -1,
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng-304943214/",
+            "website": "https://github.com/happinessbaby"
+        },
+        "resume fields": {
+            "personal contact": "yueqipeng2021@gmail.com | (205) 519-1594",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n\n- Worked with Spark Dataframes, data extraction and transformations, and data storage on GCS\n-   Tested methodology with writing and execution of test plans, debugging and testing scripts and tools, and revamped old code bases  to modern development standards for improved error handling and data handling to meet the functional programming paradigm\n-   Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments\n\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n-    Applied Big Data tools to several group projects, including utilizing MySQL for data storage and data query, building a pub-sub API using Spark-Kafka Integration, setting up remote Hadoop cluster on AWS for Spark Dataframes and Datasets, and building correlation matrix and logistic regression models for prediction of trends using Spark ML\n\nEFL ASSOCIATE TEACHER 02/2021-05/2021\n- Assisted in teaching live classes to non-speakers of English in China\n- Planned course materials and assisted other new teachers with preparation works\n\nWALMART 01/2018 - 06/2018\nSTORE ASSOCIATE\n- Addressed customer inquiries, resolved issues, and ensured customer satisfaction\n- Collaborated with colleagues to achieve store goals and objectives\n\nKHANS ACADEMY 2013-2014\nMATH TUTOR\n-   Taught math to students from various grades online",
+            "education": "UNIVERSITY OF CHICAGO, Chicago, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple priorities with a positive attitude. Values teamwork and adaptable to different work demands.  Skilled in multiple programming languages, frameworks, and tools for both front-end and back-end software development.",
+            "skills": "-  General:  ETL, data analysis, data visualization, web development\n- Languages: Python, C#, Scala, SQL, JavaScript, React\n-   Tools: Spark, Kafka, Tableau, Git, Nodejs, Unity, Agile/Scrum, Excel\n-   Database: relational databases, non-relational databases, vector stores\n-   Cloud:  various AWS and GCP products\n- AI:  LangChain, Spark ML, Pytorch , Tensorflow",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ENGINEERING\n-  Utilized data analysis and data visualization tools such as Tableau and Excel for real-life data sets\n-  Used Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing pricing trends, developing forecasting models, and conducting statistical analysis using Python\u2019s various libraries  such as TensorFlow and PyTorch\n-   Implemented the complete Extract, Transform, and Load (ETL) process using Big Data tools such as SQL, Spark and Python\n\nPROBLEM SOLVING- \n- Utilized generative AI models, full-stack development and Cloud platforms in building a website from scratch for an AI-powered mock interviewer bot using Python in back-end development and React JavaScript in front-end development\n- Designed both relational databases such as MySQL and non-relational databases such as MongoDB and DynamoDB for different storage demands\n- Implemented Kafka and Spark as data streaming solutions\n\nTEAMWORK\n- Participated in the designing, feature engineering,  programming, and presentation of a wildfire prediction project and a financial data streaming project on medium sized teams \n- Created a Reinforcement Learning Unity environment for saving space in 3D box packing for logistic companies and showcased project\u2019s business values and increased KPI for percentage of space packed from 70% to 75%  \n-  Brought together a low-level design through collecting and updating documentations and effective team communication for mechanize pricing data processing with a large group of cross-functional teams",
+            "certification": "FOURTHBRAIN \nMachine Learning Engineering Program 12/2022 \u2013 04/2023\n\nCELTA\nCambridge Assessment English 10/2020 \u2013 01/2021",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Utilized generative AI models for building a website. Designed relational and non-relational databases for different storage demands. Implemented Kafka and Spark as data streaming solutions.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Participated in designing, programming, and presenting projects in medium-sized teams. Brought together low-level design through effective team communication. Assisted in teaching live classes to non-English speakers in China.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Participated in various team projects such as wildfire prediction and financial data streaming. Created a Reinforcement Learning Unity environment for logistic companies. Collaborated with colleagues to achieve store goals and objectives at Walmart.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Data Engineering",
+                "example": "Utilized data analysis and visualization tools like Tableau and Excel. Applied Big Data tools in group projects, including MySQL, Spark-Kafka Integration, and AWS Hadoop cluster. Implemented the ETL process using SQL, Spark, and Python.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Programming Languages",
+                "example": "Proficient in Python, C#, Scala, SQL, JavaScript, and React. Experience with AI tools like Pytorch and TensorFlow. Familiar with Unity for building AI-powered mock interviewer bot.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Tools",
+                "example": "Skilled in Spark, Kafka, Tableau, Git, Nodejs, and Agile/Scrum. Experience with various AWS and GCP products for Cloud services. Utilized Excel for data analysis and visualization.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database Management",
+                "example": "Designed relational databases like MySQL and non-relational databases like MongoDB and DynamoDB. Knowledge of vector stores for database management. Utilized Big Data tools for data storage and query.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Web Development",
+                "example": "Proficient in web development technologies for both front-end and back-end development. Experience with React JavaScript for front-end development. Knowledge of full-stack development for building websites.",
+                "type": "hard skill"
+            }
+        ],
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Worked with Spark Dataframes, data extraction and transformations, and data storage on GCS",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools, and revamped old code bases to modern development standards for improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Applied Big Data tools to several group projects, including utilizing MySQL for data storage and data query, building a pub-sub API using Spark-Kafka Integration, setting up remote Hadoop cluster on AWS for Spark Dataframes and Datasets, and building correlation matrix and logistic regression models for prediction of trends using Spark ML"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "AI-Powered Mock Interviewer Bot Website",
+                "description": [
+                    "Built a website from scratch for an AI-powered mock interviewer bot using Python for back-end development and React JavaScript for front-end development",
+                    "Utilized generative AI models, full-stack development, and Cloud platforms",
+                    "Designed relational databases like MySQL and non-relational databases like MongoDB and DynamoDB",
+                    "Implemented Kafka and Spark for data streaming solutions"
+                ]
+            },
+            {
+                "title": "Wildfire Prediction Project",
+                "description": [
+                    "Participated in designing, feature engineering, programming, and presentation of a wildfire prediction project on a medium-sized team"
+                ]
+            },
+            {
+                "title": "Financial Data Streaming Project",
+                "description": [
+                    "Participated in designing, feature engineering, programming, and presentation of a financial data streaming project on a medium-sized team"
+                ]
+            }
+        ]
+    }
+}

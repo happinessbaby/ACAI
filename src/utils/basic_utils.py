@@ -30,6 +30,10 @@ import codecs
 import json
 import decimal
 import requests
+from docx import Document
+from odf import text, teletype
+from odf.opendocument import load
+from io import BytesIO
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -44,11 +48,12 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
         if storage=="LOCAL":
             if (file_ext)=='.txt' and file!=output_path:
                 os.rename(file, output_path)
-                # move_txt(file, output_path, storage=storage, bucket_name=bucket_name, s3=s3)
-            if (file_ext=='.pdf'): 
+            elif (file_ext=='.pdf'): 
                 convert_pdf_to_txt(file, output_path)
-            elif (file_ext=='.odt' or file_ext=='.docx'):
+            elif (file_ext=='.docx'):
                 convert_doc_to_txt(file, output_path)
+            elif (file_ext=='.odt' ):
+                convert_odt_to_txt(file, output_path)
             elif (file_ext==".log"):
                 convert_log_to_txt(file, output_path)
             elif (file_ext==".pptx"):
@@ -63,21 +68,6 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
         print(e)
         return False
 
-
-
-# def move_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None):
-#     if storage=="LOCAL":
-#         os.rename(file, output_path)
-#     elif storage=="CLOUD":
-#          # Copy object A as object B
-#         copy_source = {'Bucket': bucket_name, 'Key': file}
-#         s3.copy_object(
-#             Bucket=bucket_name,
-#             Key=output_path,
-#             CopySource=copy_source,
-#         )
-#     print("Successfully moved TXT to final destination")
-        
 
 def convert_log_to_txt(file, output_path):
     with open(file, "r") as f:
@@ -110,7 +100,36 @@ def convert_pdf_to_txt(pdf_file, output_path):
 
 #TODO: needs to find the best docx to txt converter that takes care of special characters best
 def convert_doc_to_txt(doc_file, output_path):
-    pypandoc.convert_file(doc_file, 'plain', outputfile=output_path)
+    doc = Document(doc_file)
+    # text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
+    # print(text)
+    with open(output_path, "w") as f:
+        for paragraph in doc.paragraphs:
+            f.write(paragraph.text + '\n')
+        
+def convert_odt_to_txt(odt_file, txt_file):
+    doc = load(odt_file)
+    text_content = []
+    for paragraph in doc.getElementsByType(text.P):
+        text_content.append(teletype.extractText(paragraph))
+    
+    with open(txt_file, 'w', encoding='utf-8') as f:
+        for line in text_content:
+            f.write(line + '\n')
+
+def convert_txt_to_doc(txt_file, output_path, storage="LOCAL", s3=None, bucket_name=None):
+    doc = Document()
+    with open(txt_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            doc.add_paragraph(line.strip())
+    if storage=="LOCAL":
+        doc.save(output_path)
+    elif storage=="CLOUD":
+         # Save DOCX to memory
+        docx_bytes = BytesIO()
+        doc.save(docx_bytes)
+        # Upload DOCX to S3
+        s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
 
 def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
 
@@ -208,16 +227,7 @@ def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, 
         )
 
 
-# def output_path(file:str, file_type:str, storage="LOCAL"):
 
-#     """ Creates output path of the given file. """
-
-#     dirname, fname = os.path.split(file)
-#     filename = Path(fname).stem 
-#     docx_filename = filename + "_" + file_type +".docx"
-#     end_path = os.path.join(save_path, dirname.split("/")[-1], "downloads", docx_filename)
-#     if storage=="LOCAL":
-#     elif storage=="S3":
     
 def markdown_table_to_dict(markdown_table):
     # Convert Markdown to HTML
@@ -415,6 +425,8 @@ def process_json(json_str: str) -> str:
 
     return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
+
+
 class memoized(object):
 
     '''Decorator. Caches a function's return value each time it is called.
@@ -489,11 +501,11 @@ class DecimalEncoder(json.JSONEncoder):
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
     html_to_text(
-        "https://www.monster.com/career-advice/article/100-potential-interview-questions",
-        save_path =f"./interview_data/general01.txt")
+       "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
+        save_path =f"./web_data/career_satisfaction.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
-
+    # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
 
 
 

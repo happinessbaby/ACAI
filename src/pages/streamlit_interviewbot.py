@@ -8,10 +8,10 @@ import openai
 import os
 import uuid
 from backend.mock_interviewer import InterviewController
-from callbacks.capturing_callback_handler import playback_callbacks
+# from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file, move_file
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content, get_generated_responses, get_web_resources
+from utils.common_utils import  check_content
 import asyncio
 import functools
 from typing import Any, Dict, Union
@@ -78,7 +78,7 @@ placeholder = st.empty()
 # keyboard_event = Keyboard()
 uri = "ws://127.0.0.1:8765"
 
-
+st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 
 class Interview():
@@ -308,7 +308,7 @@ class Interview():
 
 
         with st.sidebar:          
-            add_vertical_space(3)
+            add_vertical_space(10)
             # st.markdown('''s
                         
             # How the mock interview works: 
