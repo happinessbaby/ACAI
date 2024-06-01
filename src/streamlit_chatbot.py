@@ -249,11 +249,14 @@ class Chat():
         #     _self.cover_letter_popup()
         # if st.session_state.resume_modal.is_open():
             # _self.resume_popup()
+
         with st._main:
-    
+            if "resume_dict" in st.session_state:
+                st.switch_page("pages/streamlit_eval.py")
+            
             st.markdown("<h1 style='text-align: center; color: black;'>Welcome</h1>", unsafe_allow_html=True)
             st.markdown("#")
-            st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
+            # st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
             st.markdown("#")
             st.markdown("#")
             c1, c2, c3=st.columns([1,  1, 1])
@@ -373,7 +376,7 @@ class Chat():
         # if cover_letter_modal.is_open():
         #     st.write("test")
 
-    @st.experimental_dialog("Resume form", width="large")
+    @st.experimental_dialog("Resume form", )
     def resume_selection_popup(self,):
         
         if "type_selection" not in st.session_state or st.session_state.type_selection==[]:
@@ -412,30 +415,33 @@ class Chat():
             job_posting_link = st.text_input(label="Job posting link", key="job_posting", on_change=self.form_callback, disabled=st.session_state.job_posting_disabled)
         elif job_posting=="job description":
             job_description = st.text_area("Job description", key="job_descriptionx", value=st.session_state.job_description if "job_description" in st.session_state else "", on_change=self.form_callback, disabled=st.session_state.job_description_disabled)
-        #TODO: for logged in users, their default resume can be part of the choice
-        c1, separator, c2=st.columns([1, 0.1, 1])
-        with c1:
-            resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
-                                    key="resume",
-                                    type=["pdf","odt", "docx","txt"], 
-                                    on_change=self.form_callback,
-                                    disabled=st.session_state.resume_disabled,
-                                    )
-        with separator:
-            st.write("or")
-        with c2:
-            if self.userId:
-                st.write("retrieve default user resume here")
-            else:
-                st.write("Login to use your previous resume")
-                login = st.button("login", type="primary")
-                if login:
-                    st.switch_page("pages/streamlit_user.py")
+      
+        # c1, separator, c2=st.columns([1, 0.1, 1])
+        # with c1:
+        resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
+                                key="resume",
+                                type=["pdf","odt", "docx","txt"], 
+                                on_change=self.form_callback,
+                                disabled=st.session_state.resume_disabled,
+                                )
+        # with separator:
+        #     st.write("or")
+        # with c2:
+        #     if self.userId:
+        #         st.write("retrieve default user resume here")
+        #     else:
+        #         st.write("Login to use your previous resume")
+        #         login = st.button("login", type="primary")
+        #         if login:
+        #             st.switch_page("pages/streamlit_user.py")
         conti = st.button(label="next",
                            key="next_resume_button", 
                            disabled=st.session_state.conti_disabled, 
-                            on_click=self.resume_selection_callback,
+                            # on_click=self.resume_selection_callback,
                           )
+        if conti:
+            self.resume_selection_callback()
+            st.rerun()
 
     # def cl_selection_callback(self, template=False, template_path="", type="", ):
     #     options = ("pick from a cover letter template", "write a creative cover letter draft")  
@@ -458,19 +464,18 @@ class Chat():
     def resume_selection_callback(self, template=False, template_path="", type="", ):
 
         # Generate resume and job posting dictionaries
-        #TODO: for logged in users, this should be saved and displayed somewhere
+        #TODO: send these to separate threads if possible
         st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
         if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_posting_path)
         if "job description" in st.session_state and st.session_state.job_posting_radio=="job description":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_description)
         # Evaluate resume
-        if resume_options[0] in st.session_state.type_selection:
-            st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
-                            resume_dict = st.session_state["resume_dict"], 
-                            job_posting_dict = st.session_state["job_posting_di"]
-                             )
-            #TODO: DISPLAY RESULTS ON ANOTHER PAGE
+        # if resume_options[0] in st.session_state.type_selection:
+        #     st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
+        #                     resume_dict = st.session_state["resume_dict"], 
+        #                     job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
+        #                      )
         # Reformat resume
         if resume_options[1] in st.session_state.type_selection:
             if template==True:
@@ -888,6 +893,18 @@ class Chat():
         #         st.toast(f"Failed processing your material. Please try again!")
     def display_resume_eval(self, eval_dict): 
         """ Displays resume evaluation result"""
+        tab1, tab2, tab3 = st.tabs(["Criteria", "Impression", "In-Depth"])
+        with tab1:
+            with st.container():
+                st.write("Length")
+                st.write("A resume has an ideal length or 450 to 650 words, about one page long.")
+                st.write("Yours is: ")
+            with st.container():
+                st.write("Ideal Type")
+                functional = st.write("FUNCTIONAL")
+                st.help(functional)
+
+        
 
 
     def update_entities(self, content_type:str, content_topics: set[str], end_path:str) -> None:

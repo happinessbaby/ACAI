@@ -79,14 +79,13 @@ from time import sleep
 from selenium import webdriver 
 from unstructured.partition.html import partition_html
 from dateutil import parser
-import nltk
-from nltk.tokenize import word_tokenize
+
 
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 # Download the 'punkt' tokenizer models
-nltk.download('punkt')
+
 openai.api_key = os.environ["OPENAI_API_KEY"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
 s = UnstructuredClient(
@@ -703,17 +702,7 @@ def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI(
 
 
 
-def count_length(filename, ):
 
-    try:
-        with open(filename, 'r', encoding='utf-8') as file:
-            content = file.read()
-            words = word_tokenize(content)
-            word_count = len(words)
-            return word_count
-    except FileNotFoundError:
-        print(f"The file {filename} does not exist.")
-        return 0
 
 
 
@@ -788,7 +777,7 @@ def extract_similar_jobs(job_list, desired_title, ):
         If there's none, output -1.
         """
 
-    create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_title"], query_dict={"job_list":job_list, "desired_title":desired_title})
+    return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_title"], query_dict={"job_list":job_list, "desired_title":desired_title})
 
 
 def research_relevancy_in_resume(resume_content, job_description, job_description_type="", n_ideas=2, llm=ChatOpenAI()):
@@ -1181,7 +1170,6 @@ def retrieve_or_create_job_posting_info(posting_path, about_job,):
 
 def process_uploads(uploads, save_path, sessionId, ):
 
-    print("DDDDDDDDDDDDD")
     for uploaded_file in uploads:
         print('processing uploads')
         file_ext = Path(uploaded_file.name).suffix

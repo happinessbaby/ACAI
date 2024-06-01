@@ -9,8 +9,8 @@ from langchain.prompts import PromptTemplate
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
 from utils.openai_api import get_completion
-from utils.basic_utils import read_txt, memoized, process_json
-from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, extract_pursuit_information, count_length, 
+from utils.basic_utils import read_txt, memoized, process_json, count_pages, count_length
+from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, extract_pursuit_information,
                             search_related_samples,  extract_personal_information,retrieve_or_create_resume_info, retrieve_or_create_job_posting_info, research_relevancy_in_resume, extract_similar_jobs, research_skills)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain
 from utils.agent_tools import create_search_tools, create_sample_tools
@@ -77,8 +77,8 @@ else:
 
 def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
 
-
-    evaluation_dict = {"length": "good", "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
+    print("start evaluating...")
+    evaluation_dict = {"word_count": 0, "page_number":0, "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     if job_posting_dict:
         pursuit_job=job_posting_dict["job"]
@@ -86,27 +86,26 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
         pursuit_job=resume_dict["pursuit_job"]
     # Evaluate resume length
     word_count = count_length(resume_file)
-    if word_count>650:
-        evaluation_dict.update({"length": "too long"})
-    elif word_count<450:
-        evaluation_dict.update({"length": "too short"})
+    evaluation_dict.update({"word_count": word_count})
+    page_num = count_pages(resume_file)
+    evaluation_dict.update({"page_number": page_num})
     # Research and analyze resume type
-    ideal_type = research_resume_type(resume_dict, pursuit_job=pursuit_job, )
-    evaluation_dict.update({"ideal_type": ideal_type})
-    type_analysis= analyze_resume_type(resume_content, ideal_type)
-    evaluation_dict.update({"type_analysis": type_analysis})
-    # Generate overall impression
-    overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
-    # Evaluates specific field  content
-    resume_fields = resume_dict["resume fields"]
-    evaluation_dict.update({"overall_impression": overall_impression})
-    if resume_fields["work experience"]!=-1:
-        evaluted_work= analyze_field_content(resume_dict["jobs"])
-    if resume_fields["projects"]!=-1:
-        evaluted_project = analyze_field_content(resume_dict["projects"])
-    if resume_fields["professional accomplishment"]!=-1:
-        evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
-    in_depth_view = ""
+    # ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
+    # evaluation_dict.update({"ideal_type": ideal_type})
+    # type_analysis= analyze_resume_type(resume_content, ideal_type)
+    # evaluation_dict.update({"type_analysis": type_analysis})
+    # # Generate overall impression
+    # overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
+    # # Evaluates specific field  content
+    # resume_fields = resume_dict["resume fields"]
+    # evaluation_dict.update({"overall_impression": overall_impression})
+    # if resume_fields["work experience"]!=-1:
+    #     evaluted_work= analyze_field_content(resume_dict["jobs"])
+    # if resume_fields["projects"]!=-1:
+    #     evaluted_project = analyze_field_content(resume_dict["projects"])
+    # if resume_fields["professional accomplishment"]!=-1:
+    #     evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
+    # in_depth_view = ""
     return evaluation_dict
 
 
@@ -258,7 +257,7 @@ def tailor_objective(resume_content, job_description):
 
 
 
-@memoized
+# @memoized
 def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     
     """ Researches the type of resume most suitable for the applicant. 
@@ -274,8 +273,8 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
             type of resume: functional, chronological, or students
             
     """
-
-    jobs = resume_dict["jobs"]
+    print(resume_dict)
+    jobs = resume_dict["work experience"]
     if job_posting_dict:
         desired_job = job_posting_dict["job"]
     else:

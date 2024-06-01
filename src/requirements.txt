@@ -75,3 +75,5 @@ langchain_openai
 st_btn_select
 odfpy
 python-dateutil
+docx2pdf
+PyPDF2

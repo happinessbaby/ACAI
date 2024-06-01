@@ -102,7 +102,8 @@
                 "type": "hard skill"
             }
         ],
-        "jobs": [
+        "pursuit_job": "marketing",
+        "work experience": [
             {
                 "job_title": "Digital Marketing Analyst",
                 "start_date": "April 2021",
@@ -171,7 +172,7 @@
                 "type": "hard skill"
             }
         ],
-        "jobs": [
+        "work experience": [
             {
                 "job_title": "Student Intern",
                 "start_date": "Summer 2010",
@@ -279,7 +280,7 @@
                 "type": "hard skill"
             }
         ],
-        "jobs": [
+        "work experience": [
             {
                 "job_title": "Academic Tutor",
                 "start_date": "20xx",
@@ -369,7 +370,7 @@
                 "type": "hard skill"
             }
         ],
-        "jobs": [
+        "work experience": [
             {
                 "job_title": "Writing Tutor and Test Administrator",
                 "start_date": "20xx",
@@ -1265,6 +1266,1054 @@
                 "title": "Financial Data Streaming Project",
                 "description": [
                     "Participated in designing, feature engineering, programming, and presentation of a financial data streaming project on a medium-sized team"
+                ]
+            }
+        ]
+    }, 
+    "./chat_session/17037420-1bad-4ba2-8925-28a0cb86e948/uploads/a7e5e5e2-c1ec-4b1b-a67c-4f6d7486994a.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "BIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Communication skills",
+                "example": "collaborating with team members, presenting projects, and participating in Agile software development methodologies",
+                "type": -1
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "creating forecasting models, developing AI products, and improving KPI for percentage of space packed",
+                "type": -1
+            },
+            {
+                "skill": "Teamwork",
+                "example": "collaborating with team members on various projects, communicating effectively, and bringing together low-level designs",
+                "type": -1
+            },
+            {
+                "skill": "Programming languages",
+                "example": "Proficient in Python, C#, Scala, SQL, JavaScript, with hands-on experience in developing applications and solutions using these languages",
+                "type": -1
+            },
+            {
+                "skill": "Tools and technologies",
+                "example": "Skilled in Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity, and proficient in using Hadoop, MongoDB, MySQL, NoSQL for database management",
+                "type": -1
+            },
+            {
+                "skill": "Data analysis and machine learning",
+                "example": "Experienced in data analysis tools like Tableau, Pandas, and machine learning techniques such as Exploratory Data Analysis and statistical modeling for predictive analytics",
+                "type": -1
+            },
+            {
+                "skill": "Development methodologies",
+                "example": "Proficient in Agile/Scrum methodologies, showcasing the ability to adapt to changing project requirements and deliver results efficiently",
+                "type": -1
+            },
+            {
+                "skill": "Excel proficiency",
+                "example": "Demonstrated ability to analyze and visualize data effectively using Excel, contributing to data-driven decision-making processes",
+                "type": -1
+            },
+            {
+                "skill": "Machine Learning Engineering",
+                "example": "Completed the FourthBrain certification program in Machine Learning Engineering, enhancing skills in developing and deploying machine learning models for real-world applications",
+                "type": -1
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools, and revamped old code bases to modern development standards",
+                    "Participated in Agile software development methodologies, design patterns, and maintaining long-term health of the system",
+                    "Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL",
+                    "Worked with other members on Big Data related projects, including building a pub-sub API using Spark-Kafka Integration, setting up remote HDFS cluster on AWS, and building correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project",
+                "description": [
+                    "Collaborated with team members to create a project on saving space in 3D box packing for logistic companies",
+                    "Increased KPI for percentage of space packed from 70% to 75% by comparing AI's box packing plan to those drafted by human experts"
+                ]
+            },
+            {
+                "title": "Large Language Model Platform",
+                "description": [
+                    "Built a platform to help job seekers write cover letters, improve resumes, and practice for mock interviews using Large Language Models"
+                ]
+            },
+            {
+                "title": "Wildfire Project with Spark and SQL",
+                "description": [
+                    "Designed, coded, and presented a project using Spark and SQL to predict the occurrence of wildfires in the U.S. based on climate, geography, and other predictive factors"
+                ]
+            }
+        ]
+    }, 
+    "./chat_session/83582561-6a92-4da1-ac74-67c2e2bf0acb/uploads/94d0c195-4696-4049-ae0d-72574f7d74b4.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "BIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "collaborating on projects such as the Reinforcement Learning capstone project and utilizing Large Language Model for job seekers",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "teamwork examples such as creating a new feature design and presenting the Wildfire project using Spark and SQL",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "collaborating with team members on projects and communicating effectively",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming languages",
+                "example": "Python, C#, Scala, SQL, JavaScript",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Tools",
+                "example": "Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database",
+                "example": "Hadoop, MongoDB, MySQL, NoSQL",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud",
+                "example": "AWS, GCP",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data analysis tools",
+                "example": "Tableau, Pandas, Matlab Plot",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data analysis techniques",
+                "example": "Exploratory Data Analysis, feature engineering, statistical modeling",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Building correlation matrix and logistic regression models",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Agile software development methodologies",
+                "example": -1,
+                "type": "hard skill"
+            },
+            {
+                "skill": "Continuous integration and unit testing",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Revamped old code bases to modern development standards for improved error handling and data handling",
+                    "Participated in Agile software development methodologies, design patterns, and maintaining long-term health of the system",
+                    "Deployed workflows through continuous integration, wrote unit tests, and composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL",
+                    "Worked on Big Data related projects, including building a pub-sub API using Spark-Kafka Integration, setting up remote HDFS cluster on AWS, and building correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project",
+                "description": [
+                    "Collaborated with team members to improve space packing efficiency in 3D box packing for logistic companies",
+                    "Increased percentage of space packed from 70% to 75% by comparing AI's box packing plan to human experts' plans"
+                ]
+            },
+            {
+                "title": "Large Language Model Platform",
+                "description": [
+                    "Built a platform to help job seekers with cover letters, resume improvement, and mock interviews using Large Language Model"
+                ]
+            },
+            {
+                "title": "Wildfire Project",
+                "description": [
+                    "Designed, coded, and presented a project using Spark and SQL to predict wildfires in the U.S. based on climate, geography, and other factors"
+                ]
+            }
+        ]
+    },
+    "./chat_session/4ffc36b0-223c-418e-aa0e-81342c43364c/uploads/92290487-417c-4233-aa8d-699e304bd242.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "BIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated strong problem-solving skills through collaborative projects such as the Reinforcement Learning capstone project and utilizing Large Language Model to assist job seekers in improving their resumes and cover letters.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Effectively communicated with team members to design new features, present projects like the Wildfire project, and bring together low-level designs for ongoing initiatives.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "Successfully collaborated with team members on projects like the 3D box packing optimization and the Wildfire prediction project, showcasing the ability to work effectively in a team setting.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming Languages",
+                "example": "Proficient in Python, C#, Scala, SQL, and JavaScript, applying these languages in various projects to develop AI products and conduct data analysis.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data Analysis Tools",
+                "example": "Utilized tools such as Tableau, Pandas, and Matlab Plot to analyze data sets, create visualizations, and develop forecasting models.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Frameworks and Tools",
+                "example": "Skilled in frameworks like Spark and tools like Git, Kafka, Hive, and Flask, leveraging them in projects to enhance data processing and analysis capabilities.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database Systems",
+                "example": "Experienced in working with Hadoop, MongoDB, MySQL, and NoSQL for managing and analyzing large datasets.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud Platforms",
+                "example": "Proficient in AWS and GCP, deploying workflows and handling data on cloud platforms to optimize data processing and storage.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Analytical Mindset",
+                "example": "Demonstrated a strong analytical mindset through data analysis, modeling techniques, and problem-solving skills in various projects.",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile software development methodologies",
+                    "Deployed workflows through continuous integration",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL",
+                    "Worked on Big Data related projects including building a pub-sub API using Spark-Kafka Integration",
+                    "Setting up remote HDFS cluster on AWS",
+                    "Building correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project",
+                "description": [
+                    "Created a project on saving space in 3D box packing for logistic companies, increased percentage of space packed from 70% to 75% using AI's box packing plan compared to human experts' plans"
+                ]
+            },
+            {
+                "title": "Large Language Model Platform",
+                "description": [
+                    "Built a platform to help job seekers write cover letters, improve resumes, and practice mock interviews using Large Language Model"
+                ]
+            },
+            {
+                "title": "Wildfire Project",
+                "description": [
+                    "Designed, coded, and presented a project using Spark and SQL to predict the occurrence of wildfires in the U.S. based on climate, geography, and other predictive factors"
+                ]
+            }
+        ]
+    },
+    "./chat_session/783712b6-6e22-4e8c-87d8-f6083c110195/uploads/134760dd-bf0f-440c-82cb-f6316eeeb4a9.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "BIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Communication skills",
+                "example": "collaborating with team members in various projects and presenting findings to stakeholders",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "developing forecasting models, analyzing pricing trends, and creating AI solutions for practical problems",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "collaborating with team members to design and implement projects, such as the Wildfire project using Spark and SQL",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Adaptability",
+                "example": "handling different work demands and tasks effectively",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming languages",
+                "example": "Python, C#, Scala, SQL, JavaScript",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data analysis tools",
+                "example": "Tableau, Pandas, Matlab Plot",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data engineering tools",
+                "example": "Spark, Kafka, Hive",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database management",
+                "example": "Hadoop, MongoDB, MySQL, NoSQL",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud platforms",
+                "example": "AWS, GCP",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine learning techniques",
+                "example": "Reinforcement Learning, Large Language Model",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Agile/Scrum methodologies",
+                "example": "participated in Agile software development",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Extract, Transform, Load (ETL) process",
+                "example": "implemented using Scala, Spark, Hadoop, SQL",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Functional programming paradigm in Scala",
+                "example": "essential for the candidate's role as a Big Data Engineer",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile software development methodologies",
+                    "Deployed workflows through continuous integration",
+                    "Composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process",
+                    "Worked on Big Data related projects",
+                    "Built correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project",
+                "description": [
+                    "Collaborated with team members on saving space in 3D box packing for logistic companies",
+                    "Increased KPI for percentage of space packed from 70% to 75% by comparing AI's box packing plan to those drafted by human experts"
+                ]
+            },
+            {
+                "title": "Large Language Model Project",
+                "description": [
+                    "Built a platform to help job seekers with cover letters, resume improvement, and mock interview practice"
+                ]
+            },
+            {
+                "title": "Wildfire Project",
+                "description": [
+                    "Designed, coded, and presented a project using Spark and SQL to predict the occurrence of wildfires in the U.S."
+                ]
+            }
+        ]
+    },
+    "./chat_session/092af96d-4d6f-4baf-8ce0-ccd1810ec56c/uploads/f43da073-4aec-43f0-83bd-a701583a07b7.txt": {
+        "contact": {
+            "name": "YUEQI PENG",
+            "email": "YUEQIPENG2021@GMAIL.COM",
+            "phone": "(205) 519-1594",
+            "city": "BIRMINGHAM",
+            "state": "AL",
+            "linkedin": "HTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/",
+            "website": "HTTPS://GITHUB.COM/HAPPINESSBABY"
+        },
+        "resume fields": {
+            "personal contact": "BIRMINGHAM, AL | (205) 519-1594\n\nYUEQIPENG2021@GMAIL.COM |\nHTTPS://WWW.LINKEDIN.COM/IN/YUEQI-PENG-304943214/ |\nHTTPS://GITHUB.COM/HAPPINESSBABY",
+            "work experience": "WALMART 05/2022 - 10/2022\nBIG DATA ENGINEER\n- Collaborated with cross-functional teams in evaluating and improving\nlow level design of new back-end features that included streaming\nservices and data analytic sectors\n- Tested methodology with writing and execution of test plans,\ndebugging and testing scripts and tools, and revamped old code bases\nto modern development standards for improved error handling and data\nhandling to meet the functional programming paradigm of Scala\n- Participated in Agile software development methodologies, design\npatterns, and maintaining long-term health of the system\n- Deployed workflows through continuous integration, wrote unit tests,\nand composed bi-weekly Jira summaries on team accomplishments\nREVATURE 01/2022 - 12/2022\nBIG DATA ENGINEER\n- Implemented the complete Extract, Transform, and Load (ETL) process\nusing\ntools such as Scala, Spark, Hadoop, and SQL\n- Worked with other members on Big Data related projects, including\nbuilding a pub-sub API using Spark-Kafka Integration, setting up\nremote HDFS cluster on AWS, and building correlation matrix and\nlogistic regression models for prediction of trends",
+            "education": "UNIVERSITY OF CHICAGO, CHICAGO, IL\nBachelors of Arts: Mathematics 2009 \u2013 2013",
+            "summary or objective": "Hardworking and dependable candidate successful at managing multiple\npriorities with a positive attitude. Values teamwork and is adaptable to\ndifferent work demands. Passionate about programming and has a keen\ninterest in developing AI products. Skilled in multiple programming\nlanguages, frameworks, and tools including Python, C#, Scala, SQL,\nJavaScript, Spark, Tableau. Possesses strong communication skills in a\nteam environment and has a strong analytical mindset with\nproblem-solving skills.",
+            "skills": "- Languages: Python, C#, Scala, SQL, JavaScript\n- Tools: Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity,\nAgile/Scrum, Excel\n- Database: Hadoop, MongoDB, MySQL, NoSQL\n\n- Cloud: AWS, GCP\n- Analytical mindset, problem-solving, attention to detail,\ncommunication skills",
+            "awards and honors": -1,
+            "professional accomplishment": "DATA ANALYSIS:\n- Used data analysis tools such as Tableau, Pandas, and Matlab Plot and\nused them to create Dataframes, graphs and charts, dashboards and\nstories for a variety of practical data sets\n- Used Exploratory Data Analysis, feature engineering, and statistical\nprinciples and modeling technique through analyzing pricing trends,\ndeveloping forecasting models, and conducting statistical analysis\nPROBLEM SOLVING:\n- Collaborated with other team members in creating a Reinforcement\nLearning capstone project on saving space in 3D box packing for logistic\ncompanies and showcased project\u2019s business values and increased KPI for\npercentage of space packed from 70% to 75% when comparing AI\u2019s box\npacking plan to those drafted by human experts\n- Utilizing Large Language Model in building a platform that can help\njob seekers write cover letters, improve and tailor their resume, and\npractice for mock interview\nTEAMWORK:\n- Communicated with other team members in bringing together a low-level\ndesign for a new feature to be added to an ongoing project that involved\nnear live streaming of data to data analytical sectors\n\n- Collaborated with other team members in designing, coding, and\npresenting a Wildfire project using Spark and SQL and used ML to predict\nthe occurrence of wildfires in U.S. with respect to the climate,\ngeography, and other predicative factors.",
+            "certification": "FOURTHBRAIN\n\nMachine Learning Engineering Program 12/2022 \u2013 04/2023",
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelors of Arts",
+            "study": "Mathematics",
+            "graduation year": "2013",
+            "gpa": "-1",
+            "years since graduation": 11
+        },
+        "skills": [
+            {
+                "skill": "Communication skills",
+                "example": "collaborating with team members, presenting projects, participating in Agile software development methodologies",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Problem-solving skills",
+                "example": "developing forecasting models, conducting statistical analysis, improving the efficiency of box packing for logistic companies",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Teamwork",
+                "example": "working with cross-functional teams, collaborating on projects, communicating effectively with team members",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Programming Languages",
+                "example": "Python, C#, Scala, SQL, JavaScript",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Tools",
+                "example": "Spark, Kafka, Hive, Tableau, Git, Linux, Flask, Unity",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Database",
+                "example": "Hadoop, MongoDB, MySQL, NoSQL",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Cloud Platforms",
+                "example": "AWS, GCP",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Data Analysis",
+                "example": "Tableau, Pandas, Matlab Plot",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Reinforcement Learning, Large Language Models",
+                "type": "hard skill"
+            },
+            {
+                "skill": "ETL Process",
+                "example": "Extract, Transform, Load using Scala, Spark, Hadoop, SQL",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "05/2022",
+                "end_date": "10/2022",
+                "responsibilities": [
+                    "Collaborated with cross-functional teams in evaluating and improving low level design of new back-end features",
+                    "Tested methodology with writing and execution of test plans, debugging and testing scripts and tools",
+                    "Participated in Agile software development methodologies",
+                    "Deployed workflows through continuous integration",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "BIG DATA ENGINEER",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Implemented the complete Extract, Transform, and Load (ETL) process using tools such as Scala, Spark, Hadoop, and SQL",
+                    "Worked with other members on Big Data related projects",
+                    "Built a pub-sub API using Spark-Kafka Integration",
+                    "Set up remote HDFS cluster on AWS",
+                    "Built correlation matrix and logistic regression models for prediction of trends"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Reinforcement Learning Capstone Project",
+                "description": [
+                    "Saved space in 3D box packing for logistic companies by increasing the percentage of space packed from 70% to 75% through AI box packing plan compared to human experts' plans"
+                ]
+            },
+            {
+                "title": "Large Language Model Platform Project",
+                "description": [
+                    "Built a platform to help job seekers write cover letters, improve resumes, and practice for mock interviews using Large Language Models"
+                ]
+            },
+            {
+                "title": "Wildfire Project",
+                "description": [
+                    "Designed, coded, and presented a project using Spark and SQL to predict the occurrence of wildfires in the U.S. based on climate, geography, and other predictive factors"
+                ]
+            }
+        ]
+    },
+    "./chat_session/f941b314-1f22-4997-b820-c32c056b6cf1/uploads/9bf16fb4-ddcc-45f6-a6b9-e635cde7fffe.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\nBasic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "ability to convert manual to computerized accounting systems, analyze/reprogram software, research/correct problems in computerized systems",
+                "type": "soft"
+            },
+            {
+                "skill": "Communication",
+                "example": "collaborating with team members, generating financial statements, effectively communicating with various stakeholders",
+                "type": "soft"
+            },
+            {
+                "skill": "Time management",
+                "example": "handling multiple projects, prioritizing tasks, consistently meeting deadlines",
+                "type": "soft"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "maintaining accounting records, formulating financial statements, preparing payroll reports, budget formulation, depreciation/amortization calculations, audit preparation",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "converting manual to computerized systems, knowledge of MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, MS Access, SQL, Visual Basic, C++",
+                "type": "hard"
+            },
+            {
+                "skill": "Proficiency in MS Office (Word, Excel, PowerPoint, Outlook) and QuickBooks",
+                "example": "specific technical skills required for accounting roles, data analysis, reporting, financial modeling",
+                "type": "hard"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    },
+    "./chat_session/5140f262-70b9-4da2-9a4d-18fbd8918819/uploads/038ea4e3-022e-4ad2-bf52-daded80e27bc.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\nBasic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving skills",
+                "example": "converting manual to computerized accounting systems and analyzing software to meet customer requirements",
+                "type": "soft"
+            },
+            {
+                "skill": "Communication skills",
+                "example": "working with various organizations to implement and maintain accounting records and financial statements",
+                "type": "soft"
+            },
+            {
+                "skill": "Time management",
+                "example": "handling multiple projects and meeting deadlines in a fast-paced environment",
+                "type": "soft"
+            },
+            {
+                "skill": "Analytical skills",
+                "example": "testing the accuracy of account balances and preparing supporting documentation for audits",
+                "type": "soft"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "developing and maintaining accounting records, formulating financial statements, and creating payroll reports",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "minor in Computer Information Systems, knowledge of MS Office, QuickBooks, and basic understanding of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard"
+            },
+            {
+                "skill": "Bookkeeping",
+                "example": "experience as a bookkeeper at various organizations, including SMC, Inc., and First United Methodist Church",
+                "type": "hard"
+            },
+            {
+                "skill": "Budgeting",
+                "example": "experience in formulating intricate pro-forma budgets",
+                "type": "hard"
+            },
+            {
+                "skill": "Software analysis and reprogramming",
+                "example": "successfully reprogramming software to meet customer requirements",
+                "type": "hard"
+            },
+            {
+                "skill": "Depreciation/amortization schedules",
+                "example": "calculated and implemented depreciation/amortization schedules as part of financial management tasks",
+                "type": "hard"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": -1,
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/e030dd8b-64a6-446a-be6f-405ddad962c2/uploads/8af51ddf-1611-4d20-92b5-50c87b284ef5.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\nBasic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated by the ability to convert manual to computerized accounting systems and analyze and correct software problems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Ability to work on multiple projects and communicate effectively with team members and clients.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Ability to handle multiple projects in a fast-paced, deadline-oriented environment.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting",
+                "example": "Experience in developing and maintaining accounting records, formulating financial statements, and generating payroll records.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Financial management",
+                "example": "Experience in preparing budgets, calculating depreciation/amortization schedules, and participating in financial audits.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Information systems analysis",
+                "example": "Ability to analyze and reprogram software to meet customer requirements and troubleshoot system problems.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer skills",
+                "example": "Proficiency in MS Office, QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++.",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "Summer 2010",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
                 ]
             }
         ]

@@ -34,9 +34,15 @@ from docx import Document
 from odf import text, teletype
 from odf.opendocument import load
 from io import BytesIO
+import docx2pdf
+from pathlib import Path
+from PyPDF2 import PdfReader  
+import nltk
+from nltk.tokenize import word_tokenize
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
+nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
@@ -226,8 +232,32 @@ def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, 
             CopySource={'Bucket': bucket_name, 'Key': source_file}
         )
 
+def count_length(filename, ):
 
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            content = file.read()
+            words = word_tokenize(content)
+            word_count = len(words)
+            return word_count
+    except FileNotFoundError:
+        print(f"The file {filename} does not exist.")
+        return 0
 
+def count_pages(doc):
+    file_ext=Path(doc).suffix
+    output_path=".test.pdf"
+    if file_ext==".docx":
+        docx2pdf.convert(doc,output_path)
+        r = PdfReader(output_path)
+        num_pages = len(r.pages)
+    elif file_ext==".pdf":
+        r = PdfReader(doc)
+        num_pages = len(r.pages)
+    elif file_ext==".txt":
+        num_pages = 0
+    print(num_pages)
+    return num_pages
     
 def markdown_table_to_dict(markdown_table):
     # Convert Markdown to HTML
@@ -500,12 +530,13 @@ class DecimalEncoder(json.JSONEncoder):
 
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
-    html_to_text(
-       "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
-        save_path =f"./web_data/career_satisfaction.txt")
+    # html_to_text(
+    #    "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
+    #     save_path =f"./web_data/career_satisfaction.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
+    count_pages("./my_material/resume2023v2.pdf")
 
 
 
