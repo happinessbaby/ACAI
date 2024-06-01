@@ -140,7 +140,7 @@ class Chat():
         # if "input_counter" not in st.session_state:
         st.session_state["input_counter"] = 0
         # if "template_path" not in st.session_state:
-        st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
+        # st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         # st.session_state["selections"] = st_btn_select(("Resume & Cover Letter",'Mock Interview', "Job Search", "My Profile", ""), index=-1,)
         ## NOTE: for logged in users, paths will be different
         # if _self.userId is not None:
@@ -251,11 +251,14 @@ class Chat():
             # _self.resume_popup()
 
         if ("evaluation" in st.session_state and st.session_state["evaluation"]) or ("tailoring" in st.session_state and st.session_state["tailoring"]) or ("reformatting" in st.session_state and st.session_state["reformatting"]):
-            st.switch_page("pages/streamlit_dashboard.py")
+            if "resume_type" in st.session_state and "template_path" not in st.session_state:
+                _self.resume_template_popup()
+            else:
+                st.switch_page("pages/streamlit_dashboard.py")
 
         with st._main:
             
-            st.markdown("<h1 style='text-align: center; color: black;'>Welcome</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; color: #6db290;'>Welcome</h1>", unsafe_allow_html=True)
             st.markdown("#")
             # st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
             st.markdown("#")
@@ -476,14 +479,17 @@ class Chat():
             st.session_state["evaluation"] = True
         # Reformat resume
         if resume_options[1] in st.session_state.type_selection:
-            if template==True:
-                st.session_state["reformatting"] = True
-            else:
+            # if template==True:
+            #     st.session_state["reformatting"] = True
+            # else:
                 try:
-                    resume_type = st.session_state["eval_dict"]["ideal_type"]
+                    st.session_state["resume_type"] = st.session_state["eval_dict"]["ideal_type"]
                 except Exception:   
-                    resume_type=research_resume_type(resume_dict=st.session_state.resume_dict, job_posting_dict=st.session_state.job_posting_dict, )
-                self.resume_template_popup(resume_type)
+                    st.session_state["resume_type"]=research_resume_type(
+                        resume_dict=st.session_state.resume_dict, 
+                        job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "", )
+                st.session_state["reformatting"] = True
+                # self.resume_template_popup(resume_type)
         # Tailor resume
         if resume_options[2] in st.session_state.type_selection:
             st.session_state["tailoring"] = True
@@ -491,14 +497,15 @@ class Chat():
 
 
     @st.experimental_dialog("Please pick out a template", width="large")
-    def resume_template_popup(self, type):
+    def resume_template_popup(self,):
         
 
         # if type=="cover letter":
         #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
         #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
         #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
-        if type=="functional":
+        type = st.session_state["resume_type"]
+        if type=="functional" or type=="student":
             thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png"]
             images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png"]
             paths =  ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx"]
@@ -508,17 +515,23 @@ class Chat():
             paths = ["./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
         modal = Modal(title="Please pick out a template", key="template_popup")
         path=""
-        with st.form(key="test_form"):
-            selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
-            image_placeholder=st.empty()
-            image_placeholder.image(images[selected_idx])
-            path = paths[selected_idx]
-            st.form_submit_button("submit", on_click=self.selection_callback, args=(True, path, type, ) )
-        skip = st.button("skip", type="primary")
-        if skip:
-            remove_option =  "redesign my resume with a new template"
-            while remove_option in resume_options:
-                st.session_state.type_selection.remove(remove_option)
+        # with st.form(key="test_form"):
+        selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
+        image_placeholder=st.empty()
+        image_placeholder.image(images[selected_idx])
+        path = paths[selected_idx]
+        submit = st.button("Next", )
+            # submit = st.form_submit_button("submit",)
+        if submit:
+            st.session_state["template_path"] = path
+            st.rerun()
+        # skip = st.button("skip", type="primary")
+        # if skip:
+        #     # remove_option =  "redesign my resume with a new template"
+        #     # while remove_option in resume_options:
+        #     #     st.session_state.type_selection.remove(remove_option)
+        #     st.session_state["reformatting"]=False
+        #     st.rerun()
 
         # st.button("Next", on_click=self.selection_callback, args=(True, path, type, ))
                 # images=[]

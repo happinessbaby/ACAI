@@ -2317,4 +2317,1245 @@
             }
         ]
     }
+}{
+    "./chat_session/2546a067-b299-48b6-99a8-bf867c97fc2a/uploads/c84db5de-3355-41c0-b41f-5d8fcc6d8c28.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\nBasic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "ability to convert manual accounting systems to computerized systems and correct problems in newly computerized systems",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "reprogramming of software to meet customer requirements and working with multiple stakeholders in various accounting roles",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "handling multiple projects, maintaining accounting records for multiple bank accounts, preparing financial statements and reports within deadlines",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "developing and maintaining accounting records, formulating financial statements, generating payroll records, calculating depreciation/amortization schedules",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "conversion of manual to computerized accounting systems, knowledge of MS Office, QuickBooks, basic understanding of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/6945e747-1851-477c-9987-1e78d3edd151/uploads/249264cd-8743-4711-836c-caaee494dbb8.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks\nBasic Knowledge of MS Access, SQL, Visual Basic, C++",
+            "awards and honors": -1,
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": -1,
+            "projects": -1
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated through tasks like converting manual to computerized accounting systems, analyzing software, and researching and correcting problems in computerized systems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Evidenced by maintaining accounting records for multiple bank accounts, generating financial statements and reports, and working effectively in a fast-paced, deadline-oriented environment.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Shown through handling multiple projects simultaneously, such as developing budgets, preparing financial statements, and implementing depreciation schedules.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "Demonstrated skills in maintaining accounting records, formulating financial statements, generating payroll records, and conducting audits of financial operations.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Shown by converting manual to computerized accounting systems, analyzing and reprogramming software, and having basic knowledge of MS Access, SQL, Visual Basic, and C++.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "MS Office proficiency",
+                "example": "Including Word, Excel, PowerPoint, and Outlook, as well as knowledge of QuickBooks.",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern, Financial Accounting Development Program",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records."
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": -1,
+                "years of experience": -1
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/121a4d82-468f-449b-8f74-2315dc4f3600/uploads/95fc8809-3c1d-4447-bc0d-ba8ed09f1cbe.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Successfully converting manual to computerized accounting systems and analyzing software to meet customer requirements",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Developing and maintaining accounting records for multiple bank accounts, preparing financial statements, and generating payroll reports",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects and delivering high-quality work in a fast-paced, deadline-oriented environment",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Skills in formulating budgets, preparing financial statements, generating payroll reports, and implementing depreciation/amortization schedules",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Information Systems Analysis",
+                "example": "Converting manual to computerized accounting systems, reprogramming software to meet requirements, and researching and correcting system problems",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Skills",
+                "example": "Proficiency in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/372134ad-8ba0-4862-a018-895c5307f925/uploads/29a57285-eac9-4fee-bbd4-03813b0099d3.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Organization",
+                "example": "exceptionally well-organized",
+                "type": "soft"
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "demonstrated excellent analytical and problem-solving skills",
+                "type": "soft"
+            },
+            {
+                "skill": "Time management",
+                "example": "proven ability to handle multiple projects efficiently in a fast-paced environment",
+                "type": "soft"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Developed and maintained accounting records for up to fifty bank accounts, formulated financial statements, generated payroll records, prepared intricate pro-forma budgets, and implemented depreciation/amortization schedules.",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Successfully converted manual to computerized accounting systems for two organizations, analyzed and reprogrammed software to meet customer requirements, and researched and corrected problems in newly computerized systems.",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Skills",
+                "example": "Proficient in MS Office (Word, Excel, PowerPoint, Outlook) and QuickBooks, with basic knowledge of MS Access, SQL, Visual Basic, and C++.",
+                "type": "hard"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/c212b750-b3ae-4541-90fb-3d12de56ff7d/uploads/d43e4c2c-36e2-42a9-8c06-f9d4066722ec.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated through the successful conversion of manual to computerized accounting systems and the ability to analyze and reprogram software to meet customer requirements.",
+                "type": "soft"
+            },
+            {
+                "skill": "Communication",
+                "example": "Evident in the effective completion of projects, collaboration with various teams in different roles, and professional affiliations.",
+                "type": "soft"
+            },
+            {
+                "skill": "Time management",
+                "example": "Displayed through handling multiple projects efficiently in a fast-paced, deadline-oriented environment.",
+                "type": "soft"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "Showcased in maintaining accounting records for multiple bank accounts, formulating financial statements and payroll reports, conducting audits, budgeting, and implementing depreciation/amortization schedules.",
+                "type": "hard"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Demonstrated through converting manual to computerized accounting systems, analyzing and reprogramming software, and proficiency in MS Office, QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++.",
+                "type": "hard"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": -1,
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/c04294ec-8993-4e97-a833-7a3317fa3c00/uploads/e1c980ea-4cbf-43dd-994f-4ff41ea8858a.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Successfully converting manual accounting systems to computerized systems and analyzing software to meet customer requirements",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Effectively handling financial statements, working on multiple projects, and communicating with team members and clients",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects in a fast-paced, deadline-oriented environment efficiently",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Maintaining accounting records, formulating financial statements, generating payroll records, preparing budgets, and implementing depreciation/amortization schedules",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Information Systems Analysis",
+                "example": "Converting manual to computerized accounting systems, reprogramming software, and researching and correcting problems in computerized systems",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Skills",
+                "example": "Proficiency in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/e7716c58-bd34-42ba-b2e3-75ec7d8956f8/uploads/612e4968-618c-4607-b7ca-3a572ec604b5.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Successfully converting manual accounting systems to computerized systems and analyzing software to meet customer requirements",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Effectively handling financial statements, working on multiple projects, and communicating with team members and clients",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects in a fast-paced, deadline-oriented environment efficiently",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and Financial Management",
+                "example": "Maintaining accounting records, formulating financial statements, generating payroll records, preparing budgets, and implementing depreciation/amortization schedules",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Information Systems Analysis",
+                "example": "Converting manual to computerized accounting systems, reprogramming software, and researching and correcting problems in computerized systems",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Skills",
+                "example": "Proficiency in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "-1",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ],
+        "projects": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ],
+        "professional accomplishment": [
+            {
+                "title": "Accounting and Financial Management",
+                "description": [
+                    "Developed and maintained accounting records for up to fifty bank accounts.",
+                    "Formulated monthly and year-end financial statements and generated various payroll records, including federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.",
+                    "Tested accuracy of account balances and prepared supporting documentation for submission during a comprehensive three-year audit of financial operations.",
+                    "Formulated intricate pro-forma budgets.",
+                    "Calculated and implemented depreciation/amortization schedules."
+                ]
+            },
+            {
+                "title": "Information Systems Analysis and Problem Solving",
+                "description": [
+                    "Converted manual to computerized accounting systems for two organizations.",
+                    "Analyzed and successfully reprogrammed software to meet customer requirements.",
+                    "Researched and corrected problems to assure effective operation of newly computerized systems."
+                ]
+            }
+        ]
+    }
+}{
+    "./chat_session/f16c9077-91eb-4d0a-a31d-5469b5347971/uploads/32235b53-f608-468f-befd-68c467d42230.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated through the successful conversion of manual accounting systems to computerized systems and effective problem analysis and correction in newly computerized systems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Evidenced by the ability to handle multiple projects, communicate effectively with customers to meet their software requirements, and manage accounting records for multiple bank accounts.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Shown through efficient completion of tasks such as formulating budgets and preparing financial statements in a fast-paced, deadline-oriented environment.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "Demonstrated through maintaining accounting records, formulating financial statements, preparing payroll reports, and implementing depreciation/amortization schedules.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Displayed through proficiency in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Technical skills in software reprogramming",
+                "example": "Shown through successful software reprogramming to meet customer requirements.",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": -1,
+                "years of experience": -1
+            }
+        ]
+    }
+}{
+    "./chat_session/3a8d544c-55ae-4e0f-b22d-44fa03f350ce/uploads/d731bc0e-5b54-485b-a80c-8e2ee07d7feb.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Ability to convert manual accounting systems to computerized systems and analyze software to meet customer requirements.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Working on accounting records for multiple bank accounts, generating financial statements, and effectively communicating during a comprehensive audit.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects and meeting deadlines in a fast-paced environment.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Analytical skills",
+                "example": "Analyzing and reprogramming software, researching and correcting problems in computerized systems.",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "Developed and maintained accounting records, formulated financial statements, generated payroll records, prepared budgets, and implemented depreciation/amortization schedules.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Converted manual to computerized accounting systems, analyzed software, and tested the accuracy of account balances.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "MS Office proficiency",
+                "example": "Skilled in Word, Excel, PowerPoint, and Outlook for various tasks.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "QuickBooks proficiency",
+                "example": "Ability to use QuickBooks for bookkeeping and financial management.",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Basic knowledge of MS Access, SQL, Visual Basic, C++",
+                "example": "Familiarity with these software programs for information systems analysis and problem-solving.",
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": "Summer 2010",
+                "responsibilities": [
+                    "Financial Accounting Development Program",
+                    "Mutual of Omaha",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": [
+                    "Nebraska Special Olympics",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": [
+                    "SMC, Inc.",
+                    "Omaha, NE"
+                ],
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": [
+                    "First United Methodist Church",
+                    "Altus, OK"
+                ],
+                "years of experience": -1
+            }
+        ]
+    }
+}{
+    "./chat_session/3a8d544c-55ae-4e0f-b22d-44fa03f350ce/uploads/bb7f8801-3ac5-46d9-9ac7-0dd7b92e8edc.txt": {
+        "contact": {
+            "name": "imasample1",
+            "email": "imasample1@xxx.com",
+            "phone": "(402) 292-2345",
+            "city": "Bellevue",
+            "state": "Nebraska",
+            "linkedin": -1,
+            "website": -1
+        },
+        "resume fields": {
+            "personal contact": "1234 North 55 Street\nBellevue, Nebraska 68005\n(402) 292-2345\nimasample1@xxx.com",
+            "work experience": "Student Intern, Financial Accounting Development Program, Mutual of Omaha, Omaha, NE\n(Summer 2010)\nAccounting Coordinator, Nebraska Special Olympics, Omaha, NE (2021-present)\nBookkeeper, SMC, Inc., Omaha, NE (2015 \u2013 2018)\nBookkeeper, First United Methodist Church, Altus, OK (2013 \u2013 2015)",
+            "education": "Bachelor of Science, Bellevue University, Bellevue, NE (In Progress)\nMajor: Accounting\nMinor: Computer Information Systems\nExpected Graduation Date: January, 20xx\nGPA to date: 3.95/4.00",
+            "summary or objective": "Exceptionally well organized and resourceful Professional with more than six years experience and a\nsolid academic background in accounting and financial management; excellent analytical and problem\nsolving skills; able to handle multiple projects while producing high quality work in a fast-paced,\ndeadline-oriented environment.",
+            "skills": "-",
+            "awards and honors": "-",
+            "professional accomplishment": "Accounting and Financial Management\n\uf0b7 Developed and maintained accounting records for up to fifty bank accounts.\n\uf0b7 Formulated monthly and year-end financial statements and generated various payroll records,\nincluding federal and state payroll reports, annual tax reports, W-2 and 1099 forms, etc.\n\uf0b7 Tested accuracy of account balances and prepared supporting documentation for submission during a\ncomprehensive three-year audit of financial operations.\n\uf0b7 Formulated intricate pro-forma budgets.\n\uf0b7 Calculated and implemented depreciation/amortization schedules.\nInformation Systems Analysis and Problem Solving\n\uf0b7 Converted manual to computerized accounting systems for two organizations.\n\uf0b7 Analyzed and successfully reprogrammed software to meet customer requirements.\n\uf0b7 Researched and corrected problems to assure effective operation of newly computerized systems.",
+            "certification": "-",
+            "projects": "-"
+        },
+        "education": {
+            "degree": "Bachelor of Science",
+            "study": "Major: Accounting\nMinor: Computer Information Systems",
+            "graduation year": "January, 20xx",
+            "gpa": "3.95/4.00",
+            "years since graduation": -1
+        },
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Developing and maintaining accounting records for multiple bank accounts, converting manual to computerized accounting systems, analyzing software to meet customer requirements",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Communication",
+                "example": "Coordinating financial tasks for different employers, collaborating with organizations to implement accounting systems, effectively communicating with team members and clients",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Time management",
+                "example": "Handling multiple projects concurrently, meeting deadlines in a fast-paced environment, efficiently organizing tasks to ensure timely completion",
+                "type": "soft skill"
+            },
+            {
+                "skill": "Accounting and financial management",
+                "example": "Preparing financial statements, payroll records, tax reports, budgets, implementing depreciation/amortization schedules with accuracy",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Computer Information Systems",
+                "example": "Converting manual to computerized accounting systems, reprogramming software, troubleshooting and enhancing computerized systems",
+                "type": "hard skill"
+            },
+            {
+                "skill": "Proficiency in MS Office (Word, Excel, PowerPoint, Outlook), QuickBooks, and basic knowledge of MS Access, SQL, Visual Basic, and C++",
+                "example": -1,
+                "type": "hard skill"
+            }
+        ],
+        "pursuit_job": null,
+        "work experience": [
+            {
+                "job_title": "Student Intern",
+                "start_date": "Summer 2010",
+                "end_date": -1,
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Accounting Coordinator",
+                "start_date": "2021",
+                "end_date": "present",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2015",
+                "end_date": "2018",
+                "responsibilities": -1,
+                "years of experience": -1
+            },
+            {
+                "job_title": "Bookkeeper",
+                "start_date": "2013",
+                "end_date": "2015",
+                "responsibilities": -1,
+                "years of experience": -1
+            }
+        ]
+    }
 }

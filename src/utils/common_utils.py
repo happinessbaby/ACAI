@@ -388,27 +388,28 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     format_instructions = output_parser.get_format_instructions()
     
-    # summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
-    # skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
-
-    # work experience: Extract the work experience section of the resume. If this information is not found, output -1\
-    
-    # personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
-    
-    # education: Extract the education section of the resume. If this information is not found, output -1\
-
-    # awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
-    
-    # professional accomplishment: Extract professional accomplishment from the resume that is not work experience. 
-    #                             Professional accomplishment should be composed of trainings, skills, projects that the applicant learned or has done. 
-    #                             If this information is not found, output -1\
-                    
-    # certification: Extract the certification sections of the resume. Extract only names of certification, names of certifying agencies, if applicable,  
-    #                 dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1 \
-    
-    # projects: Extract the project section of the resume. If this information is not fount, output -1 \
     template_string = """For the following text, delimited with {delimiter} chracters, extract the following information:
 
+    summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
+    
+    skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
+
+    work experience: Extract the work experience section of the resume. If this information is not found, output -1\
+    
+    personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
+    
+    education: Extract the education section of the resume. If this information is not found, output -1\
+
+    awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
+    
+    professional accomplishment: Extract professional accomplishment from the resume that is not work experience. 
+                                Professional accomplishment should be composed of trainings, skills, projects that the applicant learned or has done. 
+                                If this information is not found, output -1\
+                    
+    certification: Extract the certification sections of the resume. Extract only names of certification, names of certifying agencies, if applicable,  
+                    dates of obtainment (and expiration date, if applicable), and location, if applicable. If none of these information is found, output -1 \
+    
+    projects: Extract the project section of the resume. If this information is not fount, output -1 \
     text: {delimiter}{text}{delimiter}
 
     {format_instructions}
@@ -1086,13 +1087,13 @@ def create_resume_info(resume_path=""):
             # elif years_experience>5 and years_experience<=10:
             #     jobs[i].update({"level": "senior level"})
             resume_info_dict[resume_path].update({"work experience": jobs_list})
-        if field_content["projects"]!=-1:
-            projects = extract_projects_accomplishments(resume_content)
-            resume_info_dict[resume_path].update(projects)
-        if field_content["professional accomplishment"]!=-1:
-            accomplishments = extract_projects_accomplishments(resume_content)
-            accomplishments["professional accomplishment"] = accomplishments.pop("projects")
-            resume_info_dict[resume_path].update(accomplishments)
+        # if field_content["projects"]!=-1:
+        #     projects = extract_projects_accomplishments(resume_content)
+        #     resume_info_dict[resume_path].update(projects)
+        # if field_content["professional accomplishment"]!=-1:
+        #     accomplishments = extract_projects_accomplishments(resume_content)
+        #     accomplishments["professional accomplishment"] = accomplishments.pop("projects")
+        #     resume_info_dict[resume_path].update(accomplishments)
         # Extract hard skills and soft skills
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
@@ -1170,8 +1171,7 @@ def retrieve_or_create_job_posting_info(posting_path, about_job,):
 
 def process_inputs(user_input, match_topic=""):
 
-    """Tags input as a particular topic, optionally matches a given topic """
-    
+    """Tags input as a particular topic, optionally matches a given topic"""
     tag_schema = {
         "properties": {
             # "aggressiveness": {

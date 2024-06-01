@@ -22,25 +22,29 @@ def main():
                             job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
                             )
     with tab2:
+
         if type=="chronological":
             reformat_chronological_resume(resume_file=st.session_state["resume_path"], 
                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                template_file=template_path)
+                                template_file=st.session_state["template_path"],
+                                )
         elif type=="functional":
             reformat_functional_resume(resume_file=st.session_state["resume_path"], 
                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                template_file=template_path)
+                                template_file=st.session_state["template_path"],
+                                )
         elif type=="student":
             reformat_student_resume(resume_file=st.session_state["resume_path"], 
                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                template_file=template_path)
+                                template_file=st.session_state["template_path"],
+                                )
     with tab3:
         display_tailoring()
         st.session_state["tailor_dict"]=tailor_resume(resume_file=st.session_state["resume_path"], 
                             posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                             about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "",
                             resume_dict = st.session_state["resume_dict"], 
-                            job_posting_dict = st.session_state["job_posting_dict"], 
+                            job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else "", 
                         )
 
 @st.experimental_fragment(run_every=3)
