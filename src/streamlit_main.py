@@ -14,11 +14,11 @@ from backend.career_advisor import ChatController
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content, evaluate_content, generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links
+from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs
 import re
 from typing import Any, List, Union
 import multiprocessing as mp
-from utils.langchain_utils import (merge_faiss_vectorstore, create_input_tagger, create_vectorstore, update_vectorstore)
+from utils.langchain_utils import update_vectorstore
 import openai
 import json
 # from st_pages import show_pages_from_config, add_page_title, show_pages, Page, Section
@@ -107,7 +107,7 @@ class Chat():
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
         self._init_session_states()
-        self._create_chatbot()
+        # self._create_chatbot()
         self._init_display()
 
         
@@ -250,9 +250,10 @@ class Chat():
         # if st.session_state.resume_modal.is_open():
             # _self.resume_popup()
 
+        if ("evaluation" in st.session_state and st.session_state["evaluation"]) or ("tailoring" in st.session_state and st.session_state["tailoring"]) or ("reformatting" in st.session_state and st.session_state["reformatting"]):
+            st.switch_page("pages/streamlit_dashboard.py")
+
         with st._main:
-            if "resume_dict" in st.session_state:
-                st.switch_page("pages/streamlit_eval.py")
             
             st.markdown("<h1 style='text-align: center; color: black;'>Welcome</h1>", unsafe_allow_html=True)
             st.markdown("#")
@@ -471,40 +472,22 @@ class Chat():
         if "job description" in st.session_state and st.session_state.job_posting_radio=="job description":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_description)
         # Evaluate resume
-        # if resume_options[0] in st.session_state.type_selection:
-        #     st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
-        #                     resume_dict = st.session_state["resume_dict"], 
-        #                     job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
-        #                      )
+        if resume_options[0] in st.session_state.type_selection:
+            st.session_state["evaluation"] = True
         # Reformat resume
         if resume_options[1] in st.session_state.type_selection:
             if template==True:
-                if type=="chronological":
-                    reformat_chronological_resume(resume_file=st.session_state["resume_path"], 
-                                        posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                        template_file=template_path)
-                elif type=="functional":
-                    reformat_functional_resume(resume_file=st.session_state["resume_path"], 
-                                        posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                        template_file=template_path)
-                elif type=="student":
-                    reformat_student_resume(resume_file=st.session_state["resume_path"], 
-                                        posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                        template_file=template_path)
+                st.session_state["reformatting"] = True
             else:
-                if "eval_dict" not in st.session_state:
-                    resume_type=research_resume_type(resume_dict=st.session_state.resume_dict, job_posting_dict=st.session_state.job_posting_dict, )
-                else:
+                try:
                     resume_type = st.session_state["eval_dict"]["ideal_type"]
+                except Exception:   
+                    resume_type=research_resume_type(resume_dict=st.session_state.resume_dict, job_posting_dict=st.session_state.job_posting_dict, )
                 self.resume_template_popup(resume_type)
         # Tailor resume
         if resume_options[2] in st.session_state.type_selection:
-            tailor_resume(resume_file=st.session_state["resume_path"], 
-                            posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                            about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "",
-                            resume_dict = st.session_state["resume_dict"], 
-                            job_posting_dict = st.session_state["job_posting_dict"], 
-                        )
+            st.session_state["tailoring"] = True
+
 
 
     @st.experimental_dialog("Please pick out a template", width="large")
@@ -709,25 +692,20 @@ class Chat():
         try:
             resume=st.session_state.resume
             if resume:
-                print("User uploaded resume")
                 self.process([resume],"resume" )
         except Exception:
             pass
         try:
             job_posting=st.session_state.job_posting
             if job_posting:
-                st.session_state.job_posting=""
+                # st.session_state.job_posting=""
                 self.process(job_posting, "job_posting")
         except Exception:
             pass
         try:
             job_description=st.session_state.job_descriptionx
             if job_description:
-                if self.check_user_input(job_description, match_topic="job posting or job description"):
-                    st.session_state.job_posting_checkmark="✅"
-                    st.session_state["job_description"] = job_description   
-                else:
-                    st.info("Please share a job description here")
+               self.process(job_description, "job_description")
         except Exception:
             pass
         # try:
@@ -737,31 +715,31 @@ class Chat():
         #         self.process_uploads(job_posting, "job_posting")
         # except Exception:
         #     pass
-        try:
-            # files = st.session_state.files 
-            file_key = f"files_{str(st.session_state.file_counter)}"
-            files = st.session_state[file_key]
-            if files:
-                self.process_uploads(files, "files")
-                st.session_state["file_counter"] += 1
-                # st.session_state.files=""
-        except Exception:
-            pass
-        try:
-            links = st.session_state.links
-            if links:
-                self.process_uploads(links, "links")
-                st.session_state.links=""
-        except Exception:
-            pass
-        try:
-            about_job = st.session_state.aboutJob
-            if about_job:
-                self.new_chat.update_entities(f"about_job:{about_job} /n"+"~~~~", '~~~~')
-                st.session_state.aboutJob=""
-                st.toast("successfully submitted")
-        except Exception:
-            pass
+        # try:
+        #     # files = st.session_state.files 
+        #     file_key = f"files_{str(st.session_state.file_counter)}"
+        #     files = st.session_state[file_key]
+        #     if files:
+        #         self.process_uploads(files, "files")
+        #         st.session_state["file_counter"] += 1
+        #         # st.session_state.files=""
+        # except Exception:
+        #     pass
+        # try:
+        #     links = st.session_state.links
+        #     if links:
+        #         self.process_uploads(links, "links")
+        #         st.session_state.links=""
+        # except Exception:
+        #     pass
+        # try:
+        #     about_job = st.session_state.aboutJob
+        #     if about_job:
+        #         self.new_chat.update_entities(f"about_job:{about_job} /n"+"~~~~", '~~~~')
+        #         st.session_state.aboutJob=""
+        #         st.toast("successfully submitted")
+        # except Exception:
+        #     pass
 
         ## Passes the previous user question to the agent one more time after user uploads form
         # try:
@@ -778,44 +756,7 @@ class Chat():
 
 
 
-                
-    def check_user_input(self, user_input: str, match_topic="job posting or job description") -> str:
-
-        """ Processes user input and processes any links in the input. """
-
-        #process url in input
-        # urls = re.findall(r'(https?://\S+)', user_input)
-        # print(urls)
-        # if urls:
-        #     for url in urls:
-        #         self.process_link(url)
-        #tag user input content
-        tag_schema = {
-            "properties": {
-                # "aggressiveness": {
-                #     "type": "integer",
-                #     "enum": [1, 2, 3, 4, 5],
-                #     "description": "describes how aggressive the statement is, the higher the number the more aggressive",
-                # },
-                "topic": {
-                    "type": "string",
-                    "enum": ["question or answer", "career goals", "job posting or job description"],
-                    "description": "determines if the statement contains certain topic",
-                },
-            },
-            # "required": ["topic", "sentiment", "aggressiveness"],
-            "required": ["topic"],
-        }
-        response = create_input_tagger(tag_schema, user_input)
-        topic = response.get("topic", "")
-        # if topic == "upload files":
-        #     self.file_upload_popup()
-        # else: 
-        # if topic == "career goals" or topic=="job or program description" or topic=="company or institution description":
-        #     self.new_chat.update_entities(f"about_me:{user_input} /n"+"###", '###')
-        if topic!=match_topic:
-            return None
-        return user_input
+        
     
 
 
@@ -877,7 +818,13 @@ class Chat():
                     st.info("Please upload your job posting link here")
             else:
                 st.info("That didn't work. Please try pasting the content in job description instead.")
-
+        elif upload_type=="job_description":
+            result = process_inputs(uploads, match_topic="job posting or job description")
+            if result is not None:
+                st.session_state.job_posting_checkmark="✅"
+                st.session_state["job_description"] = uploads  
+            else:
+                st.info("Please share a job description here")
         # for end_path in end_paths:
         #     content_safe, content_type, content_topics = check_content(end_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
         #     print(content_type, content_safe, content_topics) 

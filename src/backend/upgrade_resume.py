@@ -90,12 +90,12 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     page_num = count_pages(resume_file)
     evaluation_dict.update({"page_number": page_num})
     # Research and analyze resume type
-    # ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
-    # evaluation_dict.update({"ideal_type": ideal_type})
-    # type_analysis= analyze_resume_type(resume_content, ideal_type)
-    # evaluation_dict.update({"type_analysis": type_analysis})
-    # # Generate overall impression
-    # overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
+    ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
+    evaluation_dict.update({"ideal_type": ideal_type})
+    type_analysis= analyze_resume_type(resume_content, ideal_type)
+    evaluation_dict.update({"type_analysis": type_analysis})
+    # Generate overall impression
+    overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
     # # Evaluates specific field  content
     # resume_fields = resume_dict["resume fields"]
     # evaluation_dict.update({"overall_impression": overall_impression})
@@ -160,6 +160,7 @@ def analyze_resume_type(resume_content, ideal_type):
 
 def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={}, job_posting_dict={}):
 
+    tailor_dict = {"tailored_skills": "", "tailored_objective":""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
@@ -183,8 +184,11 @@ def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={},
     qualifications = job_posting_dict["qualifications"]
     relevant_hard_skills = research_relevancy_in_resume(resume_content, hard_skills_str, "hard skills", n_ideas=1)
     relevant_soft_skills = research_relevancy_in_resume(resume_content, soft_skills_str, "soft skills", n_ideas=1)
-    tailor_skills(my_skills, relevant_hard_skills, relevant_soft_skills, )
-    tailor_objective(my_objective, frequent_words, qualifications)
+    tailored_skills = tailor_skills(my_skills, relevant_hard_skills, relevant_soft_skills, )
+    tailor_dict.update({"tailored_skills": tailored_skills})
+    # tailored_objective = tailor_objective(my_objective, frequent_words, qualifications)
+    # tailor_dict.update({"tailored_objective": tailored_objective})
+    return tailor_dict
 
     
 

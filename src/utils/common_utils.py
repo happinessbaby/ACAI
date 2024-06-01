@@ -12,7 +12,7 @@ from langchain.chains import RetrievalQA,  LLMChain
 from pathlib import Path
 from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
-from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger,
+from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import CommaSeparatedListOutputParser
@@ -1167,6 +1167,34 @@ def retrieve_or_create_job_posting_info(posting_path, about_job,):
     except Exception:   
       job_posting_dict= create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     return job_posting_dict
+
+def process_inputs(user_input, match_topic=""):
+
+    """Tags input as a particular topic, optionally matches a given topic """
+    
+    tag_schema = {
+        "properties": {
+            # "aggressiveness": {
+            #     "type": "integer",
+            #     "enum": [1, 2, 3, 4, 5],
+            #     "description": "describes how aggressive the statement is, the higher the number the more aggressive",
+            # },
+            "topic": {
+                "type": "string",
+                "enum": ["question or answer", "career goals", "job posting or job description"],
+                "description": "determines if the statement contains certain topic",
+            },
+        },
+        # "required": ["topic", "sentiment", "aggressiveness"],
+        "required": ["topic"],
+    }
+    response = create_input_tagger(tag_schema, user_input)
+    topic = response.get("topic", "")
+    if match_topic:
+        if topic!=match_topic:
+            return None
+    return user_input
+    
 
 def process_uploads(uploads, save_path, sessionId, ):
 
