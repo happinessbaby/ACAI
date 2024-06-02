@@ -258,7 +258,7 @@ class Chat():
 
         with st._main:
             
-            st.markdown("<h1 style='text-align: center; color: #6db290;'>Welcome</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             st.markdown("#")
             # st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
             st.markdown("#")
@@ -413,6 +413,10 @@ class Chat():
                                  placeholder="Please make a selection...", 
                                  key="type_selectionx",
                                   on_change=self.form_callback )
+        # st.write("What do you need help with?")
+        # opt1 = st.checkbox(label=resume_options[0], key="resume_opt1")
+        # opt2 = st.checkbox(label=resume_options[1], key="resume_opt2")
+        # opt3 = st.checkbox(label=resume_options[2], key="resume_opt3")
         # pursuit_job = st.text_input(f"desired job title {st.session_state.pursuit_job_checkmark}", key="pursuit_job", on_change=self.form_callback, disabled=st.session_state.pursuit_job_disabled)
         job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", key="job_posting_radio", options=["job description", "job posting link"])
         if job_posting=="job posting link":
@@ -476,9 +480,11 @@ class Chat():
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_description)
         # Evaluate resume
         if resume_options[0] in st.session_state.type_selection:
+        # if st.session_state.resume_opt1:
             st.session_state["evaluation"] = True
         # Reformat resume
         if resume_options[1] in st.session_state.type_selection:
+        # if st.session_state.resume_opt2:
             # if template==True:
             #     st.session_state["reformatting"] = True
             # else:
@@ -487,11 +493,13 @@ class Chat():
                 except Exception:   
                     st.session_state["resume_type"]=research_resume_type(
                         resume_dict=st.session_state.resume_dict, 
-                        job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "", )
+                        job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "",
+                          )
                 st.session_state["reformatting"] = True
                 # self.resume_template_popup(resume_type)
         # Tailor resume
         if resume_options[2] in st.session_state.type_selection:
+        # if st.session_state.resume_opt3:
             st.session_state["tailoring"] = True
 
 

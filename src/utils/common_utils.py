@@ -424,15 +424,19 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     print(f"Successfully extracted resume field info: {field_info_dict}")
     return field_info_dict
 
-def extract_pursuit_job(resume_content):
+def extract_pursuit_job(resume_content) -> List[str]:
 
-    """ Extracts the possible job the candidate is pursuing based on resume"""
+    """ Extracts the possible job titles the candidate is pursuing based on resume"""
 
-    prompt = """ Extract the possible job that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
+    prompt = """ Extract the possible jobs that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
     
-    It could also be deduced from their work experience. 
-    
+    If there's not objective or summary, try looking into the work experience section. 
+
     resume content: {resume_content}"""
+    # response = generate_multifunction_response(query=prompt, tools=create_search_tools("google", 1))
+    # return response
+    response = create_comma_separated_list_parser(["resume_content"], prompt, query_dict={"resume_content": resume_content})
+    return response
 
 
 
@@ -710,13 +714,14 @@ def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI(
 def calculate_work_experience_years(start_date, end_date) -> int:
      
     try:
-        start_date = parser.parse(start_date, default=datetime(1900, 1, 1)) 
-        end_date = parser.parse(start_date, default=datetime(1900, 1, 1)) 
-        year_difference = start_date.year - end_date.year
+        start_date = parser.parse(start_date, ) 
+        end_date = parser.parse(end_date, ) 
+        year_difference = end_date.year - start_date.year
         if year_difference<0:
             year_difference=-1
-    except Exception:
+    except Exception as e:
         year_difference = -1
+    print(f"Successfully calculated work experience years: {year_difference}")
     return year_difference
     
 
@@ -727,7 +732,8 @@ def calculate_graduation_years(graduation_year:str) -> int:
     today = datetime.date.today()
     this_year = today.year   
     try:
-        years = int(this_year)-int(graduation_year)
+        grad_year = parser.parse(graduation_year, )
+        years = int(this_year)-grad_year.year
         if years<0:
             years=-1
     except Exception:
@@ -766,19 +772,20 @@ def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI(
     
 
 
-def extract_similar_jobs(job_list, desired_title, ):
+def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
 
     #NOTE: this query benefits a lot from examples
-    query = """You are provided with a list of job titles in a candidate's past experience along with a desirable job title that candidate wants to apply to.
     
-        Output only jobs from the following list of job titles that are similar to {desired_title}: {job_list} /
+    query = """You are provided with a list of job titles in a candidate's past experience along with a desirable job titles that candidate wants to apply to.
+    
+        Output only jobs from the following list of job titles that are similar to {desired_titles}: {job_list} /
 
         For example, a software engineer is similar to software developer, an accountant is similar to a bookkeper. 
 
         If there's none, output -1.
         """
 
-    return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_title"], query_dict={"job_list":job_list, "desired_title":desired_title})
+    return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_titles"], query_dict={"job_list":job_list, "desired_titles":desired_titles})
 
 
 def research_relevancy_in_resume(resume_content, job_description, job_description_type="", n_ideas=2, llm=ChatOpenAI()):
@@ -900,7 +907,7 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
     return response
 
  #TODO: once there's enough samples, education level and work experience level could also be included in searching criteria
-def search_related_samples(job_title: str, directory: str) -> List[str]:
+def search_related_samples(job_titles: List[str], directory: str) -> List[str]:
 
     """ Searches resume or cover letter samples in the directory for similar content as job title.
 
@@ -917,10 +924,10 @@ def search_related_samples(job_title: str, directory: str) -> List[str]:
     """
 
     system_message = f"""
-		You are an assistant that evaluates whether the job position described in the content is similar to {job_title} or relevant to {job_title}. 
+		You are an assistant that evaluates whether the job position described in the content is similar to one fo the job titles: {job_titles}. 
 
 		Respond with a Y or N character, with no punctuation:
-		Y - if the job position is similar to {job_title} or relevant to it
+		Y - if the job position is similar to one fo the job titles: {job_titles}
 		N - otherwise
 
 		Output a single letter only.
@@ -1058,8 +1065,8 @@ def create_resume_info(resume_path=""):
         field_content = extract_resume_fields3(resume_content)
         resume_info_dict[resume_path]["resume fields"].update(field_content)
         # Extract pursuit job
-        pursuit_job = extract_pursuit_job(resume_content)
-        resume_info_dict[resume_path].update({"pursuit_job": pursuit_job})
+        pursuit_jobs = extract_pursuit_job(resume_content)
+        resume_info_dict[resume_path].update({"pursuit_jobs": pursuit_jobs})
         # Extract contact information
         if field_content["personal contact"]!=-1:
             personal_info_dict = extract_personal_information(resume_content)

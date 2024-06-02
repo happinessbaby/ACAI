@@ -81,9 +81,9 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     evaluation_dict = {"word_count": 0, "page_number":0, "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     if job_posting_dict:
-        pursuit_job=job_posting_dict["job"]
+        pursuit_jobs=job_posting_dict["job"]
     else:
-        pursuit_job=resume_dict["pursuit_job"]
+        pursuit_jobs=resume_dict["pursuit_jobs"]
     # Evaluate resume length
     word_count = count_length(resume_file)
     evaluation_dict.update({"word_count": word_count})
@@ -95,10 +95,10 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     type_analysis= analyze_resume_type(resume_content, ideal_type)
     evaluation_dict.update({"type_analysis": type_analysis})
     # Generate overall impression
-    overall_impression = analyze_resume_overall(resume_content,  pursuit_job)
+    overall_impression = analyze_resume_overall(resume_content,  pursuit_jobs)
+    evaluation_dict.update({"overall_impression": overall_impression})
     # # Evaluates specific field  content
     # resume_fields = resume_dict["resume fields"]
-    # evaluation_dict.update({"overall_impression": overall_impression})
     # if resume_fields["work experience"]!=-1:
     #     evaluted_work= analyze_field_content(resume_dict["jobs"])
     # if resume_fields["projects"]!=-1:
@@ -125,7 +125,7 @@ def analyze_field_content(field_content, field_type):
         field_content: {field_content} """
 
 
-def analyze_resume_overall(resume_content, job):
+def analyze_resume_overall(resume_content, jobs):
 
     """Analyzes overall resume by comparing to other samples"""
 
@@ -138,9 +138,10 @@ def analyze_resume_overall(resume_content, job):
 
     Please supply your reasoning too. 
     """
-    related_samples = search_related_samples(job, resume_samples_path)
+    related_samples = search_related_samples(jobs, resume_samples_path)
     sample_tools, tool_names = create_sample_tools(related_samples, "resume")
     response = generate_multifunction_response(query_comparison, sample_tools)
+    return response
 
 
 def analyze_resume_type(resume_content, ideal_type):
@@ -155,8 +156,11 @@ def analyze_resume_type(resume_content, ideal_type):
     A student resume should emphasize coursework, education, accomplishments, and skills. 
     A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
 
+    Output a response you would provide to the candidate as if you are his/her advisor. 
+
     """
-    response=create_smartllm_chain(query_type, n_ideas=2)
+    response=create_smartllm_chain(query_type, n_ideas=1)
+    return response
 
 def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={}, job_posting_dict={}):
 
@@ -280,13 +284,13 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     print(resume_dict)
     jobs = resume_dict["work experience"]
     if job_posting_dict:
-        desired_job = job_posting_dict["job"]
+        desired_jobs = [job_posting_dict["job"]]
     else:
-        desired_job=resume_dict["pursuit_job"]
+        desired_jobs=resume_dict["pursuit_jobs"]
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])
-    similar_jobs = extract_similar_jobs(jobs_list, desired_job)
+    similar_jobs = extract_similar_jobs(jobs_list, desired_jobs)
     total_years_work=0
     for job in jobs:
         if job in similar_jobs:
