@@ -530,13 +530,13 @@ class DecimalEncoder(json.JSONEncoder):
 
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
-    # html_to_text(
-    #    "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
-    #     save_path =f"./web_data/career_satisfaction.txt")
+    html_to_text(
+       "https://jobs.lever.co/missiongraduates/596a25c8-5998-469b-9cb8-53b2afd1ceab",
+        save_path =f"./my_material/data_analyst3.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
     # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
-    count_pages("./my_material/resume2023v2.pdf")
+    # count_pages("./my_material/resume2023v2.pdf")
 
 
 

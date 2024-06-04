@@ -10,8 +10,7 @@ from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
 from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json, count_pages, count_length
-from utils.common_utils import (get_web_resources, retrieve_from_db,calculate_graduation_years, extract_posting_keywords, extract_education_information, extract_pursuit_information,
-                            search_related_samples,  extract_personal_information,retrieve_or_create_resume_info, retrieve_or_create_job_posting_info, research_relevancy_in_resume, extract_similar_jobs, research_skills)
+from utils.common_utils import (search_related_samples, research_relevancy_in_resume, extract_similar_jobs)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
@@ -136,7 +135,12 @@ def analyze_resume_overall(resume_content, jobs):
      
     candidate resume: {resume_content} \
 
-    Please supply your reasoning too. 
+    Your final response should be about a paragraph long summarizing the quality of the candidate's resume. 
+    
+    Write as if you are giving the candidate a critical feedback along wiht some suggestions. 
+
+    Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
+
     """
     related_samples = search_related_samples(jobs, resume_samples_path)
     sample_tools, tool_names = create_sample_tools(related_samples, "resume")
@@ -156,7 +160,7 @@ def analyze_resume_type(resume_content, ideal_type):
     A student resume should emphasize coursework, education, accomplishments, and skills. 
     A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
 
-    Output a response you would provide to the candidate as if you are his/her advisor. 
+    Output a response you would provide the candidate as if you are their advisor providing a professional feedback. 
 
     """
     response=create_smartllm_chain(query_type, n_ideas=1)
@@ -172,55 +176,60 @@ def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={},
     my_objective = resume_dict["resume fields"].get("summary or objective", "")
     my_skills = resume_dict["resume fields"].get("skills", "")
     my_experience = resume_dict["resume fields"].get("work experience", "")
-    skills = job_posting_dict["skills"]
-    soft_skills_str = ""
-    hard_skills_str=""
-    for s in skills:
-        if s["type"]=="hard skill":
-            skill = s["skill"]
-            example = s["example"]
-            hard_skills_str+="(skill: " +skill + ", example: "+ example + " )"
-        if s["type"]=="soft skill":
-            skill = s["skill"]
-            example = s["example"]
-            soft_skills_str+="(skill: " +skill + ", example: "+ example + " )"
     frequent_words = job_posting_dict["frequent_words"]
     qualifications = job_posting_dict["qualifications"]
-    relevant_hard_skills = research_relevancy_in_resume(resume_content, hard_skills_str, "hard skills", n_ideas=1)
-    relevant_soft_skills = research_relevancy_in_resume(resume_content, soft_skills_str, "soft skills", n_ideas=1)
-    tailored_skills = tailor_skills(my_skills, relevant_hard_skills, relevant_soft_skills, )
+    required_skills = job_posting_dict["skills"] 
+    tailored_skills = tailor_skills(my_skills, required_skills)
     tailor_dict.update({"tailored_skills": tailored_skills})
-    # tailored_objective = tailor_objective(my_objective, frequent_words, qualifications)
-    # tailor_dict.update({"tailored_objective": tailored_objective})
+    tailored_objective = tailor_objective(my_objective, frequent_words, qualifications)
+    tailor_dict.update({"tailored_objective": tailored_objective})
     return tailor_dict
 
     
 
-def tailor_skills(skills_content, relevant_hard_skills, relevant_soft_skills):
+def tailor_skills(my_skills, required_skills):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
-
-    if skills_content:
-        skills_prompt = f""" Your job is to polish and rank the skills section of the resume according to the relevancy list.
+  
+    soft_skills_str = ""
+    hard_skills_str=""
+    for s in required_skills:
+        if s["type"]==True:
+            skill = s["skill"]
+            example = s["example"] if s["example"]!=-1 else ""
+            hard_skills_str+="(skill: " +skill + ", example: "+ example + ")"
+        if s["type"]==False:
+            skill = s["skill"]
+            example = s["example"] if s["example"]!=-1 else ""
+            soft_skills_str+="(skill: " +skill + ", example: "+ example + ")"
+    relevant_hard_skills = research_relevancy_in_resume(my_skills, hard_skills_str, "hard skills", n_ideas=2)
+    relevant_soft_skills = research_relevancy_in_resume(my_skills, soft_skills_str, "soft skills", n_ideas=2)
+    if my_skills:
+        skills_prompt = """ Your job is to polish and rank the skills section of the resume according to the relevancy list.
         The relevancy report is generated based on what skills in the resume are most relevant to a job description.
         Relevancy report for soft skills: {relevant_soft_skills} \  
         Relevancy report for hard skills: {relevant_hard_skills} \
-        The skills in the resume are following: {skills_content} \
+        The skills section in the resume: {my_skills} \
 
-        Step 1: Polish the skills section. If the section is too long  or has irrelevant information, please shorten it or exclude the irrelevant information.
-        Include both hard skills and soft skills and output the polished skills section. 
-        Step2: Rank the skills. Based off the polished skills, rank the skills in the order or relevancy. Output the ranked skills section.
+        Step 1: Make a list of irrelevant skills that can be excluded from the skills sections based on the relevancy reports. \
+
+        Step 2: Make a list of skills that are reported in the relevancy reports that are suggested to be added. \
+        
+        Step 3: Rewrite the skills sections based on the previous steps' output. The skills should be listed in terms of relevance, do not change the formatting.
 
         Use the following format:
             Step 1: <step 1 reasoning>
             Step 2: <step 2 reasoning>
-        
-        Please use the relevancy report as your primary guideline.  
+            Step 3: <step 3 reasoning>
+
+        Please remeber to always use the relevancy reports as your primary guideline.
+
         """
+        
         prompt_template = ChatPromptTemplate.from_template(skills_prompt)
         message= prompt_template.format_messages(relevant_soft_skills = relevant_soft_skills, 
                                                  relevant_hard_skills = relevant_hard_skills, 
-                                                skills_content = skills_content,
+                                                my_skills = my_skills,
         )
         tailored_skills = llm(message).content
         print(tailored_skills)
@@ -247,18 +256,20 @@ def tailor_skills(skills_content, relevant_hard_skills, relevant_soft_skills):
     return tailored_skills
 
 
-def tailor_objective(resume_content, job_description):
+def tailor_objective(my_objective, frequent_words, qualifications):
 
-    prompt = f"""Your job is to tailor or write the objective/summary section of the resume to a job description.  
+    prompt = f"""Your job is to tailor or write the objective/summary section of the resume to a job description.
+    You are provided with a frequent words list along with candidate qualifications.   
 
-   job description: {job_description} \
-    resume content: {resume_content} \
+   resume objective: {my_objective} \
+    frequent_words: {frequent_words} \
+    qualification: {qualifications} \
     
     Output the revised version of the objective/summary only.
 
     """
-    tailored_skills = create_smartllm_chain(prompt, n_ideas=3)
-    print(tailored_skills)
+    tailored_objective = create_smartllm_chain(prompt, n_ideas=3)
+    return tailored_objective
 
 
 

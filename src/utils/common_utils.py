@@ -477,9 +477,9 @@ class Keywords(BaseModel):
         default=-1, description="Traits/qualifications sought in a candidate in the job posting"
     )
     duties: Optional[List[str]] = Field(
-        default=-1, description="Job duties/responsibilities in the job posting"
+        default=-1, description="Duties and responsibilities for the job position listed in the job posting"
     )
-def extract_posting_keywords(posting_content:str, llm = ChatOpenAI()) -> List[str]:
+def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> List[str]:
 
     """ Extract the ATS keywords and key phrases from job posting. 
     
@@ -675,8 +675,8 @@ class Skill(BaseModel):
     example:Optional[str] = Field(
         default=-1, description="how the skill is demonstrated, an elaboration of the skill, or examples"
     )
-    type: Optional[str] = Field(
-        default=-1, description="type of skill, please categorize it as hard skill or soft skill only"
+    type: Optional[bool] = Field(
+        default=-1, description="categorize the skill, if hard skill, output True, else if soft skill, output False "
     )
 class Skills(BaseModel):
     skills : List[Skill]
@@ -794,13 +794,13 @@ def research_relevancy_in_resume(resume_content, job_description, job_descriptio
     
      You are given the {job_description_type} of a job description along with some of the candidate's resume content.
      
-     Generate a list of related content in the resume content that reflects how the candidate would match to the {job_description_type}. 
+    From the resume content, generate a list of content that are relevant to the job description, reflecting how the candidate would be a good match to the job description. 
      
     job description: {job_description} \n
 
     resume content: {resume_content} \n
         
-    Your answer should only include how the resume content reflects the job description, if applicable. Please be critical and provide your reasoning. """
+    Please output only content from the resume that reflects a good matchs to the job description. """
 
     relevancy=create_smartllm_chain(query_relevancy, n_ideas=n_ideas)
     print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
@@ -1104,7 +1104,7 @@ def create_resume_info(resume_path=""):
         # Extract hard skills and soft skills
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
-
+    # Write dictionary to JSON (TEMPORARY SOLUTION)
     print(resume_info_dict)
     with open('./test_resume_info.json', 'a') as json_file:
         json.dump(resume_info_dict, json_file, indent=4)
@@ -1118,29 +1118,32 @@ def create_job_posting_info(posting_path="", about_job="", ):
 
     if (Path(posting_path).is_file()):
         posting = read_txt(posting_path)
-        prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
-            {text} \n
-            Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
-        """
-        job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
-        job_posting_info_dict[job_posting].update({"summary": job_specification})
+        # prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
+        #     {text} \n
+        #     Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
+        # """
+        # job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
+        # job_posting_info_dict[job_posting].update({"summary": job_specification})
     elif about_job:
         posting = about_job
-        prompt = f"""Summarize the following job description/job posting in 100 words or less:
-                {posting}"""
-        job_specification = get_completion(prompt)
-        job_posting_info_dict[job_posting].update({"summary": job_specification})
-    if posting:
-        job_posting_info = extract_posting_keywords(posting)
-        job_posting_info_dict[job_posting].update(job_posting_info)
-        job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
-        job_posting_info_dict[job_posting].update(job_posting_skills)
-        pursuit_info_dict1 = extract_pursuit_information(posting)
-        for key, value in pursuit_info_dict.items():
-            if value == -1:
-                pursuit_info_dict[key]=pursuit_info_dict1[key]
-        job_posting_info_dict[job_posting].update(pursuit_info_dict)
-
+        # prompt = f"""Summarize the following job description/job posting in 100 words or less:
+        #         {posting}"""
+        # job_specification = get_completion(prompt)
+        # job_posting_info_dict[job_posting].update({"summary": job_specification})
+    job_posting_info_dict[job_posting].update({"summary": posting})
+    # Extract basic job and company names
+    pursuit_info_dict = extract_pursuit_information(posting)
+    # for key, value in pursuit_info_dict.items():
+    #     if value == -1:
+    #         pursuit_info_dict[key]=pursuit_info_dict1[key]
+    job_posting_info_dict[job_posting].update(pursuit_info_dict)
+    # Extract job posting specific requirements
+    job_posting_info = extract_posting_info(posting)
+    job_posting_info_dict[job_posting].update(job_posting_info)
+    # Research soft and hard skills required
+    job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
+    job_posting_info_dict[job_posting].update(job_posting_skills)
+    # Research company
     company = pursuit_info_dict["company"]
     if company!=-1:
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
@@ -1151,6 +1154,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
     else:
         job_posting_info_dict[job_posting].update({"company description": -1})
     print(job_posting_info_dict)
+    # Write dictionary to JSON (TEMPORARY SOLUTION)
     with open('./test_job_posting_info.json', 'a') as json_file:
         json.dump(job_posting_info_dict, json_file, indent=4)
     return job_posting_info_dict[posting_path]
@@ -1166,7 +1170,7 @@ def retrieve_or_create_resume_info(resume_path):
     return resume_dict
 
 
-def retrieve_or_create_job_posting_info(posting_path, about_job,):
+def retrieve_or_create_job_posting_info(posting_path="", about_job="",):
     #NOTE: JSON file is the temp solution, will move to database
     try:
        with open("./test_job_posting_info.json") as f:

@@ -68,13 +68,23 @@ def display_tailoring():
         tailor_dict = st.session_state.tailor_dict
     except Exception:
         tailor_dict={}
-    with st.container():
-        st.write("Your skills, objective, and work experience sections can be tailored!")
-        st.title("Skills")
+    st.write("Your skills, objective, and work experience sections can be tailored!")
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.write("**Skills Section**")
         try:
             tailored_skills=tailor_dict["tailored_skills"]
+            st.write(tailored_skills)
         except Exception:
-            st.write("Evaluating...")        
+            st.write("Evaluating...")  
+    with c2:
+        st.write("**Objective Section**")
+        try:
+            tailored_objective=tailor_dict["tailored_objective"]
+            st.write(tailored_objective)
+        except Exception:
+            st.write("Evaluating...")  
+
 
 @st.experimental_fragment(run_every=3)
 def display_resume_eval(): 

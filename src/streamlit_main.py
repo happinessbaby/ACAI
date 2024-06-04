@@ -418,7 +418,7 @@ class Chat():
         # opt2 = st.checkbox(label=resume_options[1], key="resume_opt2")
         # opt3 = st.checkbox(label=resume_options[2], key="resume_opt3")
         # pursuit_job = st.text_input(f"desired job title {st.session_state.pursuit_job_checkmark}", key="pursuit_job", on_change=self.form_callback, disabled=st.session_state.pursuit_job_disabled)
-        job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", key="job_posting_radio", options=["job description", "job posting link"])
+        job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", key="job_posting_radio", options=["job description", "job posting link"], index = 1 if "job_description"  not in st.session_state else 0)
         if job_posting=="job posting link":
             job_posting_link = st.text_input(label="Job posting link", key="job_posting", on_change=self.form_callback, disabled=st.session_state.job_posting_disabled)
         elif job_posting=="job description":
@@ -475,9 +475,9 @@ class Chat():
         #TODO: send these to separate threads if possible
         st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
         if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
-            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_posting_path)
+            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(posting_path=st.session_state.job_posting_path, )
         if "job description" in st.session_state and st.session_state.job_posting_radio=="job description":
-            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(st.session_state.job_description)
+            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
         # Evaluate resume
         if resume_options[0] in st.session_state.type_selection:
         # if st.session_state.resume_opt1:
