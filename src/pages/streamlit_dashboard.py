@@ -62,6 +62,7 @@ def main():
                                 job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else "", 
                             )
         count+=1
+    # del st.session_state.resume_path, st.session_state.job_posting_path, st.session_state.job_description
 
 @st.experimental_fragment(run_every=3)
 def display_tailoring():
