@@ -1,6 +1,7 @@
 import streamlit as st
 from backend.upgrade_resume import evaluate_resume, tailor_resume, reformat_chronological_resume, reformat_functional_resume, reformat_student_resume
 from streamlit.components.v1 import html, iframe
+import pandas as pd
 
 
 st.set_page_config(layout="wide")
@@ -15,17 +16,17 @@ html("""
 
 def main():
     if "evaluation" in st.session_state:
-        st.session_state["tabs"].append("Evaluation result")
+        st.session_state["tabs"].append("Evaluation")
     if "reformatting" in st.session_state:
         st.session_state["tabs"].append("Reformatted resume")
     if "tailoring" in st.session_state:
-        st.session_state["tabs"].append("Tailored fields")
+        st.session_state["tabs"].append("Tailoring")
 
     tabs = st.tabs(st.session_state["tabs"])
     num_tabs = len(st.session_state.tabs)
     count=0
     
-    if "Evaluation result" in st.session_state.tabs:
+    if "Evaluation" in st.session_state.tabs:
         with tabs[count]:
             display_resume_eval()
             st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
@@ -51,7 +52,7 @@ def main():
                                     template_file=st.session_state["template_path"],
                                     )
         count+=1
-    if "Tailored fields" in st.session_state.tabs:
+    if "Tailoring" in st.session_state.tabs:
         with tabs[count]:
             display_tailoring()
             st.session_state["tailor_dict"]=tailor_resume(resume_file=st.session_state["resume_path"], 
@@ -68,20 +69,60 @@ def display_tailoring():
         tailor_dict = st.session_state.tailor_dict
     except Exception:
         tailor_dict={}
-    st.write("Your skills, objective, and work experience sections can be tailored!")
+    st.write("Generated tailoring tips")
     c1, c2 = st.columns([1, 1])
     with c1:
         st.write("**Skills Section**")
         try:
-            tailored_skills=tailor_dict["tailored_skills"]
-            st.write(tailored_skills)
+            original_skills = tailor_dict["original_skills"]
+            tailored_skills_dict=tailor_dict["tailored_skills"]
+            if original_skills:
+                irrelevant_skills = tailored_skills_dict["irrelevant_skills"]
+                additional_skills = tailored_skills_dict["additional_skills"]
+                # ranked_skills = tailored_skills_dict["ranked_skills"]
+                relevant_skills = tailored_skills_dict["relevant_skills"]
+                st.write("""Some of the skills you have in your resume may distract the HR from reading the skills that truly matter to them. 
+                        These skills can be removed from your tailored resume""")
+                st.write(irrelevant_skills)
+                st.write("""There are skills that can benefit you if you add them to your resume. However, if you don't have them, don't add them! 
+                        Remember, a HR looks for your integrity as much as your talent!""")
+                st.write(additional_skills)
+                st.write("""These skills are the most relevant to the job position that will make you stand out. Make sure to rank them first in the list!""")
+                st.write(relevant_skills)
+                # st.write("""Did you know you can rank your skills so the most relevant ones are read first? """)
+                # st.write(ranked_skills)
+            else:
+                st.write("You seem to lacks a skills section. If you would like to add one, here are the tailored set of skills you can add for this job application.")
+                generated_skills = tailored_skills_dict["generated_skills"]
+                st.write(generated_skills)
         except Exception:
             st.write("Evaluating...")  
     with c2:
         st.write("**Objective Section**")
         try:
-            tailored_objective=tailor_dict["tailored_objective"]
-            st.write(tailored_objective)
+            original_objective = tailor_dict["original_objective"]
+            tailored_objective_dict=tailor_dict["tailored_objective"]
+            if original_objective:
+                replacement_list = tailored_objective_dict["replacements"]
+                # Convert list of dictionaries to DataFrame
+                df = pd.DataFrame(replacement_list)
+                # Rename the columns
+                df.columns = ['replaced_words', 'substitution']
+                st.table(df)
+
+                # c3, c4=st.columns([1, 1])
+                # for replacement in replacement_list:
+                #     with c3:
+                #         replaced_word = replacement["replaced_word"]
+                #         st.write(f":red[{replaced_word}]")  
+                #     with c4:
+                #         replacement = replacement["replacement"]
+                #         st.write(f":green[{replacement}]")
+                st.write(original_objective)
+            else:
+                st.write("You don't seem to have a summary/objective section. If you would like to add one, here's a tailored draft for this job. ")
+                generated_objective = tailored_objective_dict["generated_objective"]
+                st.write(generated_objective)
         except Exception:
             st.write("Evaluating...")  
 

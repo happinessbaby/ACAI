@@ -467,21 +467,34 @@ class Keywords(BaseModel):
     # 1. Each field is an `optional` -- this allows the model to decline to extract it!
     # 2. Each field has a `description` -- this description is used by the LLM.
     # Having a good description can help improve extraction results.
-    ATS_keywords: Optional[List[str]] = Field(
-        default=-1, description="Application Tracking System (ATS) keywords in the job posting, ignore job benefits"
-        )
-    frequent_words: Optional[List[str]] = Field(
-        default=-1, description="Repetitive phrases (2 or 3 words) that appears in the job posting, ignore job benefits"
+
+    job: Optional[str] = Field(
+        default="", description="job position listed in the job posintg"
+    )
+    about_job: Optional[str] = Field(
+        default="", description = "information about the job, usually listed at the top of the job posting"
+    )
+    company: Optional[str] = Field(
+        default="", description = "name of the company or institution that's hiring"
+    )
+    company_description: Optional[List[str]] = Field(
+        default = "", description="information about the company that's hiring"
     )
     qualifications: Optional[List[str]] = Field(
-        default=-1, description="Traits/qualifications sought in a candidate in the job posting"
+        default=[], description="Traits or qualifications sought in a candidate"
     )
-    duties: Optional[List[str]] = Field(
-        default=-1, description="Duties and responsibilities for the job position listed in the job posting"
+    responsibilities: Optional[List[str]] = Field(
+        default=[], description="Duties and responsibilities for the job position"
     )
-def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> List[str]:
+    salary: Optional[str] = Field(
+        default="", description = "salary or salary range offered for the job, can be annually or hourly"    
+    )
+    on_site: Optional[bool] = Field(
+        default=True, description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
+    )
+def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> Dict[str, str]:
 
-    """ Extract the ATS keywords and key phrases from job posting. 
+    """ Extract the key job information from job posting. 
     
         Args:
          
@@ -493,8 +506,7 @@ def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> List[str]:
 
         Returns:
 
-            lists of ATS keywords and key phrases
-
+           a dictionary of job information, including job, company, qualifications, duties in the job posting
         
     """
 
@@ -502,7 +514,8 @@ def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> List[str]:
     return response
 
 
-
+def researches_posting_keywords():
+    """ Finds ATS friendly words from job postings"""
 
 # def extract_resume_fields(resume: str,  llm=OpenAI(temperature=0,  max_tokens=2048)) -> Dict[str, str]:
 
@@ -627,8 +640,11 @@ def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> List[str]:
 #     return response
 class Job(BaseModel):
     job_title: Optional[str] = Field(
-        default=-1, description="the job position"
+        default="", description="the job position"
         )
+    company: Optional[str] = Field(
+        default="", description = "the company of the job position"
+    )
     start_date: Optional[str] = Field(
       default=-1, description = "the start date of the job position if available"
       )
@@ -636,12 +652,12 @@ class Job(BaseModel):
       default=-1, description = "the end date of the job position if available"
       )
     responsibilities: Optional[List[str]] = Field(
-      default=-1, description = "list of responsibilities or roles of the job position"
+      default=[], description = """responsibilities or roles of the job position, do not leave out any content details"""
       )
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
-    jobs: List[Job]
+    jobs: List[Job] 
 def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
     """Extract job titles from resume """
@@ -652,10 +668,10 @@ def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
 class Project(BaseModel):
     title: Optional[str] = Field(
-        default=-1, description="the name of the project or professional accomplishment, this should not be in the work experience section"
+        default="", description="the name of the project or professional accomplishment, this should not be in the work experience section"
     )
     description: Optional[List[str]] = Field(
-        default=-1, description = "list of accomplishements or details about the project, this should not be in the work experience section"
+        default="", description = "list of accomplishements or details about the project, this should not be in the work experience section"
     )
 class Projects(BaseModel):
     projects: List[Project]
@@ -670,19 +686,19 @@ def extract_projects_accomplishments(content, ):
 
 class Skill(BaseModel):
     skill:Optional[str] = Field(
-        default=-1, description="a skill listed "
+        default="", description="a skill listed "
     )
     example:Optional[str] = Field(
-        default=-1, description="how the skill is demonstrated, an elaboration of the skill, or examples"
+        default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
     )
     type: Optional[bool] = Field(
-        default=-1, description="categorize the skill, if hard skill, output True, else if soft skill, output False "
+        default=False, description="categorize the skill, if hard skill, output True, else if soft skill, output False "
     )
 class Skills(BaseModel):
     skills : List[Skill]
 def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI()):
 
-    """ Extracts soft skills and hard skills in a resume or job posting. 
+    """ Finds soft skills and hard skills in a resume or job posting. 
     As some resume do not have a skills section and some job postings do not list them, this function also infers some skills. """
 
     query = f"""Extract the soft and hard skills from the {content_type}.
@@ -788,19 +804,19 @@ def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
     return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_titles"], query_dict={"job_list":job_list, "desired_titles":desired_titles})
 
 
-def research_relevancy_in_resume(resume_content, job_description, job_description_type="", n_ideas=2, llm=ChatOpenAI()):
+def research_relevancy_in_resume(resume_content, job_description, job_description_type, relationship, n_ideas=2, llm=ChatOpenAI()):
 
-    query_relevancy = f""" You are an expert resume advisor that helps a candidate match to a job. 
+    query_relevancy = f""" You are an expert resume advisor that analyzes some section of the resume with relationship to some fields in a job description.
     
-     You are given the {job_description_type} of a job description along with some of the candidate's resume content.
+     You are given the {job_description_type} section of a job description along with some of the candidate's resume content. 
      
-    From the resume content, generate a list of content that are relevant to the job description, reflecting how the candidate would be a good match to the job description. 
+    Generate a list of things in the resume that are {relationship} to the {job_description_type} required in the job description.
      
-    job description: {job_description} \n
+    job description {job_description_type}: {job_description} \n
 
     resume content: {resume_content} \n
-        
-    Please output only content from the resume that reflects a good matchs to the job description. """
+
+    Your list output should only include things in the resume content that are {relationship} to the job description. """
 
     relevancy=create_smartllm_chain(query_relevancy, n_ideas=n_ideas)
     print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
@@ -808,13 +824,26 @@ def research_relevancy_in_resume(resume_content, job_description, job_descriptio
 
 
 
-def get_web_resources(query: str, with_source: bool=False, llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo-0613", cache=False)) -> str:
+def get_web_resources(query: str, with_source: bool=False, engine="retriever", llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo-0613", cache=False)) -> str:
 
     """ Retrieves web answer given a query question. The default search is using WebReserachRetriever: https://python.langchain.com/docs/modules/data_connection/retrievers/web_research.
     
-    Backup is using Zero-Shot-React-Description agent with Google search tool: https://python.langchain.com/docs/modules/agents/agent_types/react.html  """
+    Backup is using Zero-Shot-React-Description agent with Google search tool: https://python.langchain.com/docs/modules/agents/agent_types/react.html  
+    
+    Args:
 
-    try: 
+        query (str)
+
+    keyword Args:
+
+        with_source (bool): return source metadata?
+        engine (str): retriever or agent
+        llm: gpt-3.5-turbo-0613
+        cache: False
+      
+        """
+
+    if engine=="retriever": 
         search = GoogleSearchAPIWrapper()
         embedding_size = 1536  
         index = faiss.IndexFlatL2(embedding_size)  
@@ -831,7 +860,7 @@ def get_web_resources(query: str, with_source: bool=False, llm = ChatOpenAI(temp
             qa_chain = RetrievalQA.from_chain_type(llm, retriever=web_research_retriever)
             response = qa_chain.run(query)
         print(f"Successfully retreived web resources using Web Research Retriever: {response}")
-    except Exception:
+    elif engine=="agent":
         tools = create_search_tools("google", 3)
         agent= initialize_agent(
             tools, 
@@ -902,7 +931,6 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
         document_variable_name=document_variable_name,
     )
     response = chain.run(input_documents=reordered_docs, query=query, verbose=True)
-
     print(f"Successfully retrieved answer using compression retriever with Stuff Document Chain: {response}")
     return response
 
@@ -1105,15 +1133,15 @@ def create_resume_info(resume_path=""):
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
-    print(resume_info_dict)
+    # print(resume_info_dict)
     with open('./test_resume_info.json', 'a') as json_file:
         json.dump(resume_info_dict, json_file, indent=4)
     return resume_info_dict[resume_path]
 
 
 def create_job_posting_info(posting_path="", about_job="", ):
-    pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
-    job_posting = posting_path if posting_path else about_job[:10]
+    # pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
+    job_posting = posting_path if posting_path else about_job[:50]
     job_posting_info_dict={job_posting: {"skills": {}}}
 
     if (Path(posting_path).is_file()):
@@ -1132,32 +1160,31 @@ def create_job_posting_info(posting_path="", about_job="", ):
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     job_posting_info_dict[job_posting].update({"summary": posting})
     # Extract basic job and company names
-    pursuit_info_dict = extract_pursuit_information(posting)
+    # pursuit_info_dict = extract_pursuit_information(posting)
     # for key, value in pursuit_info_dict.items():
     #     if value == -1:
     #         pursuit_info_dict[key]=pursuit_info_dict1[key]
-    job_posting_info_dict[job_posting].update(pursuit_info_dict)
+    # job_posting_info_dict[job_posting].update(pursuit_info_dict)
     # Extract job posting specific requirements
-    job_posting_info = extract_posting_info(posting)
-    job_posting_info_dict[job_posting].update(job_posting_info)
+    basic_info_dict = extract_posting_info(posting)
+    job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
     job_posting_info_dict[job_posting].update(job_posting_skills)
     # Research company
-    company = pursuit_info_dict["company"]
-    if company!=-1:
+    company = basic_info_dict["company"]
+    company_description = basic_info_dict["company_description"]
+    if company and not company_description:
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
                             In 50 words or less, summarize your research result.                 
                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
-        company_description = get_web_resources(company_query)
-        job_posting_info_dict[job_posting].update({"company description": company_description})
-    else:
-        job_posting_info_dict[job_posting].update({"company description": -1})
-    print(job_posting_info_dict)
+        company_description = get_web_resources(company_query, engine="agent")
+        job_posting_info_dict[job_posting].update({"company_description": company_description})
+    # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     with open('./test_job_posting_info.json', 'a') as json_file:
         json.dump(job_posting_info_dict, json_file, indent=4)
-    return job_posting_info_dict[posting_path]
+    return job_posting_info_dict[job_posting]
 
 def retrieve_or_create_resume_info(resume_path):
     #NOTE: JSON file is the temp solution, will move to database

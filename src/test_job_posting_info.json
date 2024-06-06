@@ -1888,4 +1888,1753 @@
         "duties": -1,
         "company description": "Mission Graduates is a nonprofit organization based in San Francisco. Their mission is to create a college-going culture for low-income, Latinx, Black, and immigrant youth and their families. They offer a range of after-school, in-school, and summer programs to support students on their path to college graduation."
     }
+}{
+    "./chat_session/6673f53a-3db9-415e-ac28-9a2066b563ec/uploads/6811830f-00ab-4ac8-b06c-444daf078ecd.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Analytical thinking",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Self-motivation",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data collection systems management (Salesforce, Eleyo, Looker)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis and modeling",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data reporting",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools (Salesforce, Excel)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of SQL, R, Stata, Python (preferred but not required)",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "institution": -1,
+        "program": -1,
+        "ATS_keywords": [
+            "Data Analyst",
+            "San Francisco",
+            "Full Time",
+            "Hybrid",
+            "Mission Graduates",
+            "youth",
+            "families",
+            "higher education",
+            "data-driven decision making",
+            "program effectiveness",
+            "data collection",
+            "data analytics",
+            "data reporting",
+            "program evaluation",
+            "qualifications",
+            "data science",
+            "statistics",
+            "mathematics",
+            "computer science",
+            "social science",
+            "education",
+            "social justice",
+            "data analysis",
+            "data management",
+            "data visualization",
+            "Salesforce",
+            "Excel",
+            "nonprofit organizations",
+            "Spanish fluency"
+        ],
+        "frequent_words": [
+            "data collection",
+            "data analysis",
+            "qualifications",
+            "data",
+            "program",
+            "support",
+            "youth",
+            "families",
+            "San Francisco",
+            "education",
+            "organizations",
+            "analysis",
+            "management",
+            "visualization",
+            "Salesforce",
+            "Excel",
+            "nonprofit",
+            "social justice",
+            "skills",
+            "systems",
+            "team",
+            "impact",
+            "strategic initiatives",
+            "insights",
+            "hybrid position",
+            "Director",
+            "programs",
+            "collaborate",
+            "trends",
+            "patterns",
+            "integrity",
+            "accuracy",
+            "validation",
+            "cleaning",
+            "policies",
+            "procedures",
+            "standards",
+            "governance",
+            "performance",
+            "metrics",
+            "outcomes",
+            "dashboards",
+            "Bachelor's degree",
+            "statistics",
+            "mathematics",
+            "computer science",
+            "social science",
+            "education",
+            "Spanish fluency",
+            "SQL",
+            "R",
+            "Stata",
+            "Python",
+            "Spanish fluency"
+        ],
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "Passionate about education and/or social justice issues",
+            "Excellent attention to detail, problem-solving abilities, and collaboration skills",
+            "Proven experience in data analysis, data management, and data visualization",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)",
+            "Knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": -1,
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Its mission is to create a college-going culture and provide support for low-income, Latinx, Black, and immigrant youth and their families. They offer after-school, in-school, and summer programs to help students on their path to college graduation. The organization values higher education, equity, and community empowerment."
+    }
+}{
+    "./chat_session/c6cbe7e8-b1d9-48b6-b487-2c3eeb49e11f/uploads/cbd20453-8fad-442b-bd13-5088786d3799.txt": {
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Team player",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools and CRMs",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of statistics, mathematics, computer science",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Spanish fluency",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "institution": -1,
+        "program": -1,
+        "ATS_keywords": [
+            "Data Analyst",
+            "San Francisco",
+            "Full Time",
+            "Hybrid",
+            "Mission Graduates",
+            "Data Collection",
+            "Data Systems Management",
+            "Data Analytics",
+            "Data Reporting",
+            "Program Evaluation Support"
+        ],
+        "frequent_words": [
+            "mission-driven",
+            "data-driven decision making",
+            "data analysis",
+            "data visualization",
+            "data management",
+            "data analytics",
+            "data collection systems",
+            "data entry",
+            "data accuracy",
+            "statistical analysis",
+            "program evaluation",
+            "performance indicators",
+            "collaboration skills",
+            "social justice issues",
+            "systemic inequity",
+            "data science",
+            "statistics",
+            "mathematics",
+            "computer science",
+            "social science",
+            "nonprofit organizations",
+            "education sector",
+            "Spanish fluency"
+        ],
+        "qualifications": [
+            "Analytical",
+            "self-motivated",
+            "skilled communicator",
+            "team player",
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field",
+            "passionate about education and/or social justice issues",
+            "attention to detail",
+            "problem-solving abilities",
+            "collaboration skills",
+            "proficient in data analysis tools and CRMs",
+            "knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency"
+        ],
+        "duties": [
+            "Manage data collection systems",
+            "Support gathering and organizing data from multiple sources",
+            "Ensure data accuracy, integrity, and completeness",
+            "Support with data entry for various projects",
+            "Support the student registration process",
+            "Support organizational data governance",
+            "Perform statistical analysis and modeling",
+            "Conduct data analysis related to program utilization, outcomes, and operations",
+            "Use software to clean, manipulate, combine, and disaggregate data",
+            "Generate regular reports and dashboards",
+            "Provide thought partnership on data collection methods and systems",
+            "Create data visualizations",
+            "Collaborate with program teams to translate data findings into actionable recommendations and strategies"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Their mission is to create a college-going culture for low-income, Latinx, Black, and immigrant youth and their families. They offer various programs, including after-school, in-school, and summer programs, to support students on their path to college graduation. Their values include equity, community engagement, and empowerment."
+    }
+}{
+    "./chat_session/30de1c7b-ef72-4e83-8b5f-9d0b0d77a54f/uploads/c7e6233f-e5fd-47eb-a3a4-eb6366ff2801.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools such as Salesforce, Excel, SQL, R, Stata, Python",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of CRMs",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Spanish fluency or competency",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "institution": -1,
+        "program": -1,
+        "ATS_keywords": [
+            "Data Analyst",
+            "data-driven decision making",
+            "data collection",
+            "data analysis",
+            "data visualization",
+            "data management",
+            "data reporting",
+            "program evaluation"
+        ],
+        "frequent_words": [
+            "San Francisco",
+            "Mission Graduates",
+            "youth",
+            "families",
+            "education",
+            "after-school support",
+            "data",
+            "program",
+            "systems",
+            "analysis",
+            "performance",
+            "metrics",
+            "insights"
+        ],
+        "qualifications": [
+            "Bachelor's degree in data science",
+            "statistics",
+            "mathematics",
+            "computer science",
+            "social science",
+            "data analysis",
+            "data management",
+            "data visualization",
+            "nonprofit organizations",
+            "education sector"
+        ],
+        "duties": [
+            "Manage data collection systems",
+            "Support data entry for projects",
+            "Perform statistical analysis and modeling",
+            "Generate reports and dashboards",
+            "Create data visualizations",
+            "Collaborate with program teams"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Their mission is to create a college-going culture for low-income, Latinx, Black, and immigrant youth and their families. They offer a range of after school, in-school, and summer programs to support students on their path to college. They value diversity, equity, and access to higher education."
+    }
+}{
+    "./chat_session/833519ee-a64a-4193-b1f1-407787bfc42c/uploads/4a215ae1-a241-40f4-aa16-a765a5f6e399.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Analytical skills",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools (Salesforce, Excel)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of CRMs (Customer Relationship Management systems)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in SQL, R, Stata, Python (preferred but not required)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Understanding of complex systems",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Spanish fluency or competency (preferred)",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "institution": -1,
+        "program": -1,
+        "ATS_keywords": [
+            "Data Analyst",
+            "statistics",
+            "mathematics",
+            "computer science",
+            "data analysis",
+            "data management",
+            "data visualization",
+            "SQL",
+            "Python",
+            "nonprofit organizations",
+            "education sector"
+        ],
+        "frequent_words": [
+            "data analysis",
+            "data collection",
+            "systems management",
+            "data analytics",
+            "data reporting",
+            "program evaluation"
+        ],
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field",
+            "Passionate about education and/or social justice issues",
+            "Proven experience in data analysis, data management, and data visualization",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "Knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": [
+            "Support collecting, analyzing, and interpreting data",
+            "Manage data collection systems",
+            "Support gathering and organizing data from multiple sources",
+            "Ensure data accuracy, integrity, and completeness",
+            "Support with data entry for various projects",
+            "Support organizational data governance",
+            "Perform statistical analysis and modeling",
+            "Conduct data analysis related to program utilization, outcomes, and operations",
+            "Use software to clean, manipulate, combine, and disaggregate data",
+            "Generate regular reports and dashboards",
+            "Create data visualizations",
+            "Collaborate with program teams to translate data findings into actionable recommendations and strategies"
+        ],
+        "company description": "Mission Graduates is a nonprofit organization based in San Francisco. Their mission is to create a college-going culture and support low-income, Latinx, Black, and immigrant youth and their families in their pursuit of higher education. They offer a wide range of after-school, in-school, and summer programs to help students on their path to college."
+    }
+}{
+    "./chat_session/117197f8-2d26-4a6d-b650-5c2f29855566/uploads/ddf10a0f-77d0-4386-8330-05de2a46fe47.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Teaching and explaining complex systems in a digestible manner",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data collection systems management (SalesForce, Eleyo, Looker)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data analysis and modeling",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data reporting",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools and CRMs such as Salesforce and Excel",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of SQL, R, Stata, Python (preferred but not required)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Understanding of nonprofit organizations or the education sector",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "frequent_words": -1,
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "Passionate about education and/or social justice issues",
+            "Proven experience in data analysis, data management, and data visualization",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "Knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": [
+            "Manage data collection systems",
+            "Support gathering and organizing data from multiple sources",
+            "Ensure data accuracy, integrity, and completeness",
+            "Support with data entry for various projects",
+            "Support the student registration process",
+            "Support organizational data governance",
+            "Support with performing statistical analysis and modeling",
+            "Conduct data analysis related to program utilization, outcomes, and operations",
+            "Generate regular reports and dashboards",
+            "Provide thought partnership on data collection methods and systems",
+            "Create data visualizations",
+            "Collaborate with program teams to translate data findings into actionable recommendations and strategies"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Its mission is to create a college-going culture for low-income, Latinx, Black, and immigrant youth and their families. They offer a range of after-school, in-school, and summer programs to support students on their path to college. The organization values higher education as a tool to level the playing field and focuses on supporting underprivileged students in their educational journey."
+    }
+}{
+    "./chat_session/4531cc3c-1fcf-444b-802c-d87ed42bd90f/uploads/d47486af-b4ef-4ac5-9e60-55b78857ea36.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The data analyst should be analytical and have problem-solving abilities to interpret data and provide insights.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "The job posting mentions being a skilled communicator and a team player, indicating the importance of communication skills in this role.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "While not explicitly mentioned, the job responsibilities require managing data collection systems, conducting data analysis, and generating reports, which all require effective time management skills.",
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": "The job requires proven experience in data analysis, data management, and data visualization.",
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": "Managing data collection systems, ensuring data accuracy, and supporting organizational data governance are key responsibilities.",
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": "Creating data visualizations to illustrate key performance metrics and insights is a part of the job.",
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools and CRMs",
+                "example": "Proficiency in tools such as Salesforce and Excel is required, with experience in SQL, R, Stata, Python, or similar tools preferred.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of statistics and mathematics",
+                "example": "A Bachelor's degree in data science, statistics, mathematics, computer science, or a related field is preferred.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of nonprofit organizations or the education sector",
+                "example": "Having knowledge in these areas is mentioned as a qualification.",
+                "type": true
+            },
+            {
+                "skill": "Spanish fluency or competency",
+                "example": "While not a hard skill, Spanish fluency or competency is preferred for this role.",
+                "type": false
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "frequent_words": [
+            "data analysis",
+            "program",
+            "data",
+            "support",
+            "youth",
+            "families",
+            "system"
+        ],
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field",
+            "experience in data analysis, data management, and data visualization",
+            "proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "knowledgeable about nonprofit organizations or the education sector"
+        ],
+        "duties": [
+            "collecting, analyzing, and interpreting data",
+            "managing data collection systems",
+            "performing statistical analysis and modeling",
+            "generating regular reports and dashboards",
+            "creating data visualizations",
+            "collaborating with program teams"
+        ],
+        "company description": "Mission Graduates is a nonprofit organization based in San Francisco. Its mission is to establish a college education as an expectation and goal for every child, empowering youth and their families on the path to higher education. Their values include promoting equity, cultivating leaders, and encouraging lifelong learning."
+    }
+}{
+    "./chat_session/c4eccb36-4011-44b8-ab2a-552bd9649b3c/uploads/ed1744a9-7efe-4344-9fc7-7c1c03aa5e91.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": -1,
+                "example": "Proficiency in data analysis tools such as Salesforce and Excel",
+                "type": true
+            },
+            {
+                "skill": -1,
+                "example": "Knowledge of SQL, R, Stata, Python",
+                "type": true
+            },
+            {
+                "skill": -1,
+                "example": "Experience in program evaluation",
+                "type": true
+            },
+            {
+                "skill": -1,
+                "example": "Proficiency in Spanish",
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "qualifications": [
+            "Analytical",
+            "self-motivated",
+            "skilled communicator",
+            "team player",
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "passionate about education and/or social justice issues",
+            "experience in data analysis, data management, and data visualization",
+            "proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": [
+            "Manage data collection systems",
+            "gather and organize data from multiple sources",
+            "ensure data accuracy and integrity",
+            "perform statistical analysis and modeling",
+            "generate reports and dashboards",
+            "create data visualizations",
+            "collaborate with program teams to translate data findings into actionable recommendations"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Their mission is to create a college-going culture and provide support for low-income, Latinx, Black, and immigrant youth and their families. They offer after-school, in-school, and summer programs, as well as parent workshops and technology mentorship."
+    }
+}{
+    "./chat_session/0d801047-0f81-4386-b983-dc1f24d0c3d5/uploads/e1730ea6-d759-4664-9c6f-fae7230a3c37.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools and CRMs such as Salesforce and Excel",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of SQL, R, Stata, Python, or similar",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Understanding of complex systems",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis and modeling",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Software skills for data manipulation and analysis",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "qualifications": [
+            "Analytical",
+            "Self-motivated",
+            "Skilled communicator",
+            "Team player",
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "Passionate about education and/or social justice issues",
+            "Excellent attention to detail",
+            "Problem-solving abilities",
+            "Collaboration skills",
+            "Proven experience in data analysis, data management, and data visualization",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "Knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": [
+            "Drive data-driven decision making",
+            "Support collecting, analyzing, and interpreting data",
+            "Provide insights for strategic initiatives",
+            "Manage data collection systems",
+            "Support data entry for projects",
+            "Support student registration process",
+            "Conduct statistical analysis and modeling",
+            "Generate reports and dashboards",
+            "Create data visualizations",
+            "Collaborate with program teams"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco, CA. Their mission is to ensure that all students in the community have the tools they need to succeed academically. They offer various programs to support student success, parent engagement, and college readiness. Their values include integrity, inclusivity, collaboration, innovation, accountability, sense of community, and excellence."
+    }
+}{
+    "./chat_session/9b15e36d-d1bf-415d-80e5-43b47d2b4f40/uploads/278dd1dc-154b-427a-9f53-c7b6a7e59bae.txt": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": -1,
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools such as Salesforce and Excel",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Knowledge of SQL, R, Stata, Python (preferred but not required)",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Familiarity with CRMs",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Attention to detail",
+                "example": -1,
+                "type": true
+            },
+            {
+                "skill": "Proficiency in Spanish (preferred)",
+                "example": -1,
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "company": "Mission Graduates",
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "Passionate about education and/or social justice issues",
+            "Proven experience in data analysis, data management, and data visualization",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "Knowledgeable about nonprofit organizations or the education sector",
+            "Spanish fluency or competency preferred"
+        ],
+        "duties": [
+            "Manage data collection systems",
+            "Support gathering and organizing data from multiple sources",
+            "Ensure data accuracy, integrity, and completeness",
+            "Support with performing statistical analysis and modeling",
+            "Generate regular reports and dashboards",
+            "Create data visualizations",
+            "Collaborate with program teams to translate data findings into actionable recommendations and strategies"
+        ],
+        "company description": "Mission Graduates is a non-profit organization based in San Francisco. Its mission is to create a college-going culture for low-income, Latinx, Black, and immigrant youth and their families. The organization offers various programs and opportunities for students to succeed academically and pursue higher education. Its values include dedication, integrity, respect, and responsibility."
+    }
+}{
+    "About the ": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Open-source content research",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Insurance fraud investigation",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Criminology",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Fraud investigation",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Insurance industry knowledge",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Investigative skills",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "OSINT (Open-source intelligence) expertise",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Research skills",
+                "example": "",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nOwl.co is a software company that enables insurers to fight illegitimate claims at scale while removing human bias from the process. Our clients are the top insurance companies across North America, and they are achieving incredible results through our AI-powered, evidence-based platform. We are on a mission to bring state-of-the-art ML and NLP methods to transform this traditionally manual activity into an equitable process. We are well-funded and have engineering offices in New York City, Toronto, and Vancouver.\n\nWe are looking for a Part-time Data Quality Analyst to join our team!\n\nAs a Data Quality Analyst, you will play a pivotal role in leveraging data to ensure the integrity and accuracy of insurance claims processing. Pulling from open data sources, you will support our clients in monitoring, detecting, and preventing potential illegitimate claims.\n\nResponsibilities & Scope:\n\nConduct investigations utilizing open data sources and in partnership with Owl's AI\nEnsure findings are inputted logically, leveraging our internal platform to guide the process\nAnalyze external claimant data for quality, completeness, and accuracy\nEfficiently utilize time and resources to deliver high-quality results that maximize value for the company\nMaintain the security and confidentiality of sensitive information\nOperate within company security and disclosure guidelines\n\n\nRequirements\n\nMust be available 20-30 hours per week\nPrevious experience in open-source content research\nAbility to work independently in a remote environment\nStrong written and verbal communication skills for documenting research findings effectively\nVery comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts\nAnalytical thinker with the ability to exercise creative problem-solving during investigations\nAbility to adapt quickly to evolving technologies and system processes. \n\n\nBenefits\n\nThe compensation for this role is $20.00 per hour. \n\nBring your friends on board! Help grow our team of top performers and receive a cash bonus through our uncapped, generous Employee Referral Program\n\nDesired Skills and Experience\nInsurance Fraud\nPrivate Investigator\ncriminology\nfraud investigation\ninsurance\ninsurtech\ninvestigator\nlaw\nosint\nresearch",
+        "job": "Part-time Data Quality Analyst",
+        "company": "Owl.co",
+        "qualifications": [
+            "Must be available 20-30 hours per week",
+            "Previous experience in open-source content research",
+            "Ability to work independently in a remote environment",
+            "Strong written and verbal communication skills for documenting research findings effectively",
+            "Very comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts",
+            "Analytical thinker with the ability to exercise creative problem-solving during investigations",
+            "Ability to adapt quickly to evolving technologies and system processes"
+        ],
+        "responsibilities": [
+            "Conduct investigations utilizing open data sources and in partnership with Owl's AI",
+            "Ensure findings are inputted logically, leveraging our internal platform to guide the process",
+            "Analyze external claimant data for quality, completeness, and accuracy",
+            "Efficiently utilize time and resources to deliver high-quality results that maximize value for the company",
+            "Maintain the security and confidentiality of sensitive information",
+            "Operate within company security and disclosure guidelines"
+        ],
+        "company description": "I'm sorry, but based on the given context, there is no information about a company called Owl.co. Therefore, I cannot provide a summary of its culture, mission, and values."
+    }
+}{
+    "About the ": {
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Adaptability",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Independence",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Open-source content research",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Insurance fraud knowledge",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Private investigator skills",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Criminology expertise",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Fraud investigation experience",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Insurtech knowledge",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Law understanding",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "OSINT (Open Source Intelligence) proficiency",
+                "example": "",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nOwl.co is a software company that enables insurers to fight illegitimate claims at scale while removing human bias from the process. Our clients are the top insurance companies across North America, and they are achieving incredible results through our AI-powered, evidence-based platform. We are on a mission to bring state-of-the-art ML and NLP methods to transform this traditionally manual activity into an equitable process. We are well-funded and have engineering offices in New York City, Toronto, and Vancouver.\n\nWe are looking for a Part-time Data Quality Analyst to join our team!\n\nAs a Data Quality Analyst, you will play a pivotal role in leveraging data to ensure the integrity and accuracy of insurance claims processing. Pulling from open data sources, you will support our clients in monitoring, detecting, and preventing potential illegitimate claims.\n\nResponsibilities & Scope:\n\nConduct investigations utilizing open data sources and in partnership with Owl's AI\nEnsure findings are inputted logically, leveraging our internal platform to guide the process\nAnalyze external claimant data for quality, completeness, and accuracy\nEfficiently utilize time and resources to deliver high-quality results that maximize value for the company\nMaintain the security and confidentiality of sensitive information\nOperate within company security and disclosure guidelines\n\n\nRequirements\n\nMust be available 20-30 hours per week\nPrevious experience in open-source content research\nAbility to work independently in a remote environment\nStrong written and verbal communication skills for documenting research findings effectively\nVery comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts\nAnalytical thinker with the ability to exercise creative problem-solving during investigations\nAbility to adapt quickly to evolving technologies and system processes. \n\n\nBenefits\n\nThe compensation for this role is $20.00 per hour. \n\nBring your friends on board! Help grow our team of top performers and receive a cash bonus through our uncapped, generous Employee Referral Program\n\nDesired Skills and Experience\nInsurance Fraud\nPrivate Investigator\ncriminology\nfraud investigation\ninsurance\ninsurtech\ninvestigator\nlaw\nosint\nresearch",
+        "job": "Part-time Data Quality Analyst",
+        "company": "Owl.co",
+        "qualifications": [
+            "Must be available 20-30 hours per week",
+            "Previous experience in open-source content research",
+            "Ability to work independently in a remote environment",
+            "Strong written and verbal communication skills for documenting research findings effectively",
+            "Very comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts",
+            "Analytical thinker with the ability to exercise creative problem-solving during investigations",
+            "Ability to adapt quickly to evolving technologies and system processes"
+        ],
+        "responsibilities": [
+            "Conduct investigations utilizing open data sources and in partnership with Owl's AI",
+            "Ensure findings are inputted logically, leveraging our internal platform to guide the process",
+            "Analyze external claimant data for quality, completeness, and accuracy",
+            "Efficiently utilize time and resources to deliver high-quality results that maximize value for the company",
+            "Maintain the security and confidentiality of sensitive information",
+            "Operate within company security and disclosure guidelines"
+        ],
+        "company description": "-1"
+    }
+}{
+    "About the job\nOwl.co is a software company that en": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The Data Quality Analyst will need to conduct investigations and analyze external claimant data for quality, completeness, and accuracy, requiring problem-solving skills.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Strong written and verbal communication skills are required for documenting research findings effectively.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "The ability to efficiently utilize time and resources to deliver high-quality results is essential for this role.",
+                "type": false
+            },
+            {
+                "skill": "Open-source content research",
+                "example": "Previous experience in open-source content research is required.",
+                "type": true
+            },
+            {
+                "skill": "Computer proficiency",
+                "example": "Comfort and proficiency on the computer, including typing quickly, utilizing various search functions, and keyboard shortcuts.",
+                "type": true
+            },
+            {
+                "skill": "Analytical thinking",
+                "example": "The ability to analyze data for quality and accuracy, as well as exercise creative problem-solving during investigations.",
+                "type": true
+            },
+            {
+                "skill": "Adaptability to evolving technologies",
+                "example": "Ability to adapt quickly to evolving technologies and system processes is necessary for this role.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of insurance fraud, criminology, fraud investigation, insurtech, investigator, law, osint, and research.",
+                "example": "",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nOwl.co is a software company that enables insurers to fight illegitimate claims at scale while removing human bias from the process. Our clients are the top insurance companies across North America, and they are achieving incredible results through our AI-powered, evidence-based platform. We are on a mission to bring state-of-the-art ML and NLP methods to transform this traditionally manual activity into an equitable process. We are well-funded and have engineering offices in New York City, Toronto, and Vancouver.\n\nWe are looking for a Part-time Data Quality Analyst to join our team!\n\nAs a Data Quality Analyst, you will play a pivotal role in leveraging data to ensure the integrity and accuracy of insurance claims processing. Pulling from open data sources, you will support our clients in monitoring, detecting, and preventing potential illegitimate claims.\n\nResponsibilities & Scope:\n\nConduct investigations utilizing open data sources and in partnership with Owl's AI\nEnsure findings are inputted logically, leveraging our internal platform to guide the process\nAnalyze external claimant data for quality, completeness, and accuracy\nEfficiently utilize time and resources to deliver high-quality results that maximize value for the company\nMaintain the security and confidentiality of sensitive information\nOperate within company security and disclosure guidelines\n\n\nRequirements\n\nMust be available 20-30 hours per week\nPrevious experience in open-source content research\nAbility to work independently in a remote environment\nStrong written and verbal communication skills for documenting research findings effectively\nVery comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts\nAnalytical thinker with the ability to exercise creative problem-solving during investigations\nAbility to adapt quickly to evolving technologies and system processes. \n\n\nBenefits\n\nThe compensation for this role is $20.00 per hour. \n\nBring your friends on board! Help grow our team of top performers and receive a cash bonus through our uncapped, generous Employee Referral Program\n\nDesired Skills and Experience\nInsurance Fraud\nPrivate Investigator\ncriminology\nfraud investigation\ninsurance\ninsurtech\ninvestigator\nlaw\nosint\nresearch",
+        "job": "Part-time Data Quality Analyst",
+        "company": "Owl.co",
+        "qualifications": [
+            "Must be available 20-30 hours per week",
+            "Previous experience in open-source content research",
+            "Ability to work independently in a remote environment",
+            "Strong written and verbal communication skills for documenting research findings effectively",
+            "Very comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts",
+            "Analytical thinker with the ability to exercise creative problem-solving during investigations",
+            "Ability to adapt quickly to evolving technologies and system processes"
+        ],
+        "responsibilities": [
+            "Insurance Fraud",
+            "Private Investigator",
+            "criminology",
+            "fraud investigation",
+            "insurance",
+            "insurtech",
+            "investigator",
+            "law",
+            "osint",
+            "research"
+        ],
+        "company description": "-1"
+    }
+}{
+    "About the job\nOwl.co is a software company that en": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Conducting investigations utilizing open data sources to ensure the integrity and accuracy of insurance claims processing",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Documenting research findings and communicating with team members and clients",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Efficient use of time and resources in delivering high-quality results",
+                "type": false
+            },
+            {
+                "skill": "Adaptability",
+                "example": "Adapting quickly to evolving technologies and system processes",
+                "type": false
+            },
+            {
+                "skill": "Open-source content research",
+                "example": "Gathering and analyzing data from various sources",
+                "type": false
+            },
+            {
+                "skill": "Computer proficiency",
+                "example": "Typing quickly, utilizing search functions, and keyboard shortcuts for research and data analysis",
+                "type": false
+            },
+            {
+                "skill": "Analytical thinking",
+                "example": "Processing and interpreting data accurately, identifying patterns, and solving complex problems",
+                "type": false
+            },
+            {
+                "skill": "Insurance fraud",
+                "example": "Understanding the industry and detecting potential illegitimate claims effectively",
+                "type": false
+            },
+            {
+                "skill": "Private Investigator skills",
+                "example": "Providing valuable insights and investigative techniques in analyzing claimant data",
+                "type": false
+            },
+            {
+                "skill": "OSINT (Open Source Intelligence)",
+                "example": "Enhancing research capabilities and supporting in monitoring, detecting, and preventing potential illegitimate claims effectively",
+                "type": false
+            }
+        ],
+        "summary": "About the job\nOwl.co is a software company that enables insurers to fight illegitimate claims at scale while removing human bias from the process. Our clients are the top insurance companies across North America, and they are achieving incredible results through our AI-powered, evidence-based platform. We are on a mission to bring state-of-the-art ML and NLP methods to transform this traditionally manual activity into an equitable process. We are well-funded and have engineering offices in New York City, Toronto, and Vancouver.\n\nWe are looking for a Part-time Data Quality Analyst to join our team!\n\nAs a Data Quality Analyst, you will play a pivotal role in leveraging data to ensure the integrity and accuracy of insurance claims processing. Pulling from open data sources, you will support our clients in monitoring, detecting, and preventing potential illegitimate claims.\n\nResponsibilities & Scope:\n\nConduct investigations utilizing open data sources and in partnership with Owl's AI\nEnsure findings are inputted logically, leveraging our internal platform to guide the process\nAnalyze external claimant data for quality, completeness, and accuracy\nEfficiently utilize time and resources to deliver high-quality results that maximize value for the company\nMaintain the security and confidentiality of sensitive information\nOperate within company security and disclosure guidelines\n\n\nRequirements\n\nMust be available 20-30 hours per week\nPrevious experience in open-source content research\nAbility to work independently in a remote environment\nStrong written and verbal communication skills for documenting research findings effectively\nVery comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts\nAnalytical thinker with the ability to exercise creative problem-solving during investigations\nAbility to adapt quickly to evolving technologies and system processes. \n\n\nBenefits\n\nThe compensation for this role is $20.00 per hour. \n\nBring your friends on board! Help grow our team of top performers and receive a cash bonus through our uncapped, generous Employee Referral Program\n\nDesired Skills and Experience\nInsurance Fraud\nPrivate Investigator\ncriminology\nfraud investigation\ninsurance\ninsurtech\ninvestigator\nlaw\nosint\nresearch",
+        "job": "Part-time Data Quality Analyst",
+        "company": "Owl.co",
+        "qualifications": [
+            "Must be available 20-30 hours per week",
+            "Previous experience in open-source content research",
+            "Ability to work independently in a remote environment",
+            "Strong written and verbal communication skills for documenting research findings effectively",
+            "Very comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts",
+            "Analytical thinker with the ability to exercise creative problem-solving during investigations",
+            "Ability to adapt quickly to evolving technologies and system processes"
+        ],
+        "responsibilities": [
+            "Conduct investigations utilizing open data sources and in partnership with Owl's AI",
+            "Ensure findings are inputted logically, leveraging our internal platform to guide the process",
+            "Analyze external claimant data for quality, completeness, and accuracy",
+            "Efficiently utilize time and resources to deliver high-quality results that maximize value for the company",
+            "Maintain the security and confidentiality of sensitive information",
+            "Operate within company security and disclosure guidelines"
+        ],
+        "company description": "Owl Labs Inc. is a company that aims to revolutionize the insurance industry. They value their clients, teamwork, owning their work, work-life balance, taking action over meetings, and promoting zero bias. The company fosters a collaborative and supportive culture where every team member is valued and respected."
+    }
+}{
+    "About the job\nOwl.co is a software company that en": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "conduct investigations, analyze data for quality and accuracy, exercise creative problem-solving during investigations",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "documenting research findings effectively",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "efficiently utilize time and resources to deliver high-quality results",
+                "type": false
+            },
+            {
+                "skill": "Open-source content research",
+                "example": "Previous experience in open-source content research",
+                "type": true
+            },
+            {
+                "skill": "Computer proficiency",
+                "example": "type quickly, utilize various search functions, keyboard shortcuts",
+                "type": true
+            },
+            {
+                "skill": "Analytical skills",
+                "example": "analyze external claimant data for quality, completeness, accuracy",
+                "type": true
+            },
+            {
+                "skill": "Technology adaptation",
+                "example": "adapt quickly to evolving technologies and system processes",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nOwl.co is a software company that enables insurers to fight illegitimate claims at scale while removing human bias from the process. Our clients are the top insurance companies across North America, and they are achieving incredible results through our AI-powered, evidence-based platform. We are on a mission to bring state-of-the-art ML and NLP methods to transform this traditionally manual activity into an equitable process. We are well-funded and have engineering offices in New York City, Toronto, and Vancouver.\n\nWe are looking for a Part-time Data Quality Analyst to join our team!\n\nAs a Data Quality Analyst, you will play a pivotal role in leveraging data to ensure the integrity and accuracy of insurance claims processing. Pulling from open data sources, you will support our clients in monitoring, detecting, and preventing potential illegitimate claims.\n\nResponsibilities & Scope:\n\nConduct investigations utilizing open data sources and in partnership with Owl's AI\nEnsure findings are inputted logically, leveraging our internal platform to guide the process\nAnalyze external claimant data for quality, completeness, and accuracy\nEfficiently utilize time and resources to deliver high-quality results that maximize value for the company\nMaintain the security and confidentiality of sensitive information\nOperate within company security and disclosure guidelines\n\n\nRequirements\n\nMust be available 20-30 hours per week\nPrevious experience in open-source content research\nAbility to work independently in a remote environment\nStrong written and verbal communication skills for documenting research findings effectively\nVery comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts\nAnalytical thinker with the ability to exercise creative problem-solving during investigations\nAbility to adapt quickly to evolving technologies and system processes. \n\n\nBenefits\n\nThe compensation for this role is $20.00 per hour. \n\nBring your friends on board! Help grow our team of top performers and receive a cash bonus through our uncapped, generous Employee Referral Program\n\nDesired Skills and Experience\nInsurance Fraud\nPrivate Investigator\ncriminology\nfraud investigation\ninsurance\ninsurtech\ninvestigator\nlaw\nosint\nresearch",
+        "job": "Part-time Data Quality Analyst",
+        "company": "Owl.co",
+        "qualifications": [
+            "Must be available 20-30 hours per week",
+            "Previous experience in open-source content research",
+            "Ability to work independently in a remote environment",
+            "Strong written and verbal communication skills for documenting research findings effectively",
+            "Very comfortable on the computer - ability to type quickly, utilize various search functions and keyboard shortcuts",
+            "Analytical thinker with the ability to exercise creative problem-solving during investigations",
+            "Ability to adapt quickly to evolving technologies and system processes."
+        ],
+        "responsibilities": [
+            "Conduct investigations utilizing open data sources and in partnership with Owl's AI",
+            "Ensure findings are inputted logically, leveraging our internal platform to guide the process",
+            "Analyze external claimant data for quality, completeness, and accuracy",
+            "Efficiently utilize time and resources to deliver high-quality results that maximize value for the company",
+            "Maintain the security and confidentiality of sensitive information",
+            "Operate within company security and disclosure guidelines"
+        ],
+        "company description": "-1"
+    }
+}{
+    "About the job\nResponsibilities\n\nKforce is supporti": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated ability in exploratory data analysis to understand data characteristics, identify patterns, and detect anomalies.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Effective communication skills for collaborating with team members and stakeholders.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Strong time management skills to meet project deadlines and manage workload efficiently.",
+                "type": false
+            },
+            {
+                "skill": "Proficiency in programming in Python",
+                "example": "Experience in libraries like NumPy, Pandas, Matplotlib, and Scikit.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of data structures and functional programming",
+                "example": "For effective data manipulation and analysis.",
+                "type": true
+            },
+            {
+                "skill": "Solid understanding of cloud computing concepts",
+                "example": "Including cloud architectures, service models, deployment models, and providers like AWS.",
+                "type": true
+            },
+            {
+                "skill": "Experience with cloud computing technologies",
+                "example": "Such as AWS, for efficient data processing in a cloud environment.",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nResponsibilities\n\nKforce is supporting a contract for a Python Developer in Whippany, NJ. This is a hybrid role with a very established financial institution. The best candidate will have a proficiency programming in Python, familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit, and knowledge of data structures, functional programming.\n\nRequirements\n\n Cloud Computing: Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n Exploratory Data Analysis (EDA): Ability to perform exploratory data analysis to understand the characteristics of data, identify patterns, and detect anomalies using techniques like data visualization, summary statistics\n Experience with Python, NumPy, Pandas, Matplotlib, Scikit, etc.\n Knowledge of data structures, functional programming\n Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n\nThe pay range is the lowest to highest compensation we reasonably in good faith believe we would pay at posting for this role. We may ultimately pay more or less than this range. Employee pay is based on factors like relevant education, qualifications, certifications, experience, skills, seniority, location, performance, union contract and business needs. This range may be modified in the future.\n\nWe offer comprehensive benefits including medical/dental/vision insurance, HSA, FSA, 401(k), and life, disability & ADD insurance to eligible employees. Salaried personnel receive paid time off. Hourly employees are not eligible for paid time off unless required by law. Hourly employees on a Service Contract Act project are eligible for paid sick leave.\n\nNote: Pay is not considered compensation until it is earned, vested and determinable. The amount and availability of any compensation remains in Kforce's sole discretion unless and until paid and may be modified in its discretion consistent with the law.\n\nThis job is not eligible for bonuses, incentives or commissions.\n\nKforce is an Equal Opportunity/Affirmative Action Employer. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, pregnancy, sexual orientation, gender identity, national origin, age, protected veteran status, or disability status.\n",
+        "job": "",
+        "company": "",
+        "qualifications": [
+            "Cloud Computing: Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS",
+            "Exploratory Data Analysis (EDA): Ability to perform exploratory data analysis to understand the characteristics of data, identify patterns, and detect anomalies using techniques like data visualization, summary statistics",
+            "Experience with Python, NumPy, Pandas, Matplotlib, Scikit, etc.",
+            "Knowledge of data structures, functional programming"
+        ],
+        "responsibilities": [
+            "Kforce is supporting a contract for a Python Developer in Whippany, NJ.",
+            "The best candidate will have a proficiency programming in Python, familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit, and knowledge of data structures, functional programming."
+        ],
+        "company description": "Starbucks is a global coffee company that emphasizes human connection and coffee craft. Its mission is to nurture the limitless possibilities of human connection and its values center around creating a culture of connection. Starbucks partners (employees) have ownership in the company's success through the Bean Stock grant."
+    }
+}{
+    "About the job\nResponsibilities\n\nKforce is supporti": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The ability to perform exploratory data analysis to understand data characteristics and identify patterns.",
+                "type": false
+            },
+            {
+                "skill": "Proficiency in programming in Python",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of data structures and functional programming",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Experience with exploratory data analysis techniques like data visualization and summary statistics.",
+                "example": "",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nResponsibilities\n\nKforce is supporting a contract for a Python Developer in Whippany, NJ. This is a hybrid role with a very established financial institution. The best candidate will have a proficiency programming in Python, familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit, and knowledge of data structures, functional programming.\n\nRequirements\n\n Cloud Computing: Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n Exploratory Data Analysis (EDA): Ability to perform exploratory data analysis to understand the characteristics of data, identify patterns, and detect anomalies using techniques like data visualization, summary statistics\n Experience with Python, NumPy, Pandas, Matplotlib, Scikit, etc.\n Knowledge of data structures, functional programming\n Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n\nThe pay range is the lowest to highest compensation we reasonably in good faith believe we would pay at posting for this role. We may ultimately pay more or less than this range. Employee pay is based on factors like relevant education, qualifications, certifications, experience, skills, seniority, location, performance, union contract and business needs. This range may be modified in the future.\n\nWe offer comprehensive benefits including medical/dental/vision insurance, HSA, FSA, 401(k), and life, disability & ADD insurance to eligible employees. Salaried personnel receive paid time off. Hourly employees are not eligible for paid time off unless required by law. Hourly employees on a Service Contract Act project are eligible for paid sick leave.\n\nNote: Pay is not considered compensation until it is earned, vested and determinable. The amount and availability of any compensation remains in Kforce's sole discretion unless and until paid and may be modified in its discretion consistent with the law.\n\nThis job is not eligible for bonuses, incentives or commissions.\n\nKforce is an Equal Opportunity/Affirmative Action Employer. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, pregnancy, sexual orientation, gender identity, national origin, age, protected veteran status, or disability status.",
+        "job": "",
+        "company": "",
+        "qualifications": [
+            "Solid understanding of cloud computing concepts",
+            "Exploratory Data Analysis (EDA) skills",
+            "Experience with Python, NumPy, Pandas, Matplotlib, Scikit",
+            "Knowledge of data structures",
+            "functional programming"
+        ],
+        "responsibilities": [
+            "proficiency programming in Python",
+            "familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit",
+            "knowledge of data structures",
+            "functional programming"
+        ],
+        "company description": "I'm sorry, but without the exact name of the company you are asking about, I cannot provide a specific answer. Please provide the name of the company you would like me to research."
+    }
+}{
+    "About the job\nResponsibilities\n\nKforce is supporti": {
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "Collaborating with team members and stakeholders",
+                "type": false
+            },
+            {
+                "skill": "Proficiency in programming in Python",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Familiarity with popular Python libraries and frameworks",
+                "example": "NumPy, Pandas, Matplotlib, Scikit",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of data structures and functional programming",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Solid understanding of cloud computing concepts",
+                "example": "Cloud architectures, service models, deployment models, cloud providers like AWS",
+                "type": true
+            },
+            {
+                "skill": "Experience with cloud computing and technologies like AWS",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Ability to perform exploratory data analysis",
+                "example": "Using data visualization and summary statistics",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nResponsibilities\n\nKforce is supporting a contract for a Python Developer in Whippany, NJ. This is a hybrid role with a very established financial institution. The best candidate will have a proficiency programming in Python, familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit, and knowledge of data structures, functional programming.\n\nRequirements\n\n Cloud Computing: Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n Exploratory Data Analysis (EDA): Ability to perform exploratory data analysis to understand the characteristics of data, identify patterns, and detect anomalies using techniques like data visualization, summary statistics\n Experience with Python, NumPy, Pandas, Matplotlib, Scikit, etc.\n Knowledge of data structures, functional programming\n Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS\n\nThe pay range is the lowest to highest compensation we reasonably in good faith believe we would pay at posting for this role. We may ultimately pay more or less than this range. Employee pay is based on factors like relevant education, qualifications, certifications, experience, skills, seniority, location, performance, union contract and business needs. This range may be modified in the future.\n\nWe offer comprehensive benefits including medical/dental/vision insurance, HSA, FSA, 401(k), and life, disability & ADD insurance to eligible employees. Salaried personnel receive paid time off. Hourly employees are not eligible for paid time off unless required by law. Hourly employees on a Service Contract Act project are eligible for paid sick leave.\n\nNote: Pay is not considered compensation until it is earned, vested and determinable. The amount and availability of any compensation remains in Kforce's sole discretion unless and until paid and may be modified in its discretion consistent with the law.\n\nThis job is not eligible for bonuses, incentives or commissions.\n\nKforce is an Equal Opportunity/Affirmative Action Employer. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, pregnancy, sexual orientation, gender identity, national origin, age, protected veteran status, or disability status.",
+        "job": "",
+        "company": "",
+        "qualifications": [
+            "Cloud Computing: Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS",
+            "Exploratory Data Analysis (EDA): Ability to perform exploratory data analysis to understand the characteristics of data, identify patterns, and detect anomalies using techniques like data visualization, summary statistics",
+            "Experience with Python, NumPy, Pandas, Matplotlib, Scikit, etc.",
+            "Knowledge of data structures, functional programming",
+            "Solid understanding of cloud computing concepts, including cloud architectures, cloud service models (IaaS, PaaS, SaaS), cloud deployment models (public, private, hybrid), and cloud providers like AWS"
+        ],
+        "responsibilities": [
+            "Kforce is supporting a contract for a Python Developer in Whippany, NJ. The best candidate will have a proficiency programming in Python, familiarity with popular Python libraries and frameworks such as NumPy, Pandas, Matplotlib, Scikit, and knowledge of data structures, functional programming."
+        ],
+        "company description": "-1"
+    }
+}{
+    "About the job\nAre you interested in building the f": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The job requires developing analytic solutions, identifying opportunities for data-driven decision-making, and handling ad-hoc data requests.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Communicating findings and insights to stakeholders through visualizations and reports.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Ability to handle multiple projects simultaneously and meet established deadlines.",
+                "type": false
+            },
+            {
+                "skill": "Curiosity",
+                "example": "Valued trait for unlocking the value of PatientIQ's data.",
+                "type": false
+            },
+            {
+                "skill": "SQL",
+                "example": "Deep knowledge of these technical skills is required for the job.",
+                "type": true
+            },
+            {
+                "skill": "dbt",
+                "example": "Deep knowledge of these technical skills is required for the job.",
+                "type": true
+            },
+            {
+                "skill": "Python",
+                "example": "Deep knowledge of these technical skills is required for the job.",
+                "type": true
+            },
+            {
+                "skill": "Business Intelligence (BI) and visualization software proficiency",
+                "example": "Proficient in using tools such as Metabase for creating visualizations and reports.",
+                "type": true
+            },
+            {
+                "skill": "CRM experience",
+                "example": "Experience with a CRM like HubSpot or Salesforce is required.",
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis/machine learning knowledge",
+                "example": "Knowledge in data modeling, statistical testing, confidence intervals, and forecasting is a nice-to-have.",
+                "type": true
+            },
+            {
+                "skill": "Electronic health records experience",
+                "example": "Experience working with EHR and medical data is a nice-to-have.",
+                "type": true
+            },
+            {
+                "skill": "Object-oriented languages",
+                "example": "Experience with languages like Ruby is a nice-to-have.",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nAre you interested in building the future of healthcare and transforming the patient experience? Are you hopeful about what data and medical research can do to improve medicine? We're looking for a Data Analyst to ensure PatientIQ remains at the forefront of using data to drive positive healthcare outcomes.\n\nAs a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.\n\nAbout Us\n\nPatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others.\n\nWhat You'll Work On\n\nDeveloping analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence\nCollecting, cleaning, and organizing large datasets from a variety of sources\nDeveloping and implementing statistical models to uncover trends and patterns in the data\nCommunicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase\nCollaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation\nContributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data\nHelping to identify and implement new data sources to support our analysis efforts\nAssist the customer success teams with ad-hoc data and reporting requests from the customers\n\n\nTechnologies We Use\n\nPython, SQL, dbt\nHubSpot, JIRA\nAWS Redshift, Fivetran\nMetabase, Apache Airflow, Excel / Google Sheets\n\n\nRequirements\n\nBachelor's degree in mathematics, engineering, business, statistics, or a related field\nDeep knowledge of SQL, dbt, and Python\nProficient in Business Intelligence (BI) and any visualization software\nExperience with a CRM (e.g., HubSpot or Salesforce)\nHighly self-motivated with strong analytical problem-solving skills and attention to detail\nAbility to handle multiple projects simultaneously\nAbility to prioritize tasks, regularly communicate progress, and meet established deadlines\n\n\nNice-to-Haves\n\nKnowledge of statistical analysis/machine learning, including data modeling, statistical testing, confidence intervals, and forecasting\nExperience working with electronic health records and medical data in general\nExperience working at a high-growth company\nExperience working with other object-oriented languages, such as Ruby\n",
+        "job": "Data Analyst",
+        "company": "",
+        "qualifications": [],
+        "responsibilities": [],
+        "company description": "I'm sorry, but you haven't provided the exact name of the company that you want me to research. Please provide the name of the company so that I can assist you further."
+    }
+}{
+    "About the job\nAre you interested in building the f": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Developing analytic solutions, identifying opportunities for data-driven decision-making, handling multiple projects simultaneously",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Communicating findings and insights to stakeholders through visualizations and reports",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Prioritizing tasks, regularly communicating progress, meeting established deadlines",
+                "type": false
+            },
+            {
+                "skill": "Curiosity and initiative",
+                "example": "Valued qualities for unlocking the value of data",
+                "type": false
+            },
+            {
+                "skill": "SQL, dbt, Python",
+                "example": "Deep knowledge required",
+                "type": true
+            },
+            {
+                "skill": "Business Intelligence (BI) and visualization software",
+                "example": "Proficiency necessary",
+                "type": true
+            },
+            {
+                "skill": "CRM experience",
+                "example": "Experience with CRM like HubSpot or Salesforce required",
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis/machine learning",
+                "example": "Knowledge in data modeling, statistical testing, confidence intervals, forecasting",
+                "type": true
+            },
+            {
+                "skill": "Experience with electronic health records and medical data",
+                "example": "Nice-to-have",
+                "type": true
+            },
+            {
+                "skill": "Object-oriented languages",
+                "example": "Experience with other object-oriented languages like Ruby",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nAre you interested in building the future of healthcare and transforming the patient experience? Are you hopeful about what data and medical research can do to improve medicine? We're looking for a Data Analyst to ensure PatientIQ remains at the forefront of using data to drive positive healthcare outcomes.\n\nAs a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.\n\nAbout Us\n\nPatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others.\n\nWhat You'll Work On\n\nDeveloping analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence\nCollecting, cleaning, and organizing large datasets from a variety of sources\nDeveloping and implementing statistical models to uncover trends and patterns in the data\nCommunicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase\nCollaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation\nContributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data\nHelping to identify and implement new data sources to support our analysis efforts\nAssist the customer success teams with ad-hoc data and reporting requests from the customers\n\n\nTechnologies We Use\n\nPython, SQL, dbt\nHubSpot, JIRA\nAWS Redshift, Fivetran\nMetabase, Apache Airflow, Excel / Google Sheets\n\n\nRequirements\n\nBachelor's degree in mathematics, engineering, business, statistics, or a related field\nDeep knowledge of SQL, dbt, and Python\nProficient in Business Intelligence (BI) and any visualization software\nExperience with a CRM (e.g., HubSpot or Salesforce)\nHighly self-motivated with strong analytical problem-solving skills and attention to detail\nAbility to handle multiple projects simultaneously\nAbility to prioritize tasks, regularly communicate progress, and meet established deadlines\n\n\nNice-to-Haves\n\nKnowledge of statistical analysis/machine learning, including data modeling, statistical testing, confidence intervals, and forecasting\nExperience working with electronic health records and medical data in general\nExperience working at a high-growth company\nExperience working with other object-oriented languages, such as Ruby\n\n\nBenefits\n\n The Works - top-notch health, dental and vision insurance. Additional perks available including 401K\n We are Mission Driven - our team is motivated to solve complex problems, drive medicine forward, and ultimately improve patient outcomes\n True Idea Meritocracy - great ideas win out. We encourage all team members to challenge the status quo because our mission demands this\n Flexible Time Off - we trust you to take the time you need when you feel it is appropriate, given your workload and responsibilities. No need to track it or save up\n World-Class Team - we're at the top of our industry because of our employees. They're the best investment we can make, and we never forget that\n Fast Growing - we are building the largest platform for healthcare providers, industry partners, researchers, and others to collaborate on the mission to improve patient outcomes\n",
+        "job": "",
+        "company": "",
+        "qualifications": [],
+        "responsibilities": [
+            "Developing analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence",
+            "Collecting, cleaning, and organizing large datasets from a variety of sources",
+            "Developing and implementing statistical models to uncover trends and patterns in the data",
+            "Communicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase",
+            "Collaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation",
+            "Contributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data",
+            "Helping to identify and implement new data sources to support our analysis efforts",
+            "Assist the customer success teams with ad-hoc data and reporting requests from the customers"
+        ],
+        "company description": "Starbucks is a coffee company that focuses on creating a culture of connection and celebrating coffee craft. Their mission is to nurture the limitless possibilities of human connection with every cup, conversation, and community. They value the importance of human connection and strive to create a sense of belonging in their stores."
+    }
+}{
+    "About the job\nAre you interested in building the f": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The job involves developing analytic solutions, identifying opportunities for data-driven decision-making, and handling ad-hoc data requests.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Communicating findings and insights to stakeholders through visualizations and reports is a key part of the role.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Ability to handle multiple projects simultaneously and prioritize tasks to meet deadlines.",
+                "type": false
+            },
+            {
+                "skill": "Proficiency in SQL, dbt, and Python",
+                "example": "Deep knowledge of these tools is required for the job.",
+                "type": true
+            },
+            {
+                "skill": "Business Intelligence (BI) and visualization software",
+                "example": "Proficiency in BI tools and visualization software is necessary.",
+                "type": true
+            },
+            {
+                "skill": "Experience with CRM systems like HubSpot or Salesforce",
+                "example": "Knowledge and experience with CRM systems are preferred.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of statistical analysis/machine learning",
+                "example": "Familiarity with data modeling, statistical testing, confidence intervals, and forecasting is a plus.",
+                "type": true
+            },
+            {
+                "skill": "Experience working with electronic health records and medical data",
+                "example": "Experience in working with medical data is preferred.",
+                "type": true
+            },
+            {
+                "skill": "Familiarity with other object-oriented languages like Ruby",
+                "example": "Experience with languages beyond Python is a nice-to-have.",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nAre you interested in building the future of healthcare and transforming the patient experience? Are you hopeful about what data and medical research can do to improve medicine? We're looking for a Data Analyst to ensure PatientIQ remains at the forefront of using data to drive positive healthcare outcomes.\n\nAs a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.\n\nAbout Us\n\nPatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others.\n\nWhat You'll Work On\n\nDeveloping analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence\nCollecting, cleaning, and organizing large datasets from a variety of sources\nDeveloping and implementing statistical models to uncover trends and patterns in the data\nCommunicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase\nCollaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation\nContributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data\nHelping to identify and implement new data sources to support our analysis efforts\nAssist the customer success teams with ad-hoc data and reporting requests from the customers\n\n\nTechnologies We Use\n\nPython, SQL, dbt\nHubSpot, JIRA\nAWS Redshift, Fivetran\nMetabase, Apache Airflow, Excel / Google Sheets\n\n\nRequirements\n\nBachelor's degree in mathematics, engineering, business, statistics, or a related field\nDeep knowledge of SQL, dbt, and Python\nProficient in Business Intelligence (BI) and any visualization software\nExperience with a CRM (e.g., HubSpot or Salesforce)\nHighly self-motivated with strong analytical problem-solving skills and attention to detail\nAbility to handle multiple projects simultaneously\nAbility to prioritize tasks, regularly communicate progress, and meet established deadlines\n\n\nNice-to-Haves\n\nKnowledge of statistical analysis/machine learning, including data modeling, statistical testing, confidence intervals, and forecasting\nExperience working with electronic health records and medical data in general\nExperience working at a high-growth company\nExperience working with other object-oriented languages, such as Ruby\n",
+        "job": "Data Analyst",
+        "company": "PatientIQ",
+        "qualifications": [
+            "Bachelor's degree in mathematics, engineering, business, statistics, or a related field",
+            "Deep knowledge of SQL, dbt, and Python",
+            "Proficient in Business Intelligence (BI) and any visualization software",
+            "Experience with a CRM (e.g., HubSpot or Salesforce)",
+            "Highly self-motivated with strong analytical problem-solving skills and attention to detail",
+            "Ability to handle multiple projects simultaneously",
+            "Ability to prioritize tasks, regularly communicate progress, and meet established deadlines"
+        ],
+        "responsibilities": [
+            "Developing analytic solutions for internal teams and external customers",
+            "Collecting, cleaning, and organizing large datasets",
+            "Developing and implementing statistical models",
+            "Communicating findings and insights to stakeholders",
+            "Collaborating with cross-functional teams",
+            "Contributing to existing data pipelines",
+            "Helping to identify and implement new data sources",
+            "Assist the customer success teams with ad-hoc data and reporting requests"
+        ],
+        "company description": "-1"
+    }
 }

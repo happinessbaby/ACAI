@@ -1,0 +1,15 @@
+{
+    "job_posting_path": {
+        "job": "str",
+        "company": "str",
+        "summary": "str",
+        "company description": "str",
+        "ATS_keywords": "List[str] or []",
+        "frequent_phrases": "List[str] or []",
+        "qualifications":"List[str] or []",
+        "responsibilities":"List[str] or []",
+        "skills": [
+            {"skill": "str", "example": "str", "type": "True or False, True is hard skill, False is soft skill"}
+        ]
+    }
+}

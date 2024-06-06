@@ -49,7 +49,7 @@ from st_clickable_images import clickable_images
 from st_btn_select import st_btn_select
 from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
-from backend.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
+from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 from backend.upgrade_resume import evaluate_resume, research_resume_type, reformat_chronological_resume, reformat_student_resume, reformat_functional_resume, tailor_resume
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -169,6 +169,7 @@ class Chat():
         # # hack to clear text after user input
         # if 'questionInput' not in st.session_state:
         #     st.session_state["questionInput"] = None  
+        st.session_state["resume_placeholder"] = st.empty()
         if STORAGE == "LOCAL":
             st.session_state["storage"]="LOCAL"
             st.session_state["bucket_name"]=None
@@ -276,6 +277,9 @@ class Chat():
                 job_option = st.button("Job Search", key="job_button")
             if job_option:
                 st.switch_page("pages/streamlit_jobs.py")
+            match_meter = st.button("try the match meter!")
+            if match_meter:
+                _self.matching_popup()
             
             # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
     
@@ -379,6 +383,10 @@ class Chat():
                 #     _self.chat_callback(question)
         # if cover_letter_modal.is_open():
         #     st.write("test")
+    @st.experimental_dialog("Quickly tell how well you match to the job!")
+    def matching_popup(self, ):
+        c1, c2=st.columns([1, 1])
+        
 
     @st.experimental_dialog("Resume form", )
     def resume_selection_popup(self,):
@@ -424,24 +432,24 @@ class Chat():
         elif job_posting=="job description":
             job_description = st.text_area("Job description", key="job_descriptionx", value=st.session_state.job_description if "job_description" in st.session_state else "", on_change=self.form_callback, disabled=st.session_state.job_description_disabled)
       
-        # c1, separator, c2=st.columns([1, 0.1, 1])
-        # with c1:
-        resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
-                                key="resume",
-                                type=["pdf","odt", "docx","txt"], 
-                                on_change=self.form_callback,
-                                disabled=st.session_state.resume_disabled,
-                                )
-        # with separator:
-        #     st.write("or")
-        # with c2:
-        #     if self.userId:
-        #         st.write("retrieve default user resume here")
-        #     else:
-        #         st.write("Login to use your previous resume")
-        #         login = st.button("login", type="primary")
-        #         if login:
-        #             st.switch_page("pages/streamlit_user.py")
+        c1, separator, c2=st.columns([5, 1, 3])
+        with c1:
+            resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
+                                    key="resume",
+                                    type=["pdf","odt", "docx","txt"], 
+                                    on_change=self.form_callback,
+                                    disabled=st.session_state.resume_disabled,
+                                    )
+        with separator:
+            st.write("or")
+        with c2:
+            if self.userId:
+                st.write("retrieve default user resume here")
+            else:
+                st.write("Login to use or create a default resume")
+                login = st.button("login", type="primary")
+                if login:
+                    st.switch_page("pages/streamlit_user.py")
         conti = st.button(label="next",
                            key="next_resume_button", 
                            disabled=st.session_state.conti_disabled, 
@@ -476,7 +484,7 @@ class Chat():
         st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
         if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(posting_path=st.session_state.job_posting_path, )
-        if "job description" in st.session_state and st.session_state.job_posting_radio=="job description":
+        elif "job_description" in st.session_state and st.session_state.job_posting_radio=="job description":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
         # Evaluate resume
         if resume_options[0] in st.session_state.type_selection:
@@ -485,9 +493,6 @@ class Chat():
         # Reformat resume
         if resume_options[1] in st.session_state.type_selection:
         # if st.session_state.resume_opt2:
-            # if template==True:
-            #     st.session_state["reformatting"] = True
-            # else:
                 try:
                     st.session_state["resume_type"] = st.session_state["eval_dict"]["ideal_type"]
                 except Exception:   
@@ -496,7 +501,6 @@ class Chat():
                         job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "",
                           )
                 st.session_state["reformatting"] = True
-                # self.resume_template_popup(resume_type)
         # Tailor resume
         if resume_options[2] in st.session_state.type_selection:
         # if st.session_state.resume_opt3:

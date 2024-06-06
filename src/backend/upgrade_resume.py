@@ -11,7 +11,7 @@ from langchain.agents import AgentType, Tool, initialize_agent, create_json_agen
 from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json, count_pages, count_length
 from utils.common_utils import (search_related_samples, research_relevancy_in_resume, extract_similar_jobs)
-from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain
+from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
@@ -28,6 +28,7 @@ from docxtpl import DocxTemplate
 from docx import Document
 from docx.shared import Inches
 import boto3
+from pydantic import BaseModel, Field, validator
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -97,9 +98,9 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     overall_impression = analyze_resume_overall(resume_content,  pursuit_jobs)
     evaluation_dict.update({"overall_impression": overall_impression})
     # # Evaluates specific field  content
-    # resume_fields = resume_dict["resume fields"]
-    # if resume_fields["work experience"]!=-1:
-    #     evaluted_work= analyze_field_content(resume_dict["jobs"])
+    resume_fields = resume_dict["resume fields"]
+    if resume_fields["work experience"]!=-1:
+        evaluted_work= analyze_field_content(resume_dict["work experience"])
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
     # if resume_fields["professional accomplishment"]!=-1:
@@ -109,19 +110,31 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
 
 
 
-def analyze_field_content(field_content, field_type):
+def analyze_field_content(field_content_list, field_type):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
+
     if field_type=="work experience" or field_type=="projects" or field_type=="professional accomplishment":
-        star_prompt = f""" Your task is to check a resume field content you are provided with and assess it based on some guidelines.
-        
-        Guildeline: Start with the POWER verb, include a description of the actions, 
-        use a comma and a verb ending in -ing to highlight transferable skills and/or measurable results, best if include measurable metrics.
-        
-        Example: Managed 10 employees by supervising daily operations, scheduling shifts, and holding weekdly staff meetings with strong leadership skills and empath, 
-        resulting in a productive team that collectively won the company's "Most Efficient Department Award" two years in a row
-         
-        field_content: {field_content} """
+        for field in field_content_list:
+            if field_type=="work experience":
+                content=field["responsibilities"]
+            #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
+            star_prompt = f"""
+                You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
+
+            For work experience, it may be a list of job responsibilities. For the project section, it may be a list of roles and accomplishments. Follow the guideline below to assesss the bullet points. 
+            
+            Guildeline: Start with the POWER verb, include a description of the actions, 
+            use a comma and a verb ending in -ing to highlight transferable skills and/or measurable results, best if include measurable metrics.
+            
+            Great Example: Managed 10 employees by supervising daily operations, scheduling shifts, and holding weekdly staff meetings with strong leadership skills and empath, 
+            resulting in a productive team that collectively won the company's "Most Efficient Department Award" two years in a row
+            
+            field content list: {content}  \
+
+            DO NOT USE ANY TOOLS. """
+            response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
+            
 
 
 def analyze_resume_overall(resume_content, jobs):
@@ -154,13 +167,13 @@ def analyze_resume_type(resume_content, ideal_type):
 
     resume: {delimiter}{resume_content}{delimiter} \n
 
-    Research the resume closely and assess if it is written idealy as a {ideal_type} resume. 
+    Research the resume closely and assess if it is written idealy as a {ideal_type} resume and how closely it aligns to the {ideal_type}. 
     
-    A chronological resume should have emphasis on work experience and accomplishment, meaning work experience should be before education and skills.
+    A chronological resume should have emphasis on work experience and accomplishment, meaning work experience is placed before education and skills.
     A student resume should emphasize coursework, education, accomplishments, and skills. 
     A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
 
-    Output a response you would provide the candidate as if you are their advisor providing a professional feedback. 
+    Provide the candidate as if you are their advisor a professional feedback.
 
     """
     response=create_smartllm_chain(query_type, n_ideas=1)
@@ -168,111 +181,163 @@ def analyze_resume_type(resume_content, ideal_type):
 
 def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={}, job_posting_dict={}):
 
-    tailor_dict = {"tailored_skills": "", "tailored_objective":""}
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    tailor_dict = {}
+    # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    my_objective = resume_dict["resume fields"].get("summary or objective", "")
-    my_skills = resume_dict["resume fields"].get("skills", "")
-    my_experience = resume_dict["resume fields"].get("work experience", "")
-    frequent_words = job_posting_dict["frequent_words"]
-    qualifications = job_posting_dict["qualifications"]
+    my_objective = resume_dict["resume fields"].get("summary or objective", -1)
+    my_skills = resume_dict["resume fields"].get("skills", -1)
+    tailor_dict.update({"original_skills": my_skills})
+    tailor_dict.update({"original_objective": my_objective})
+    resume_skills = resume_dict.get("skills", -1)
+    my_experience = resume_dict["resume fields"].get("work experience", -1)
+    job_requirements = job_posting_dict["qualifications"] + job_posting_dict["responsibilities"]
+    company_description = job_posting_dict["company description"]
     required_skills = job_posting_dict["skills"] 
-    tailored_skills = tailor_skills(my_skills, required_skills)
-    tailor_dict.update({"tailored_skills": tailored_skills})
-    tailored_objective = tailor_objective(my_objective, frequent_words, qualifications)
-    tailor_dict.update({"tailored_objective": tailored_objective})
+    tailored_skills_dict = tailor_skills(my_skills, required_skills, resume_skills)
+    tailor_dict.update({"tailored_skills": tailored_skills_dict})
+    tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description)
+    tailor_dict.update({"tailored_objective": tailored_objective_dict})
     return tailor_dict
 
-    
 
-def tailor_skills(my_skills, required_skills):
+class TailoredSkills(BaseModel):
+    irrelevant_skills:Optional[List[str]] = Field(
+        default=[], description="irrelevant skills, usually found in Step 1, these are skills that can be excluded from the resume"
+    )
+    relevant_skills: Optional[List[str]] = Field(
+        default=[], description="relevant skills, usually found in Step 2, these are skills in the resume that are also in the job description "
+    )
+    additional_skills:Optional[List[str]] = Field(
+        default=[], description="usually found in Step 3, these are skills that can be added on to the resume"
+    )
+def tailor_skills(my_skills_section, required_skills, resume_skills):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
-    soft_skills_str = ""
-    hard_skills_str=""
-    for s in required_skills:
-        if s["type"]==True:
-            skill = s["skill"]
-            example = s["example"] if s["example"]!=-1 else ""
-            hard_skills_str+="(skill: " +skill + ", example: "+ example + ")"
-        if s["type"]==False:
-            skill = s["skill"]
-            example = s["example"] if s["example"]!=-1 else ""
-            soft_skills_str+="(skill: " +skill + ", example: "+ example + ")"
-    relevant_hard_skills = research_relevancy_in_resume(my_skills, hard_skills_str, "hard skills", n_ideas=2)
-    relevant_soft_skills = research_relevancy_in_resume(my_skills, soft_skills_str, "soft skills", n_ideas=2)
-    if my_skills:
-        skills_prompt = """ Your job is to polish and rank the skills section of the resume according to the relevancy list.
-        The relevancy report is generated based on what skills in the resume are most relevant to a job description.
-        Relevancy report for soft skills: {relevant_soft_skills} \  
-        Relevancy report for hard skills: {relevant_hard_skills} \
-        The skills section in the resume: {my_skills} \
-
-        Step 1: Make a list of irrelevant skills that can be excluded from the skills sections based on the relevancy reports. \
-
-        Step 2: Make a list of skills that are reported in the relevancy reports that are suggested to be added. \
-        
-        Step 3: Rewrite the skills sections based on the previous steps' output. The skills should be listed in terms of relevance, do not change the formatting.
-
-        Use the following format:
-            Step 1: <step 1 reasoning>
-            Step 2: <step 2 reasoning>
-            Step 3: <step 3 reasoning>
-
-        Please remeber to always use the relevancy reports as your primary guideline.
-
-        """
-        
-        prompt_template = ChatPromptTemplate.from_template(skills_prompt)
-        message= prompt_template.format_messages(relevant_soft_skills = relevant_soft_skills, 
-                                                 relevant_hard_skills = relevant_hard_skills, 
-                                                my_skills = my_skills,
-        )
-        tailored_skills = llm(message).content
-        print(tailored_skills)
-    else:
-        prompt = f"""Please generate a skills section of the resume given the following skills relevancy report:
-        
-        Skills relevancy report for soft skills: {relevant_soft_skills} \
-
-        Skills relevancy report for hard skills: {relevant_hard_skills} \
-        
-        Step 1: Please do not use any tools. Generate a list of both hard skills and soft skills that can be included in the resume.
-
-        Step 2: Review the list of skills generated in Step 1. Make sure if a candidate does not have a certain skill, it SHOULD NOT be included in the skills section.
-        Output the final skills secition. 
-
-        Use the following format:
-            Step 1: <step 1 reasoning>
-            Step 2: <step 2 reasoning>
-        
-        Please use the relevancy report as your primary guideline.  
-
-        """
-        tailored_skills = generate_multifunction_response(prompt, create_search_tools("google", 1), )
-    return tailored_skills
-
-
-def tailor_objective(my_objective, frequent_words, qualifications):
-
-    prompt = f"""Your job is to tailor or write the objective/summary section of the resume to a job description.
-    You are provided with a frequent words list along with candidate qualifications.   
-
-   resume objective: {my_objective} \
-    frequent_words: {frequent_words} \
-    qualification: {qualifications} \
+    def concat_skills(skills_list, skills_str=""):
+        for s in skills_list:
+            skill = s["skill"] 
+            example = s["example"]
+            skills_str+="(skill: " +skill + ", example: "+ example + ")"
+        return skills_str
+    required_skills_str = concat_skills(required_skills)
+    my_skills_str = concat_skills(resume_skills)
+    # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
+    # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
+        # Relevancy report for hard skills: {relevant_hard_skills} \
+        # Relevancy report for soft skills: {relevant_soft_skills} \  
+        # Your job is to polish and rank the skills section of the resume according to the relevancy list.
+        # The relevancy report is generated based on what skills in the resume are most relevant to a job description.
+        # Relevancy report for skills: {relevant_skills} \
+    skills_prompt = """ Your task is to compare the skills section of the resume and skills required in the job description. 
     
-    Output the revised version of the objective/summary only.
+    You are given two core pieces of information below: the skills in a resume and the skills wanted in a job description.
+    
+    The skills in the resume: {my_skills} \
+    
+    Skills wanted in the job description: {required_skills} \
 
+    Step 1: Make a list of irrelevant skills that can be excluded from the skills section of the resume based on the skills in the job description. 
+    
+    These are the skills in the resume that are most irrelevant to the skills in the job description. \
+    
+    Step 2: Make a list of relevant skills that are skills in high demand in the job description. 
+    
+    These are the skills in the resume that are most relevant to the skills in the job description.  
+
+    Step 3: Make a list of skills that are in the job description that can be added to the resumes. 
+    
+    These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
+
+    Use the following format:
+        Step 1: <step 1 reasoning>
+        Step 2: <step 2 reasoning>
+        Step 3: <step 3 reasoning>
     """
-    tailored_objective = create_smartllm_chain(prompt, n_ideas=3)
-    return tailored_objective
+    # Step 3: Rank the skills in the resume in the order of importance based on how relevant they are to the skills wanted in the job description. You should only include skills that already exists in the resume. \
+    # Please remeber to always use the relevancy reports as your primary guideline and provide your reasoning too.
+    prompt_template = ChatPromptTemplate.from_template(skills_prompt)
+    message= prompt_template.format_messages(
+                                    # relevant_soft_skills = relevant_soft_skills, 
+                                    #          relevant_hard_skills = relevant_hard_skills, 
+                                            # relevant_skills = relevant_skills,
+                                            required_skills = required_skills_str,
+                                            my_skills_section = my_skills_str,
+    )
+    tailored_skills = llm(message).content
+    # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
+    tailored_skills_dict = create_pydantic_parser(tailored_skills, TailoredSkills)
+
+    # else:
+    #     # Skills relevancy report for soft skills: {relevant_soft_skills} \
+
+    #     # Skills relevancy report for hard skills: {relevant_hard_skills} \
+    #     prompt = f"""Please generate a skills section of the resume given the set of skills that the candidate has and how relevant they are to the skills in the job description. 
+
+    #     skills in the job description: {required_skills_str} \
+        
+    #     Candidate has the following skills: {my_skills_str} \
+              
+    #     Step 1: Please do not use any tools. Generate a list of both hard skills and soft skills that are in the resume and job description alike.
+
+    #     Step 2: Rank the skills in the order of importance based on the job description
+
+    #     Use the following format:
+    #         Step 1: <step 1 reasoning>
+    #         Step 2: <step 2 reasoning>
+        
+
+    #     """
+    #     # Please use the relevancy report as your primary guideline.  
+    #     generated_skills = generate_multifunction_response(prompt, create_search_tools("google", 1), )
+    #     tailored_skills_dict = {"generated_skills": generated_skills}
+    return tailored_skills_dict
+
+class Replacement(BaseModel):
+    replaced_words: Optional[str] = Field(
+        default="", description="word or phrases to be replaced or subsituted from Step 3"
+    )
+    substitution: Optional[str] = Field(
+        default="", description = "substitution words or phrases, can be multiple, from Step 3"
+    )
+class Replacements(BaseModel):
+    replacements: List[Replacement]
+def tailor_objective(my_objective,  job_requirements, company_description):
+
+    if my_objective!=-1:
+        prompt = f""" Your task is to find out words and phrases from the objective/summary section of the resume that can be substitued so it aligns with job description.
+        
+        You are provided with a frequent words list along with candidate qualifications that appeared the job posting. 
+        
+        Step 1: 
+            Use them to generate a list of words or phrases in the objective/summary section of the resume can be replaced along with their subsitutions. 
+
+            resume objective/summary: {my_objective} \
+            
+            job requirements: {job_requirements} \
+            
+            company_description: {company_description}
+
+            Please follow the following format and make sure all replacements are unique:
+
+            1. Replaced_words: <the phrase/words to be replaced> Substitution: <the substitution for the phrase/words>
+        
+
+        """
+        # tailored_objective = create_smartllm_chain(prompt, n_ideas=3)
+        tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
+        tailored_objective_dict = create_pydantic_parser(tailored_objective, Replacements)
+        
+    else:
+        tailored_objective_dict = {"generated objective": ""}
+    return tailored_objective_dict
 
 
+def tailor_experience():
 
+    """ Evaluates relevancy and ranks most important roles"""
 
 
 
