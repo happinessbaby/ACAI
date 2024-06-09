@@ -29,7 +29,7 @@ def main():
     if "Evaluation" in st.session_state.tabs:
         with tabs[count]:
             display_resume_eval()
-            st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path"], 
+            st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path_final"], 
                                 resume_dict = st.session_state["resume_dict"], 
                                 job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
             )
@@ -37,17 +37,17 @@ def main():
     if "Reformatted resume" in st.session_state.tabs: 
         with tabs[count]:
             if type=="chronological":
-                reformat_chronological_resume(resume_file=st.session_state["resume_path"], 
+                reformat_chronological_resume(resume_file=st.session_state["resume_path_final"], 
                                     posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                     template_file=st.session_state["template_path"],
                                     )
             elif type=="functional":
-                reformat_functional_resume(resume_file=st.session_state["resume_path"], 
+                reformat_functional_resume(resume_file=st.session_state["resume_path_final"], 
                                     posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                     template_file=st.session_state["template_path"],
                                     )
             elif type=="student":
-                reformat_student_resume(resume_file=st.session_state["resume_path"], 
+                reformat_student_resume(resume_file=st.session_state["resume_path_final"], 
                                     posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
                                     template_file=st.session_state["template_path"],
                                     )
@@ -55,9 +55,7 @@ def main():
     if "Tailoring" in st.session_state.tabs:
         with tabs[count]:
             display_tailoring()
-            st.session_state["tailor_dict"]=tailor_resume(resume_file=st.session_state["resume_path"], 
-                                posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                about_job =  st.session_state["job_description"] if "job_description" in st.session_state else "",
+            st.session_state["tailor_dict"]=tailor_resume(
                                 resume_dict = st.session_state["resume_dict"], 
                                 job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else "", 
                             )
@@ -153,8 +151,8 @@ def display_resume_eval():
             try:
                 ideal_type = eval_dict["ideal_type"]
                 st.write(f"The ideal type for your need: \n{ideal_type}")
-                type_analysis = eval_dict["type_analysis"]
-                st.write(f"Analysis: \n {type_analysis}")
+                # type_analysis = eval_dict["type_analysis"]
+                # st.write(f"Analysis: \n {type_analysis}")
             except Exception:
                 st.write("Evaluating...")
             # st.help(functional)
@@ -162,16 +160,26 @@ def display_resume_eval():
     with c3:
         with st.container():
             st.title("Impression")
-            st.write("overall impression: \n")
+            st.write("How close does your resume compare to others of the same industry?")
             try:
-                overall_impression = eval_dict["overall_impression"]
-                st.write(overall_impression)
+                comparison = eval_dict["comparison"]["closeness"]
+                st.write(comparison)
+            except Exception:
+                st.write("Evaluating...")
+            st.write("How well does your resume reflect the career you want?")
+            try:
+                cohesiveness = eval_dict["cohesiveness"]
+                st.write(cohesiveness)
             except Exception:
                 st.write("Evaluating...")
     with c4:
         with st.container():
             st.title("In-depth Analysis")
-            st.write("Work experience")
+            try:
+                evaluated_work = eval_dict["in_depth"]["work experience"]
+                st.write(f"Work experience: {evaluated_work}")
+            except Exception:
+                st.write("Evaluating...")
 
     back = st.button("Go back to main menu", type="primary", )
     if back:

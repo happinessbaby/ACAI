@@ -78,7 +78,7 @@ else:
 def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
 
     print("start evaluating...")
-    evaluation_dict = {"word_count": 0, "page_number":0, "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth_view": ""}
+    evaluation_dict = {"word_count": 0, "page_number":0, "ideal_type": "", "type_analysis": "", "overall_impression": "", "in_depth": {}}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     if job_posting_dict:
         pursuit_jobs=job_posting_dict["job"]
@@ -92,15 +92,18 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     # Research and analyze resume type
     ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
     evaluation_dict.update({"ideal_type": ideal_type})
-    type_analysis= analyze_resume_type(resume_content, ideal_type)
-    evaluation_dict.update({"type_analysis": type_analysis})
+    # type_analysis= analyze_resume_type(resume_content, ideal_type)
+    # evaluation_dict.update({"type_analysis": type_analysis})
     # Generate overall impression
-    overall_impression = analyze_resume_overall(resume_content,  pursuit_jobs)
-    evaluation_dict.update({"overall_impression": overall_impression})
+    comparison_dict = analyze_via_comparison(resume_content,  pursuit_jobs)
+    cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
+    evaluation_dict.update({"comparison": comparison_dict})
+    evaluation_dict.update({"cohesiveness":cohesiveness})
     # # Evaluates specific field  content
     resume_fields = resume_dict["resume fields"]
-    if resume_fields["work experience"]!=-1:
-        evaluted_work= analyze_field_content(resume_dict["work experience"])
+    evaluated_work= analyze_field_content(resume_dict["resume fields"]["work experience"], "work experience")
+    evaluation_dict["in_depth"].update({"work experience":evaluated_work})
+
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
     # if resume_fields["professional accomplishment"]!=-1:
@@ -110,76 +113,112 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
 
 
 
-def analyze_field_content(field_content_list, field_type):
+def analyze_field_content(field_content, field_type):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
 
     if field_type=="work experience" or field_type=="projects" or field_type=="professional accomplishment":
-        for field in field_content_list:
-            if field_type=="work experience":
-                content=field["responsibilities"]
             #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
-            star_prompt = f"""
-                You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
+        star_prompt = f"""
+            You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
 
-            For work experience, it may be a list of job responsibilities. For the project section, it may be a list of roles and accomplishments. Follow the guideline below to assesss the bullet points. 
-            
-            Guildeline: Start with the POWER verb, include a description of the actions, 
-            use a comma and a verb ending in -ing to highlight transferable skills and/or measurable results, best if include measurable metrics.
-            
-            Great Example: Managed 10 employees by supervising daily operations, scheduling shifts, and holding weekdly staff meetings with strong leadership skills and empath, 
-            resulting in a productive team that collectively won the company's "Most Efficient Department Award" two years in a row
-            
-            field content list: {content}  \
+        For work experience, it may be a list of job responsibilities. For the project section, it may be a list of roles and accomplishments. Follow the guideline below to assesss the bullet points. 
+        
+        Guildeline: Start with the POWER verb, in past tense if it's a past experience, else present tense if it's an ongoing experience,  include a description of the actions, 
+        use a comma and a verb ending in -ing to highlight transferable skills and/or measurable results, best if include measurable metrics.
+        
+        Great Example: Managed 10 employees by supervising daily operations, scheduling shifts, and holding weekdly staff meetings with strong leadership skills and empath, 
+        resulting in a productive team that collectively won the company's "Most Efficient Department Award" two years in a row
+        
+        field content list: {field_content}  \
 
-            DO NOT USE ANY TOOLS. """
-            response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
+        DO NOT USE ANY TOOLS. """
+        response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
+        return response
             
 
-
-def analyze_resume_overall(resume_content, jobs):
+class Comparison(BaseModel):
+    closeness: Optional[str] = Field(
+        default="", description = """closeness concluded in the content, 
+        should be one of the following only: ["not close at all", "some similarity", "very similar", "identitical"]"""
+    )
+def analyze_via_comparison(resume_content, jobs):
 
     """Analyzes overall resume by comparing to other samples"""
 
     # Note: document comparison benefits from a clear and simple prompt
-    query_comparison = f"""Your task is to compare a candidate's resume to other sample resume and assess the quality of it in terms of how well-written it is compared to the sample resume.
-    
-    All the sample resume can be accesssed via using your tool "search_sample_resume".
-     
-    candidate resume: {resume_content} \
-
-    Your final response should be about a paragraph long summarizing the quality of the candidate's resume. 
-    
-    Write as if you are giving the candidate a critical feedback along wiht some suggestions. 
-
-    Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
-
-    """
     related_samples = search_related_samples(jobs, resume_samples_path)
     sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-    response = generate_multifunction_response(query_comparison, sample_tools)
-    return response
+    query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-
-def analyze_resume_type(resume_content, ideal_type):
-
-    query_type = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters.
-
-    resume: {delimiter}{resume_content}{delimiter} \n
-
-    Research the resume closely and assess if it is written idealy as a {ideal_type} resume and how closely it aligns to the {ideal_type}. 
+    Assess the quality of the candidat's resume in terms of how closely it resembles other sample resume.
     
-    A chronological resume should have emphasis on work experience and accomplishment, meaning work experience is placed before education and skills.
-    A student resume should emphasize coursework, education, accomplishments, and skills. 
-    A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
+    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}
+     
+    candidate resume: {resume_content} \
+    
+    The sample resume are for comparative purpose only. You should not analyze them. 
 
-    Provide the candidate as if you are their advisor a professional feedback.
+    As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
+    Please output one of the metrics meter and provide your reasoning. 
+    
     """
-    response=create_smartllm_chain(query_type, n_ideas=1)
-    return response
+    # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
+   
+    #  Your final analysis should be about a paragraph long summarizing the quality of the candidate's resume. 
+    
+    # Write as if you are giving the candidate a critical feedback along wiht some suggestions.
+    comparison_resp = generate_multifunction_response(query_comparison, sample_tools)
+    comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
+    return comparison_dict
 
-def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={}, job_posting_dict={}):
+
+def analyze_cohesiveness(resume_content, jobs):
+
+    query_cohesiveness= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
+
+    Assess the cohesiveness of the resume with respect to the jobs in the jobs list.
+    
+    Reflect how well as a whole the resume reflects the jobs. Some of the questions you should answer include:
+
+    1. Does the candidate have the skills or qualifications for the jobs they are seeking? \ 
+
+    2. Does the candidate have the work experience for the jobs they are seeking? \
+
+    3. Does the summary or objective section of the resume reflect the jobs they are seeking? \
+
+    candidate's resume: {resume_content} \
+    
+    jobs list: {jobs} \
+
+    Your final analysis should be about a paragraph long summarizing the cohesiveness of the candidate's resume. 
+    
+    Write as if you are giving the candidate a critical feedback along with some suggestions. """
+
+    cohesiveness_resp = generate_multifunction_response(query_cohesiveness, create_search_tools("google", 1))
+    return cohesiveness_resp
+
+
+# def analyze_resume_type(resume_content, ideal_type):
+
+#     query_type = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters.
+
+#     resume: {delimiter}{resume_content}{delimiter} \n
+
+#     Research the resume closely and assess if it is written idealy as a {ideal_type} resume and how closely it aligns to the {ideal_type}. 
+    
+#     A chronological resume should have emphasis on work experience and accomplishment, meaning work experience is placed before education and skills.
+#     A student resume should emphasize coursework, education, accomplishments, and skills. 
+#     A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
+
+#     Provide the candidate as if you are their advisor a professional feedback.
+
+#     """
+#     response=create_smartllm_chain(query_type, n_ideas=1)
+#     return response
+
+def tailor_resume(resume_dict={}, job_posting_dict={}):
 
     tailor_dict = {}
     # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
@@ -193,9 +232,9 @@ def tailor_resume(resume_file="", posting_path="", about_job="", resume_dict={},
     resume_skills = resume_dict.get("skills", -1)
     my_experience = resume_dict["resume fields"].get("work experience", -1)
     job_requirements = job_posting_dict["qualifications"] + job_posting_dict["responsibilities"]
-    company_description = job_posting_dict["company description"]
+    company_description = job_posting_dict["company_description"]
     required_skills = job_posting_dict["skills"] 
-    tailored_skills_dict = tailor_skills(my_skills, required_skills, resume_skills)
+    tailored_skills_dict = tailor_skills(required_skills, resume_skills)
     tailor_dict.update({"tailored_skills": tailored_skills_dict})
     tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description)
     tailor_dict.update({"tailored_objective": tailored_objective_dict})
@@ -212,7 +251,7 @@ class TailoredSkills(BaseModel):
     additional_skills:Optional[List[str]] = Field(
         default=[], description="usually found in Step 3, these are skills that can be added on to the resume"
     )
-def tailor_skills(my_skills_section, required_skills, resume_skills):
+def tailor_skills(required_skills, resume_skills):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
@@ -264,7 +303,7 @@ def tailor_skills(my_skills_section, required_skills, resume_skills):
                                     #          relevant_hard_skills = relevant_hard_skills, 
                                             # relevant_skills = relevant_skills,
                                             required_skills = required_skills_str,
-                                            my_skills_section = my_skills_str,
+                                            my_skills = my_skills_str,
     )
     tailored_skills = llm(message).content
     # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
@@ -318,7 +357,7 @@ def tailor_objective(my_objective,  job_requirements, company_description):
             
             job requirements: {job_requirements} \
             
-            company_description: {company_description}
+            company_description: {company_description} \
 
             Please follow the following format and make sure all replacements are unique:
 

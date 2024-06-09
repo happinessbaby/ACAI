@@ -3637,4 +3637,180 @@
         ],
         "company description": "-1"
     }
+}{
+    "About the job\nAre you interested in building the f": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "The job requires developing analytic solutions and identifying opportunities for data-driven decision-making.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Communicating findings and insights to stakeholders through visualizations and reports.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Ability to handle multiple projects simultaneously and prioritize tasks to meet deadlines.",
+                "type": false
+            },
+            {
+                "skill": "Curiosity and initiative",
+                "example": "The company values diligence, curiosity, and initiative in unlocking the value of data.",
+                "type": false
+            },
+            {
+                "skill": "SQL, dbt, and Python",
+                "example": "Deep knowledge of these programming languages is required.",
+                "type": true
+            },
+            {
+                "skill": "Business Intelligence (BI) and visualization software",
+                "example": "Proficiency in BI tools for data analysis and visualization.",
+                "type": true
+            },
+            {
+                "skill": "CRM experience",
+                "example": "Experience with CRM systems like HubSpot or Salesforce is necessary.",
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis/machine learning",
+                "example": "Knowledge in data modeling, statistical testing, confidence intervals, and forecasting is a plus.",
+                "type": true
+            },
+            {
+                "skill": "Electronic health records",
+                "example": "Experience working with medical data, specifically electronic health records, is preferred.",
+                "type": true
+            },
+            {
+                "skill": "Object-oriented languages",
+                "example": "Experience with other object-oriented languages like Ruby is a nice-to-have.",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nAre you interested in building the future of healthcare and transforming the patient experience? Are you hopeful about what data and medical research can do to improve medicine? We're looking for a Data Analyst to ensure PatientIQ remains at the forefront of using data to drive positive healthcare outcomes.\n\nAs a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.\n\nAbout Us\n\nPatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others.\n\nWhat You'll Work On\n\nDeveloping analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence\nCollecting, cleaning, and organizing large datasets from a variety of sources\nDeveloping and implementing statistical models to uncover trends and patterns in the data\nCommunicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase\nCollaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation\nContributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data\nHelping to identify and implement new data sources to support our analysis efforts\nAssist the customer success teams with ad-hoc data and reporting requests from the customers\n\n\nTechnologies We Use\n\nPython, SQL, dbt\nHubSpot, JIRA\nAWS Redshift, Fivetran\nMetabase, Apache Airflow, Excel / Google Sheets\n\n\nRequirements\n\nBachelor's degree in mathematics, engineering, business, statistics, or a related field\nDeep knowledge of SQL, dbt, and Python\nProficient in Business Intelligence (BI) and any visualization software\nExperience with a CRM (e.g., HubSpot or Salesforce)\nHighly self-motivated with strong analytical problem-solving skills and attention to detail\nAbility to handle multiple projects simultaneously\nAbility to prioritize tasks, regularly communicate progress, and meet established deadlines\n\n\nNice-to-Haves\n\nKnowledge of statistical analysis/machine learning, including data modeling, statistical testing, confidence intervals, and forecasting\nExperience working with electronic health records and medical data in general\nExperience working at a high-growth company\nExperience working with other object-oriented languages, such as Ruby",
+        "job": "",
+        "about_job": "As a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.",
+        "company": "PatientIQ",
+        "company_description": [
+            "PatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others."
+        ],
+        "qualifications": [
+            "Bachelor's degree in mathematics, engineering, business, statistics, or a related field",
+            "Deep knowledge of SQL, dbt, and Python",
+            "Proficient in Business Intelligence (BI) and any visualization software",
+            "Experience with a CRM (e.g., HubSpot or Salesforce)",
+            "Highly self-motivated with strong analytical problem-solving skills and attention to detail",
+            "Ability to handle multiple projects simultaneously",
+            "Ability to prioritize tasks, regularly communicate progress, and meet established deadlines"
+        ],
+        "responsibilities": [
+            "Developing analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence",
+            "Collecting, cleaning, and organizing large datasets from a variety of sources",
+            "Developing and implementing statistical models to uncover trends and patterns in the data",
+            "Communicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase",
+            "Collaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation",
+            "Contributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data",
+            "Helping to identify and implement new data sources to support our analysis efforts",
+            "Assist the customer success teams with ad-hoc data and reporting requests from the customers"
+        ],
+        "salary": "null",
+        "on_site": true
+    }
+}{
+    "About the job\nAre you interested in building the f": {
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "develop analytic solutions for various topics and identifying opportunities for data-driven decision-making",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "communicating findings and insights to stakeholders through visualizations and reports",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "handle multiple projects simultaneously and meet established deadlines",
+                "type": false
+            },
+            {
+                "skill": "Curiosity",
+                "example": "exploring new data sources and contributing to data pipelines",
+                "type": false
+            },
+            {
+                "skill": "SQL",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "dbt",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Python",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Business Intelligence (BI) and visualization software",
+                "example": "using tools like Metabase for developing and implementing statistical models and communicating insights",
+                "type": true
+            },
+            {
+                "skill": "CRM experience",
+                "example": "familiarity with CRM systems like HubSpot or Salesforce for customer data management",
+                "type": true
+            },
+            {
+                "skill": "Statistical analysis/machine learning",
+                "example": "knowledge of statistical testing, data modeling, and forecasting",
+                "type": true
+            },
+            {
+                "skill": "Experience with electronic health records and medical data",
+                "example": "familiarity with handling healthcare data",
+                "type": true
+            },
+            {
+                "skill": "Experience with object-oriented languages",
+                "example": "working knowledge of languages such as Ruby",
+                "type": true
+            }
+        ],
+        "summary": "About the job\nAre you interested in building the future of healthcare and transforming the patient experience? Are you hopeful about what data and medical research can do to improve medicine? We're looking for a Data Analyst to ensure PatientIQ remains at the forefront of using data to drive positive healthcare outcomes.\n\nAs a core member of the Data Engineering department, you will be in a dynamic environment that works cross-functionally with all other departments, such as Engineering, Product, Customer Success, and Marketing. You will work on a broad array of problems that rely on data to derive insights for our business and customers. We heavily value diligence, curiosity, and initiative, which are key to unlocking the value of PatientIQ's data for our users and decision-making. Your work will be impactful across the entire organization.\n\nAbout Us\n\nPatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others.\n\nWhat You'll Work On\n\nDeveloping analytic solutions for internal teams and external customers on topics such as business development, patient engagement, patient-reported outcomes, and performance intelligence\nCollecting, cleaning, and organizing large datasets from a variety of sources\nDeveloping and implementing statistical models to uncover trends and patterns in the data\nCommunicating findings and insights to stakeholders through clear and compelling visualizations and reports using tools such as Metabase\nCollaborating with cross-functional teams to identify opportunities for data-driven decision-making and innovation\nContributing to existing data pipelines through feedback or directly to ensure the accuracy and reliability of our data\nHelping to identify and implement new data sources to support our analysis efforts\nAssist the customer success teams with ad-hoc data and reporting requests from the customers\n\n\nTechnologies We Use\n\nPython, SQL, dbt\nHubSpot, JIRA\nAWS Redshift, Fivetran\nMetabase, Apache Airflow, Excel / Google Sheets\n\n\nRequirements\n\nBachelor's degree in mathematics, engineering, business, statistics, or a related field\nDeep knowledge of SQL, dbt, and Python\nProficient in Business Intelligence (BI) and any visualization software\nExperience with a CRM (e.g., HubSpot or Salesforce)\nHighly self-motivated with strong analytical problem-solving skills and attention to detail\nAbility to handle multiple projects simultaneously\nAbility to prioritize tasks, regularly communicate progress, and meet established deadlines\n\n\nNice-to-Haves\n\nKnowledge of statistical analysis/machine learning, including data modeling, statistical testing, confidence intervals, and forecasting\nExperience working with electronic health records and medical data in general\nExperience working at a high-growth company\nExperience working with other object-oriented languages, such as Ruby",
+        "job": "",
+        "about_job": "Data Analyst",
+        "company": "PatientIQ",
+        "company_description": [
+            "PatientIQ is a fast-growing health tech company empowering healthcare providers, industry, researchers, and others to collaborate on the mission to improve patient outcomes. PatientIQ is headquartered in Chicago and backed by top-tier west coast venture capital, major hospital investors, and others."
+        ],
+        "qualifications": [
+            "Bachelor's degree in mathematics, engineering, business, statistics, or a related field",
+            "Deep knowledge of SQL, dbt, and Python",
+            "Proficient in Business Intelligence (BI) and any visualization software",
+            "Experience with a CRM (e.g., HubSpot or Salesforce)",
+            "Highly self-motivated with strong analytical problem-solving skills and attention to detail",
+            "Ability to handle multiple projects simultaneously",
+            "Ability to prioritize tasks, regularly communicate progress, and meet established deadlines"
+        ],
+        "responsibilities": [
+            "Developing analytic solutions",
+            "Collecting, cleaning, and organizing large datasets",
+            "Developing and implementing statistical models",
+            "Communicating findings and insights to stakeholders",
+            "Collaborating with cross-functional teams",
+            "Contributing to existing data pipelines",
+            "Helping to identify and implement new data sources",
+            "Assist the customer success teams with ad-hoc data and reporting requests"
+        ],
+        "salary": "",
+        "on_site": true
+    }
 }

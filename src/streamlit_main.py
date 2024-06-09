@@ -84,6 +84,7 @@ message_key = {
 }
 topic = "jobs"
 resume_options = ["evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting"]
+interview_options=["phone interview", "panel interview"]
 # st.write(get_all_cookies())
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
@@ -248,48 +249,49 @@ class Chat():
         # if st.session_state.cover_letter_modal.is_open():
         #     print("cover letter modal is open")
         #     _self.cover_letter_popup()
-        # if st.session_state.resume_modal.is_open():
-            # _self.resume_popup()
-        if "type_selection" in st.session_state:
-            if set(st.session_state.type_selection).issubset(set(resume_options)):
-                if resume_options[2] not in st.session_state.type_selection:
-                    _self.general_form_popup(_self.general_selection_callback, selection=st.session_state.type_selection, job_required=False)
-                else:
-                    _self.general_form_popup(_self.general_selection_callback,  selection=st.session_state.type_selection,job_required=True)
-            del st.session_state["type_selection"]
-        else:
-            if "resume_path" in st.session_state:
-                del st.session_state["resume_path"]
-            if "job_description" in st.session_state:
-                del st.session_state["job_description"]
-            if "job_posting_path" in st.session_state:
-                del st.session_state["job_posting_path"]
-        if ("evaluation" in st.session_state and st.session_state["evaluation"]) or ("tailoring" in st.session_state and st.session_state["tailoring"]) or ("reformatting" in st.session_state and st.session_state["reformatting"]):
-            if "resume_type" in st.session_state and "template_path" not in st.session_state:
-                _self.resume_template_popup()
-            else:
-                st.switch_page("pages/streamlit_dashboard.py")
 
+
+        # if "type_selection" in st.session_state:
+        #     if set(st.session_state.type_selection).issubset(set(resume_options)):
+        #         if resume_options[2] not in st.session_state.type_selection:
+        #             _self.general_form_popup(_self.general_selection_callback, selection=st.session_state.type_selection, job_required=False)
+        #         else:
+        #             _self.general_form_popup(_self.general_selection_callback,  selection=st.session_state.type_selection,job_required=True)
+        #     del st.session_state["type_selection"]
+        # else:
+        #     if "resume_path" in st.session_state:
+        #         del st.session_state["resume_path"]
+        #     if "job_description" in st.session_state:
+        #         del st.session_state["job_description"]
+        #     if "job_posting_path" in st.session_state:
+        #         del st.session_state["job_posting_path"]
+        # if ("evaluation" in st.session_state and st.session_state["evaluation"]) or ("tailoring" in st.session_state and st.session_state["tailoring"]) or ("reformatting" in st.session_state and st.session_state["reformatting"]):
+        #     if "resume_type" in st.session_state and "template_path" not in st.session_state:
+        #         _self.resume_template_popup()
+        #     else:
+        #         st.switch_page("pages/streamlit_dashboard.py")
+        # if ("interview" in st.session_state and st.session_state["interview"]):
+        #     st.switch_page("pages/streamlit_interviewbot.py")
         with st._main:
             
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
-            st.markdown("#")
-            # st.markdown("<h3 style='text-align: center; color: black ;'> Let AI empower your career building journey</h3>", unsafe_allow_html=True)
-            st.markdown("#")
-            st.markdown("#")
+            add_vertical_space(5)
             c1, c2, c3=st.columns([1,  1, 1])
             with c1:
                 resume_option = st.button("Resume Help", key="resume_button",)
             if resume_option:
-                _self.resume_selection_popup()
+                _self.general_form_popup(_self.general_selection_callback, selection="resume help", job_required=False)
+                # _self.resume_selection_popup()
             with c2:
                 interview_option = st.button("Mock Interview", key="interview_button")
             if interview_option:
+                # _self.interview_selection_popup()
                 st.switch_page("pages/streamlit_interviewbot.py")
             with c3:
                 job_option = st.button("Job Search", key="job_button")
             if job_option:
                 st.switch_page("pages/streamlit_jobs.py")
+            add_vertical_space(2)
             _, c2_, _ = st.columns([1, 1, 1])
             with c2:
                 match_meter = st.button("Match Me!")
@@ -400,30 +402,60 @@ class Chat():
         #     st.write("test")
 
 
-    @st.experimental_dialog("What do you need help with?")   
-    def resume_selection_popup(self, ):
-        if "type_selectionx" not in st.session_state or st.session_state.type_selectionx==[]:
-            st.session_state.resume_selection_disabled=True
-        else:
-            st.session_state.resume_selection_disabled=False
-        selected = st.multiselect(f"You can select multiple",  
-                                resume_options,
-                                placeholder="Please make a selection...", 
-                                key="type_selectionx",
-                                # on_change=self.form_callback 
-                                )
-        conti = st.button(label="next",
-                           key="next_button", 
-                           disabled=st.session_state.resume_selection_disabled, 
-                          )
-        if conti:
-            st.session_state["type_selection"]=selected
-            st.rerun()
-        
+    # @st.experimental_dialog("What do you need help with?")   
+    # def resume_selection_popup(self, ):
+    #     # if "type_selectionx" not in st.session_state or st.session_state.type_selectionx==[]:
+    #     #     st.session_state.resume_selection_disabled=True
+    #     # else:
+    #     #     st.session_state.resume_selection_disabled=False
+    #     # selected = st.multiselect(f"You can select multiple",  
+    #     #                         resume_options,
+    #     #                         placeholder="Please make a selection...", 
+    #     #                         key="type_selectionx",
+    #     #                         # on_change=self.form_callback 
+    #     #                         )
+    #     if ("s1" in st.session_state and st.session_state["s1"]) or ("s2" in st.session_state and st.session_state["s2"]) or ("s3" in st.session_state and st.session_state["s3"]):
+    #         st.session_state.resume_selection_disabled=False
+    #     else:
+    #         st.session_state.resume_selection_disabled=True
+    #     s1 = st.checkbox(label=resume_options[0], key="s1")
+    #     s2=st.checkbox(label=resume_options[1], key="s2")
+    #     s3=st.checkbox(label=resume_options[2], key="s3")
+    #     conti = st.button(label="next",
+    #                        key="next_button", 
+    #                        disabled=st.session_state.resume_selection_disabled, 
+    #                       )
+    #     if conti:
+    #         st.session_state["type_selection"]=[key for key, val in {resume_options[0]:s1, resume_options[1]:s2, resume_options[2]:s3}.items() if  val]
+    #         print(st.session_state.type_selection)
+    #         st.rerun()
+
+    # @st.experimental_dialog("What type of interview do you need practice with?")
+    # def interview_selection_popup(self, ):
+    #     """"""
+
+    #     if ("rs_interview" in st.session_state and st.session_state["rs_interview"] is not None):
+    #         st.session_state.interview_selection_disabled=False
+    #     else:
+    #         st.session_state.interview_selection_disabled=True
+    #     selection = st.radio("Please select an option",
+    #                          index=None, 
+    #                          options=interview_options, 
+    #                          key="rs_interview", 
+    #                          label_visibility="hidden",
+    #                          )
+    #     conti = st.button(label="next",
+    #                        key="next_button", 
+    #                        disabled=st.session_state.interview_selection_disabled, 
+    #                       )
+    #     if conti:
+    #         st.session_state["interview"]=True
+    #         st.session_state["mode"]=selection
+    #         st.rerun() 
 
 
     @st.experimental_dialog("Please fill out the form", )
-    def general_form_popup(self, func, selection=[], resume_required=True, job_required = False, back_opt=False, back_func=None):
+    def general_form_popup(self, func, selection, resume_required=True, job_required = False, back_opt=False, back_func=None):
         
         # if "type_selection" not in st.session_state or st.session_state.type_selection==[]:
         #     st.session_state.job_description_disabled=True
@@ -453,6 +485,8 @@ class Chat():
         #                          placeholder="Please make a selection...", 
         #                          key="type_selectionx",
         #                           on_change=self.form_callback )
+        if selection=="resume help":
+            st.info("AI will evaluate your resume. If you want your resume tailored also, please provide a job posting")
         job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
                                key="job_posting_radio", options=["job description", "job posting link"], 
                                index = 1 if "job_description"  not in st.session_state else 0
@@ -509,11 +543,16 @@ class Chat():
 
         # Generate resume and job posting dictionaries
         #TODO: send these to separate threads if possible
+        st.session_state["resume_path_final"]=st.session_state["resume_path"]
+        st.session_state["evaluation"]=True
         st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
         if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(posting_path=st.session_state.job_posting_path, )
+            st.session_state["tailoring"]=True
         elif "job_description" in st.session_state and st.session_state.job_posting_radio=="job description":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
+            st.session_state["tailoring"]=True
+        st.switch_page("pages/streamlit_dashboard.py")
         # Evaluate resume
         if resume_options[0] in selection:
         # if st.session_state.resume_opt1:
@@ -814,23 +853,6 @@ class Chat():
 
 
 
-
-    # def process_about_me(self, about_me: str) -> None:
-    
-    #     """ Processes user's about me input for content type and processes any links in the description. """
-
-    #     content_type = """a job or study related user request. """
-    #     user_request = evaluate_content(about_me, content_type)
-    #     # about_me_summary = get_completion(f"""Summarize the following about me, if provided, and ignore all the links: {about_me}. """)
-    #     self.new_chat.update_entities(f"about me:{about_me_summary} /n ###")
-    #     if user_request:
-    #         self.question = about_me
-    #     urls = re.findall(r'(https?://\S+)', about_me)
-    #     print(urls)
-    #     if urls:
-    #         for url in urls:
-    #             self.process_link(url)
-
     def process(self, uploads: Any, upload_type: str) -> None:
 
         """Processes user uploads including converting all format to txt, checking content safety, content type, and content topics. 
@@ -859,7 +881,6 @@ class Chat():
             else:
                 del st.session_state["resume_path"]
         elif upload_type=="job_posting":
-            end_path = os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads", str(uuid.uuid4())+".txt")
             result = process_links(uploads, st.session_state.save_path, st.session_state.sessionId)
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
