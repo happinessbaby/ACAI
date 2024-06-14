@@ -81,15 +81,13 @@ def display_tailoring():
                 # ranked_skills = tailored_skills_dict["ranked_skills"]
                 relevant_skills = tailored_skills_dict["relevant_skills"]
                 st.write("""Some of the skills you have in your resume may distract the HR from reading the skills that truly matter to them. 
-                        These skills can be removed from your tailored resume""")
+                       You may remove them or rank them lower on the list.""")
                 st.write(irrelevant_skills)
                 st.write("""There are skills that can benefit you if you add them to your resume. However, if you don't have them, don't add them! 
                         Remember, a HR looks for your integrity as much as your talent!""")
                 st.write(additional_skills)
-                st.write("""These skills are the most relevant to the job position that will make you stand out. Make sure to rank them first in the list!""")
+                st.write("""These skills are the most relevant to the job position that will make you stand out. Make sure to rank them higher on the list!""")
                 st.write(relevant_skills)
-                # st.write("""Did you know you can rank your skills so the most relevant ones are read first? """)
-                # st.write(ranked_skills)
             else:
                 st.write("You seem to lacks a skills section. If you would like to add one, here are the tailored set of skills you can add for this job application.")
                 generated_skills = tailored_skills_dict["generated_skills"]
@@ -124,6 +122,12 @@ def display_tailoring():
                 st.write(generated_objective)
         except Exception:
             st.write("Evaluating...")  
+    st.write("**Experience Section**")
+    try:
+        tailored_experience = tailor_dict["tailored_experience"]
+        st.write(tailored_experience)
+    except Exception:
+        st.write("Evaluating...")
 
 
 @st.experimental_fragment(run_every=3)
@@ -150,9 +154,9 @@ def display_resume_eval():
             st.button("explore template options")
             try:
                 ideal_type = eval_dict["ideal_type"]
-                st.write(f"The ideal type for your need: \n{ideal_type}")
-                # type_analysis = eval_dict["type_analysis"]
-                # st.write(f"Analysis: \n {type_analysis}")
+                st.write(f"The ideal type for your resume: \n{ideal_type}")
+                my_type = eval_dict["type"]
+                st.write(f"Your resume type: \n {my_type}")
             except Exception:
                 st.write("Evaluating...")
             # st.help(functional)

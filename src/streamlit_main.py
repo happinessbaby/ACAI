@@ -272,6 +272,13 @@ class Chat():
         #         st.switch_page("pages/streamlit_dashboard.py")
         # if ("interview" in st.session_state and st.session_state["interview"]):
         #     st.switch_page("pages/streamlit_interviewbot.py")
+        if "resume help" not in st.session_state:
+            if "resume_path" in st.session_state:
+                del st.session_state["resume_path"]
+            if "job_description" in st.session_state:
+                del st.session_state["job_description"]
+            if "job_posting_path" in st.session_state:
+                del st.session_state["job_posting_path"]
         with st._main:
             
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
@@ -291,12 +298,12 @@ class Chat():
                 job_option = st.button("Job Search", key="job_button")
             if job_option:
                 st.switch_page("pages/streamlit_jobs.py")
-            add_vertical_space(2)
-            _, c2_, _ = st.columns([1, 1, 1])
+            add_vertical_space(5)
+            _, c2, _ = st.columns([1, 1, 1])
             with c2:
                 match_meter = st.button("Match Me!")
             if match_meter:
-                _self.general_form_popup(selection=["match"], job_required=True, resume_required=True,)
+                _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
             
             # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
     
@@ -465,7 +472,7 @@ class Chat():
         #     st.session_state.job_description_disabled=False
         #     st.session_state.job_posting_disabled=False
         #     st.session_state.resume_disabled=False
-        if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and job_required):
+        if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
             st.session_state.conti_disabled=True
         else:
             st.session_state.conti_disabled=False
@@ -474,8 +481,8 @@ class Chat():
                 st.session_state.resume_checkmark=":red[(required)]"
             else:
                 st.session_state.resume_checkmark="(optional)"
-        if ("job_posting_path" not in st.session_state and "job_description" not in st.session_state) or ("job_description" in st.session_state and st.session_state["job_description"] is None):
-            if job_required:
+        if ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or st.session_state["job_description"]==None):
+            if job_required or "job_required" in st.session_state:
                 st.session_state.job_posting_checkmark=":red[(required)]"
             else:
                 st.session_state.job_posting_checkmark="(optional)"
@@ -486,24 +493,31 @@ class Chat():
         #                          key="type_selectionx",
         #                           on_change=self.form_callback )
         if selection=="resume help":
-            st.info("AI will evaluate your resume. If you want your resume tailored also, please provide a job posting")
-        job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
-                               key="job_posting_radio", options=["job description", "job posting link"], 
-                               index = 1 if "job_description"  not in st.session_state else 0
-                               )
-        if job_posting=="job posting link":
-            job_posting_link = st.text_input(label="Job posting link",
-                                              key="job_posting", 
-                                              on_change=self.form_callback,
-                                                # disabled=st.session_state.job_posting_disabled
+            if "job_required" in st.session_state:
+                st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
+            elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or st.session_state["job_description"]==None):
+                st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
+            else:
+                st.info("Your resume will be evaluated and tailored to the job posting")
+            skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.skip_evaluation_callback)
+        with st.expander("job posting"):
+            job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
+                                key="job_posting_radio", options=["job description", "job posting link"], 
+                                index = 1 if "job_description"  not in st.session_state else 0
+                                )
+            if job_posting=="job posting link":
+                job_posting_link = st.text_input(label="Job posting link",
+                                                key="job_posting", 
+                                                on_change=self.form_callback,
+                                                    # disabled=st.session_state.job_posting_disabled
+                                                    )
+            elif job_posting=="job description":
+                job_description = st.text_area("Job description", 
+                                            key="job_descriptionx", 
+                                            value=st.session_state.job_description if "job_description" in st.session_state else "",
+                                                on_change=self.form_callback, 
+                                                #  disabled=st.session_state.job_description_disabled
                                                 )
-        elif job_posting=="job description":
-            job_description = st.text_area("Job description", 
-                                           key="job_descriptionx", 
-                                           value=st.session_state.job_description if "job_description" in st.session_state else "",
-                                             on_change=self.form_callback, 
-                                            #  disabled=st.session_state.job_description_disabled
-                                             )
         c1, separator, c2=st.columns([5, 1, 3])
         with c1:
             resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
@@ -531,20 +545,29 @@ class Chat():
                             # on_click=self.resume_selection_callback,
                           )
         if conti:
-            # self.resume_selection_callback()
             func(selection)
+            st.session_state[selection]=True
             st.rerun()
 
 
+    def skip_evaluation_callback(self, ):
 
-  
+        if st.session_state["skip_evaluation"]:
+            st.session_state["job_required"]=True
+        else:
+            if "job_required" in st.session_state:
+                del st.session_state["job_required"]
+
+
+
     @st.experimental_fragment
     def general_selection_callback(self, selection, template=False, template_path="", type="", ):
 
         # Generate resume and job posting dictionaries
         #TODO: send these to separate threads if possible
         st.session_state["resume_path_final"]=st.session_state["resume_path"]
-        st.session_state["evaluation"]=True
+        if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
+            st.session_state["evaluation"]=True
         st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
         if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(posting_path=st.session_state.job_posting_path, )
@@ -553,25 +576,25 @@ class Chat():
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
             st.session_state["tailoring"]=True
         st.switch_page("pages/streamlit_dashboard.py")
-        # Evaluate resume
-        if resume_options[0] in selection:
-        # if st.session_state.resume_opt1:
-            st.session_state["evaluation"] = True
-        # Reformat resume
-        if resume_options[1] in selection:
-        # if st.session_state.resume_opt2:
-                try:
-                    st.session_state["resume_type"] = st.session_state["eval_dict"]["ideal_type"]
-                except Exception:   
-                    st.session_state["resume_type"]=research_resume_type(
-                        resume_dict=st.session_state.resume_dict, 
-                        job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "",
-                          )
-                st.session_state["reformatting"] = True
-        # Tailor resume
-        if resume_options[2] in selection:
-        # if st.session_state.resume_opt3:
-            st.session_state["tailoring"] = True
+        # # Evaluate resume
+        # if resume_options[0] in selection:
+        # # if st.session_state.resume_opt1:
+        #     st.session_state["evaluation"] = True
+        # # Reformat resume
+        # if resume_options[1] in selection:
+        # # if st.session_state.resume_opt2:
+        #         try:
+        #             st.session_state["resume_type"] = st.session_state["eval_dict"]["ideal_type"]
+        #         except Exception:   
+        #             st.session_state["resume_type"]=(
+        #                 resume_dict=st.session_state.resume_dict, 
+        #                 job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "",
+        #                   )
+        #         st.session_state["reformatting"] = True
+        # # Tailor resume
+        # if resume_options[2] in selection:
+        # # if st.session_state.resume_opt3:
+        #     st.session_state["tailoring"] = True
 
 
 

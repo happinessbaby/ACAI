@@ -79,6 +79,7 @@ from time import sleep
 from selenium import webdriver 
 from unstructured.partition.html import partition_html
 from dateutil import parser
+from utils.pydantic_schema import ResumeFields, Keywords, Jobs, Projects, Skills
 
 
 # from feast import FeatureStore
@@ -390,15 +391,15 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     
     template_string = """For the following text, delimited with {delimiter} chracters, extract the following information:
 
+    personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
+    
+    work experience: Extract the work experience section of the resume. If this information is not found, output -1\
+
+    education: Extract the education section of the resume. If this information is not found, output -1\
+    
     summary or objective: Extract the summary of objective section of the resume. If this information is not found, output -1\
     
     skills: Extract the skills section of the resume. If there are multiple skills section, combine them into one. If this information is not found, output -1\
-
-    work experience: Extract the work experience section of the resume. If this information is not found, output -1\
-    
-    personal contact: Extract the personal contact section of the resume. If this information is not found, output -1\
-    
-    education: Extract the education section of the resume. If this information is not found, output -1\
 
     awards and honors: Extract the awards and honors sections of the resume.  If this information is not found, output -1\
     
@@ -424,98 +425,67 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
     print(f"Successfully extracted resume field info: {field_info_dict}")
     return field_info_dict
 
-def extract_pursuit_job(resume_content) -> List[str]:
+# def extract_resume_fields4(resume_content):
+#     """"""
+#     response = create_pydantic_parser(resume_content, ResumeFields)
+#     return response
 
-    """ Extracts the possible job titles the candidate is pursuing based on resume"""
 
-    prompt = """ Extract the possible jobs that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
+# def extract_pursuit_job(resume_content) -> List[str]:
+
+#     """ Extracts the possible job titles the candidate is pursuing based on resume"""
+
+#     prompt = """ Extract the possible jobs that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
     
-    If there's not objective or summary, try looking into the work experience section. 
+#     If there's not objective or summary, try looking into the work experience section. 
 
-    resume content: {resume_content}"""
-    # response = generate_multifunction_response(query=prompt, tools=create_search_tools("google", 1))
-    # return response
-    response = create_comma_separated_list_parser(["resume_content"], prompt, query_dict={"resume_content": resume_content})
-    return response
-
-
+#     resume content: {resume_content}"""
+#     # response = generate_multifunction_response(query=prompt, tools=create_search_tools("google", 1))
+#     # return response
+#     response = create_comma_separated_list_parser(["resume_content"], prompt, query_dict={"resume_content": resume_content})
+#     return response
 
 
-def extract_positive_qualities(content: str, llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)) -> str:
 
-    """ Find positive qualities of the applicant in the provided content, such as resume, cover letter, etc. """
 
-    query = f""" Your task is to extract the positive qualities of a job applicant given the provided document. 
+# def extract_positive_qualities(content: str, llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)) -> str:
+
+#     """ Find positive qualities of the applicant in the provided content, such as resume, cover letter, etc. """
+
+#     query = f""" Your task is to extract the positive qualities of a job applicant given the provided document. 
     
-            document: {content}
+#             document: {content}
 
-            Do not focus on hard skills or actual achievements. Rather, focus on soft skills, personality traits, special needs that the applicant may have.
+#             Do not focus on hard skills or actual achievements. Rather, focus on soft skills, personality traits, special needs that the applicant may have.
 
-            """
-    response = get_completion(query)
-    print(f"Successfully extracted positive qualities: {response}")
-    return response
+#             """
+#     response = get_completion(query)
+#     print(f"Successfully extracted positive qualities: {response}")
+#     return response
 
-class Keywords(BaseModel):
-    """Information about a job posting."""
 
-    # ^ Doc-string for the entity Person.
-    # This doc-string is sent to the LLM as the description of the schema Keywords,
-    # and it can help to improve extraction results.
+# def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> Dict[str, str]:
 
-    # Note that:
-    # 1. Each field is an `optional` -- this allows the model to decline to extract it!
-    # 2. Each field has a `description` -- this description is used by the LLM.
-    # Having a good description can help improve extraction results.
-
-    job: Optional[str] = Field(
-        default="", description="job position listed in the job posintg"
-    )
-    about_job: Optional[str] = Field(
-        default="", description = "information about the job, usually listed at the top of the job posting"
-    )
-    company: Optional[str] = Field(
-        default="", description = "name of the company or institution that's hiring"
-    )
-    company_description: Optional[List[str]] = Field(
-        default = "", description="information about the company that's hiring"
-    )
-    qualifications: Optional[List[str]] = Field(
-        default=[], description="Traits or qualifications sought in a candidate"
-    )
-    responsibilities: Optional[List[str]] = Field(
-        default=[], description="Duties and responsibilities for the job position"
-    )
-    salary: Optional[str] = Field(
-        default="", description = "salary or salary range offered for the job, can be annually or hourly"    
-    )
-    on_site: Optional[bool] = Field(
-        default=True, description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
-    )
-def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> Dict[str, str]:
-
-    """ Extract the key job information from job posting. 
+#     """ Extract the key job information from job posting. 
     
-        Args:
+#         Args:
          
-            posting_content(str)
+#             posting_content(str)
 
-        Keyword Args:
+#         Keyword Args:
 
-            llm: default is OpenAI()
+#             llm: default is OpenAI()
 
-        Returns:
+#         Returns:
 
-           a dictionary of job information, including job, company, qualifications, duties in the job posting
+#            a dictionary of job information, including job, company, qualifications, duties in the job posting
         
-    """
+#     """
 
-    response = create_pydantic_parser(posting_content, Keywords)
-    return response
+#     response = create_pydantic_parser(posting_content, Keywords)
+#     return response
 
 
-def researches_posting_keywords():
-    """ Finds ATS friendly words from job postings"""
 
 # def extract_resume_fields(resume: str,  llm=OpenAI(temperature=0,  max_tokens=2048)) -> Dict[str, str]:
 
@@ -638,64 +608,15 @@ def researches_posting_keywords():
 #     # except Exception as e:
 #     #     raise e
 #     return response
-class Job(BaseModel):
-    job_title: Optional[str] = Field(
-        default="", description="the job position"
-        )
-    company: Optional[str] = Field(
-        default="", description = "the company of the job position"
-    )
-    start_date: Optional[str] = Field(
-      default=-1, description = "the start date of the job position if available"
-      )
-    end_date: Optional[str] = Field(
-      default=-1, description = "the end date of the job position if available"
-      )
-    responsibilities: Optional[List[str]] = Field(
-      default=[], description = """responsibilities or roles of the job position, do not leave out any content details"""
-      )
-class Jobs(BaseModel):
-    """Extracted data about people."""
-    # Creates a model so that we can extract multiple entities.
-    jobs: List[Job] 
-def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
-    """Extract job titles from resume """
+# def extract_job_experiences(content: str, llm=ChatOpenAI()) -> List[str]:
 
-    response = create_pydantic_parser(content, Jobs)
-    return response
+#     """Extract job titles from resume """
+
+#     response = create_pydantic_parser(content, Jobs)
+#     return response
 
 
-class Project(BaseModel):
-    title: Optional[str] = Field(
-        default="", description="the name of the project or professional accomplishment, this should not be in the work experience section"
-    )
-    description: Optional[List[str]] = Field(
-        default="", description = "list of accomplishements or details about the project, this should not be in the work experience section"
-    )
-class Projects(BaseModel):
-    projects: List[Project]
-def extract_projects_accomplishments(content, ):
-
-    """Extracts Projects, Professional Accomplishment sections of resume """
-
-    response = create_pydantic_parser(content, Projects)
-    return response
-
-
-
-class Skill(BaseModel):
-    skill:Optional[str] = Field(
-        default="", description="a skill listed "
-    )
-    example:Optional[str] = Field(
-        default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
-    )
-    type: Optional[bool] = Field(
-        default=False, description="categorize the skill, if hard skill, output True, else if soft skill, output False "
-    )
-class Skills(BaseModel):
-    skills : List[Skill]
 def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI()):
 
     """ Finds soft skills and hard skills in a resume or job posting. 
@@ -711,21 +632,9 @@ def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI(
     response = create_pydantic_parser(content, Skills)
     return response
 
-# def extract_skills(skills_list):
-#     """Extracts soft skills and hard skills from skills dictionary """
-#     hard_skills, soft_skills=[], []
-#     for skill in skills_list:
-#         if skill["type"]=="hard skill":
-#             hard_skills.extend(skill["skill"])
-#         elif skill["type"]=="soft skill":
-#             soft_skills.extend(skill["skill"])
-#     return soft_skills, hard_skills
 
-
-
-
-
-
+def researches_posting_keywords():
+    """ Finds ATS friendly words from job postings"""
 
 def calculate_work_experience_years(start_date, end_date) -> int:
      
@@ -935,7 +844,7 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
     return response
 
  #TODO: once there's enough samples, education level and work experience level could also be included in searching criteria
-def search_related_samples(job_titles: List[str], directory: str) -> List[str]:
+def search_related_samples(job_titles: str, directory: str) -> List[str]:
 
     """ Searches resume or cover letter samples in the directory for similar content as job title.
 
@@ -1084,44 +993,53 @@ def search_related_samples(job_titles: List[str], directory: str) -> List[str]:
 
 #     return generated_responses
 
-def create_resume_info(resume_path=""):
+def create_resume_info(resume_path="", preexisting_info_dict={}):
 
-    resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
+    resume_info_dict={resume_path: preexisting_info_dict}
+    # resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
     if (Path(resume_path).is_file()):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         # Extract resume fields
-        field_content = extract_resume_fields3(resume_content)
-        resume_info_dict[resume_path]["resume fields"].update(field_content)
-        # Extract pursuit job
-        pursuit_jobs = extract_pursuit_job(resume_content)
-        resume_info_dict[resume_path].update({"pursuit_jobs": pursuit_jobs})
-        # Extract contact information
-        if field_content["personal contact"]!=-1:
-            personal_info_dict = extract_personal_information(resume_content)
-            resume_info_dict[resume_path]["contact"].update(personal_info_dict)
-        # Extract education specific information
-        if field_content["education"]!=-1:
-            education_info_dict = extract_education_information(resume_content)
-            resume_info_dict[resume_path]["education"].update(education_info_dict)
-            if education_info_dict["graduation year"]:
-                years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
-                resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
-            else:
-                resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
-        # Extract job experience specific information
-        if field_content["work experience"]!=-1:
-            jobs = extract_job_experiences(resume_content)
-            jobs_list = jobs["jobs"]
+        field_content =  create_pydantic_parser(resume_content, ResumeFields)
+        # resume_info_dict[resume_path]["resume fields"].update(field_content)
+        resume_info_dict[resume_path].update(field_content)
+        if field_content["work_experience"]:
+            jobs_list = field_content["work_experience"]
             for i in range(len(jobs_list)):
                 years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
-                jobs_list[i].update({"years of experience": years_experience})
-            # if years_experience>=0 and years_experience<2:
-            #     jobs[i].update({"level": "entry level"})
-            # elif years_experience>2 and years_experience<=5:
-            #     jobs[i].update({"level": "junior level"})
-            # elif years_experience>5 and years_experience<=10:
-            #     jobs[i].update({"level": "senior level"})
-            resume_info_dict[resume_path].update({"work experience": jobs_list})
+                jobs_list[i].update({"years_of_experience": years_experience})
+            resume_info_dict[resume_path].update({"jobs": jobs_list})
+
+        # Extract pursuit job
+        # pursuit_jobs = extract_pursuit_job(resume_content)
+        # resume_info_dict[resume_path].update({"pursuit_jobs": pursuit_jobs})
+        # Extract contact information
+        # if field_content["personal contact"]!=-1:s
+        #     personal_info_dict = extract_personal_information(resume_content)
+        #     resume_info_dict[resume_path]["contact"].update(personal_info_dict)
+        # Extract education specific information
+        # if field_content["education"]!=-1:
+        #     education_info_dict = extract_education_information(resume_content)
+        #     resume_info_dict[resume_path]["education"].update(education_info_dict)
+        #     if education_info_dict["graduation year"]:
+        #         years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
+        #         resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
+        #     else:
+        #         resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
+        # Extract job experience specific information
+        # if field_content["work experience"]!=-1:
+        #     jobs = extract_job_experiences(resume_content)
+        #     jobs_list = jobs["jobs"]
+        #     for i in range(len(jobs_list)):
+        #         years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
+        #         jobs_list[i].update({"years of experience": years_experience})
+        #     # if years_experience>=0 and years_experience<2:
+        #     #     jobs[i].update({"level": "entry level"})
+        #     # elif years_experience>2 and years_experience<=5:
+        #     #     jobs[i].update({"level": "junior level"})
+        #     # elif years_experience>5 and years_experience<=10:
+        #     #     jobs[i].update({"level": "senior level"})
+        #     resume_info_dict[resume_path].update({"work experience": jobs_list})
         # if field_content["projects"]!=-1:
         #     projects = extract_projects_accomplishments(resume_content)
         #     resume_info_dict[resume_path].update(projects)
@@ -1166,7 +1084,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
     #         pursuit_info_dict[key]=pursuit_info_dict1[key]
     # job_posting_info_dict[job_posting].update(pursuit_info_dict)
     # Extract job posting specific requirements
-    basic_info_dict = extract_posting_info(posting)
+    basic_info_dict = create_pydantic_parser(posting, Keywords)
     job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
