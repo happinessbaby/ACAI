@@ -104,7 +104,7 @@ class ResumeFields(BaseModel):
     pursuit_jobs: Optional[List[str]] = Field(
         default= [], description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume"""
     )
-    summary_objectiv_sectione: Optional[str] = Field(
+    summary_objective_section: Optional[str] = Field(
         default = "", description="the summary of objective section of the resume"
     )
     skills_section: Optional[str] = Field(

@@ -481,11 +481,15 @@ class Chat():
                 st.session_state.resume_checkmark=":red[(required)]"
             else:
                 st.session_state.resume_checkmark="(optional)"
-        if ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or st.session_state["job_description"]==None):
+        if (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
             if job_required or "job_required" in st.session_state:
                 st.session_state.job_posting_checkmark=":red[(required)]"
             else:
                 st.session_state.job_posting_checkmark="(optional)"
+        if job_required or "job_required" in st.session_state:
+            st.session_state.expanded=True
+        else:
+            st.session_state.expanded=False
         # selected = st.multiselect(f"What kind of help do you need?",  
         #                             resume_options,
         #                         #   index= options.index(st.session_state["cl_type_selection"]) if "cl_type_selection" in st.session_state else None, 
@@ -500,7 +504,7 @@ class Chat():
             else:
                 st.info("Your resume will be evaluated and tailored to the job posting")
             skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.skip_evaluation_callback)
-        with st.expander("job posting"):
+        with st.expander("job posting", expanded=st.session_state.expanded):
             job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0

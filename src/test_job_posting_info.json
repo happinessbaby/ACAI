@@ -4621,4 +4621,74 @@
         "salary": "",
         "on_site": null
     }
+}{
+    "./chat_session/f40c9344-31ad-4925-86ff-b1b4c12f7026/uploads/91bfb6fd-6024-482a-ac32-01770054b3ea.txt": {
+        "skills": [
+            {
+                "skill": "Communication",
+                "example": "demonstrated by the need for skilled communicators and team players in the qualifications section.",
+                "type": false
+            },
+            {
+                "skill": "Problem-solving",
+                "example": "highlighted by the mention of problem-solving abilities in the qualifications.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "implied by the need for attention to detail and the ability to support various projects.",
+                "type": false
+            },
+            {
+                "skill": "Data analysis",
+                "example": "required for tasks such as statistical analysis, modeling, and generating reports.",
+                "type": true
+            },
+            {
+                "skill": "Data management",
+                "example": "necessary for managing data collection systems, ensuring data accuracy, and supporting data governance.",
+                "type": true
+            },
+            {
+                "skill": "Data visualization",
+                "example": "mentioned in the need to create data visualizations to illustrate key performance metrics.",
+                "type": true
+            },
+            {
+                "skill": "Proficiency in data analysis tools and CRMs such as Salesforce and Excel",
+                "example": "specified in the qualifications section.",
+                "type": true
+            },
+            {
+                "skill": "Knowledge of SQL, R, Stata, Python, or similar tools",
+                "example": "preferred but not required, showing a technical aspect of the role.",
+                "type": true
+            }
+        ],
+        "summary": "## Data Analyst\n\nSan Francisco\n\nAdministration /\n\nFull Time (Exempt) /\n\nHybrid\n\nApply for this job\n\n **Mission Graduates** empowers youth and their families on the path to higher\neducation, equipping them for fulfilling careers that will strengthen future\ngenerations. We work towards fulfilling our mission through a wide range of\nafter-school support services that serve 5,000 children, youth, and families\neach year.  Our vision is to transform the culture of our neighborhood so that\ncollege becomes the expectation for Mission families, rather than the\nexception.\n\n  \n\n **Position Overview:**\n\nJob Summary: As a Data Analyst at Mission Graduates, you will play a crucial\nrole in driving data-driven decision making and improving program\neffectiveness. You will support collecting, analyzing, and interpreting data\nto provide insights that inform strategic initiatives and enhance\norganizational impact. Additionally, you will provide essential data support\nservices and contribute to expanding our data collection systems capabilities\nand data analytics. This is a hybrid position that reports to our Sr. Director\nof HR and Operations and our Director of Program Impact.\n\n### Position Highlights\n\n    * Be part of a thriving, collaborative, and mission-driven team in a growing organization\n    * Use data analysis to support key strategy driving meaningful change for underserved youth and families in San Francisco\n    * Help lead in creation of long-term vision for organization-wide data policies and systems\n    * Expand your knowledge of data organization and analysis with opportunities for self-guided learning and certifications in CRMs and visualization platforms (Salesforce, Looker Studio, etc.)\n\n### Key Responsibilities-Data Collection and Systems Management\n\n    * Manage data collection systems, including SalesForce, Eleyo, Looker, etc. \n    * Support gathering and organizing data from multiple sources, including program databases, surveys, and external datasets.\n    * Ensure data accuracy, integrity, and completeness through regular validation and cleaning processes.\n    * Support with data entry for various projects.\n    * Support the student registration process at the beginning of each semester.\n    * Support organizational data governance by working cross functionally with program teams to support the development of data policies, procedures, and standards to be used across Mission Graduates data systems. This includes managing user roles, profiles, permissions, and data access.\n\n### Data Analytics\n\n    * Support with performing statistical analysis and modeling to identify trends, patterns, and insights.\n    * Conduct data analysis related to program utilization, outcomes, and operations for the purposes of meeting regulatory or funding requirements, or supporting program evaluation and performance accountability needs.\n    * Use software to clean, manipulate, combine, and disaggregate data to identify themes, patterns, and trends.\n\n### Data Reporting and Program Evaluation Support\n\n    * Generate regular reports and dashboards to track program outcomes, program finances, impact metrics, and other performance indicators.\n    * Provide thought partnership on data collection methods and systems.\n    * Create data visualizations that illustrate key performance metrics and insights.\n    * Collaborate with program teams to translate data findings into actionable recommendations and strategies.\n\n### Qualifications\n\n    * Analytical, self-motivated, eager to learn, a skilled communicator and \u2013  most importantly \u2013 a team player\n    * Able to teach others about complex systems in a digestible manner\n    * Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred\n    * Passionate about education and/or social justice issues and demonstrate an understanding of the social and economic factors that contribute to systemic inequity affecting our communities.\n    * Excellent attention to detail, problem-solving abilities, and collaboration skills\n    * Proven experience in data analysis, data management, and data visualization\n    * Proficient in data analysis tools and CRMs such as Salesforce and Excel (experience with SQL, R, Stata, Python, or similar also preferred but not required)\n    * Knowledgeable about nonprofit organizations or the education sector\n    * Spanish fluency or competency preferred \n\n$75,000 - $85,000 a year\n\nApply for this job\n\nMission Graduates Home Page\n\nJobs powered by\n\n",
+        "job": "Data Analyst",
+        "about_job": "As a Data Analyst at Mission Graduates, you will play a crucial role in driving data-driven decision making and improving program effectiveness. You will support collecting, analyzing, and interpreting data to provide insights that inform strategic initiatives and enhance organizational impact. Additionally, you will provide essential data support services and contribute to expanding our data collection systems capabilities and data analytics. This is a hybrid position that reports to our Sr. Director of HR and Operations and our Director of Program Impact.",
+        "company": "Mission Graduates",
+        "company_description": "Mission Graduates empowers youth and their families on the path to higher education, equipping them for fulfilling careers that will strengthen future generations. They work towards fulfilling their mission through a wide range of after-school support services that serve 5,000 children, youth, and families each year. The vision is to transform the culture of the neighborhood so that college becomes the expectation for Mission families, rather than the exception.",
+        "qualifications": [
+            "Bachelor's degree in data science, statistics, mathematics, computer science, social science or related field preferred",
+            "Passionate about education and/or social justice issues",
+            "Proficient in data analysis tools and CRMs such as Salesforce and Excel",
+            "Knowledgeable about nonprofit organizations or the education sector"
+        ],
+        "responsibilities": [
+            "Manage data collection systems",
+            "Support data gathering and organization",
+            "Ensure data accuracy and integrity",
+            "Support data entry for projects",
+            "Support organizational data governance",
+            "Perform statistical analysis and modeling",
+            "Conduct data analysis related to program utilization and outcomes",
+            "Generate reports and dashboards",
+            "Create data visualizations",
+            "Collaborate with program teams to translate data findings into actionable recommendations"
+        ],
+        "salary": "$75,000 - $85,000 a year",
+        "on_site": false
+    }
 }
