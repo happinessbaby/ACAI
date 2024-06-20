@@ -79,7 +79,7 @@ from time import sleep
 from selenium import webdriver 
 from unstructured.partition.html import partition_html
 from dateutil import parser
-from utils.pydantic_schema import ResumeFields, Keywords, Jobs, Projects, Skills
+from utils.pydantic_schema import ResumeFields, ResumeFieldDetail,Keywords, Jobs, Projects, Skills
 
 
 # from feast import FeatureStore
@@ -113,6 +113,8 @@ else:
     bucket_name=None
     s3=None
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+resume_info_file = os.environ["RESUME_INFO_FILE"]
+job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
       
 
 
@@ -1003,14 +1005,16 @@ def create_resume_info(resume_path="", preexisting_info_dict={}):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         # Extract resume fields
         field_content =  create_pydantic_parser(resume_content, ResumeFields)
+        field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
         # resume_info_dict[resume_path]["resume fields"].update(field_content)
         resume_info_dict[resume_path].update(field_content)
-        if field_content["work_experience"]:
-            jobs_list = field_content["work_experience"]
+        resume_info_dict[resume_path].update(field_details)
+        if field_details["work_experience"]:
+            jobs_list = field_details["work_experience"]
             for i in range(len(jobs_list)):
                 years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
                 jobs_list[i].update({"years_of_experience": years_experience})
-            resume_info_dict[resume_path].update({"jobs": jobs_list})
+            resume_info_dict[resume_path].update({"work_experience": jobs_list})
 
         # Extract pursuit job
         # pursuit_jobs = extract_pursuit_job(resume_content)
@@ -1054,7 +1058,7 @@ def create_resume_info(resume_path="", preexisting_info_dict={}):
         resume_info_dict[resume_path].update(skills)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     # print(resume_info_dict)
-    with open('./test_resume_info.json', 'a') as json_file:
+    with open(resume_info_file, 'a') as json_file:
         json.dump(resume_info_dict, json_file, indent=4)
     return resume_info_dict[resume_path]
 
@@ -1102,7 +1106,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         job_posting_info_dict[job_posting].update({"company_description": company_description})
     # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
-    with open('./test_job_posting_info.json', 'a') as json_file:
+    with open(job_posting_info_file, 'a') as json_file:
         json.dump(job_posting_info_dict, json_file, indent=4)
     return job_posting_info_dict[job_posting]
 

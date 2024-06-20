@@ -94,13 +94,19 @@ class Skill(BaseModel):
 class Skills(BaseModel):
     skills : List[Skill]
 
-
-class ResumeFields(BaseModel):
+class ResumeFieldDetail(BaseModel):
     contact: Optional[Contact]
     work_experience:Optional[List[Job]]
     education: Optional[Education]
     projects: Optional[List[Project]]
     certifications: Optional[List[Certification]]
+
+class ResumeFields(BaseModel):
+    # contact: Optional[Contact]
+    # work_experience:Optional[List[Job]]
+    # education: Optional[Education]
+    # projects: Optional[List[Project]]
+    # certifications: Optional[List[Certification]]
     pursuit_jobs: Optional[List[str]] = Field(
         default= [], description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume"""
     )
@@ -113,12 +119,16 @@ class ResumeFields(BaseModel):
     work_experience_section:  Optional[str] = Field(
         default="", description=" the work experience section of the resume"
     )
-    # accomplishments: Optional[str] = Field(
-    #     default="", description="the professional accomplishment section of the resume that is not work experience"
-    # )
-    # awards_honors: Optional[str] = Field(
-    #     default="", description = "the awards and honors sections of the resume"    
-    # )
+    accomplishments_section: Optional[str] = Field(
+        default="", description="the professional accomplishment section of the resume that is not work experience"
+    )
+    awards_honors_section: Optional[str] = Field(
+        default="", description = "the awards and honors sections of the resume"    
+    )
+    projects_section: Optional[str] = Field(
+        default="", description = "the projects sections of the resume"    
+    )
+
 
 class Keywords(BaseModel):
     """Information about a job posting."""
@@ -156,3 +166,36 @@ class Keywords(BaseModel):
     on_site: Optional[bool] = Field(
         default=None, description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
     )
+
+
+class Comparison(BaseModel):
+    closeness: Optional[str] = Field(
+        default="", description = """closeness concluded in the content, 
+        should be one of the following only: ["not close at all", "some similarity", "very similar", "identitical"]"""
+    )
+
+class ResumeType(BaseModel):
+    type: Optional[str] = Field(
+        default="", description="type of resume, should be either functional or chronological "
+    )
+
+class TailoredSkills(BaseModel):
+    irrelevant_skills:Optional[List[str]] = Field(
+        default=[], description="irrelevant skills, usually found in Step 1, these are skills that can be excluded from the resume"
+    )
+    relevant_skills: Optional[List[str]] = Field(
+        default=[], description="relevant skills, usually found in Step 2, these are skills in the resume that are also in the job description "
+    )
+    additional_skills:Optional[List[str]] = Field(
+        default=[], description="usually found in Step 3, these are skills that can be added on to the resume"
+    )
+
+class Replacement(BaseModel):
+    replaced_words: Optional[str] = Field(
+        default="", description="word or phrases to be replaced or subsituted"
+    )
+    substitution: Optional[str] = Field(
+        default="", description = "substitution words or phrases, can be multiple"
+    )
+class Replacements(BaseModel):
+    replacements: List[Replacement]

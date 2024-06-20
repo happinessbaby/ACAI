@@ -30,6 +30,7 @@ from docx.shared import Inches
 import boto3
 import re
 from pydantic import BaseModel, Field, validator
+from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -147,11 +148,6 @@ def analyze_field_content(field_content, field_type):
         return response
             
 
-class Comparison(BaseModel):
-    closeness: Optional[str] = Field(
-        default="", description = """closeness concluded in the content, 
-        should be one of the following only: ["not close at all", "some similarity", "very similar", "identitical"]"""
-    )
 def analyze_via_comparison(resume_content, jobs):
 
     """Analyzes overall resume by comparing to other samples"""
@@ -212,10 +208,7 @@ def analyze_cohesiveness(resume_content, jobs):
     cohesiveness_resp = generate_multifunction_response(query_cohesiveness, create_search_tools("google", 1))
     return cohesiveness_resp
 
-class ResumeType(BaseModel):
-    type: Optional[str] = Field(
-        default="", description="type of resume, should be either functional or chronological "
-    )
+
 def analyze_resume_type(resume_content, ):
 
     query_type = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters. 
@@ -255,7 +248,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}):
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    tailored_skills_dict = tailor_skills(required_skills, resume_skills)
+    tailored_skills_dict = tailor_skills(required_skills, my_skills, resume_skills)
     tailor_dict.update({"tailored_skills": tailored_skills_dict})
     tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description+about_job)
     tailor_dict.update({"tailored_objective": tailored_objective_dict})
@@ -270,22 +263,13 @@ def concat_skills(skills_list, skills_str=""):
         skills_str+="(skill: " +skill + ", example: "+ example + ")"
     return skills_str
 
-class TailoredSkills(BaseModel):
-    irrelevant_skills:Optional[List[str]] = Field(
-        default=[], description="irrelevant skills, usually found in Step 1, these are skills that can be excluded from the resume"
-    )
-    relevant_skills: Optional[List[str]] = Field(
-        default=[], description="relevant skills, usually found in Step 2, these are skills in the resume that are also in the job description "
-    )
-    additional_skills:Optional[List[str]] = Field(
-        default=[], description="usually found in Step 3, these are skills that can be added on to the resume"
-    )
-def tailor_skills(required_skills, resume_skills):
+
+def tailor_skills(required_skills, my_skills, resume_skills):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
     required_skills_str = concat_skills(required_skills)
-    my_skills_str = concat_skills(resume_skills)
+    my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
     # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
     # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
         # Relevancy report for hard skills: {relevant_hard_skills} \
@@ -337,15 +321,7 @@ def tailor_skills(required_skills, resume_skills):
     tailored_skills_dict = create_pydantic_parser(tailored_skills, TailoredSkills)
     return tailored_skills_dict
 
-class Replacement(BaseModel):
-    replaced_words: Optional[str] = Field(
-        default="", description="word or phrases to be replaced or subsituted"
-    )
-    substitution: Optional[str] = Field(
-        default="", description = "substitution words or phrases, can be multiple"
-    )
-class Replacements(BaseModel):
-    replacements: List[Replacement]
+
 def tailor_objective(my_objective,  job_requirements, company_description):
 
     #TODO: THIS needs to to be redone!
@@ -434,15 +410,19 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
                 if years>0:
                     total_years_work+=years
             except Exception:
-                pass     
-    year_graduated = resume_dict["education"]["graduation_year"]
-    years_since_graduation = calculate_graduation_years(year_graduated)
-    if (years_since_graduation - total_years_work>2) or (years_since_graduation<=2 ):
-        resume_type = "functional"
-        print("RESUME TYPE: FUNCTIONAL")
+                pass  
+    if total_years_work<=2:
+        resume_type="functional"
     else:
-        resume_type = "chronological"
-        print("RESUME TYPE: CHRONOLOGICAL")
+        resume_type="chronological"   
+    # year_graduated = resume_dict["education"]["graduation_year"]
+    # years_since_graduation = calculate_graduation_years(year_graduated)
+    # if (years_since_graduation!=-1 and years_since_graduation-total_years_work>2) or (years_since_graduation!=-1 and years_since_graduation<=2 ):
+    #     resume_type = "functional"
+    #     print("RESUME TYPE: FUNCTIONAL")
+    # elif total_years_work<2:
+    #     resume_type = "chronological"
+    #     print("RESUME TYPE: CHRONOLOGICAL")
     return resume_type
 
 

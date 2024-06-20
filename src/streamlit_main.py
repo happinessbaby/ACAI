@@ -49,7 +49,7 @@ from st_clickable_images import clickable_images
 from st_btn_select import st_btn_select
 from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
-from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
+# from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your
@@ -106,7 +106,7 @@ class Chat():
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
-        self._init_session_states()
+        # self._init_session_states()
         # self._create_chatbot()
         self._init_display()
 
@@ -125,7 +125,6 @@ class Chat():
         #     st.session_state["sessionId"] = str(uuid.uuid4())
         # #     print(f"Session: {st.session_state.sessionId}")
         # if "messages" not in st.session_state:
-        st.session_state["popup"]=True
         st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
         #TODO, get dynamodb message history to work
         # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
@@ -169,37 +168,37 @@ class Chat():
         # # hack to clear text after user input
         # if 'questionInput' not in st.session_state:
         #     st.session_state["questionInput"] = None  
-        st.session_state["resume_placeholder"] = st.empty()
-        if STORAGE == "LOCAL":
-            st.session_state["storage"]="LOCAL"
-            st.session_state["bucket_name"]=None
-            st.session_state["s3_client"]= None
-            # if "save_path" not in st.session_state:
-            st.session_state["save_path"] = os.environ["CHAT_PATH"]
-            # if "temp_path" not in st.session_state:
-            st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-        elif STORAGE=="CLOUD":
-            st.session_state["storage"]="CLOUD"
-            st.session_state["bucket_name"]=bucket_name
-            st.session_state["s3_client"]= get_client('s3') 
-            # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
-            # if "save_path" not in st.session_state:
-            st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
-            # if "temp_path" not in st.session_state:
-            st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        if _self.userId is None:
-            paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId),
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                    ]
-        else:
-            paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                     ]
-        mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        # st.session_state["resume_placeholder"] = st.empty()
+        # if STORAGE == "LOCAL":
+        #     st.session_state["storage"]="LOCAL"
+        #     st.session_state["bucket_name"]=None
+        #     st.session_state["s3_client"]= None
+        #     # if "save_path" not in st.session_state:
+        #     st.session_state["save_path"] = os.environ["CHAT_PATH"]
+        #     # if "temp_path" not in st.session_state:
+        #     st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+        # elif STORAGE=="CLOUD":
+        #     st.session_state["storage"]="CLOUD"
+        #     st.session_state["bucket_name"]=bucket_name
+        #     st.session_state["s3_client"]= get_client('s3') 
+        #     # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
+        #     # if "save_path" not in st.session_state:
+        #     st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
+        #     # if "temp_path" not in st.session_state:
+        #     st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+        # if _self.userId is None:
+        #     paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+        #             os.path.join(st.session_state.save_path, st.session_state.sessionId),
+        #             os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+        #             os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
+        #             ]
+        # else:
+        #     paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
+        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
+        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
+        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
+        #              ]
+        # mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
     # @st.cache_data()
     def _init_display(_self):
@@ -308,7 +307,6 @@ class Chat():
     
             # st.session_state["selections"] = st_btn_select(("Resume & Cover Letter",'Mock Interview', "Job Search", "My Profile", ""), index=-1,)
             # if st.session_state.selections =="Resume & Cover Letter":
-            #     print("popup initiated")
             #     _self.selection_popup()
             #     # _self.template_popup("chronological")
             # elif  st.session_state.selections=="Mock Interview":
@@ -498,12 +496,12 @@ class Chat():
         if selection=="resume help":
             if "job_required" in st.session_state:
                 st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
-            elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or st.session_state["job_description"]==None):
+            elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
                 st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
             else:
                 st.info("Your resume will be evaluated and tailored to the job posting")
             skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.skip_evaluation_callback)
-        with st.expander("job posting", expanded=st.session_state.expanded):
+        with st.expander("Add a job posting for tailoring", expanded=st.session_state.expanded):
             job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0

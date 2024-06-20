@@ -70,6 +70,7 @@ def main():
                 ),
                 daemon=True,
             )
+            thread.start()
         count+=1
     # del st.session_state.resume_path, st.session_state.job_posting_path, st.session_state.job_description
 
@@ -92,23 +93,20 @@ def display_tailoring():
         try:
             original_skills = tailor_dict["original_skills"]
             tailored_skills_dict=tailor_dict["tailored_skills"]
-            if original_skills:
-                irrelevant_skills = tailored_skills_dict["irrelevant_skills"]
-                additional_skills = tailored_skills_dict["additional_skills"]
-                # ranked_skills = tailored_skills_dict["ranked_skills"]
-                relevant_skills = tailored_skills_dict["relevant_skills"]
-                st.write("""Some of the skills you have in your resume may distract the HR from reading the skills that truly matter to them. 
-                       You may remove them or rank them lower on the list.""")
-                st.write(irrelevant_skills)
-                st.write("""There are skills that can benefit you if you add them to your resume. However, if you don't have them, don't add them! 
-                        Remember, a HR looks for your integrity as much as your talent!""")
-                st.write(additional_skills)
-                st.write("""These skills are the most relevant to the job position that will make you stand out. Make sure to rank them higher on the list!""")
-                st.write(relevant_skills)
-            else:
-                st.write("You seem to lacks a skills section. If you would like to add one, here are the tailored set of skills you can add for this job application.")
-                generated_skills = tailored_skills_dict["generated_skills"]
-                st.write(generated_skills)
+            if original_skills!="":
+                st.write("You seem to lack a skills section. If you would like to add one, here are some tailoring suggestions you can reference.")
+            irrelevant_skills = tailored_skills_dict["irrelevant_skills"]
+            additional_skills = tailored_skills_dict["additional_skills"]
+            # ranked_skills = tailored_skills_dict["ranked_skills"]
+            relevant_skills = tailored_skills_dict["relevant_skills"]
+            st.write("""Some of the skills you have in your resume may distract the HR from reading the skills that truly matter to them. 
+                    You may remove them or rank them lower on the list.""")
+            st.write(irrelevant_skills)
+            st.write("""There are skills that can benefit you if you add them to your resume. However, if you don't have them, don't add them! 
+                    Remember, a HR looks for your integrity as much as your talent!""")
+            st.write(additional_skills)
+            st.write("""These skills are the most relevant to the job position that will make you stand out. Make sure to rank them higher on the list!""")
+            st.write(relevant_skills)
         except Exception:
             st.write("Evaluating...")  
     with c2:
