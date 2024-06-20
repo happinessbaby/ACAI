@@ -1,9 +1,0 @@
-
-
-[1m> Entering new AgentExecutor chain...[0m
-[32;1m[1;3m```json
-{
-    "action": "cover_letter_generator",
-    "action_input": "{\"about me\":\"\", \"resume file\":\"./static/c8b08c97-816a-4bf1-9b0e-8cdaa33a96ef/c22766e5-58b2-448f-b092-ec7907cdfa95.txt\", \"job post link\":\"\"}"
-}
-```[0m
