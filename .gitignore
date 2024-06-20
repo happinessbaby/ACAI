@@ -169,7 +169,6 @@ src/venvAutoGPT3
 src/frontend/node_modules
 src/my_feature_repo
 src/web_data
-src/interview_data
 src/pickle_memory
 src/chat_session
 src/interview_session
@@ -180,8 +179,9 @@ src/recording
 create_lambda_layers
 src/lancetest/
 *.yaml
-my_component/frontend/public/assets/
-src/user_profile_file.json
 src/jobscraperv2/
 src/template_gallery_component
 src/interview_tmp_vs/
+src/todo_tmp/
+src/chat_debug/
+src/interview_data/

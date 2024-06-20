@@ -1,9 +1,0 @@
-
-
-[1m> Entering new AgentExecutor chain...[0m
-[32;1m[1;3m```json
-{
-    "action": "redesign_resume_template",
-    "action_input": "{\"resume_file\":\"./static/71983486-b4a8-4803-ae1a-7ced8dcba670/89d67aa8-f8c7-4d0d-a135-247a2a502ce7.txt\"}"
-}
-```[0m

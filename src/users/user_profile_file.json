@@ -1,0 +1,16 @@
+{
+  "tebs": {
+    "name": "Yueqi",
+    "birthday": "1990-12-10",
+    "graduation_year": "",
+    "degree": "Bachelor's degree",
+    "job": "['software developer']",
+    "job_level": "entry level",
+    "mininum_pay": "20",
+    "pay_type": "hourly",
+    "study": [
+      "math"
+    ],
+    "summary": "The person's name is Yueqi and their birthday is December 10, 1990. They have an Associate's degree and work as an entry-level software engineer. Their pay is $50,000 annually. They studied math."
+  }
+}

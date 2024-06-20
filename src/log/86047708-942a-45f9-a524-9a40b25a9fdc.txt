@@ -1,9 +1,0 @@
-
-
-[1m> Entering new AgentExecutor chain...[0m
-[32;1m[1;3m```json
-{
-    "action": "resume_evaluator",
-    "action_input": "{\"about_me\":\"help me rewrite my resume\", \"resume_file\":\"./static/86047708-942a-45f9-a524-9a40b25a9fdc/15ebeabb-8b47-4e13-8425-eb7e7e9f46e0.txt\"}"
-}
-```[0m

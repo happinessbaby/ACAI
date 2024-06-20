@@ -34,9 +34,17 @@ from docx import Document
 from odf import text, teletype
 from odf.opendocument import load
 from io import BytesIO
+import docx2pdf
+from pathlib import Path
+from PyPDF2 import PdfReader  
+import nltk
+from nltk.tokenize import word_tokenize
+import PyPDF2
+import subprocess
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
+nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
@@ -50,10 +58,9 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
                 os.rename(file, output_path)
             elif (file_ext=='.pdf'): 
                 convert_pdf_to_txt(file, output_path)
-            elif (file_ext=='.docx'):
-                convert_doc_to_txt(file, output_path)
-            elif (file_ext=='.odt' ):
-                convert_odt_to_txt(file, output_path)
+            elif (file_ext=='.docx' or file_ext==".odt"):
+                pdf_path = convert_to_pdf(file)
+                convert_pdf_to_txt(pdf_path, output_path)
             elif (file_ext==".log"):
                 convert_log_to_txt(file, output_path)
             elif (file_ext==".pptx"):
@@ -68,6 +75,14 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
         print(e)
         return False
 
+def convert_to_pdf(input_path):
+    output_path = input_path.replace('.docx', '.pdf').replace('.odt', '.pdf')
+    try:
+        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+        return None
+    return output_path
 
 def convert_log_to_txt(file, output_path):
     with open(file, "r") as f:
@@ -90,32 +105,48 @@ def convert_pptx_to_txt(pptx_file, output_path):
  
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
 def convert_pdf_to_txt(pdf_file, output_path):
-    pdf = fitz.open(pdf_file)
-    text = ""
-    for page in pdf:
-        text+=page.get_text() + '\n'
+    # pdf = fitz.open(pdf_file)
+    # pages = count_pages(pdf_file)
+    # text = f"pages: {pages}"
+    # for page in pdf:
+    #     text+=page.get_text() + '\n'
+    # with open(output_path, 'w') as f:
+    #     f.write(text)
+    #     f.close()# Create a PDF reader object
+    pdf_file = open(pdf_file, 'rb')
+    read_pdf = PyPDF2.PdfReader(pdf_file)
+    pages = len(read_pdf.pages)
+    text = f"pages:{pages}"
+    print(text)
+    for page in read_pdf.pages:
+        text+=page.extract_text()
     with open(output_path, 'w') as f:
         f.write(text)
-        f.close()
+        f.close()# Create a PDF reader object
+
+
 
 #TODO: needs to find the best docx to txt converter that takes care of special characters best
-def convert_doc_to_txt(doc_file, output_path):
-    doc = Document(doc_file)
-    # text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
-    # print(text)
-    with open(output_path, "w") as f:
-        for paragraph in doc.paragraphs:
-            f.write(paragraph.text + '\n')
+# def convert_doc_to_txt(doc_file, output_path):
+#     doc = Document(doc_file)
+#     # text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
+#     # print(text)
+#     pages = count_pages(doc_file)
+#     with open(output_path, "w") as f:
+#         f.write(f"pages:{pages}")
+#         for paragraph in doc.paragraphs:
+#             f.write(paragraph.text + '\n')
         
-def convert_odt_to_txt(odt_file, txt_file):
-    doc = load(odt_file)
-    text_content = []
-    for paragraph in doc.getElementsByType(text.P):
-        text_content.append(teletype.extractText(paragraph))
+# def convert_odt_to_txt(odt_file, txt_file):
+#     doc = load(odt_file)
+#     pages = count_pages(odt_file)
+#     text_content = [f"pages:{pages}"]
+#     for paragraph in doc.getElementsByType(text.P):
+#         text_content.append(teletype.extractText(paragraph))
     
-    with open(txt_file, 'w', encoding='utf-8') as f:
-        for line in text_content:
-            f.write(line + '\n')
+#     with open(txt_file, 'w', encoding='utf-8') as f:
+#         for line in text_content:
+#             f.write(line + '\n')
 
 def convert_txt_to_doc(txt_file, output_path, storage="LOCAL", s3=None, bucket_name=None):
     doc = Document()
@@ -226,7 +257,17 @@ def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, 
             CopySource={'Bucket': bucket_name, 'Key': source_file}
         )
 
+def count_length(filename, ):
 
+    try:
+        with open(filename, 'r', encoding='utf-8') as file:
+            content = file.read()
+            words = word_tokenize(content)
+            word_count = len(words)
+            return word_count
+    except FileNotFoundError:
+        print(f"The file {filename} does not exist.")
+        return 0
 
     
 def markdown_table_to_dict(markdown_table):
@@ -500,12 +541,13 @@ class DecimalEncoder(json.JSONEncoder):
 
 if __name__=="__main__":
     # retrieve_web_content("https://python.langchain.com/docs/use_cases/summarization/",)
-    html_to_text(
-       "https://www.forbes.com/sites/carolinecastrillon/2020/09/20/why-your-work-values-are-essential-to-career-satisfaction/?sh=327529f818aa",
-        save_path =f"./web_data/career_satisfaction.txt")
+    # html_to_text(
+    #    "https://jobs.lever.co/missiongraduates/596a25c8-5998-469b-9cb8-53b2afd1ceab",
+    #     save_path =f"./my_material/data_analyst3.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
-    # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/resume2023v4.txt")
+    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist_yp.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
+    # count_pages("./my_material/resume2023v2.pdf")
 
 
 

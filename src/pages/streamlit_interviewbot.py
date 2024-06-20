@@ -11,7 +11,7 @@ from backend.mock_interviewer import InterviewController
 # from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file, move_file
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content
+from utils.common_utils import  check_content, process_links, process_uploads
 import asyncio
 import functools
 from typing import Any, Dict, Union
@@ -80,6 +80,7 @@ uri = "ws://127.0.0.1:8765"
 
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
+# interview_options=["phone", "panel"]
 
 class Interview():
 
@@ -112,15 +113,10 @@ class Interview():
 
 
     
-    @st.cache_data()
+    # @st.cache_data()
     def _init_session_states(_self,):
 
-            st.session_state["mode"]=None
-            st.session_state["user_upload_dict"] = {}
-            # initialize submitted form variables
-            # if "about" not in st.session_state:
-            st.session_state["about"]=""
-            st.session_state["industry"]=""
+
             # st.session_state["transcribe_client"] = _self.aws_session.client('transcribe')
             st.session_state["tts_client"]= texttospeech.TextToSpeechClient()
             st.session_state["host"] = "Maya"
@@ -190,12 +186,91 @@ class Interview():
             #     on_release=_self.on_release)
             #     st.session_state["listener"] = new_listener
  
+    @st.experimental_dialog("Tell me about your interview!", width="large")
+    def interview_form_popup(self):
+        """"""
 
+        st.session_state["init_interview"]=False
+        def add_links(count):
+            # c1, c2=st.columns([5, 1])
+            # with c1:
+            if count==0:
+                st.text_input(label =f"Link",
+                                key = f"interview_links_{count}", 
+                            help ="This can be a job posting or your interview material from online sources",
+                                on_change=self.form_callback,
+                                )
+            else:
+                st.text_input(label="hidden", 
+                               key = f"interview_links_{count}", 
+                              label_visibility="hidden")
+            # with c2:
+            placeholder = st.empty()
+            another = placeholder.checkbox(label="add another",
+                        key=f"checkbox_link_{count}",
+            )
+            if another:
+                placeholder.empty()
+                add_links(count++1)
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            st.text_area("Interview content", 
+                        placeholder="for example, you can say, my interview is with ABC for a store manager position",
+                        key="interview_about",
+                        on_change=self.form_callback,
+            )
+        with c2:
+            industry_options =  ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ]
+            st.selectbox("Industry",
+                        index=None, 
+                        key="interview_industry",
+                            options=industry_options,
+                            on_change=self.form_callback,
+                            )
+        add_vertical_space(3)      
+        c3, c4=st.columns([1, 1])
+        with c3:
+            add_links(0)
+        with c4:
+            st.file_uploader(label="Files",
+                            type=["pdf","odt", "docx","txt", "zip", "pptx"], 
+                            key = "interview_files",
+                            accept_multiple_files=True, 
+                            help="This can also be your resume, interview material, etc. Multiple files are accepted",
+                            on_change= self.form_callback,
+                            )
+        submit=st.button("Submit",key="preform_submit_button")
+        skip = st.button("skip", type="primary")
+        if submit:
+            st.session_state["init_interview"]=True
+            st.rerun()
+        if skip:
+            st.session_state["init_interview"]=False
+            st.rerun()
 
+    
     def _init_display(_self):
 
         """ Initializes Streamlit UI. """
 
+        def get_base64_of_bin_file(bin_file):
+            with open(bin_file, 'rb') as f:
+                data = f.read()
+            return base64.b64encode(data).decode()
+
+        def set_png_as_page_bg(png_file):
+            bin_str = get_base64_of_bin_file(png_file)
+            page_bg_img = '''
+            <style>
+            .stApp {
+            background-image: url("data:image/png;base64,%s");
+            background-size: cover;
+            }
+            </style>
+            ''' % bin_str
+            
+            st.markdown(page_bg_img, unsafe_allow_html=True)
+            return
         # main_bg_ext = "png"
         
         # st.markdown(
@@ -245,50 +320,46 @@ class Interview():
         # st.markdown(styl, unsafe_allow_html=True)
 
         with st._main:
-            if "init_interview" not in st.session_state:
-                with st.container():
-                    c1, c2=st.columns([8, 1])
-                    #TODO: display interview tips UI with some html component
-                    with c2:
-                        placeholder_skip = st.empty()
-                        skip = placeholder_skip.button("Skip the interview form", type="primary")
-                        if skip:
-                            st.session_state["init_interview"]=False
-                            placeholder_skip.empty()
-                            # st.rerun()
-                    # _self.interview_loading()
-                    # interview_loading(container)
-            if "init_interview" in st.session_state and st.session_state["mode"]==None:
+            if "mode" not in st.session_state:
+                print("waiting for user to pick a mode")
+                # set_png_as_page_bg("./background/enter_interview.png")
                 with st.container():
                     c1, _, c2=st.columns([1, 1, 1])
                     with c1:
                         placeholder_interview=st.empty()
-                        interview_mode=placeholder_interview.button("Enter interview room", key="interview_mode_button",)
+                        interview_mode=placeholder_interview.button("Enter panel room", key="panel_mode_button",)
                     with c2:
                         placeholder_practice=st.empty()
-                        practice_mode = placeholder_practice.button("Enter practice mode", key="practice_mode_button",)
+                        practice_mode = placeholder_practice.button("Enter phone interview", key="phone_mode_button",)
                     if interview_mode:
-                        st.session_state.mode="regular"
+                        st.session_state["mode"]="panel interview"
                         placeholder_interview.empty()
                         placeholder_practice.empty()
+                        st.rerun()
                     if practice_mode:
-                        st.session_state.mode="text_and_voice"
+                        st.session_state["mode"]="phone interview"
                         placeholder_interview.empty()
                         placeholder_practice.empty()
-            if st.session_state["mode"]=="regular" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
-                print("initializing interview ui")
+                        st.rerun()
+            if "mode" in st.session_state and "init_interview" not in st.session_state:
+                _self.interview_form_popup()
+            if "mode" in st.session_state and st.session_state["mode"]=="panel interview" and "baseinterview" in st.session_state:
+                print("initializing panel interview ui")
                  # components.iframe("http://localhost:3001/")
                 # st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
                 greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 interview = my_component(greeting_json) 
                 _self.nav_to("http://localhost:3001/" )
-            elif  st.session_state.mode=="text_and_voice" and "init_interview" in st.session_state and "baseinterview" in st.session_state:
-                print('entering text mode')
+            elif   "mode" in st.session_state and st.session_state["mode"]=="phone interview" and "baseinterview" in st.session_state:
+                print('entering phone mode')
                 with st.container():
                     # user_input =speech_to_text(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))
                     text = whisper_stt(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))  
                     if text:
                         print(text)
+                    if "greeting" in st.session_state:
+                        _self.synthesize_ai_response(st.session_state.greeting)
+                        del st.session_state["greeting"]
                     if "interview_input" in st.session_state and "interviewer_response" in st.session_state:
                         with st.session_state.human_col:
                             st.session_state.placeholder_human.markdown(st.session_state.interview_input)
@@ -302,70 +373,25 @@ class Interview():
                             with st.session_state.placeholder_expander.expander("How am I doing?"):
                                 placeholder_feedback=st.empty()
                                 placeholder_feedback.write(st.session_state.grader_response)
-                    st.session_state.placeholder_chat.chat_input("Your response: ",  key=f"chat_input", on_submit = _self.chat_callback, args=("text", ))
+                    # st.session_state.placeholder_chat.chat_input("Your response: ",  key=f"chat_input", on_submit = _self.chat_callback, args=("text", ))
+    # @st.experimental_dialog("What type of interview?")
+    # def interview_selection_popup(self, ):
+    #     """"""
 
-                       
-
-
-        with st.sidebar:          
-            add_vertical_space(10)
-            # st.markdown('''s
-                        
-            # How the mock interview works: 
-
-            # - refresh the page to start a new session   
-            # - press R + Space to start recording
-            # - press S + Space to stop recording
-            # - press Shift + Esc to end the session
-                        
-            # ''')
-            # add_vertical_space(5)
-            if "init_interview" not in st.session_state:
-                placeholder_form=st.empty()
-                with placeholder_form.form("Interview Form", clear_on_submit=True):
-                # st.markdown("Interview Form")
-                    st.text_area("Tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about",)
-                    industry_options =  ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ]
-                    st.selectbox("Industry", index=None, key="interview_industry", options=industry_options,)
-                    st.text_input("Links", placeholder="please separate each link with a comma", key = "interview_links", help="This can be a job posting or your interview material from online sources" )
-                    st.file_uploader(label="Interview materials",
-                                    type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-                                    key = "interview_files",
-                                    accept_multiple_files=True, 
-                                    help="This can also be your resume",
-                                    )
-                    add_vertical_space(1)      
-                    clicked=st.form_submit_button("Submit", on_click=_self.form_callback, args=(placeholder_form, placeholder_skip))
-
-
-            
-    # def _init_interview_preform(self):
-
-    #     """ Creates interview form at the beginning of the interview session. """
-
-    #     st.session_state["modal"] = Modal(title="Welcome to your mock interview session!", key="popup", max_width=1000)
-    #     with st.session_state["modal"].container():
-    #         # with st.form( key='interview_form', clear_on_submit=True):
-    #         add_vertical_space(1)
-    #         st.markdown("Please fill out the form below before we begin")
-    #         st.text_area("tell me about your interview", placeholder="for example, you can say, my interview is with ABC for a store manager position", key="interview_about", on_change=self.form_callback)
-    #         st.text_input("links (this can be a job posting)", "", key = "interview_links", on_change=self.form_callback )
-    #         st.file_uploader(label="Upload your interview material or resume",
-    #                                         type=["pdf","odt", "docx","txt", "zip", "pptx"], 
-    #                                         key = "interview_files",
-    #                                         accept_multiple_files=True, 
-    #                                         on_change=self.form_callback,
-    #                                         )
-    #         add_vertical_space(1)
-    #         st.button("Submit", key="preform_submit_button", on_click=self.submit_callback)
-                # st.form_submit_button(label='Submit', on_click=self.form_callback)
-            
-    # def submit_callback(self):
-    #     st.session_state["init_interview"]=True    
-
-
+    #     if ("rs_interview" in st.session_state and st.session_state["rs_interview"] is not None):
+    #         st.session_state.interview_selection_disabled=False
+    #     else:
+    #         st.session_state.interview_selection_disabled=True
+    #     selection = st.radio("Please select an option",index=None, options=interview_options, key="rs_interview")
+    #     conti = st.button(label="next",
+    #                        key="next_button", 
+    #                        disabled=st.session_state.interview_selection_disabled, 
+    #                       )
+    #     if conti:
+    #         st.session_state["mode"]=selection
+    #         st.rerun()
         
- 
+
 
 
     # websocket server
@@ -417,16 +443,6 @@ class Interview():
             await asyncio.sleep(0)
             break
     
-       
-    # def show_interview_tips(self, container):
-    #     while True:
-    #         #Temporary 
-    #         container.write("Please fill out the form on the sidebar. The more you provide the more personalized your session will be. ")
-    #         time.sleep(5)
-    #         container.write("If AI cannot hear you, please check if your mic is turned on and check the sound volume. ")
-    #         time.sleep(5)
-    #         container.write("Do not refresh the page or your interview session will restart")
-    #         time.sleep(5)
 
 
           
@@ -437,11 +453,7 @@ class Interview():
 
 
         if "init_interview" not in st.session_state:
-            # self._init_interview_preform()
-            # if st.session_state["modal"].is_open()==False:
-            #     st.session_state["init_interview"]=False
-            print("waiting user to fill out pre-form")
-            # st.session_state["init_interview"]=True
+            print("waiting user to fill out interview preform")
         else:
             if "baseinterview" not in st.session_state:
                 print("inside create interviewbot")
@@ -604,26 +616,6 @@ class Interview():
                 else:
                     return None
 
-
-            # try:
-            #     self.new_interview = st.session_state.baseinterview  
-            #     # self.listener = st.session_state.listener
-            #     # try:
-            #     #     self.listener.start()
-            #     # # RuntimeError: threads can only be started once  
-            #     # except RuntimeError as e:
-            #     #     pass
-            # except AttributeError as e:
-            #     # if for some reason session ended in the middle, may need to do something different from raise exception
-            #     raise e
-                # make directory for session recordings
-
-                # if switch:
-                #     st.session_state["text_session"] = True
-                # if st.session_state.text_session:
-                #     self.text_session()
-        
-                # self.listener.join()
 
 
 
@@ -792,37 +784,36 @@ class Interview():
     
 
 
-    def form_callback(self, form_placeholder, skip_placeholder):
+    def form_callback(self,):
 
         """ Processes form information during form submission callback. """
 
         try:
             files = st.session_state.interview_files 
             if files:
-                self.process_uploads(files, "files")
+                self.process(files, "files")
         except Exception:
             pass
         try:
             links = st.session_state.interview_links
             if links:
-                self.process_uploads(links, "links")
+                self.process(links, "links")
         except Exception:
             pass 
-        try:
-            about = st.session_state.interview_about
-            if about:
-                self.process_uploads(about, "about")     
-        except Exception:
-            pass
-        try:
-            industry = st.session_state.interview_industry
-            if industry:
-                self.process_uploads(industry, "industry")     
-        except Exception:
-            pass
-        st.session_state["init_interview"]=True
-        skip_placeholder.empty()
-        form_placeholder.empty()
+        # try:
+        #     about = st.session_state.interview_about
+        #     if about:
+        #         self.process_s(about, "about")     
+        # except Exception:
+        #     pass
+        # try:
+        #     industry = st.session_state.interview_industry
+        #     if industry:
+        #         self.process_uploads(industry, "industry")     
+        # except Exception:
+        #     pass
+        
+     
         
 
     # def voice_callback(self):
@@ -883,40 +874,20 @@ class Interview():
         
         """
     
-        about_interview = st.session_state["about"]
-        interview_industry = st.session_state["industry"]
-        learning_material = st.session_state["user_upload_dict"].get("learning material", "")
+        about_interview = st.session_state.interview_about if "interview_about" in st.session_state else ""
+        interview_industry = st.session_state.interview_industry if "interview_industry" in st.session_state else ""
+        user_upload_dict=st.session_state["user_upload_dict"] if "user_upload_dict" in st.session_state else ""
+        if user_upload_dict:
+            learning_material = user_upload_dict.get("learning material", "")
+        else:
+            learning_material=""
         # event_loop = asyncio.get_event_loop()
-        #TODO run the following in separated thread
-        generated_dict=get_generated_responses(about_me=st.session_state.about, 
-                                               posting_path=st.session_state["user_upload_dict"].get("resume", ""),
-                                                 resume_path = st.session_state["user_upload_dict"].get("job posting", ""),
-                                                 program_path = st.session_state["user_upload_dict"].get("education program", "")
-                                                 )
-        # job = generated_dict.get("job", "")
-        # job_description=generated_dict.get("job description", "")
-        # company_description = generated_dict.get("company description", "")
-        # job_specification=generated_dict.get("job specification", "")
-        # resume_field_names = generated_dict.get("field names", "")
-        # if job!=-1:
-        #     # get top n job interview questions for this job
-        #     query = f"top 10 interview questions for {job}"
-        #     response = get_web_resources(query)
-        #     additional_interview_info += f"top 10 interview questions for {job}: {response}"
-        # if resume_field_names!="":
-        #     for field_name in resume_field_names:
-        #         additional_interview_info += f"""applicant's {field_name}: {generated_dict.get(field_name, "")}"""
-        # if job_description!="":
-        #     additional_interview_info += f"job description: {job_description} \n"
-        # if job_specification!="":
-        #     additional_interview_info += f"job specification: {job_specification} \n"
-        # if company_description!="":
-        #     additional_interview_info += f"company description: {company_description} \n"
-
+        generated_dict={}
+        #TODO: get resume_info_dict and job_posting_info_dict
         return about_interview, interview_industry, learning_material, generated_dict
     
 
-    def process_uploads(self, uploads: Any, upload_type:str) -> None:
+    def process(self, uploads: Any, upload_type:str) -> None:
 
         """ Processes user information. 
         
@@ -928,62 +899,41 @@ class Interview():
             
         """
         #TODO: better html and pdf reader that can process graphs and charts (see deeplearning jupyter notoebook)
-
-        end_paths = []
-        filename = str(uuid.uuid4())
         if upload_type=="files":
-            for uploaded_file in uploads:
-                file_ext = Path(uploaded_file.name).suffix
-                # filename = str(uuid.uuid4())+file_ext
-                tmp_save_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+file_ext)
-                end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+".txt")
-                if write_file(uploaded_file.getvalue(), tmp_save_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
-                    if convert_to_txt(tmp_save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
-                        end_paths.append(end_path)
-                        print("Successfully uploaded user file")
-                else:
-                    print("failed to upload user file")
-        elif upload_type=="links":
-            # filename =  str(uuid.uuid4())+".txt"
-            end_path = os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, filename+".txt")
-            links = re.findall(r'(https?://\S+)', uploads)
-            if html_to_text(links, save_path=end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client):
-                end_paths.append(end_path)
-                print("Successfully uploaded user link")
-            else:
-                print("failed to upload user link")
-        elif upload_type=="about":
-            st.session_state["about"] = uploads
-            st.toast("Your interview description is successfully sent to AI")
-        elif upload_type=="industry":
-            st.session_state["industry"]=uploads
-        for end_path in end_paths:
-            content_safe, content_type, content_topics = check_content(end_path)
-            print(content_type, content_safe, content_topics) 
-            if content_safe:
-                if content_type!="browser error" and content_type!="empty":
-                    ##TODO: save to different directory according to content type
-                    if content_type=="learning material":
-                        destination_path=os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, "learning_material", filename+".txt")
-                        destination_dir = os.path.dirname(destination_path)
-                        if not os.path.exists(destination_dir):
-                            os.makedirs(destination_dir)
-                        # Move the file
-                        move_file(end_path, destination_path)
-                        st.session_state["user_upload_dict"].update({content_type:destination_dir})
-                    else:
-                        st.session_state["user_upload_dict"].update({content_type:end_path})
-                    # EVERY CONTENT TYPE WILL BE USED AS INTERVIEW MATERIAL
-                # record_name = self.userId if self.userId is not None else st.session_state.sessionId
-                # vs_path = user_vs_name if st.session_state.storage=="CLOUD" else os.path.join(st.session_state.save_path, st.session_state.sessionId, user_vs_name)
-                # update_vectorstore(end_path=end_path, vs_path =vs_path,  index_name=user_vs_name, record_name=record_name, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+            result = process_uploads(uploads, st.session_state.save_path, st.session_state.interview_sessionId)
+            if result is not None:
+                content_safe, content_type, content_topics, end_path = result
+                if content_safe and content_type!="browser error"and content_type!="empty":
+                    self.save_material_paths(content_type, end_path)
                     st.toast(f"your {content_type} is successfully sent to AI ")
-            else:
-                delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-                st.toast(f"Failed processing your material. Please try again!")
+                else:
+                    delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+                    st.toast(f"Failed processing your material. Please try again!") 
+
+        elif upload_type=="links":
+            result = process_links(uploads, st.session_state.save_path, st.session_state.sessionId)
+            if result is not None:
+                content_safe, content_type, content_topics, end_path = result
+                if content_safe and content_type!="browser error"and content_type!="empty":
+                    self.save_material_paths(content_type, end_path)
+                    st.toast(f"your {content_type} is successfully sent to AI ")
+                else:
+                    delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+                    st.toast(f"Failed processing your material. Please try again!") 
+
        
 
-
+    def save_material_paths(content_type, end_path, ):
+        if content_type=="learning material":
+            destination_path=os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId, "learning_material", str(uuid.uuid4()), ".txt")
+            destination_dir = os.path.dirname(destination_path)
+            if not os.path.exists(destination_dir):
+                os.makedirs(destination_dir)
+            # Move the file
+            move_file(end_path, destination_path)
+            st.session_state["user_upload_dict"].update({content_type:destination_dir})
+        else:
+            st.session_state["user_upload_dict"].update({content_type:end_path})
 
 
     # def save_session(self, ):
