@@ -892,6 +892,8 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
         related_files.append(file)
     return related_files   
 
+def match_resume_to_job(resume_dict, job_dict):
+    """"""
 
 # def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
 

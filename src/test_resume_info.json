@@ -9503,4 +9503,2224 @@
             }
         ]
     }
+}{
+    "./chat_session/3abca03d-f6ad-4b5b-82f7-148783dcc110/uploads/ed856b21-786f-4a4e-bfa4-3ee2c4ad9c11.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "",
+            "website": ""
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature, Remote",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments",
+                    "Worked with tools and platforms such as Scala, Spark, GCS, Jenkins, and Jira",
+                    "Worked in close relationship with the Scrum master"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelors of Arts in Mathematics",
+            "study": "University of Chicago, Chicago, IL",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "AI Career Builder platform",
+                "description": [
+                    "Creating a job recommendation system, AI mock interviewer, and resume help chatbot using generative AI and LLM",
+                    "Using AWS Sumerian Host for 3D avatars, Polly for text to voice, and deploying on cloud using AWS products such as S3, Lambda and DynamoDb",
+                    "Implementing communication protocols such as WebSocket and HTTP, asynchronous programming, nonrelationship databases through tools and languages such as Python, LangChain, and Javascript"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Saved space in 3D box packing for logistic companies and showcased project\u2019s business values and increased KPI for percentage of space packed from 70% to 75%",
+                    "Programmed the majority of code in C# following the OOP paradigm",
+                    "Used reinforcement learning algorithm for training ML agents",
+                    "Trained multiple agents in 3D parallel environments"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Implemented the Extract, Transform, and Load (ETL) process using Big Data tools such as Scala, Spark, and Kafka following the functional programming paradigm",
+                    "Built a pub-sub API using Spark-Kafka Integration",
+                    "Set up remote Hadoop cluster on AWS for Spark Dataframes",
+                    "Created a correlation matrix and logistic regression models for prediction of trends using Spark ML"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature, Remote",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments",
+                    "Worked with tools and platforms such as Scala, Spark, GCS, Jenkins, and Jira",
+                    "Worked in close relationship with the Scrum master"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Attention to Detail",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Troubleshooting",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Dependability",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Project Management",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Object Oriented Programming",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Functional Programming",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Python",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Scala",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Javascript",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Numpy",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Pandas",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Matplotlib",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Scikit",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Cloud computing (AWS services)",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data structures",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Extract, Transform, Load (ETL) process",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Spark",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Kafka",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "C#",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Reinforcement Learning",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Big Data tools",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "AWS Sumerian",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Polly",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "DynamoDB",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "WebSocket",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "HTTP",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Asynchronous programming",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Nonrelationship databases",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "LangChain",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tableau",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "AI",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "LLM",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Jenkins",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "GCS",
+                "example": "",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/b78c1399-0a91-4674-bc3c-1cb5f56f6889/uploads/298b089e-241e-4529-80c1-43d1f816c08e.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Developed visuals using the ggplot2 package to display the analysis results"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Showcased the project\u2019s business values, including saving space in 3D box packing for logistic companies"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to successfully set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": [
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": []
+            },
+            {
+                "title": "Machine Learning Engineer Program",
+                "issue_date": "04/2023",
+                "description": []
+            },
+            {
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)",
+                "issue_date": "10/2020",
+                "description": []
+            },
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": []
+            }
+        ],
+        "pursuit_jobs": [
+            "data strategist"
+        ],
+        "summary_objective_section": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Seeking a data strategist role with opportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "skills_section": "Tools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking",
+        "work_experience_section": "Big Data Engineer at Walmart via Revature (01/2022 - 12/2022):\n- Improved error handling and data handling to meet the functional programming paradigm\n- Deployed workflows through continuous integration\n- Worked with cross-functional teams to develop and document a low-level design\n\nStore Associate at Walmart (01/2018 - 06/2018):\n- Communicated effectively with colleagues and management regarding task assignments\n- Provided clear and accurate information or solutions to customers",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated in projects like the Data Analytics Capstone Project where the candidate cleaned and analyzed datasets to find differences between members and casual customers.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Shown through effective communication with colleagues, management, and customers during the candidate's time as a Store Associate at Walmart.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Evident in the candidate's ability to balance teaching English classes, freelance work, and career development while on a professional break.",
+                "type": false
+            },
+            {
+                "skill": "Data management",
+                "example": "Proficient in data collection, cleaning, analysis, visualization, and ethics.",
+                "type": true
+            },
+            {
+                "skill": "Software development",
+                "example": "Expertise in tools and languages like SQL, Python, Scala, Spark, and Jupyter Notebook.",
+                "type": true
+            },
+            {
+                "skill": "Machine learning",
+                "example": "Experience in ML algorithms and reinforcement learning as seen in projects like Reinforcement Learning 3D Box Packing Capstone and Big Data ETL Capstone.",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/0c3af080-486d-4233-9c07-c9abbbe584cb/uploads/3c009fd2-d80b-4b9e-85f3-e9872e170269.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Developed visuals using the ggplot2 package to display the analysis results"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Showcased the project\u2019s business values, including saving space in 3D box packing for logistic companies"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to successfully set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": [
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": []
+            },
+            {
+                "title": "Machine Learning Engineer Program",
+                "issue_date": "04/2023",
+                "description": []
+            },
+            {
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)",
+                "issue_date": "10/2020",
+                "description": []
+            },
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": []
+            }
+        ],
+        "pursuit_jobs": [
+            "data strategist"
+        ],
+        "summary_objective_section": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Seeking a data strategist role with opportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "skills_section": "Tools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking",
+        "work_experience_section": "Big Data Engineer at Walmart via Revature (01/2022 - 12/2022):\n- Improved error handling and data handling to meet the functional programming paradigm\n- Deployed workflows through continuous integration\n- Worked with cross-functional teams to develop and document a low-level design\n\nStore Associate at Walmart (01/2018 - 06/2018):\n- Communicated effectively with colleagues and management regarding task assignments\n- Provided clear and accurate information or solutions to customers",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated in projects like the Data Analytics Capstone Project where the candidate cleaned and analyzed datasets to find differences between members and casual customers.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Shown through effective communication with colleagues, management, and customers during the candidate's time as a Store Associate at Walmart.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Evident in the candidate's ability to balance teaching English classes, freelance work, and career development while on a professional break.",
+                "type": false
+            },
+            {
+                "skill": "Data management",
+                "example": "Proficient in data collection, cleaning, analysis, visualization, and ethics.",
+                "type": true
+            },
+            {
+                "skill": "Software development",
+                "example": "Expertise in tools and languages like SQL, Python, Scala, Spark, and Jupyter Notebook.",
+                "type": true
+            },
+            {
+                "skill": "Machine learning",
+                "example": "Experience in ML algorithms and reinforcement learning as seen in projects like Reinforcement Learning 3D Box Packing Capstone and Big Data ETL Capstone.",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/4be8febd-54b5-4d44-b1eb-3ddcfdee34e5/uploads/56199e75-19c5-4e41-b470-c5e2889625c7.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments and store policies",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Google Data Analytics Certificate",
+            "study": "Data Analytics",
+            "graduation_year": "07/2024",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Used tidyr package to clean the datasets",
+                    "Joined all datasets together and created subsets for analysis",
+                    "Developed visuals using ggplot2 package"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Showcased project's business values including saving space in 3D box packing"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated to set up a live-streaming Big Data pipeline",
+                    "Built data collection and analytic strategies using Kafka-Spark streaming and Spark ML integration"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [
+            "data strategist"
+        ],
+        "summary_objective_section": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in data management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist role with opportunities for leveraging skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "skills_section": "Tools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking",
+        "work_experience_section": "Professional Experience",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments and store policies",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "Improving error handling and data handling in the role of Big Data Engineer. For example, devised a solution that streamlined the process and reduced errors by 20% in a complex data integration issue.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Collaborating with cross-functional teams to develop and document a low-level design, ensuring clear understanding and alignment across global teams.",
+                "type": false
+            },
+            {
+                "skill": "Time Management",
+                "example": "Balancing teaching responsibilities, freelance work, and completing data analysis projects within tight deadlines, showcasing efficient time management skills.",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "Proficient in data collection, cleaning, analysis, visualization, and ethical practices. For instance, utilized advanced data cleaning techniques in a project analyzing customer behavior to ensure accuracy and reliability of insights.",
+                "type": true
+            },
+            {
+                "skill": "Programming Skills",
+                "example": "Skilled in SQL, Python, Scala, and tools like Jupyter Notebook and GCP. Implemented complex algorithms in Python to optimize data processing, resulting in a 30% increase in efficiency.",
+                "type": true
+            },
+            {
+                "skill": "Technical Skills",
+                "example": "Experienced in ETL processes, ML algorithms, software development, and data life cycles. Developed a data pipeline using Spark and Kafka for real-time data analysis, enhancing data processing speed by 40%.",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "Proficiency in Tableau, R (RStudio), Spark, Microsoft 365 Suite, Google Workspace, Slack, among others. Utilized Tableau to create interactive dashboards that provided actionable insights for stakeholders.",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/6057c3d3-1abf-4ee0-ba8f-f4c82cb8d145/uploads/d125f3f0-b6ca-4e56-b2fc-73f2314236db.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Used tidyr package to clean the datasets and prepare them for analysis",
+                    "Joined all datasets together",
+                    "Developed visuals using ggplot2 package"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Showcased the project\u2019s business values"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            },
+            {
+                "title": "Optional Project",
+                "description": [
+                    "Cleaned and analyzed a dataset on [subject of your choice]",
+                    "Imported views to Microsoft Excel/Google Sheets",
+                    "Created various visuals in Tableau",
+                    "Compiled them into an interactive dashboard"
+                ]
+            }
+        ],
+        "certifications": [
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": [
+                    "Cultivated skills in the collection, transformation, organization, and visualization of data",
+                    "Completed hands-on labs and a capstone project",
+                    "Collaborated with training cohort to gain proficiency in team-based project management"
+                ]
+            },
+            {
+                "title": "Machine Learning Engineer Program",
+                "issue_date": "04/2023",
+                "description": [
+                    "Utilized Exploratory Data Analysis and feature engineering",
+                    "Developed forecasting models",
+                    "Conducted statistical analysis"
+                ]
+            },
+            {
+                "title": "CELTA",
+                "issue_date": "10/2020",
+                "description": []
+            }
+        ],
+        "pursuit_jobs": [
+            "Data strategist"
+        ],
+        "summary_objective_section": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in data management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist role with opportunities for leveraging skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "skills_section": "Tools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking",
+        "work_experience_section": "Big Data Engineer at Walmart via Revature (01/2022 - 12/2022):\n- Improved error handling and data handling\n- Aided in the management of data stored in Google Cloud Storage\n- Deployed workflows through continuous integration\n- Revamped old codebase and wrote unit tests\n- Composed bi-weekly team documentations\n- Worked with cross-functional teams to develop and document a low-level design\n\nStore Associate at Walmart (01/2018 - 06/2018):\n- Communicated effectively with colleagues and management regarding task assignments\n- Provided clear and accurate information or solutions to customers\n- Maintained a calm and professional demeanor",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "effectively resolving errors in data management processes, implementing solutions to address data inconsistencies and inaccuracies",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "clear and concise communication with colleagues, management, and customers, ensuring smooth task assignments, store policies adherence, and customer satisfaction",
+                "type": false
+            },
+            {
+                "skill": "Time Management",
+                "example": "efficiently managing multiple tasks, balancing teaching English classes, freelance work, and other responsibilities within tight deadlines",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "data collection, cleaning, analysis, and visualization techniques",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "utilizing programming languages like Python and Scala, tools such as Jupyter Notebook, for software development projects",
+                "type": true
+            },
+            {
+                "skill": "Data Analytics",
+                "example": "ETL processes, data analysis, and visualization using tools like Tableau and Excel",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "ML algorithms, reinforcement learning, data preprocessing, implementation of machine learning models and algorithms in projects",
+                "type": true
+            },
+            {
+                "skill": "Technical Skills",
+                "example": "tools like BigQuery, MySQL, GCP, Spark, technical proficiency in utilizing various platforms and technologies for data analytics and software development",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/59b9e861-2ea3-4f89-8428-2dcc6512feaf/uploads/a2ffb976-805c-4bee-bcbc-a409e94c9e05.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Used tidyr package to clean the datasets",
+                    "Joined all datasets together",
+                    "Created subsets of the data",
+                    "Converted each attribute to the proper data type",
+                    "Developed visuals using ggplot2 package"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Trained multiple agents in 3D parallel settings",
+                    "Showcased the project\u2019s business values"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [
+            "data strategist"
+        ],
+        "summary_objective_section": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in data management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist role with opportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "skills_section": "Tools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking",
+        "work_experience_section": "Big Data Engineer at Walmart via Revature from 01/2022 to 12/2022: Improved error handling and data handling, aided in data management in Google Cloud Storage, deployed workflows through continuous integration, revamped old codebase, wrote unit tests, worked with cross-functional teams to develop a low-level design.\nStore Associate at Walmart from 01/2018 to 06/2018: Communicated effectively with colleagues and management, provided clear and accurate information to customers, maintained a calm and professional demeanor.",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "cleaning and analyzing datasets, creating visuals, and deriving meaningful conclusions in data analysis projects",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "effective communication with colleagues, management, and customers during professional experiences",
+                "type": false
+            },
+            {
+                "skill": "Time Management",
+                "example": "managing multiple responsibilities such as teaching English classes, freelance work, and data analytics projects within tight deadlines",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "working with cross-functional teams in data engineering roles and collaborating with training cohorts in certificate programs",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "Proficiency in data collection, cleaning, analysis, visualization, and ethics",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "Experience with various tools and languages such as SQL, Tableau, R, Python, Scala, Spark, Jupyter Notebook, GCP, Microsoft 365 Suite, Google Workspace, etc",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "Expertise in software development and data life cycles, demonstrated in data analytics projects and professional experience as a Big Data Engineer",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Knowledge and experience in machine learning algorithms, reinforcement learning, and ML life cycle demonstrated in projects like the 3D Box Packing Capstone and Big Data ETL Capstone",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/76933b58-8acd-4822-8b2a-f4973d22caf4/uploads/a11b4cd1-259c-4211-bc4f-376d22da426c.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "https://github.com/happinessbaby"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature, Remote",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments",
+                    "Worked with tools and platforms such as Scala, Spark, GCS, Jenkins, and Jira",
+                    "Worked in close relationship with the Scrum master"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelors of Arts in Mathematics",
+            "study": "Universtity of Chicago, Chicago, IL",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "AI Career Builder platform",
+                "description": [
+                    "Creating a job recommendation system",
+                    "AI mock interviewer",
+                    "Resume help chatbot using generative AI and LLM",
+                    "Using AWS Sumerian Host for 3D avatars",
+                    "Polly for text to voice",
+                    "Deploying on cloud using AWS products such as S3, Lambda, and DynamoDb",
+                    "Implementing communication protocols such as WebSocket and HTTP",
+                    "Asynchronous programming",
+                    "Nonrelationship databases through tools and languages such as Python, LangChain, and Javascript"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Saved space in 3D box packing for logistic companies",
+                    "Showcased project\u2019s business values",
+                    "Increased KPI for percentage of space packed from 70% to 75%",
+                    "Programmed the majority of code in C# following the OOP paradigm",
+                    "Used reinforcement learning algorithm for training ML agents",
+                    "Trained multiple agents in 3D parallel environments"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Implemented the Extract, Transform, and Load (ETL) process using Big Data tools such as Scala, Spark, and Kafka following the functional programming paradigm",
+                    "Built a pub-sub API using Spark-Kafka Integration",
+                    "Set up remote Hadoop cluster on AWS for Spark Dataframes",
+                    "Created a correlation matrix and logistic regression models for prediction of trends using Spark ML"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature, Remote",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly Jira summaries on team accomplishments",
+                    "Worked with tools and platforms such as Scala, Spark, GCS, Jenkins, and Jira",
+                    "Worked in close relationship with the Scrum master"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "Demonstrated problem-solving skills in the AI Career Builder platform by effectively designing a job recommendation system, AI mock interviewer, and resume help chatbot using generative AI and LLM to provide valuable insights for users.",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "Successfully collaborated with team members and a Scrum master at Walmart via Revature to improve error handling and data management, showcasing effective teamwork and communication skills.",
+                "type": false
+            },
+            {
+                "skill": "Attention to Detail",
+                "example": "Ensured meticulous attention to detail in the Big Data ETL Capstone project by implementing the Extract, Transform, and Load process with precision using tools like Scala, Spark, and Kafka.",
+                "type": false
+            },
+            {
+                "skill": "Troubleshooting",
+                "example": "Applied strong troubleshooting skills in software development projects by effectively implementing communication protocols such as WebSocket and HTTP and resolving technical issues with nonrelationship databases.",
+                "type": false
+            },
+            {
+                "skill": "Dependability",
+                "example": "Demonstrated dependability during a career break by completing coursework, receiving professional training, and actively working on developing an AI-powered career builder site as a freelance software developer.",
+                "type": false
+            },
+            {
+                "skill": "Project Management",
+                "example": "Exhibited proficient project management skills as a Big Data Engineer at Walmart via Revature by managing data stored in Google Cloud Storage, deploying workflows, and composing regular Jira summaries on team accomplishments.",
+                "type": false
+            },
+            {
+                "skill": "Object-Oriented Programming",
+                "example": "Showcased proficiency in Python and C# through projects like the AI Career Builder platform and Reinforcement Learning 3D Box Packing Capstone, where object-oriented programming principles were effectively utilized.",
+                "type": true
+            },
+            {
+                "skill": "Functional Programming",
+                "example": "Utilized Scala, Spark, and Kafka in the Big Data ETL Capstone project to implement the Extract, Transform, and Load process following the functional programming paradigm, showcasing expertise in functional programming.",
+                "type": true
+            },
+            {
+                "skill": "Cloud Computing",
+                "example": "Applied cloud computing skills with AWS services such as S3, Lambda, and DynamoDb in deploying projects like the AI Career Builder platform, demonstrating proficiency in cloud computing technologies.",
+                "type": true
+            },
+            {
+                "skill": "Data Analysis",
+                "example": "Exhibited strong data analysis skills using libraries/frameworks like Numpy, Pandas, Matplotlib, and Scikit in software development projects, providing valuable insights through exploratory data analysis.",
+                "type": true
+            },
+            {
+                "skill": "Programming Languages",
+                "example": "Proficiently used Python, Scala, and JavaScript in various projects, showcasing versatility in programming languages and their effective application in software development tasks.",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Currently pursuing a Machine Learning Engineer Program certification at FourthBrain and actively working on AI-powered projects, demonstrating a commitment to expanding knowledge and skills in machine learning.",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/0cbf7749-5a12-4523-b48e-e310006762ca/uploads/11f37857-60f6-425d-b9b3-6ffecb0fe0ac.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Google Data Analytics Certificate",
+            "study": "Data Analytics",
+            "graduation_year": "07/2024",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Project of Your Choosing",
+                "description": [
+                    "Cleaned and analyzed a dataset on COVID statistics in BigQuery",
+                    "Imported views to Microsoft Excel to clean and format data for use in visualizations",
+                    "Created various visuals in Tableau to display data conclusions"
+                ]
+            },
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Joined all of the datasets together",
+                    "Developed visuals using the ggplot2 package to display the analysis results"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Showcased the project\u2019s business values",
+                    "Gained programming skills in C# and ML life cycle knowledge"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to successfully set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "In the Reinforcement Learning 3D Box Packing Capstone project, the candidate utilized problem-solving skills to increase the percentage of space packed from 70% to 75%.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "In the role of a Store Associate at Walmart, the candidate effectively communicated with colleagues and management to ensure tasks were completed efficiently.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "During the Machine Learning Engineer Program, the candidate demonstrated excellent time management skills by successfully analyzing pricing trends, developing forecasting models, and conducting statistical analysis within set deadlines.",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "In the Big Data ETL Capstone project, the candidate effectively managed data collection and analytics strategies using Kafka-Spark streaming and Spark ML integration.",
+                "type": false
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "The candidate showcased expertise in using these tools and languages to analyze data, create visualizations, and develop insights.",
+                "type": false
+            },
+            {
+                "skill": "Software Development",
+                "example": "In the role of a Big Data Engineer at Walmart, the candidate deployed workflows, revamped codebases, and documented team accomplishments using these platforms.",
+                "type": false
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "As part of the Data Analytics Capstone Project, the candidate imported and cleaned datasets to perform analysis and develop meaningful visuals using machine learning techniques.",
+                "type": false
+            },
+            {
+                "skill": "Technical Skills",
+                "example": "The candidate gained hands-on experience in setting up live-streaming Big Data pipelines, ingesting real-time data, and feeding it for downstream analysis.",
+                "type": false
+            }
+        ]
+    }
+}{
+    "./chat_session/13e1dd8b-4c2b-4eec-ab36-dfa2deb9746d/uploads/08e50850-2058-4ee3-81ec-9a0b77cbd29e.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Google Data Analytics Certificate",
+            "study": "Merit America",
+            "graduation_year": "07/2024",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Developed visuals using the ggplot2 package to display the analysis results"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Showcased the project\u2019s business values, including saving space in 3D box packing for logistic companies by increasing KPI for percentage of space packed from 70% to 75%"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to successfully set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": [
+            {
+                "title": "Machine Learning Engineer Program",
+                "issue_date": "04/2023",
+                "description": []
+            },
+            {
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)",
+                "issue_date": "10/2020",
+                "description": []
+            },
+            {
+                "title": "Bachelor of Arts in Mathematics",
+                "issue_date": "06/2013",
+                "description": []
+            }
+        ],
+        "pursuit_jobs": [
+            "Data strategist"
+        ],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Deployed workflows through continuous integration",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "Demonstrated by the ability to clean and analyze datasets, create visuals, and provide meaningful conclusions in data analysis projects.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Shown through effective communication with colleagues, management, customers, and teaching English learners.",
+                "type": false
+            },
+            {
+                "skill": "Time Management",
+                "example": "Evident in managing course materials, assisting new teachers, performing freelance work with tight deadlines, and completing hands-on labs and projects within specified timelines.",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "Collaborated with training cohorts, cross-functional teams, and assisted other teachers to cultivate a positive learning environment.",
+                "type": false
+            },
+            {
+                "skill": "Attention to Detail",
+                "example": "Displayed in data cleaning, formatting, data analysis, and developing visuals for analysis results.",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "Experience in software development and data life cycles",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Trained ML agents in 3D parallel settings, developed forecasting models, and conducted statistical analysis",
+                "type": true
+            },
+            {
+                "skill": "Technical Skills",
+                "example": "Programming skills in C#, knowledge of ML life cycle, Kafka-Spark streaming, Spark ML integration, and deploying workflows through continuous integration",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/76bd4aef-7224-4648-9ae9-7280ae9afd49/uploads/ca35e6ab-97be-41ca-b916-dc1d5faf8e84.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Assisted fellow associates during busy periods",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Google Data Analytics Certificate",
+            "study": "Data Analytics",
+            "graduation_year": "07/2024",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Used tidyr package to clean the datasets and prepare them for analysis",
+                    "Developed visuals using the ggplot2 package to display the analysis results"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Trained multiple agents in 3D parallel settings",
+                    "Showcased the project\u2019s business values"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to set up a live-streaming Big Data pipeline",
+                    "Built data collection and data analytic strategies"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Assisted fellow associates during busy periods",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "demonstrated through projects such as the Data Analytics Capstone Project and the Big Data ETL Capstone.",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "shown through working with cross-functional teams in various projects.",
+                "type": false
+            },
+            {
+                "skill": "Attention to Detail",
+                "example": "highlighted in the strengths section of the resume.",
+                "type": false
+            },
+            {
+                "skill": "Project Management",
+                "example": "evident in the successful completion of various data analysis projects.",
+                "type": false
+            },
+            {
+                "skill": "Troubleshooting",
+                "example": "gained through improving error handling and data handling in the professional experience section.",
+                "type": false
+            },
+            {
+                "skill": "Critical Thinking",
+                "example": "utilized in data analysis projects to find meaningful conclusions for stakeholders.",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "includes data collection, data cleaning, data structures, data analysis, data visualization, and data ethics.",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "proficiency in Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP.",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "expertise in software development and data life cycles.",
+                "type": true
+            },
+            {
+                "skill": "Data Analysis",
+                "example": "demonstrated through various data analysis projects and professional experience in roles such as Big Data Engineer.",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "gained through projects like the Reinforcement Learning 3D Box Packing Capstone.",
+                "type": true
+            },
+            {
+                "skill": "Technical Skills",
+                "example": "proficiency in Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira.",
+                "type": true
+            },
+            {
+                "skill": "Programming Skills",
+                "example": "gained in C# through the Reinforcement Learning 3D Box Packing Capstone project.",
+                "type": true
+            },
+            {
+                "skill": "Data Lifecycle Management",
+                "example": "experience in organizing data and implementing basic data lifecycle management policies in the professional experience section.",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/684d870e-f177-47f8-8f79-4874dbf29bb4/uploads/5065986c-04ed-49be-90aa-40ae0988ead8.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentation",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Data Analytics Capstone Project",
+                "description": [
+                    "Imported 12 Excel datasheets with millions of entries into R",
+                    "Used tidyr package to clean datasets",
+                    "Developed visuals using ggplot2 package",
+                    "Provided meaningful conclusions for stakeholders to implement"
+                ]
+            },
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Showcased project's business values for logistic companies",
+                    "Increased KPI for percentage of space packed from 70% to 75%"
+                ]
+            }
+        ],
+        "certifications": [
+            {
+                "title": "Google Data Analytics Certificate",
+                "issue_date": "07/2024",
+                "description": [
+                    "Cultivated skills in data collection, transformation, organization, and visualization",
+                    "Completed hands-on labs and a capstone project",
+                    "Collaborated with training cohort to gain proficiency in team-based project management"
+                ]
+            },
+            {
+                "title": "Machine Learning Engineer Program",
+                "issue_date": "04/2023",
+                "description": [
+                    "Utilized Exploratory Data Analysis and statistical principles",
+                    "Developed forecasting models",
+                    "Conducted statistical analysis"
+                ]
+            }
+        ],
+        "pursuit_jobs": [
+            "Data strategist"
+        ],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentation",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-Solving",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Time Management",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Attention to Detail",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Project Management",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Troubleshooting",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Critical Thinking",
+                "example": "",
+                "type": false
+            },
+            {
+                "skill": "Data Management: Data Collection",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Management: Data Cleaning",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Management: Data Structures",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Management: Data Analysis",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Management: Data Visualization",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Management: Data Ethics",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Spreadsheets",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: SQL (BigQuery, MySQL)",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Tableau",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: R (RStudio)",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Python",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Scala",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Spark",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: Jupyter Notebook",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages: GCP",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Microsoft 365 Suite",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Google Workspace",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Slack",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Zoom",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Kaggle",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Loom",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Jenkins",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Platforms: Jira",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "ETL (Extract, Transform, Load)",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning (ML)",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Data Life Cycles",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Reinforcement Learning",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Big Data ETL",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Exploratory Data Analysis",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Feature Engineering",
+                "example": "",
+                "type": true
+            },
+            {
+                "skill": "Statistical Modeling",
+                "example": "",
+                "type": true
+            }
+        ]
+    }
+}{
+    "./chat_session/5753d61d-bd19-46b8-b1ea-576c9d6cb12a/uploads/cfdd11db-a3d2-4a29-b6d5-c1df7aba38ba.txt": {
+        "contact": {
+            "name": "Yueqi Peng",
+            "email": "yueqipeng2021@gmail.com",
+            "phone": "205-514-1594",
+            "city": "Birmingham",
+            "state": "AL",
+            "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+            "website": "yueqipeng.my.canva.site"
+        },
+        "work_experience": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations on team accomplishments",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "education": {
+            "degree": "Bachelor of Arts",
+            "study": "Mathematics",
+            "graduation_year": "06/2013",
+            "gpa": -1
+        },
+        "projects": [
+            {
+                "title": "Reinforcement Learning 3D Box Packing Capstone",
+                "description": [
+                    "Set up a 3D box packing environment in Unity gaming platform",
+                    "Implemented reinforcement learning algorithm for training ML agents",
+                    "Trained multiple agents in 3D parallel settings",
+                    "Showcased the project\u2019s business values, including saving space in 3D box packing for logistic companies by increasing KPI for percentage of space packed from 70% to 75%"
+                ]
+            },
+            {
+                "title": "Big Data ETL Capstone",
+                "description": [
+                    "Collaborated with other team members to successfully set up a live-streaming Big Data pipeline composed of ingesting data from real-time data source and feeding to downstream sinks for data analysis",
+                    "Built data collection and data analytic strategies, including Kafka-Spark streaming and Spark ML integration"
+                ]
+            }
+        ],
+        "certifications": null,
+        "pursuit_jobs": [],
+        "summary_objective_section": "",
+        "skills_section": "",
+        "work_experience_section": "",
+        "jobs": [
+            {
+                "job_title": "Big Data Engineer",
+                "company": "Walmart via Revature",
+                "start_date": "01/2022",
+                "end_date": "12/2022",
+                "responsibilities": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations on team accomplishments",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "years_of_experience": 0
+            },
+            {
+                "job_title": "Store Associate",
+                "company": "Walmart",
+                "start_date": "01/2018",
+                "end_date": "06/2018",
+                "responsibilities": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "years_of_experience": 0
+            }
+        ],
+        "skills": [
+            {
+                "skill": "Problem-solving",
+                "example": "Demonstrated problem-solving skills in projects like the Data Analytics Capstone Project where complex datasets were cleaned and analyzed to derive meaningful insights.",
+                "type": false
+            },
+            {
+                "skill": "Communication",
+                "example": "Effectively communicated with colleagues and management at Walmart regarding task assignments, store policies, and customer feedback, showcasing strong communication skills.",
+                "type": false
+            },
+            {
+                "skill": "Time management",
+                "example": "Demonstrated excellent time management skills by balancing teaching responsibilities, freelance work, and academic studies during the career break period.",
+                "type": false
+            },
+            {
+                "skill": "Collaboration",
+                "example": "Collaborated with training cohorts for the Google Data Analytics Certificate, showcasing effective teamwork and collaboration skills.",
+                "type": false
+            },
+            {
+                "skill": "Attention to detail",
+                "example": "Utilized attention to detail in various data analysis projects to ensure accuracy and precision in data cleaning, analysis, and visualization.",
+                "type": false
+            },
+            {
+                "skill": "Project management",
+                "example": "Successfully managed and executed data analysis projects, demonstrating strong project management skills in planning, execution, and delivery.",
+                "type": false
+            },
+            {
+                "skill": "Data Management",
+                "example": "Proficient in various data management tasks such as data collection, cleaning, analysis, visualization, and maintaining data ethics standards.",
+                "type": true
+            },
+            {
+                "skill": "Tools/Languages",
+                "example": "Skilled in utilizing a wide range of tools and languages such as SQL, Tableau, Python, and more to perform data analysis tasks effectively.",
+                "type": true
+            },
+            {
+                "skill": "Software Development",
+                "example": "Expertise in software development and data life cycles demonstrated through successful completion of software development projects.",
+                "type": true
+            },
+            {
+                "skill": "Machine Learning",
+                "example": "Applied machine learning skills in training ML agents for the Reinforcement Learning 3D Box Packing Capstone, showcasing proficiency in ML techniques.",
+                "type": true
+            },
+            {
+                "skill": "Data Ethics",
+                "example": "Demonstrated understanding and application of data ethics principles in data analysis projects to ensure ethical data practices.",
+                "type": true
+            },
+            {
+                "skill": "Data Structures",
+                "example": "Utilized data structuring skills to organize and structure data for analysis, enhancing efficiency and accuracy in data processing.",
+                "type": true
+            },
+            {
+                "skill": "Statistical Analysis",
+                "example": "Applied statistical principles in analyzing pricing trends and developing forecasting models, showcasing proficiency in statistical analysis techniques.",
+                "type": true
+            }
+        ]
+    }
 }

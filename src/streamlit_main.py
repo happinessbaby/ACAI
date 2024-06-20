@@ -14,7 +14,7 @@ from backend.career_advisor import ChatController
 from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs
+from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs, match_resume_to_job
 import re
 from typing import Any, List, Union
 import multiprocessing as mp
@@ -50,7 +50,6 @@ from st_btn_select import st_btn_select
 from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
 from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
-from backend.upgrade_resume import evaluate_resume, research_resume_type, reformat_chronological_resume, reformat_student_resume, reformat_functional_resume, tailor_resume
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your
@@ -303,7 +302,7 @@ class Chat():
             with c2:
                 match_meter = st.button("Match Me!")
             if match_meter:
-                _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
+                _self.general_form_popup(_self.general_selection_callback, selection="match", job_required=True, resume_required=True,)
             
             # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
     
@@ -563,7 +562,6 @@ class Chat():
                 del st.session_state["job_required"]
 
 
-
     @st.experimental_fragment
     def general_selection_callback(self, selection, template=False, template_path="", type="", ):
 
@@ -579,7 +577,10 @@ class Chat():
         elif "job_description" in st.session_state and st.session_state.job_posting_radio=="job description":
             st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
             st.session_state["tailoring"]=True
-        st.switch_page("pages/streamlit_dashboard.py")
+        if selection=="match":
+            match_resume_to_job()
+        elif selection=="resume help":
+            st.switch_page("pages/streamlit_dashboard.py")
         # # Evaluate resume
         # if resume_options[0] in selection:
         # # if st.session_state.resume_opt1:

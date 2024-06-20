@@ -7,7 +7,7 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
-from utils.basic_utils import read_txt, process_json, convert_doc_to_txt, write_file
+from utils.basic_utils import read_txt, process_json, write_file
 from utils.common_utils import (extract_personal_information, get_web_resources, extract_pursuit_information,retrieve_or_create_resume_info, retrieve_or_create_job_posting_info,
                                  retrieve_from_db,  search_related_samples, research_relevancy_in_resume)
 from datetime import date

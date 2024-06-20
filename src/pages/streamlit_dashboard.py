@@ -1,7 +1,8 @@
 import streamlit as st
-from backend.upgrade_resume import evaluate_resume, tailor_resume, reformat_chronological_resume, reformat_functional_resume, reformat_student_resume
+from backend.upgrade_resume import evaluate_resume, tailor_resume, eval_dict, tailor_dict
 from streamlit.components.v1 import html, iframe
 import pandas as pd
+import threading
 
 
 st.set_page_config(layout="wide")
@@ -17,8 +18,8 @@ html("""
 def main():
     if "evaluation" in st.session_state:
         st.session_state["tabs"].append("Evaluation")
-    if "reformatting" in st.session_state:
-        st.session_state["tabs"].append("Reformatted resume")
+    # if "reformatting" in st.session_state:
+    #     st.session_state["tabs"].append("Reformatted resume")
     if "tailoring" in st.session_state:
         st.session_state["tabs"].append("Tailoring")
 
@@ -29,43 +30,59 @@ def main():
     if "Evaluation" in st.session_state.tabs:
         with tabs[count]:
             display_resume_eval()
-            st.session_state["eval_dict"]=evaluate_resume(resume_file=st.session_state["resume_path_final"], 
-                                resume_dict = st.session_state["resume_dict"], 
-                                job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
-            )
+            thread = threading.Thread(
+                target = evaluate_resume,
+                args=(
+                    st.session_state["resume_path_final"], 
+                    st.session_state["resume_dict"], 
+                    st.session_state["job_posting_dict"] if "job_posting_path" in st.session_state else "",
+                ),
+                daemon=True, 
+                )
+            thread.start()
         count+=1
-    if "Reformatted resume" in st.session_state.tabs: 
-        with tabs[count]:
-            if type=="chronological":
-                reformat_chronological_resume(resume_file=st.session_state["resume_path_final"], 
-                                    posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                    template_file=st.session_state["template_path"],
-                                    )
-            elif type=="functional":
-                reformat_functional_resume(resume_file=st.session_state["resume_path_final"], 
-                                    posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                    template_file=st.session_state["template_path"],
-                                    )
-            elif type=="student":
-                reformat_student_resume(resume_file=st.session_state["resume_path_final"], 
-                                    posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
-                                    template_file=st.session_state["template_path"],
-                                    )
-        count+=1
+    # if "Reformatted resume" in st.session_state.tabs: 
+    #     with tabs[count]:
+    #         if type=="chronological":
+    #             reformat_chronological_resume(resume_file=st.session_state["resume_path_final"], 
+    #                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
+    #                                 template_file=st.session_state["template_path"],
+    #                                 )
+    #         elif type=="functional":
+    #             reformat_functional_resume(resume_file=st.session_state["resume_path_final"], 
+    #                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
+    #                                 template_file=st.session_state["template_path"],
+    #                                 )
+    #         elif type=="student":
+    #             reformat_student_resume(resume_file=st.session_state["resume_path_final"], 
+    #                                 posting_path = st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else "", 
+    #                                 template_file=st.session_state["template_path"],
+    #                                 )
+    #     count+=1
     if "Tailoring" in st.session_state.tabs:
         with tabs[count]:
             display_tailoring()
-            st.session_state["tailor_dict"]=tailor_resume(
-                                resume_dict = st.session_state["resume_dict"], 
-                                job_posting_dict = st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else "", 
-                            )
+            thread = threading.Thread(
+                target = tailor_resume, 
+                args = (
+                    st.session_state["resume_dict"], 
+                    st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else "", 
+                ),
+                daemon=True,
+            )
         count+=1
     # del st.session_state.resume_path, st.session_state.job_posting_path, st.session_state.job_description
 
-@st.experimental_fragment(run_every=3)
+def get_dict(type):
+    if type=="evaluation":
+        return eval_dict
+    elif type=="tailoring":
+        return tailor_dict
+
+@st.experimental_fragment(run_every=1)
 def display_tailoring():
     try:
-        tailor_dict = st.session_state.tailor_dict
+        tailor_dict = get_dict("tailoring")
     except Exception:
         tailor_dict={}
     st.write("Generated tailoring tips")
@@ -135,7 +152,7 @@ def display_resume_eval():
     """ Displays resume evaluation result"""
     _, c1, c2 = st.columns([1, 2, 2])
     try:
-        eval_dict= st.session_state.eval_dict
+        eval_dict= get_dict("evaluation")
     except Exception:
         eval_dict={}
     with c1:
