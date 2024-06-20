@@ -55,7 +55,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 save_path = os.environ["INTERVIEW_PATH"]
 faiss_interview_data_path= os.environ["FAISS_INTERVIEW_DATA_PATH"]
-user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
+# user_vs_name = os.environ["USER_INTERVIEW_VS_NAME"]
 # set recording parameters
 duration = 5 # duration of each recording in seconds
 fs = 44100 # sample rate
