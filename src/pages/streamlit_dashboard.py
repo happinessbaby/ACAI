@@ -14,6 +14,7 @@ html("""
         };
     </script>
     """)
+section_names = {"objective_summary_section", "work_experience_section"}
 
 def main():
     if "evaluation" in st.session_state:
@@ -157,6 +158,7 @@ def display_resume_eval():
         with st.container():
             st.title("Length")
             st.write("A resume has an ideal length or 450 to 650 words, about one page long.")
+            #TODO: use a gauge chart to display
             try:
                 length=eval_dict["word_count"]
                 pages=eval_dict["page_number"]
@@ -181,8 +183,10 @@ def display_resume_eval():
             st.title("Impression")
             st.write("How close does your resume compare to others of the same industry?")
             try:
-                comparison = eval_dict["comparison"]["closeness"]
-                st.write(comparison)
+                comparison = eval_dict["comparison"]
+                if comparison:
+                    #TODO: draw bullet graph or something 
+                    st.write(comparison)
             except Exception:
                 st.write("Evaluating...")
             st.write("How well does your resume reflect the career you want?")

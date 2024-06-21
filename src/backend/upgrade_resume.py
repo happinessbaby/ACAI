@@ -49,7 +49,7 @@ delimiter1 = "````"
 delimiter2 = "////"
 delimiter3 = "<<<<"
 delimiter4 = "****"
-eval_dict = {"in_depth": {}}
+eval_dict = {"in_depth": {}, "comparison":{}}
 tailor_dict = {}
 
 
@@ -107,9 +107,12 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     type_dict= analyze_resume_type(resume_content,)
     eval_dict.update(type_dict)
     # Generate overall impression
-    comparison_dict = analyze_via_comparison(resume_content,  pursuit_jobs)
+    section_names = {"objective_summary_section", "work_experience_section"}
+    for section in section_names:
+        comparison_dict = analyze_via_comparison(resume_dict[section], section,  pursuit_jobs)
+        eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        # eval_dict.update({"comparison": comparison_dict})
     cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-    eval_dict.update({"comparison": comparison_dict})
     eval_dict.update({"cohesiveness":cohesiveness})
     # # Evaluates specific field  content
     evaluated_work= analyze_field_content(resume_dict["work_experience_section"], "work experience")
@@ -148,7 +151,7 @@ def analyze_field_content(field_content, field_type):
         return response
             
 
-def analyze_via_comparison(resume_content, jobs):
+def analyze_via_comparison(field_content, field_type,  jobs):
 
     """Analyzes overall resume by comparing to other samples"""
 
@@ -157,20 +160,17 @@ def analyze_via_comparison(resume_content, jobs):
     sample_tools, tool_names = create_sample_tools(related_samples, "resume")
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-    Assess the quality of the candidat's resume in terms of how closely it resembles other sample resume.
+    Assess the quality of the candidate resume's field content in terms of how closely it resembles other sample resume's field content.
     
-    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}
-     
-    candidate resume: {resume_content} \
+    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. Research only the {field_type} of these resume.
     
     The sample resume are for comparative purpose only. You should not analyze them. 
 
-    As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
-
-    The criteria for closeness are the following:
-
+    As your final output, analyze how close the candidate resume's {field_type} resembles other sample {field_type} resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
     Please output one of the metrics meter and provide your reasoning. 
+
+    candidate resume field content: {field_content} \
     
     """
     # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
