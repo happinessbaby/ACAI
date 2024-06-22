@@ -7,11 +7,12 @@ import streamlit_authenticator as stauth
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
+from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, encode_jwt, retrieve_userId
 import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
 from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, retrieve_or_create_resume_info
+from utils.basic_utils import mk_dirs
 from typing import Any, List
 from pathlib import Path
 import re
@@ -21,6 +22,7 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import json
 from json.decoder import JSONDecodeError
+from utils.aws_manager import get_client
 
 
 # st.set_page_config(layout="wide")
@@ -32,6 +34,8 @@ bucket_name = os.environ["BUCKET_NAME"]
 login_file = os.environ["LOGIN_FILE_PATH"]
 db_path=os.environ["LANCEDB_PATH"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+cookie_name = os.environ["COOKIE_NAME"]
+cookie_key=os.environ["COOKIE_KEY"]
 # store = FeatureStore("./my_feature_repo/")
 
 # st.set_page_config(initial_sidebar_state="collapsed")
@@ -49,35 +53,24 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 class User():
-    
-    # cookie = get_cookie("userInfo")
-    # aws_session = get_aws_session()
-    # cookie_manager = get_cookie_manager()
-    # st.write(get_all_cookies())
+
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
-        self.cookie = get_cookie("userInfo")
-        print("Cookie", self.cookie)
-        if self.cookie:
-            self.userId = str(decode_jwt(self.cookie, "test").get('username'))
-            st.session_state["mode"]="signedin"
+
+        self.userId = retrieve_userId()
+        if self.userId:
+            st.session_state["mode"]="signedin" 
         else:
             if "mode" not in st.session_state or st.session_state["mode"]!="signup":  
-                # self.userId = "tebs"
                 st.session_state["mode"]="signedout"
-            self.userId = None
         self._init_session_states()
         self._init_user()
 
-    # @st.cache_data()
+    @st.cache_data()
     def _init_session_states(_self, ):
 
-        # if _self.cookie is None:
-        #     st.session_state["mode"]="signedout"
-        # else:
-        #     st.session_state["mode"]="signedin"
-
+     
         # Open users login file
         with open(login_file) as file:
             config = yaml.load(file, Loader=SafeLoader)
@@ -86,45 +79,30 @@ class User():
             try:
                 users = json.load(file)
             except JSONDecodeError:
-                users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-                users[_self.userId]={}
+                # users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+                # users[_self.userId]={}
+                raise 
         st.session_state["config"] = config
         st.session_state["users"] = users
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
-        # st.session_state["location_input"] = ""
-        # st.session_state["study"] = ""
-        # st.session_state["grad_year"] = ""
-        # st.session_state["certification"] = ""
-        # st.session_state["career_switch"] = False
-        # st.session_state["industry"] = ""
-        # st.session_state["self_description"]= ""
-        # st.session_state["skill_set"]=""
-        # st.session_state["career_goals"]=""
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
-        # if STORAGE=="CLOUD":
-        #     st.session_state["s3_client"] = get_client('s3')
-        #     st.session_state["bucket_name"] = bucket_name
-        #     st.session_state["storage"] = "CLOUD"
-        #     st.session_state["user_path"] = os.environ["S3_USER_PATH"]
-        #     try:
-        #         # create "directories" in S3 bucket
-        #         st.session_state.s3_client.put_object(Bucket=bucket_name,Body='', Key=os.path.join(st.session_state.user_path, _self.userId, "basic_info"))
-        #         print("Successfully created directories in S3")
-        #     except Exception as e:
-        #         pass
-        # elif STORAGE=="LOCAL":
-        #     st.session_state["s3_client"] = None
-        #     st.session_state["bucket_name"] = None
-        #     st.session_state["storage"] = "LOCAL"
-        #     st.session_state["user_path"] = os.environ["USER_PATH"]
-        #     try: 
-        #         user_dir = os.path.join(st.session_state.user_path,  _self.userId, "basic_info")
-        #         os.mkdir(user_dir)
-        #     except Exception as e:
-        #         pass
-        # st.session_state["value0"]=""
-        # st.session_state["value1"]=""
-        # st.session_state["value2"]=""
+        if _self.userId is not None:
+            if STORAGE=="CLOUD":
+                st.session_state["s3_client"] = get_client('s3')
+                st.session_state["bucket_name"] = bucket_name
+                st.session_state["storage"] = "CLOUD"
+                st.session_state["save_path"] = os.environ["S3_USER_PATH"]
+            elif STORAGE=="LOCAL":
+                st.session_state["s3_client"] = None
+                st.session_state["bucket_name"] = None
+                st.session_state["storage"] = "LOCAL"
+                st.session_state["save_path"] = os.environ["USER_PATH"]
+            paths=[
+                os.path.join(st.session_state.save_path,  _self.userId),
+                os.path.join(st.session_state.save_path,  _self.userId, "uploads"),
+                ]
+            mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+
 
 
 
@@ -144,23 +122,24 @@ class User():
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
             print("signed in")
-            # self.sign_out(authenticator)
-            if lancedb_table_exists(self.userId) is not None:
+            try:
+                user_profile = st.session_state["users"][self.userId]
                 print("user profile already exists")
-                # if "base_recommender" not in st.session_state:
-                #     st.session_state["base_recommender"]= Recommender()
-                # self.recommend_job()
-                #TODO: if redirected to here, needs to redirect back
-
-                #TODO: display uer profile if not redirected to here
-            else:
+            except Exception:
                 print("user profile does not exists yet")
                 self.about_resume()
-                # if "init_user1" not in st.session_state:
-                #     self.about_user1()
-                # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-                #     self.about_user2()
+            # if lancedb_table_exists(self.userId) is not None:
+            #     print("user profile already exists")
+            #     # if "base_recommender" not in st.session_state:
+            #     #     st.session_state["base_recommender"]= Recommender()
+            #     # self.recommend_job()
+            #     #TODO: if redirected to here, needs to redirect back
 
+            #     #TODO: display uer profile if not redirected to here
+            # else:
+            #     print("user profile does not exists yet")
+            #     self.about_resume()
+   
     
 
     def sign_out(self, authenticator):
@@ -170,7 +149,7 @@ class User():
             # Hacky way to log out of Google
             print('signing out')
             _ = my_component("signout", key="signout")
-            delete_cookie(get_cookie("userInfo"), key="deleteCookie")
+            delete_cookie(get_cookie(cookie_name), key="deleteCookie")
             st.session_state["mode"]="signedout"
             st.rerun()
 
@@ -185,8 +164,8 @@ class User():
         name, authentication_status, username = authenticator.login('', 'main')
         print(name, authentication_status, username)
         if authentication_status:
-            cookie = encode_jwt(name, username, "test")
-            set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
+            cookie = encode_jwt(name, username, cookie_key)
+            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
             st.session_state["mode"]="signedin"
             st.rerun()
             # time.sleep(3)
@@ -254,48 +233,15 @@ class User():
             if self.save_password( username, name, password, email):
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
-                cookie = encode_jwt(name, username, "test")
-                set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
+                cookie = encode_jwt(name, username, cookie_key)
+                set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
                 st.rerun()
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
 
-    # def recommend_job(self):
 
-    #     try:
-    #         query = st.session_state["users"][self.userId]["summary"]
-    #         matched_urls = st.session_state.base_recommender.match_job(query)
-    #         for url in matched_urls:
-    #             st.markdown(url)
-    #     except Exception:
-    #         raise
                     
-
-
-    # def about_user1(self):
-
-    #     st.markdown("**To get started, please fill out the fields below**")
-    #     if st.session_state.get("name", False) and st.session_state.get("birthday", False)  and st.session_state.get("degree", False) and ((st.session_state.get("job", False) and st.session_state.get("job_level", False)) or st.session_state.get("industry", False)):
-    #         st.session_state.disabled1=False
-    #     else:
-    #         st.session_state.disabled1=True
-    #     # st.markdown("**Basic Information**")
-    #     with st.expander("**Basic information**", expanded=True):
-    #         c1, c2 = st.columns(2)
-    #         with c1:
-    #             #TODO: check default value for user who wants to change their profile info
-    #             st.text_input("Full name *", key="namex", 
-    #                           value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
-    #                           on_change=self.field_check)
-    #         with c2:
-    #             st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
-    #         st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
-
-    #     # st.markdown("**Career**")
-
-    #     st.file_uploader(label="**Resume**", key="resumex", on_change=self.field_check,)
-    #     st.button(label="Next", on_click=self.form_callback1, disabled=st.session_state.disabled1)
 
 
 
@@ -372,13 +318,16 @@ class User():
             st.session_state.resume_disabled = True
         st.markdown("#")
         # c1, _, c2 = st.columns([5, 1, 3])
-        st.file_uploader(label="Upload your resume",
+        resume = st.file_uploader(label="Upload your resume",
                         key="user_resume",
                             accept_multiple_files=False, 
                             on_change=self.field_check, 
                             help="This will become your default resume.")
+        # if resume:
+        #     self.process([resume], "resume")
         st.markdown("#")
-        st.button(label="submit", on_click=self.form_callback, disabled=st.session_state.resume_disabled)
+        st.button(label="submit", on_click=self.form_callback, args=("resume", ), disabled=st.session_state.resume_disabled)
+        st.button(label='skip', type="primary", on_click=self.display_profile)
 
     def about_future(self):
 
@@ -474,9 +423,9 @@ class User():
     def form_callback(self, type):
         """"""
         if type=="resume":
-            resume_dict = retrieve_or_create_resume_info(st.session_state.resume_path, )
-            st.session_state["users"][self.userId]["resume path"] = st.session_state.resume_path
-            st.session_state["users"][self.userId]["resume"] = resume_dict
+            resume_dict = retrieve_or_create_resume_info(st.session_state.user_resume_path, )
+            st.session_state["users"][self.userId]["resume_path"] = st.session_state.user_resume_path
+            st.session_state["users"][self.userId]["resume_info_dict"] = resume_dict
             with open(user_profile_file, 'w') as file:
                 json.dump(st.session_state["users"], file, indent=2)
 
@@ -527,7 +476,7 @@ class User():
             pass
         try:
             birthday = st.session_state.birthdayx
-            self.process_input("birthday", birthday)
+            self.process("birthday", birthday)
             st.session_state["users"][self.userId]["birthday"] = st.session_state.birthday
         except AttributeError:
             pass
@@ -550,19 +499,19 @@ class User():
             pass
         try:
             study = st.session_state.studyx
-            self.process_input("study", study)
+            self.process("study", study)
             st.session_state["users"][self.userId]["study"] = st.session_state.study
         except AttributeError:
             pass
         try:
             certification = st.session_state.certificationx 
-            self.process_input("certification", certification)
+            self.process("certification", certification)
             st.session_state["users"][self.userId]["certification"] = st.session_state.certification
         except AttributeError:
             pass
         try:
             job = st.session_state.jobx
-            self.process_input("job", job)
+            self.process("job", job)
             st.session_state["users"][self.userId]["job"] = st.session_state.job
         except AttributeError:
             pass
@@ -589,7 +538,7 @@ class User():
         #     pass
         try:
             transferable_skills = st.session_state.transferable_skillsx
-            self.process_input("transferable_skills", transferable_skills)
+            self.process("transferable_skills", transferable_skills)
             st.session_state["users"][self.userId]["transferable_skills"] = st.session_state.transferable_skills
         except AttributeError:
             pass
@@ -600,7 +549,7 @@ class User():
             pass
         try:
             location_input = st.session_state.location_inputx
-            self.process_input("location_input", location_input)
+            self.process("location_input", location_input)
             st.session_state["users"][self.userId]["location_input"] = st.session_state.location_input
         except AttributeError:
             pass
@@ -613,15 +562,15 @@ class User():
 
 
     def process(self, input_value: Any, input_type:str):
-        if type=="resume":
-            result = process_uploads(input_value, st.session_state.save_path, st.session_state.sessionId, )
+        if input_type=="resume":
+            result = process_uploads(input_value, st.session_state.save_path, self.userId)
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="resume":
                     st.session_state["user_resume_path"]= end_path
                 else:
                     print("user didn't upload resume")
-                    st.info("Please update your resume here")
+                    st.info("Please upload your resume here")
             else:
                 print("upload didn't work")
                 st.info("That didn't work, please try again.")
@@ -639,39 +588,23 @@ class User():
         elif input_type=="transferable_skills":
             st.session_state.transferable_skills=input_value.split(",")
 
-    # def process_file(self, uploaded_file: Any) -> None:
 
-    #     """ Processes user uploaded files including converting all format to txt, checking content safety, and categorizing content type  """
-    #     # with st.session_state.file_loading, st.spinner("Processing..."):
-    #     # with st.session_state.spinner_placeholder, st.spinner("Processing..."):
-    #     # for uploaded_file in uploaded_files:
-    #     file_ext = Path(uploaded_file.name).suffix
-    #     filename = str(uuid.uuid4())+file_ext
-    #     save_path = os.path.join(st.session_state.user_path, self.userId, "basic_info", filename)
-    #     end_path =  os.path.join(st.session_state.user_path, self.userId, "basic_info", Path(filename).stem+'.txt')
-    #     st.session_state["resume_path"] = end_path
-    #     if st.session_state.storage=="LOCAL":
-    #         with open(save_path, 'wb') as f:
-    #             f.write(uploaded_file.getvalue())
-    #     elif st.session_state.storage=="CLOUD":
-    #         st.session_state.s3_client.put_object(Body=uploaded_file.getvalue(), Bucket=bucket_name, Key=save_path)
-    #         print("Successful written file to S3")
-    #     # Convert file to txt and save it 
-    #     if convert_to_txt(save_path, end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client): 
-    #         content_safe, content_type, content_topics = check_content(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #         print(content_type, content_safe, content_topics) 
-    #         if content_safe and content_type=="resume":
-    #             st.toast(f"your {content_type} is successfully submitted")
-    #         else:
-    #             delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #             # delete_file(save_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-    #             st.toast(f"Failed processing your resume. Please try again!")
 
 
 
     def display_profile(self):
 
         """Loads from user file and displays profile"""
+
+        with st.expander(label="Bio"):
+            try:
+                value = st.session_state["users"][self.userId]["resume_info_dict"]["contact"]["name"]
+            except Exception as e:
+                print(e)
+                value = ""
+                st.text_input("name", value=value)
+
+            
   
     def update_personal_info(self):
         """ """

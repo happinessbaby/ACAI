@@ -30,7 +30,7 @@ import base64
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.callbacks.base import BaseCallbackHandler
 import time
-from utils.cookie_manager import get_cookie, decode_jwt
+from utils.cookie_manager import retrieve_userId
 # from utils.aws_manager import get_client, request_aws4auth
 # from st_multimodal_chatinput import multimodal_chatinput
 # from streamlit_datalist import stDatalist
@@ -42,6 +42,7 @@ from langchain.schema import ChatMessage
 # from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
 from utils.aws_manager import get_aws_session,  get_client
+from json.decoder import JSONDecodeError
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -70,6 +71,7 @@ bucket_name = os.environ['BUCKET_NAME']
 user_vs_name = os.environ["USER_CHAT_VS_NAME"]
 openai.api_key = os.environ['OPENAI_API_KEY']
 max_token_count = os.environ['MAX_TOKEN_COUNT']
+user_profile_file=os.environ["USER_PROFILE_FILE"]
 message_key = {
 "PK": os.environ["PK"],
 "SK": os.environ["SK"],
@@ -89,13 +91,7 @@ class Chat():
     
     def __init__(self):
 
-        # NOTE: userId is retrieved from browser cookie
-        self.cookie = get_cookie("userInfo")
-        if self.cookie:
-            self.userId = decode_jwt(self.cookie, "test").get('username')
-            print("Cookie:", self.userId)
-        else:
-            self.userId = None
+        self.userId = retrieve_userId()
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -109,6 +105,20 @@ class Chat():
     def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
+
+        try:
+            st.session_state["users"]
+        except Exception:
+            with open(user_profile_file, 'r') as file:
+                try:
+                    users = json.load(file)
+                except JSONDecodeError:
+                    raise
+            st.session_state["users"] = users
+        try:
+            st.session_state["user_profile"]=st.session_state["users"][_self.userId]
+        except Exception:
+            pass
 
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
@@ -167,8 +177,11 @@ class Chat():
             st.session_state["bucket_name"]=None
             st.session_state["s3_client"]= None
             # if "save_path" not in st.session_state:
-            st.session_state["save_path"] = os.environ["CHAT_PATH"]
-            # if "temp_path" not in st.session_state:
+            if _self.userId is not None:
+                st.session_state["save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "main")
+                mk_dirs([st.session_state.save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+            else:
+                st.session_state["save_path"] =os.environ["MAIN_PATH"]
             st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
         elif STORAGE=="CLOUD":
             st.session_state["storage"]="CLOUD"
@@ -176,21 +189,18 @@ class Chat():
             st.session_state["s3_client"]= get_client('s3') 
             # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
             # if "save_path" not in st.session_state:
-            st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
+            if _self.userId is not None:
+                st.session_state["save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "main")
+                mk_dirs([st.session_state.save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+            else:
+                st.session_state["save_path"] =os.environ["S3_MAIN_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        if _self.userId is None:
-            paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId),
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                    ]
-        else:
-            paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                     ]
+        paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+                os.path.join(st.session_state.save_path, st.session_state.sessionId),
+                os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                ]
         mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
     # @st.cache_data()

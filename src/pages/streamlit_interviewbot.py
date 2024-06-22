@@ -33,7 +33,7 @@ from langchain.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTo
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
-from utils.cookie_manager import get_cookie, get_all_cookies, decode_jwt
+from utils.cookie_manager import retrieve_userId
 from utils.aws_manager import get_client
 import pywinctl as pwc
 from interview_component import my_component
@@ -93,12 +93,8 @@ class Interview():
     
 
     def __init__(self, data_queue, socket_client):
-        self.cookie = get_cookie("userInfo")
-        if self.cookie:
-            self.userId = decode_jwt(self.cookie, "test").get('username')
-            print("Cookie:", self.userId)
-        else:
-            self.userId = None
+
+        self.userId = retrieve_userId()
         if "interview_sessionId" not in st.session_state:
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
             self.interview_sessionId = st.session_state.interview_sessionId
@@ -143,11 +139,10 @@ class Interview():
                 st.session_state["bucket_name"]=None
                 st.session_state["s3_client"]= None
                 # st.session_state["window_title"] = pwc.getActiveWindowTitle()
-                # if "save_path" not in st.session_state:
-                st.session_state["save_path"] =os.environ["INTERVIEW_PATH"]
-                # if "temp_path" not in st.session_state:
-                # st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-                # if "directory_made" not in st.session_state:
+                if _self.userId is not None:
+                    st.session_state["save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "interview")
+                else:
+                    st.session_state["save_path"] =os.environ["INTERVIEW_PATH"]
             elif STORAGE=="CLOUD":
                 st.session_state["lambda_client"] = get_client("lambda")
                 st.session_state["s3_client"]= get_client("s3")
@@ -156,24 +151,16 @@ class Interview():
                 st.session_state["transcribe_bucket_name"] = os.environ['TRANSCRIBE_BUCKET_NAME']
                 st.session_state["polly_bucket_name"] = os.environ['POLLY_BUCKET_NAME']
                 # if "save_path" not in st.session_state:
-                st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
-                # if "temp_path" not in st.session_state:
-                # st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-            if _self.userId is None:
-                paths = [
-                        # os.path.join(st.session_state.temp_path, st.session_state.interview_sessionId), 
-                        # os.path.join(st.session_state.save_path, st.session_state.interview_sessionId),
-                        os.path.join(st.session_state.save_path, "downloads", st.session_state.interview_sessionId),
-                        os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId),
-                        os.path.join(st.session_state.save_path, "recordings", st.session_state.interview_sessionId)
-                        ]
-            else:
-                 paths = [
-                    #  os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                 ]
+                if _self.userId is not None:
+                    st.session_state["save_path"] =os.path.join(os.environ["S3_USER_PATH"], _self.userId, "interview")
+                else:
+                    st.session_state["save_path"] = os.environ["S3_INTERVIEW_PATH"]
+            #TODO: logged in users have access to interview progression analysis
+            paths = [
+                    os.path.join(st.session_state.save_path, "downloads", st.session_state.interview_sessionId),
+                    os.path.join(st.session_state.save_path, "uploads", st.session_state.interview_sessionId),
+                    os.path.join(st.session_state.save_path, "recordings", st.session_state.interview_sessionId)
+                    ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
 
