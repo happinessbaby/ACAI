@@ -155,7 +155,7 @@ class User():
                 #TODO: display uer profile if not redirected to here
             else:
                 print("user profile does not exists yet")
-                self.about_resume_popup()
+                self.about_resume()
                 # if "init_user1" not in st.session_state:
                 #     self.about_user1()
                 # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
@@ -362,9 +362,10 @@ class User():
         # if submitted:
         #     st.session_state["init_user2"]=True
 
-    @st.experimental_dialog("Let's get started with your resume", width="large")
-    def about_resume_popup(self):
-        
+
+    def about_resume(self):
+
+        st.title("Let's get started with your resume")
         if "user_resume_path" in st.session_state:
             st.session_state.resume_disabled = False
         else:
@@ -379,17 +380,16 @@ class User():
         st.markdown("#")
         st.button(label="submit", on_click=self.form_callback, disabled=st.session_state.resume_disabled)
 
-    def about_future_popup(self):
+    def about_future(self):
 
         st.text_area("Where do you see yourself in 5 years?")
 
-    def about_skills_popup(self):
+    def about_skills(self):
 
         st.text_area("What are your skills and talent?")
 
 
-    @st.experimental_dialog("Basic information", )
-    def about_basic_popup(self):
+    def about_bio(self):
 
         c1, c2 = st.columns(2)
         with c1:
@@ -402,8 +402,7 @@ class User():
         st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
 
 
-    @st.experimental_dialog("Desired job benefits", )
-    def about_career_popup(self):
+    def about_career(self):
 
         c1, c2 = st.columns([1, 1])
         # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
@@ -438,8 +437,7 @@ class User():
                         st.session_state["location_input"] = address
 
 
-    @st.experimental_dialog("Education & Certification", )
-    def about_education_popup(self):
+    def about_education(self):
 
         c1, c2 = st.columns([1, 1])
             # st.text_input("School", key="schoolx")
