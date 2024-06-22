@@ -9,7 +9,7 @@ import os
 import uuid
 from backend.mock_interviewer import InterviewController
 # from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file, move_file
+from utils.basic_utils import delete_file, mk_dirs, move_file
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  check_content, process_links, process_uploads
 import asyncio
@@ -25,24 +25,24 @@ from typing import Any, Dict, Union
 # import tempfile
 import openai
 # from elevenlabs import generate, play, set_api_key
-from time import gmtime, strftime
-import playsound
-from streamlit_modal import Modal
+# from time import gmtime, strftime
+# import playsound
+# from streamlit_modal import Modal
 import json
 from langchain.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
 from utils.cookie_manager import get_cookie, get_all_cookies, decode_jwt
-from utils.aws_manager import get_aws_session,  get_client
+from utils.aws_manager import get_client
 import pywinctl as pwc
 from interview_component import my_component
 from google.cloud import texttospeech
-from pydub import AudioSegment
-import wave
-from audio_recorder_streamlit import audio_recorder
-from streamlit_mic_recorder import mic_recorder,speech_to_text
-from speech_recognition import Recognizer, AudioData
+# from pydub import AudioSegment
+# import wave
+# from audio_recorder_streamlit import audio_recorder
+# from streamlit_mic_recorder import mic_recorder,speech_to_text
+# from speech_recognition import Recognizer, AudioData
 import asyncio
 import json
 import base64
@@ -113,7 +113,7 @@ class Interview():
 
 
     
-    # @st.cache_data()
+    @st.cache_data()
     def _init_session_states(_self,):
 
 
@@ -354,20 +354,20 @@ class Interview():
                 print('entering phone mode')
                 with st.container():
                     # user_input =speech_to_text(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))
-                    text = whisper_stt(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))  
+                    with st.session_state.human_col:
+                        text = whisper_stt(start_prompt="🔴", stop_prompt="⏺️", language='en', key="voice_input", callback=_self.chat_callback, args=("voice", ))  
                     if text:
                         print(text)
-                    if "greeting" in st.session_state:
+                    if "greeting" in st.session_state and "interviewer_response" not in st.session_state :
                         _self.synthesize_ai_response(st.session_state.greeting)
-                        del st.session_state["greeting"]
                     if "interview_input" in st.session_state and "interviewer_response" in st.session_state:
                         with st.session_state.human_col:
                             st.session_state.placeholder_human.markdown(st.session_state.interview_input)
                         with st.session_state.ai_col:
-                            if "input_type" in st.session_state and st.session_state["input_type"]=="voice":
-                                _self.synthesize_ai_response(st.session_state.interviewer_response)
-                            elif  "input_type" in st.session_state and st.session_state["input_type"]=="text":
-                                _self.typewriter(st.session_state.interviewer_response, speed=3)
+                            # if "input_type" in st.session_state and st.session_state["input_type"]=="voice":
+                            _self.synthesize_ai_response(st.session_state.interviewer_response)
+                            # elif  "input_type" in st.session_state and st.session_state["input_type"]=="text":
+                            #     _self.typewriter(st.session_state.interviewer_response, speed=3)
                     if "grader_response" in st.session_state:
                         with st.session_state.feedback_col:
                             with st.session_state.placeholder_expander.expander("How am I doing?"):
@@ -466,13 +466,9 @@ class Interview():
                     self.interview_industry=""
                     self.generated_dict = {}
                     self.learning_material= ""
-                print("about_interview:", self.about_interview)
-                print("generated_dict", self.generated_dict)
-                print("learning material", self.learning_material)
-                print("interview industry",self.interview_industry)
                 new_interview = InterviewController(self.userId,  st.session_state["interview_sessionId"],self.about_interview, self.interview_industry, self.generated_dict, self.learning_material)
                 st.session_state["baseinterview"] = new_interview
-            if "greeting" not in st.session_state:
+            if "greeting" not in st.session_state and "interviewer_response" not in st.session_state:
                 st.session_state["greeting"] = st.session_state.baseinterview.generate_greeting(host=st.session_state["host"])
                 # st.session_state["greeting_json"] = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 # st.session_state["modal"].close()

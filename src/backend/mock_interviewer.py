@@ -1,13 +1,13 @@
 import openai
 from langchain_openai import ChatOpenAI
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.cache import InMemoryCache
-import langchain
-from langchain.schema import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage
-)
+# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+# from langchain.cache import InMemoryCache
+# import langchain
+# from langchain.schema import (
+#     AIMessage,
+#     HumanMessage,
+#     SystemMessage
+# )
 import os
 from pathlib import Path
 from typing import Any, Union
@@ -590,9 +590,8 @@ class InterviewController():
                                     interviewee name: {name} /n
                                 employer's company: {company} /n
                                 interview job position: {job} /n
-                                Please make your greeting about 2-3 sentences long. Remember to introduce yourself and an interview supervisor/grader named Ali.
-                                YOu and Ali will be partnering together to help conduct the interview. 
-                                If any part of the provided information is missing, skip it. 
+                                Please make your greeting about 2-3 sentences long. 
+                                If any part of the provided information is missing, leave it out. Your greeting should sound business professional. 
                                     """)
         print(f"Successfully generated greeting: {self.greeting}")
         return self.greeting
