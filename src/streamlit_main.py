@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit.errors import DuplicateWidgetID
 from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
 import extra_streamlit_components as stx
@@ -11,8 +10,8 @@ import os
 import uuid
 from backend.career_advisor import ChatController
 # from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import convert_to_txt, read_txt, retrieve_web_content, html_to_text, delete_file, mk_dirs, write_file, read_file
-from utils.openai_api import get_completion, num_tokens_from_text, check_content_safety
+from utils.basic_utils import read_txt,delete_file, mk_dirs, write_file, read_file
+from utils.openai_api import  num_tokens_from_text
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs, match_resume_to_job
 import re
@@ -27,28 +26,22 @@ import json
 # from streamlit_extras.switch_page_button import switch_page
 from streamlit_modal import Modal
 import base64
-from langchain.tools import tool
-import streamlit.components.v1 as components, html
-from PIL import Image
-from interview_component import my_component
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.callbacks.base import BaseCallbackHandler
-import threading
-import queue
 import time
 from utils.cookie_manager import get_cookie, decode_jwt
-from utils.aws_manager import get_client, request_aws4auth
+# from utils.aws_manager import get_client, request_aws4auth
 # from st_multimodal_chatinput import multimodal_chatinput
 # from streamlit_datalist import stDatalist
 import time
 import re
 from langchain.schema import ChatMessage
-from st_click_detector import click_detector
-from st_clickable_images import clickable_images
-from st_btn_select import st_btn_select
-from streamlit_simple_gallery import ImageGallery
+# from st_click_detector import click_detector
+# from st_clickable_images import clickable_images
+# from streamlit_simple_gallery import ImageGallery
 from streamlit_image_select import image_select
+from utils.aws_manager import get_aws_session,  get_client
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -106,13 +99,13 @@ class Chat():
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
-        # self._init_session_states()
+        self._init_session_states()
         # self._create_chatbot()
         self._init_display()
 
         
 
-    # @st.cache_data()
+    @st.cache_data()
     def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
@@ -169,36 +162,36 @@ class Chat():
         # if 'questionInput' not in st.session_state:
         #     st.session_state["questionInput"] = None  
         # st.session_state["resume_placeholder"] = st.empty()
-        # if STORAGE == "LOCAL":
-        #     st.session_state["storage"]="LOCAL"
-        #     st.session_state["bucket_name"]=None
-        #     st.session_state["s3_client"]= None
-        #     # if "save_path" not in st.session_state:
-        #     st.session_state["save_path"] = os.environ["CHAT_PATH"]
-        #     # if "temp_path" not in st.session_state:
-        #     st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-        # elif STORAGE=="CLOUD":
-        #     st.session_state["storage"]="CLOUD"
-        #     st.session_state["bucket_name"]=bucket_name
-        #     st.session_state["s3_client"]= get_client('s3') 
-        #     # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
-        #     # if "save_path" not in st.session_state:
-        #     st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
-        #     # if "temp_path" not in st.session_state:
-        #     st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        # if _self.userId is None:
-        #     paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
-        #             os.path.join(st.session_state.save_path, st.session_state.sessionId),
-        #             os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
-        #             os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
-        #             ]
-        # else:
-        #     paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
-        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
-        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
-        #             os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
-        #              ]
-        # mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        if STORAGE == "LOCAL":
+            st.session_state["storage"]="LOCAL"
+            st.session_state["bucket_name"]=None
+            st.session_state["s3_client"]= None
+            # if "save_path" not in st.session_state:
+            st.session_state["save_path"] = os.environ["CHAT_PATH"]
+            # if "temp_path" not in st.session_state:
+            st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+        elif STORAGE=="CLOUD":
+            st.session_state["storage"]="CLOUD"
+            st.session_state["bucket_name"]=bucket_name
+            st.session_state["s3_client"]= get_client('s3') 
+            # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
+            # if "save_path" not in st.session_state:
+            st.session_state["save_path"] = os.environ["S3_CHAT_PATH"]
+            # if "temp_path" not in st.session_state:
+            st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+        if _self.userId is None:
+            paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId),
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                    os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                    ]
+        else:
+            paths = [os.path.join(_self.userId, st.session_state.temp_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                    os.path.join(_self.userId, st.session_state.save_path, st.session_state.sessionId, "uploads"),
+                     ]
+        mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
     # @st.cache_data()
     def _init_display(_self):
@@ -402,64 +395,13 @@ class Chat():
                 # question = st.selectbox("", index=None, key="prefilled", options=sample_questions,)
                 # if question:
                 #     _self.chat_callback(question)
-        # if cover_letter_modal.is_dopen():
-        #     st.write("test")
+  
 
 
-    # @st.experimental_dialog("What do you need help with?")   
-    # def resume_selection_popup(self, ):
-    #     # if "type_selectionx" not in st.session_state or st.session_state.type_selectionx==[]:
-    #     #     st.session_state.resume_selection_disabled=True
-    #     # else:
-    #     #     st.session_state.resume_selection_disabled=False
-    #     # selected = st.multiselect(f"You can select multiple",  
-    #     #                         resume_options,
-    #     #                         placeholder="Please make a selection...", 
-    #     #                         key="type_selectionx",
-    #     #                         # on_change=self.form_callback 
-    #     #                         )
-    #     if ("s1" in st.session_state and st.session_state["s1"]) or ("s2" in st.session_state and st.session_state["s2"]) or ("s3" in st.session_state and st.session_state["s3"]):
-    #         st.session_state.resume_selection_disabled=False
-    #     else:
-    #         st.session_state.resume_selection_disabled=True
-    #     s1 = st.checkbox(label=resume_options[0], key="s1")
-    #     s2=st.checkbox(label=resume_options[1], key="s2")
-    #     s3=st.checkbox(label=resume_options[2], key="s3")
-    #     conti = st.button(label="next",
-    #                        key="next_button", 
-    #                        disabled=st.session_state.resume_selection_disabled, 
-    #                       )
-    #     if conti:
-    #         st.session_state["type_selection"]=[key for key, val in {resume_options[0]:s1, resume_options[1]:s2, resume_options[2]:s3}.items() if  val]
-    #         print(st.session_state.type_selection)
-    #         st.rerun()
-
-    # @st.experimental_dialog("What type of interview do you need practice with?")
-    # def interview_selection_popup(self, ):
-    #     """"""
-
-    #     if ("rs_interview" in st.session_state and st.session_state["rs_interview"] is not None):
-    #         st.session_state.interview_selection_disabled=False
-    #     else:
-    #         st.session_state.interview_selection_disabled=True
-    #     selection = st.radio("Please select an option",
-    #                          index=None, 
-    #                          options=interview_options, 
-    #                          key="rs_interview", 
-    #                          label_visibility="hidden",
-    #                          )
-    #     conti = st.button(label="next",
-    #                        key="next_button", 
-    #                        disabled=st.session_state.interview_selection_disabled, 
-    #                       )
-    #     if conti:
-    #         st.session_state["interview"]=True
-    #         st.session_state["mode"]=selection
-    #         st.rerun() 
 
 
     @st.experimental_dialog("Please fill out the form", )
-    def general_form_popup(self, func, selection, resume_required=True, job_required = False, back_opt=False, back_func=None):
+    def general_form_popup(self, func, selection, resume_required=True, job_required = False, ):
         
         # if "type_selection" not in st.session_state or st.session_state.type_selection==[]:
         #     st.session_state.job_description_disabled=True
@@ -527,6 +469,8 @@ class Chat():
                                     on_change=self.form_callback,
                                     # disabled=st.session_state.resume_disabled,
                                     )
+            if resume: 
+                self.process([resume],"resume" )
         with separator:
             st.write("or")
         with c2:
@@ -537,9 +481,6 @@ class Chat():
                 login = st.button("login", type="primary")
                 if login:
                     st.switch_page("pages/streamlit_user.py")
-        if back_opt:
-            back = st.button(label="back", 
-                             )
         conti = st.button(label="next",
                            key="next_resume_button", 
                            disabled=st.session_state.conti_disabled, 
@@ -579,25 +520,7 @@ class Chat():
             match_resume_to_job()
         elif selection=="resume help":
             st.switch_page("pages/streamlit_dashboard.py")
-        # # Evaluate resume
-        # if resume_options[0] in selection:
-        # # if st.session_state.resume_opt1:
-        #     st.session_state["evaluation"] = True
-        # # Reformat resume
-        # if resume_options[1] in selection:
-        # # if st.session_state.resume_opt2:
-        #         try:
-        #             st.session_state["resume_type"] = st.session_state["eval_dict"]["ideal_type"]
-        #         except Exception:   
-        #             st.session_state["resume_type"]=(
-        #                 resume_dict=st.session_state.resume_dict, 
-        #                 job_posting_dict=st.session_state.job_posting_dict if "job_posting_dict" in st.session_state else "",
-        #                   )
-        #         st.session_state["reformatting"] = True
-        # # Tailor resume
-        # if resume_options[2] in selection:
-        # # if st.session_state.resume_opt3:
-        #     st.session_state["tailoring"] = True
+
 
 
 
@@ -800,13 +723,13 @@ class Chat():
     def form_callback(self):
 
         """ Processes form information after form submission. """
-        try:
-            selected=st.session_state.type_selectionx
-            if selected:
-                # st.session_state.cl_type_checkmark="✅"
-                st.session_state["type_selection"]=selected
-        except Exception:
-            pass
+        # try:
+        #     selected=st.session_state.type_selectionx
+        #     if selected:
+        #         # st.session_state.cl_type_checkmark="✅"
+        #         st.session_state["type_selection"]=selected
+        # except Exception:
+        #     pass
         try:
             resume=st.session_state.resume
             if resume:
@@ -891,7 +814,6 @@ class Chat():
     
         """
 
-        end_paths = []
         if upload_type=="resume":
             result = process_uploads(uploads, st.session_state.save_path, st.session_state.sessionId)
             if result is not None:
@@ -925,31 +847,6 @@ class Chat():
                 st.session_state["job_description"] = uploads  
             else:
                 st.info("Please share a job description here")
-        # for end_path in end_paths:
-        #     content_safe, content_type, content_topics = check_content(end_path,  storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        #     print(content_type, content_safe, content_topics) 
-        #     # if content_safe and content_type!="empty" and content_type!="browser error":
-        #     #     self.update_entities(content_type, content_topics, end_path)
-        #     #     st.toast(f"your {content_type} is successfully submitted")
-        #     if content_safe and content_type=="resume":
-        #          st.session_state["resume_path"]= end_path
-        #     elif content_safe and content_type=="job posting":
-        #         st.session_state["job_posting_path"]=end_path
-        #     else:
-        #         delete_file(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        #         st.toast(f"Failed processing your material. Please try again!")
-    def display_resume_eval(self, eval_dict): 
-        """ Displays resume evaluation result"""
-        tab1, tab2, tab3 = st.tabs(["Criteria", "Impression", "In-Depth"])
-        with tab1:
-            with st.container():
-                st.write("Length")
-                st.write("A resume has an ideal length or 450 to 650 words, about one page long.")
-                st.write("Yours is: ")
-            with st.container():
-                st.write("Ideal Type")
-                functional = st.write("FUNCTIONAL")
-                st.help(functional)
 
         
 
@@ -1139,4 +1036,4 @@ class StreamHandler(BaseCallbackHandler):
 if __name__ == '__main__':
 
     advisor = Chat()
-    # asyncio.run(advisor.initialize())
+

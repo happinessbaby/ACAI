@@ -4,32 +4,31 @@ from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
-from langchain.output_parsers import CommaSeparatedListOutputParser
-from langchain.prompts import PromptTemplate
-from langchain_experimental.smart_llm import SmartLLMChain
-from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
-from utils.openai_api import get_completion
+# from langchain.output_parsers import CommaSeparatedListOutputParser
+# from langchain.prompts import PromptTemplate
+# from langchain_experimental.smart_llm import SmartLLMChain
+# from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
+# from utils.openai_api import get_completion
 from utils.basic_utils import read_txt, memoized, process_json, count_length
 from utils.common_utils import (search_related_samples, research_relevancy_in_resume, extract_similar_jobs, calculate_graduation_years)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
-from json import JSONDecodeError
-from multiprocessing import Process, Queue, Value
-from langchain.tools.json.tool import JsonSpec
-from typing import Dict, List, Optional, Union
-from langchain.document_loaders import BSHTMLLoader
-from langchain.tools import tool
-from langchain.chains import LLMChain
-import docx
-import uuid
-from docxtpl import DocxTemplate	
-from docx import Document
-from docx.shared import Inches
+# from json import JSONDecodeError
+# from multiprocessing import Process, Queue, Value
+# from langchain.tools.json.tool import JsonSpec
+# from typing import Dict, List, Optional, Union
+# from langchain.document_loaders import BSHTMLLoader
+# from langchain.tools import tool
+# from langchain.chains import LLMChain
+# import docx
+# import uuid
+# from docxtpl import DocxTemplate	
+# from docx import Document
+# from docx.shared import Inches
 import boto3
 import re
-from pydantic import BaseModel, Field, validator
 from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
 from dotenv import load_dotenv, find_dotenv
 

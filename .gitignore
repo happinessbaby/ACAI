@@ -185,3 +185,4 @@ src/interview_tmp_vs/
 src/todo_tmp/
 src/chat_debug/
 src/interview_data/
+*.tmp

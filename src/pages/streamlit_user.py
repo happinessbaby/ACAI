@@ -4,40 +4,24 @@ from interview_component import my_component
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
-from langchain.prompts import PromptTemplate, StringPromptTemplate
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, get_all_cookies, decode_jwt, encode_jwt, get_cookie_manager
 import time
 from datetime import datetime, timedelta, date
-from streamlit_modal import Modal
-from utils.dynamodb_utils import save_user_info
-from utils.aws_manager import get_client
-from utils.dynamodb_utils import init_table, check_attribute_exists
-from todo_tmp.streamlit_plannerbot import Planner
-import streamlit.components.v1 as components
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
-from utils.langchain_utils import create_record_manager, create_vectorstore, update_index, split_doc_file_size, clear_index, retrieve_vectorstore
 from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, retrieve_or_create_resume_info
-from utils.basic_utils import read_txt, delete_file, convert_to_txt
 from typing import Any, List
-from langchain.docstore.document import Document
 from pathlib import Path
-from feast import FeatureStore
-import faiss
 import re
 import uuid
-from bokeh.models.widgets import Button
-from bokeh.models import CustomJS
-from streamlit_bokeh_events import streamlit_bokeh_events
 from streamlit_js_eval import get_geolocation
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-import lancedb
 import json
 from json.decoder import JSONDecodeError
-from backend.job_recommender import Recommender
+
 
 # st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
@@ -171,7 +155,7 @@ class User():
                 #TODO: display uer profile if not redirected to here
             else:
                 print("user profile does not exists yet")
-                self.about_resume_popup()
+                self.about_resume()
                 # if "init_user1" not in st.session_state:
                 #     self.about_user1()
                 # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
@@ -378,8 +362,10 @@ class User():
         # if submitted:
         #     st.session_state["init_user2"]=True
 
-    @st.experimental_dialog("Let's get started with your resume", width="large")
-    def about_resume_popup(self):
+
+    def about_resume(self):
+
+        st.title("Let's get started with your resume")
         if "user_resume_path" in st.session_state:
             st.session_state.resume_disabled = False
         else:
@@ -394,17 +380,16 @@ class User():
         st.markdown("#")
         st.button(label="submit", on_click=self.form_callback, disabled=st.session_state.resume_disabled)
 
-    def about_future_popup(self):
+    def about_future(self):
 
         st.text_area("Where do you see yourself in 5 years?")
 
-    def about_skills_popup(self):
+    def about_skills(self):
 
         st.text_area("What are your skills and talent?")
 
 
-    @st.experimental_dialog("Basic information", )
-    def about_basic_popup(self):
+    def about_bio(self):
 
         c1, c2 = st.columns(2)
         with c1:
@@ -417,8 +402,7 @@ class User():
         st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
 
 
-    @st.experimental_dialog("Desired job benefits", )
-    def about_career_popup(self):
+    def about_career(self):
 
         c1, c2 = st.columns([1, 1])
         # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
@@ -453,8 +437,7 @@ class User():
                         st.session_state["location_input"] = address
 
 
-    @st.experimental_dialog("Education & Certification", )
-    def about_education_popup(self):
+    def about_education(self):
 
         c1, c2 = st.columns([1, 1])
             # st.text_input("School", key="schoolx")
