@@ -3,6 +3,7 @@ from backend.upgrade_resume import evaluate_resume, tailor_resume, eval_dict, ta
 from streamlit.components.v1 import html, iframe
 import pandas as pd
 import threading
+import multiprocessing
 
 
 st.set_page_config(layout="wide")
@@ -31,7 +32,7 @@ def main():
     if "Evaluation" in st.session_state.tabs:
         with tabs[count]:
             display_resume_eval()
-            thread = threading.Thread(
+            thread = multiprocessing.Process(
                 target = evaluate_resume,
                 args=(
                     st.session_state["resume_path_final"], 
@@ -63,7 +64,7 @@ def main():
     if "Tailoring" in st.session_state.tabs:
         with tabs[count]:
             display_tailoring()
-            thread = threading.Thread(
+            thread = multiprocessing.Process(
                 target = tailor_resume, 
                 args = (
                     st.session_state["resume_dict"], 

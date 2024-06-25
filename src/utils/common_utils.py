@@ -1110,7 +1110,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         json.dump(job_posting_info_dict, json_file, indent=4)
     return job_posting_info_dict[job_posting]
 
-def retrieve_or_create_resume_info(resume_path):
+def retrieve_or_create_resume_info(resume_path, q=None):
     #NOTE: JSON file is the temp solution, will move to database
     try: 
        with open("./test_resume_info.json") as f:
@@ -1118,10 +1118,12 @@ def retrieve_or_create_resume_info(resume_path):
         resume_dict = resume[resume_path]
     except Exception:
       resume_dict = create_resume_info(resume_path=resume_path, )
+    if q:
+        q.put(resume_dict)
     return resume_dict
 
 
-def retrieve_or_create_job_posting_info(posting_path="", about_job="",):
+def retrieve_or_create_job_posting_info(posting_path, about_job, q=None):
     #NOTE: JSON file is the temp solution, will move to database
     try:
        with open("./test_job_posting_info.json") as f:
@@ -1129,6 +1131,8 @@ def retrieve_or_create_job_posting_info(posting_path="", about_job="",):
           job_posting_dict= job_posting[posting_path]
     except Exception:   
       job_posting_dict= create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    if q:
+        q.put(job_posting_dict)
     return job_posting_dict
 
 def process_inputs(user_input, match_topic=""):

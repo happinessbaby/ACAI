@@ -43,6 +43,14 @@ from langchain.schema import ChatMessage
 from streamlit_image_select import image_select
 from utils.aws_manager import get_aws_session,  get_client
 from json.decoder import JSONDecodeError
+from stqdm import stqdm
+from time import sleep
+import threading
+import queue
+from utils.streamlit_utils import loading
+import multiprocessing
+
+
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -79,8 +87,8 @@ message_key = {
 topic = "jobs"
 resume_options = ["evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting"]
 interview_options=["phone interview", "panel interview"]
-# st.write(get_all_cookies())
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
+
 
 
 class Chat():
@@ -91,7 +99,9 @@ class Chat():
     
     def __init__(self):
 
+        # if "userId" not in st.session_state:
         self.userId = retrieve_userId()
+            # st.session_state["userId"] = retrieve_userId()
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -101,7 +111,7 @@ class Chat():
 
         
 
-    @st.cache_data()
+    # @st.cache_data()
     def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
@@ -111,15 +121,16 @@ class Chat():
         except Exception:
             with open(user_profile_file, 'r') as file:
                 try:
-                    users = json.load(file)
+                    st.session_state["users"] = json.load(file)
                 except JSONDecodeError:
                     raise
-            st.session_state["users"] = users
         try:
-            st.session_state["user_profile"]=st.session_state["users"][_self.userId]
+            st.session_state["resume_dict"]=st.session_state["users"][_self.userId]["resume_info_dict"]
         except Exception:
             pass
-
+        _, c1 = st.columns([10, 1])
+        with c1:
+            st.session_state["placeholder_profile"]=st.empty()
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
@@ -208,6 +219,32 @@ class Chat():
 
         """ Initializes UI. """
 
+        st.markdown(
+            """
+            <style>
+            button[kind="primary"] {
+                background: none!important;
+                border: none;
+                padding: 0!important;
+                color: black !important;
+                text-decoration: none;
+                cursor: pointer;
+                border: none !important;
+            }
+            button[kind="primary"]:hover {
+                text-decoration: none;
+                color: blue !important;
+            }
+            button[kind="primary"]:focus {
+                outline: none !important;
+                box-shadow: none !important;
+                color: blue !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
          # textinput_styl = f"""
         # <style>
         #     .stTextInput {{
@@ -273,38 +310,45 @@ class Chat():
         #         st.switch_page("pages/streamlit_dashboard.py")
         # if ("interview" in st.session_state and st.session_state["interview"]):
         #     st.switch_page("pages/streamlit_interviewbot.py")
-        if "resume help" not in st.session_state:
+        if "resume help" not in st.session_state and "match" not in st.session_state:
             if "resume_path" in st.session_state:
                 del st.session_state["resume_path"]
             if "job_description" in st.session_state:
                 del st.session_state["job_description"]
             if "job_posting_path" in st.session_state:
                 del st.session_state["job_posting_path"]
+        else:
+            _self.process_selection()
+            # print("FINISHED PROCESSING RESUME")
+            # print(st.session_state["resume help"])
+            if "resume help" in st.session_state and st.session_state["resume help"]:
+                st.switch_page("pages/streamlit_dashboard.py")
+            elif "match" in st.session_state and  st.session_state["match"]:
+                match_resume_to_job()
+
         with st._main:
-            
+            profile = st.session_state.placeholder_profile.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary")
+            if profile:
+                st.switch_page("pages/streamlit_user.py")
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
-            c1, c2, c3=st.columns([1,  1, 1])
+            _, c1, c2=st.columns([1, 1,  1])
             with c1:
-                resume_option = st.button("Resume Help", key="resume_button",)
-            if resume_option:
-                _self.general_form_popup(_self.general_selection_callback, selection="resume help", job_required=False)
+                if st.button("Resume Help", key="resume_button",):
+                    _self.general_form_popup(selection="resume help", job_required=False)
                 # _self.resume_selection_popup()
             with c2:
-                interview_option = st.button("Mock Interview", key="interview_button")
-            if interview_option:
-                # _self.interview_selection_popup()
-                st.switch_page("pages/streamlit_interviewbot.py")
-            with c3:
-                job_option = st.button("Job Search", key="job_button")
-            if job_option:
-                st.switch_page("pages/streamlit_jobs.py")
+                if st.button("Mock Interview", key="interview_button"):
+                    st.switch_page("pages/streamlit_interviewbot.py")
+            # with c3:
+            #     job_option = st.button("Job Search", key="job_button")
+            # if job_option:
+            #     st.switch_page("pages/streamlit_jobs.py")
             add_vertical_space(5)
             _, c2, _ = st.columns([1, 1, 1])
             with c2:
-                match_meter = st.button("Match Me!")
-            if match_meter:
-                _self.general_form_popup(_self.general_selection_callback, selection="match", job_required=True, resume_required=True,)
+                if st.button("Match Me!"):
+                    _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
             
             # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
     
@@ -410,8 +454,8 @@ class Chat():
 
 
 
-    @st.experimental_dialog("Please fill out the form", )
-    def general_form_popup(self, func, selection, resume_required=True, job_required = False, ):
+    @st.experimental_dialog(" ", )
+    def general_form_popup(self, selection, resume_required=True, job_required = False, ):
         
         # if "type_selection" not in st.session_state or st.session_state.type_selection==[]:
         #     st.session_state.job_description_disabled=True
@@ -421,6 +465,7 @@ class Chat():
         #     st.session_state.job_description_disabled=False
         #     st.session_state.job_posting_disabled=False
         #     st.session_state.resume_disabled=False
+        add_vertical_space(2)
         if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
             st.session_state.conti_disabled=True
         else:
@@ -453,8 +498,8 @@ class Chat():
             else:
                 st.info("Your resume will be evaluated and tailored to the job posting")
             skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.skip_evaluation_callback)
-        with st.expander("Add a job posting for tailoring", expanded=st.session_state.expanded):
-            job_posting = st.radio(f"Job posting {st.session_state.job_posting_checkmark}", 
+        with st.expander(f"Add a job posting for tailoring {st.session_state.job_posting_checkmark}", expanded=st.session_state.expanded):
+            job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0
                                 )
@@ -484,20 +529,19 @@ class Chat():
         with separator:
             st.write("or")
         with c2:
-            if self.userId:
-                st.write("retrieve default user resume here")
+            if self.userId and "resume_dict" in st.session_state:
+                if st.checkbox("use my default resume"):
+                    st.session_state["use_default_resume"]=True 
+            elif self.userId and "resume_dict" not in st.session_state:
+                st.page_link("pages/streamlit_user.py", label="create my default resume", )       
             else:
                 st.write("Login to use or create a default resume")
-                login = st.button("login", type="primary")
-                if login:
+                if st.button("login", type="primary"):
                     st.switch_page("pages/streamlit_user.py")
-        conti = st.button(label="next",
-                           key="next_resume_button", 
+        if st.button(label="next",
+                           key="next_button", 
                            disabled=st.session_state.conti_disabled, 
-                            # on_click=self.resume_selection_callback,
-                          )
-        if conti:
-            func(selection)
+                          ):
             st.session_state[selection]=True
             st.rerun()
 
@@ -511,25 +555,45 @@ class Chat():
                 del st.session_state["job_required"]
 
 
-    @st.experimental_fragment
-    def general_selection_callback(self, selection, template=False, template_path="", type="", ):
+    # @st.experimental_fragment
+    def process_selection(self, ):
 
         # Generate resume and job posting dictionaries
-        #TODO: send these to separate threads if possible
+        posting_q=None
+        resume_q=None
         st.session_state["resume_path_final"]=st.session_state["resume_path"]
         if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
             st.session_state["evaluation"]=True
-        st.session_state["resume_dict"]=retrieve_or_create_resume_info(st.session_state.resume_path)
-        if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link":
-            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(posting_path=st.session_state.job_posting_path, )
+        if "use_default_resume" not in st.session_state:
+            if "job_posting_path" not in st.session_state and "job_description" not in st.session_state:
+                st.session_state["resume_dict"] = retrieve_or_create_resume_info(st.session_state.resume_path, )  
+            else:
+                resume_q = multiprocessing.Queue()
+                resume_t=multiprocessing.Process(target=retrieve_or_create_resume_info, 
+                                        args=(st.session_state.resume_path_final, resume_q, ),
+                                        daemon=True)
+                resume_t.start()
+        if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
             st.session_state["tailoring"]=True
-        elif "job_description" in st.session_state and st.session_state.job_posting_radio=="job description":
-            st.session_state["job_posting_dict"]=retrieve_or_create_job_posting_info(about_job=st.session_state.job_description,)
-            st.session_state["tailoring"]=True
-        if selection=="match":
-            match_resume_to_job()
-        elif selection=="resume help":
-            st.switch_page("pages/streamlit_dashboard.py")
+            posting_q = multiprocessing.Queue()
+            posting_t=multiprocessing.Process(
+                target = retrieve_or_create_job_posting_info, 
+                args = (
+                st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
+                 st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+                 posting_q),
+                 daemon=True,
+            )
+            posting_t.start()
+        # while "resume_dict" not in st.session_state:
+        #     loading("processing.....")
+        if resume_q:
+            resume_t.join()
+            st.session_state["resume_dict"]=resume_q.get()
+        if posting_q:
+            posting_t.join()
+            st.session_state["job_posting_dict"] = posting_q.get()
+
 
 
 

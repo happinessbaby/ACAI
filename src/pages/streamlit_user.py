@@ -62,28 +62,30 @@ class User():
         if self.userId:
             st.session_state["mode"]="signedin" 
         else:
-            if "mode" not in st.session_state or st.session_state["mode"]!="signup":  
+            if "mode" not in st.session_state or st.session_state["mode"]!="signup" or st.session_state["mode"]!="signedin":  
                 st.session_state["mode"]="signedout"
         self._init_session_states()
         self._init_user()
 
-    @st.cache_data()
+    # @st.cache_data()
     def _init_session_states(_self, ):
 
      
         # Open users login file
         with open(login_file) as file:
-            config = yaml.load(file, Loader=SafeLoader)
+            st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
         # Open users profile file
         with open(user_profile_file, 'r') as file:
             try:
                 users = json.load(file)
+                # Convert the single object into a list of objects if it's not already
+                if not isinstance(users, list):
+                    users = [users]
+                st.session_state["users"] = users
             except JSONDecodeError:
                 # users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
                 # users[_self.userId]={}
                 raise 
-        st.session_state["config"] = config
-        st.session_state["users"] = users
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if _self.userId is not None:
@@ -99,7 +101,8 @@ class User():
                 st.session_state["save_path"] = os.environ["USER_PATH"]
             paths=[
                 os.path.join(st.session_state.save_path,  _self.userId),
-                os.path.join(st.session_state.save_path,  _self.userId, "uploads"),
+                os.path.join(st.session_state.save_path,  _self.userId, "profile"),
+                os.path.join(st.session_state.save_path,  _self.userId, "profile", "uploads"),
                 ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
@@ -122,23 +125,16 @@ class User():
             self.sign_in(authenticator)
         elif st.session_state.mode=="signedin":
             print("signed in")
+            #TODO: if redirected to here, needs to redirect back
             try:
                 user_profile = st.session_state["users"][self.userId]
                 print("user profile already exists")
+                #TODO display user profile
+                self.display_profile(user_profile)
             except Exception:
                 print("user profile does not exists yet")
                 self.about_resume()
-            # if lancedb_table_exists(self.userId) is not None:
-            #     print("user profile already exists")
-            #     # if "base_recommender" not in st.session_state:
-            #     #     st.session_state["base_recommender"]= Recommender()
-            #     # self.recommend_job()
-            #     #TODO: if redirected to here, needs to redirect back
-
-            #     #TODO: display uer profile if not redirected to here
-            # else:
-            #     print("user profile does not exists yet")
-            #     self.about_resume()
+    
    
     
 
@@ -164,8 +160,9 @@ class User():
         name, authentication_status, username = authenticator.login('', 'main')
         print(name, authentication_status, username)
         if authentication_status:
+            print("setting cookie")
             cookie = encode_jwt(name, username, cookie_key)
-            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
+            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
             st.session_state["mode"]="signedin"
             st.rerun()
             # time.sleep(3)
@@ -173,40 +170,41 @@ class User():
         #     st.error('Username/password is incorrect')
         # elif authentication_status == None:
         #     st.warning('Please enter your username and password')
-        st.markdown(
-            """
-            <style>
-            button[kind="primary"] {
-                background: none!important;
-                border: none;
-                padding: 0!important;
-                color: black !important;
-                text-decoration: none;
-                cursor: pointer;
-                border: none !important;
-            }
-            button[kind="primary"]:hover {
-                text-decoration: none;
-                color: blue !important;
-            }
-            button[kind="primary"]:focus {
-                outline: none !important;
-                box-shadow: none !important;
-                color: blue !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        col1, col2, col3 = st.columns([5, 1, 1])
-        with col2:
-            # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
-            sign_up = st.button(label="sign up", key="signup",  type="primary")
-            if sign_up:
-                st.session_state["mode"]="signup"
-                st.rerun()
-        with col3:
-            forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
+        else:
+            st.markdown(
+                """
+                <style>
+                button[kind="primary"] {
+                    background: none!important;
+                    border: none;
+                    padding: 0!important;
+                    color: black !important;
+                    text-decoration: none;
+                    cursor: pointer;
+                    border: none !important;
+                }
+                button[kind="primary"]:hover {
+                    text-decoration: none;
+                    color: blue !important;
+                }
+                button[kind="primary"]:focus {
+                    outline: none !important;
+                    box-shadow: none !important;
+                    color: blue !important;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+            col1, col2, col3 = st.columns([5, 1, 1])
+            with col2:
+                # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
+                sign_up = st.button(label="sign up", key="signup",  type="primary")
+                if sign_up:
+                    st.session_state["mode"]="signup"
+                    st.rerun()
+            with col3:
+                forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
         # st.markdown("or")
         # user_info = my_component(name="signin", key="signin")
         # if user_info!=-1:
@@ -234,7 +232,7 @@ class User():
                 st.session_state["mode"]="signedin"
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, cookie_key)
-                set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1),)
+                set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
                 st.rerun()
             else:
                 st.info("Failed to register user, please try again")
@@ -424,8 +422,12 @@ class User():
         """"""
         if type=="resume":
             resume_dict = retrieve_or_create_resume_info(st.session_state.user_resume_path, )
-            st.session_state["users"][self.userId]["resume_path"] = st.session_state.user_resume_path
-            st.session_state["users"][self.userId]["resume_info_dict"] = resume_dict
+            user = {
+                "userId": self.userId,
+                "resume_path": st.session_state.user_resume_path,
+                "resume_info_dict": resume_dict
+            }
+            st.session_state["users"].append(user)
             with open(user_profile_file, 'w') as file:
                 json.dump(st.session_state["users"], file, indent=2)
 

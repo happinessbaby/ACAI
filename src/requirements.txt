@@ -74,3 +74,4 @@ odfpy
 python-dateutil
 docx2pdf
 PyPDF2
+stqdm

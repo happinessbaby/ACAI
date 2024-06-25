@@ -43,11 +43,12 @@ def decode_jwt(token, key):
 def get_cookie(name):
     return cookie_manager.get(cookie=name)
 
-def set_cookie(cookie, value, key, path, expire_at):
-    cookie_manager.set(cookie, value, key=key, path=path, expires_at=expire_at)
-    
-def get_all_cookies():
-    return cookie_manager.get_all()
+def set_cookie(cookie_name, cookie_value, key, path, expire_at):
+    cookie_manager.set(cookie_name, cookie_value, key=key, path=path, expires_at=expire_at)
+
+
+def get_all_cookies(x=0):
+    return cookie_manager.get_all(key=f"get_all_cookie_{x}")
 
 def delete_cookie(name, key):
     cookie_manager.delete(name, key)
@@ -56,7 +57,7 @@ def delete_cookie(name, key):
 def retrieve_userId(max_retries=3, delay=1):
     userId=None
     for attempt in range(max_retries):
-        cookies = get_all_cookies()
+        cookies = get_all_cookies(x=attempt)
         if cookie_name in cookies:
             userId = str(decode_jwt(get_cookie(cookie_name), cookie_key).get('username'))
             print("userId:", userId)

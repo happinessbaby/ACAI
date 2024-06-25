@@ -30,6 +30,7 @@ import langchain
 import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
+from utils.aws_manager import get_aws_session
 from utils.basic_utils import convert_to_txt, read_txt
 from utils.openai_api import get_completion
 from langchain.schema import OutputParserException
@@ -41,7 +42,6 @@ from langchain_community.chat_message_histories import DynamoDBChatMessageHistor
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.schema import messages_from_dict, messages_to_dict
-from utils.aws_manager import session
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from operator import itemgetter
 
@@ -78,7 +78,7 @@ class InterviewController():
         # set_llm_cache(InMemoryCache())
         # embeddings = OpenAIEmbeddings()
         if self.userId:
-            chat_memory = DynamoDBChatMessageHistory(self.userId, self.sessionId, boto3_session=session)
+            chat_memory = DynamoDBChatMessageHistory(self.userId, self.sessionId, boto3_session=get_aws_session())
             self.interview_memory = AgentTokenBufferMemory(chat_memory=chat_memory, memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
         else:
             # self.interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
