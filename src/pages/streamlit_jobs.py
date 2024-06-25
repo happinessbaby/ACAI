@@ -4,7 +4,7 @@ import os
 import json
 from json import JSONDecodeError
 from backend.job_recommender import Recommender
-from utils.cookie_manager import get_cookie, decode_jwt, retrieve_userId
+from utils.cookie_manager import retrieve_userId
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]

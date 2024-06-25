@@ -1,5 +1,6 @@
 import asyncio
 import nest_asyncio
+import multiprocessing
 
 
 def asyncio_run(future, as_task=True):
@@ -31,4 +32,5 @@ def _to_task(future, as_task, loop):
     if not as_task or isinstance(future, asyncio.Task):
         return future
     return loop.create_task(future)
+
 

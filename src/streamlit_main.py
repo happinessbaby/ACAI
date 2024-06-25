@@ -47,7 +47,7 @@ from stqdm import stqdm
 from time import sleep
 import threading
 import queue
-from utils.streamlit_utils import loading
+# from utils.streamlit_utils import loading
 import multiprocessing
 
 
@@ -99,9 +99,8 @@ class Chat():
     
     def __init__(self):
 
-        # if "userId" not in st.session_state:
+
         self.userId = retrieve_userId()
-            # st.session_state["userId"] = retrieve_userId()
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -111,7 +110,7 @@ class Chat():
 
         
 
-    # @st.cache_data()
+    @st.cache_data()
     def _init_session_states(_self,):
 
         """ Initializes Streamlit session states. """
@@ -135,23 +134,20 @@ class Chat():
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
             # st.write(tip)
-        # if "sessionId" not in st.session_state:
-        #     st.session_state["sessionId"] = str(uuid.uuid4())
-        # #     print(f"Session: {st.session_state.sessionId}")
         # if "messages" not in st.session_state:
-        st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
+        # st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
         #TODO, get dynamodb message history to work
         # message_history = DynamoDBChatMessageHistory(table_name=_self.userId, session_id=st.session_state.sessionId, key=message_key, boto3_session=_self.aws_session)
-        st.session_state["message_history"]=None
+        # st.session_state["message_history"]=None
         # st.session_state["resume_modal"]= Modal("", key="resume_modal", max_width="600" )
         # st.session_state["cover_letter_modal"]= Modal("", key="cover_leter_modal", max_width="600" )
         # new_chat = ChatController(st.session_state.sessionId, chat_memory=message_history)
         # st.session_state["basechat"] = new_chat
         ## hacky way to clear uploaded files once submitted
         # if "file_counter" not in st.session_state:
-        st.session_state["file_counter"] = 0
+        # st.session_state["file_counter"] = 0
         # if "input_counter" not in st.session_state:
-        st.session_state["input_counter"] = 0
+        # st.session_state["input_counter"] = 0
         # if "template_path" not in st.session_state:
         # st.session_state["template_path"] = os.environ["TEMPLATE_PATH"]
         # st.session_state["selections"] = st_btn_select(("Resume & Cover Letter",'Mock Interview', "Job Search", "My Profile", ""), index=-1,)
@@ -209,7 +205,7 @@ class Chat():
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
         paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
                 os.path.join(st.session_state.save_path, st.session_state.sessionId),
-                os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+                # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
                 os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
                 ]
         mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
@@ -288,28 +284,6 @@ class Chat():
         #     print("cover letter modal is open")
         #     _self.cover_letter_popup()
 
-
-        # if "type_selection" in st.session_state:
-        #     if set(st.session_state.type_selection).issubset(set(resume_options)):
-        #         if resume_options[2] not in st.session_state.type_selection:
-        #             _self.general_form_popup(_self.general_selection_callback, selection=st.session_state.type_selection, job_required=False)
-        #         else:
-        #             _self.general_form_popup(_self.general_selection_callback,  selection=st.session_state.type_selection,job_required=True)
-        #     del st.session_state["type_selection"]
-        # else:
-        #     if "resume_path" in st.session_state:
-        #         del st.session_state["resume_path"]
-        #     if "job_description" in st.session_state:
-        #         del st.session_state["job_description"]
-        #     if "job_posting_path" in st.session_state:
-        #         del st.session_state["job_posting_path"]
-        # if ("evaluation" in st.session_state and st.session_state["evaluation"]) or ("tailoring" in st.session_state and st.session_state["tailoring"]) or ("reformatting" in st.session_state and st.session_state["reformatting"]):
-        #     if "resume_type" in st.session_state and "template_path" not in st.session_state:
-        #         _self.resume_template_popup()
-        #     else:
-        #         st.switch_page("pages/streamlit_dashboard.py")
-        # if ("interview" in st.session_state and st.session_state["interview"]):
-        #     st.switch_page("pages/streamlit_interviewbot.py")
         if "resume help" not in st.session_state and "match" not in st.session_state:
             if "resume_path" in st.session_state:
                 del st.session_state["resume_path"]
@@ -319,24 +293,20 @@ class Chat():
                 del st.session_state["job_posting_path"]
         else:
             _self.process_selection()
-            # print("FINISHED PROCESSING RESUME")
-            # print(st.session_state["resume help"])
             if "resume help" in st.session_state and st.session_state["resume help"]:
                 st.switch_page("pages/streamlit_dashboard.py")
             elif "match" in st.session_state and  st.session_state["match"]:
                 match_resume_to_job()
 
         with st._main:
-            profile = st.session_state.placeholder_profile.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary")
-            if profile:
+            if st.session_state.placeholder_profile.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary"):
                 st.switch_page("pages/streamlit_user.py")
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
-            _, c1, c2=st.columns([1, 1,  1])
+            _, c1, c2=st.columns([1, 2,  2])
             with c1:
                 if st.button("Resume Help", key="resume_button",):
                     _self.general_form_popup(selection="resume help", job_required=False)
-                # _self.resume_selection_popup()
             with c2:
                 if st.button("Mock Interview", key="interview_button"):
                     st.switch_page("pages/streamlit_interviewbot.py")
@@ -349,19 +319,7 @@ class Chat():
             with c2:
                 if st.button("Match Me!"):
                     _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
-            
-            # st.button("Mock Interview", key="interview_button", on_click=st.switch_page(), )
-    
-            # st.session_state["selections"] = st_btn_select(("Resume & Cover Letter",'Mock Interview', "Job Search", "My Profile", ""), index=-1,)
-            # if st.session_state.selections =="Resume & Cover Letter":
-            #     _self.selection_popup()
-            #     # _self.template_popup("chronological")
-            # elif  st.session_state.selections=="Mock Interview":
-            #     st.switch_page("pages/streamlit_interviewbot.py")
-            # elif  st.session_state.selections=="My Profile":
-            #     st.switch_page("pages/streamlit_user.py")
-            # elif  st.session_state.selections=="Job Search":
-            #     st.switch_page("pages/streamlit_jobs.py")
+        
 
             # for msg in st.session_state.messages:
             #     st.chat_message(msg.role).write(msg.content)
@@ -527,8 +485,10 @@ class Chat():
             if resume: 
                 self.process([resume],"resume" )
         with separator:
+            add_vertical_space(5)
             st.write("or")
         with c2:
+            add_vertical_space(5)
             if self.userId and "resume_dict" in st.session_state:
                 if st.checkbox("use my default resume"):
                     st.session_state["use_default_resume"]=True 
@@ -585,8 +545,6 @@ class Chat():
                  daemon=True,
             )
             posting_t.start()
-        # while "resume_dict" not in st.session_state:
-        #     loading("processing.....")
         if resume_q:
             resume_t.join()
             st.session_state["resume_dict"]=resume_q.get()
@@ -627,13 +585,7 @@ class Chat():
         if submit:
             st.session_state["template_path"] = path
             st.rerun()
-        # skip = st.button("skip", type="primary")
-        # if skip:
-        #     # remove_option =  "redesign my resume with a new template"
-        #     # while remove_option in resume_options:
-        #     #     st.session_state.type_selection.remove(remove_option)
-        #     st.session_state["reformatting"]=False
-        #     st.rerun()
+
 
         # st.button("Next", on_click=self.selection_callback, args=(True, path, type, ))
                 # images=[]
@@ -898,10 +850,9 @@ class Chat():
                     # st.session_state["resume_dict"] = retrieve_or_create_resume_info(resume_path=end_path, )
                 else:
                     # st.session_state.resume_checkmark=":red[*]"
-                    del st.session_state["resume_path"]
                     st.info("Please upload your resume here")
             else:
-                del st.session_state["resume_path"]
+                st.info("Please upload your resume here")
         elif upload_type=="job_posting":
             result = process_links(uploads, st.session_state.save_path, st.session_state.sessionId)
             if result is not None:

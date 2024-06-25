@@ -7,3 +7,4 @@ def loading(text, container=st.empty(), interval=5):
     with container.container():
         with st.spinner(text):
             time.sleep(interval)
+
