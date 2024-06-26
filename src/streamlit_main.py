@@ -491,15 +491,15 @@ class Chat():
         if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
             st.session_state["evaluation"]=True
         if "use_default_resume" not in st.session_state:
-            resume_q = multiprocessing.Queue()
-            resume_t= multiprocessing.Process(target=retrieve_or_create_resume_info, 
+            resume_q = queue.Queue()
+            resume_t= threading.Thread(target=retrieve_or_create_resume_info, 
                                     args=(st.session_state.resume_path_final, resume_q, ),
                                     daemon=True)
             resume_t.start()
         if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
             st.session_state["tailoring"]=True
-            posting_q = multiprocessing.Queue()
-            posting_t=multiprocessing.Process(
+            posting_q = queue.Queue()
+            posting_t=threading.Thread(
                 target = retrieve_or_create_job_posting_info, 
                 args = (
                 st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",

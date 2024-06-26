@@ -1,8 +1,6 @@
 import os
 import openai
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
 from langchain.prompts import ChatPromptTemplate
 # from langchain.output_parsers import CommaSeparatedListOutputParser
 # from langchain.prompts import PromptTemplate
@@ -31,6 +29,7 @@ import boto3
 import re
 from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
 from dotenv import load_dotenv, find_dotenv
+import streamlit as st
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -48,12 +47,11 @@ delimiter1 = "````"
 delimiter2 = "////"
 delimiter3 = "<<<<"
 delimiter4 = "****"
-eval_dict = {"in_depth": {}, "comparison":{}}
-tailor_dict = {}
+
 
 
 if STORAGE=="S3":
-    bucket_name = os.envrion["BUCKET_NAME"]
+    bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
@@ -71,9 +69,9 @@ else:
 #     #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
 
 #     if evaluate:
-#         eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
+#         st.session_state.eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
 #     if reformat:
-#         ideal_type = eval_dict["ideal type"] if eval_dict else research_resume_type()
+#         ideal_type = st.session_state.eval_dict["ideal type"] if st.session_state.eval_dict else research_resume_type()
 #         if ideal_type=="chronological":
 #             reformat_chronological_resume(resume_file, template_file)
 #     if tailor:
@@ -83,6 +81,7 @@ else:
 def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
 
     print("start evaluating...")
+    st.session_state["eval_dict"] = {"in_depth": {}, "comparison":{}}
     resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     if job_posting_dict:
         pursuit_jobs=job_posting_dict["job"]
@@ -90,7 +89,7 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
         pursuit_jobs=", ".join(resume_dict["pursuit_jobs"])
     # Evaluate resume length
     word_count = count_length(resume_file)
-    eval_dict.update({"word_count": word_count})
+    st.session_state.eval_dict.update({"word_count": word_count})
     pattern = r'pages:(\d+)'
     # Search for the pattern in the text
     match = re.search(pattern, resume_content)
@@ -99,23 +98,23 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
         page_num = match.group(1)
     else:
         page_num = ""
-    eval_dict.update({"page_number": page_num})
+    st.session_state.eval_dict.update({"page_number": page_num})
     # Research and analyze resume type
     ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
-    eval_dict.update({"ideal_type": ideal_type})
+    st.session_state.eval_dict.update({"ideal_type": ideal_type})
     type_dict= analyze_resume_type(resume_content,)
-    eval_dict.update(type_dict)
+    st.session_state.eval_dict.update(type_dict)
     # Generate overall impression
     section_names = {"objective_summary_section", "work_experience_section"}
     for section in section_names:
         comparison_dict = analyze_via_comparison(resume_dict[section], section,  pursuit_jobs)
-        eval_dict["comparison"].update({section:comparison_dict["closeness"]})
-        # eval_dict.update({"comparison": comparison_dict})
+        st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        # st.session_state.eval_dict.update({"comparison": comparison_dict})
     cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-    eval_dict.update({"cohesiveness":cohesiveness})
+    st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
     # # Evaluates specific field  content
     evaluated_work= analyze_field_content(resume_dict["work_experience_section"], "work experience")
-    eval_dict["in_depth"].update({"work experience":evaluated_work})
+    st.session_state.eval_dict["in_depth"].update({"work experience":evaluated_work})
 
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
@@ -235,10 +234,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}):
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
+    st.session_state["st.session_state.tailor_dict"] = {}
     my_objective = resume_dict.get("summary_objective_section", "")
     my_skills = resume_dict.get("skills_section", "")
-    tailor_dict.update({"original_skills": my_skills})
-    tailor_dict.update({"original_objective": my_objective})
+    st.session_state.st.session_state.tailor_dict.update({"original_skills": my_skills})
+    st.session_state.tailor_dict.update({"original_objective": my_objective})
     resume_skills = resume_dict.get("skills", -1)
     my_experience = resume_dict.get("work_experience_section", "")
     about_job = job_posting_dict["about_job"]
@@ -248,12 +248,12 @@ def tailor_resume(resume_dict={}, job_posting_dict={}):
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
     tailored_skills_dict = tailor_skills(required_skills, my_skills, resume_skills)
-    tailor_dict.update({"tailored_skills": tailored_skills_dict})
+    st.session_state.tailor_dict.update({"tailored_skills": tailored_skills_dict})
     tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description+about_job)
-    tailor_dict.update({"tailored_objective": tailored_objective_dict})
+    st.session_state.tailor_dict.update({"tailored_objective": tailored_objective_dict})
     tailored_experience = tailor_experience(job_requirements, my_experience)
-    tailor_dict.update({"tailored_experience": tailored_experience})
-    return tailor_dict
+    st.session_state.tailor_dict.update({"tailored_experience": tailored_experience})
+    return st.session_state.tailor_dict
 
 def concat_skills(skills_list, skills_str=""):
     for s in skills_list:
