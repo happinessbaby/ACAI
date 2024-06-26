@@ -139,7 +139,6 @@ class Interview():
                 # st.session_state["window_title"] = pwc.getActiveWindowTitle()
                 if _self.userId is not None:
                     st.session_state["interview_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "interview")
-                    mk_dirs([st.session_state.interview_save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 else:
                     st.session_state["interview_save_path"] =os.environ["INTERVIEW_PATH"]
             elif STORAGE=="CLOUD":
@@ -152,11 +151,10 @@ class Interview():
                 # if "save_path" not in st.session_state:
                 if _self.userId is not None:
                     st.session_state["interview_save_path"] =os.path.join(os.environ["S3_USER_PATH"], _self.userId, "interview")
-                    mk_dirs([st.session_state.interview_save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 else:
                     st.session_state["interview_save_path"] = os.environ["S3_INTERVIEW_PATH"]
             #TODO: logged in users have access to interview progression analysis
-            paths = [
+            paths = [st.session_state["interview_save_path"],
                     os.path.join(st.session_state.interview_save_path, st.session_state.interview_sessionId),
                     # os.path.join(st.session_state.interview_save_path, "downloads", st.session_state.interview_sessionId),
                     os.path.join(st.session_state.interview_save_path, st.session_state.interview_sessionId, "uploads"),

@@ -49,6 +49,7 @@ import threading
 import queue
 # from utils.streamlit_utils import loading
 import multiprocessing
+from utils.async_utils import asyncio_run
 
 
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
@@ -127,9 +128,9 @@ class Chat():
             st.session_state["resume_dict"]=st.session_state["users"][_self.userId]["resume_info_dict"]
         except Exception:
             pass
-        _, c1 = st.columns([10, 1])
-        with c1:
-            st.session_state["placeholder_profile"]=st.empty()
+        # _, c1 = st.columns([10, 1])
+        # with c1:
+        #     st.session_state["placeholder_profile"]=st.empty()
         # if "tip" not in st.session_state:
             # tip = generate_tip_of_the_day(topic)
             # st.session_state["tip"] = tip
@@ -186,7 +187,6 @@ class Chat():
             # if "save_path" not in st.session_state:
             if _self.userId is not None:
                 st.session_state["save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "main")
-                mk_dirs([st.session_state.save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
             else:
                 st.session_state["save_path"] =os.environ["MAIN_PATH"]
             st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
@@ -198,19 +198,19 @@ class Chat():
             # if "save_path" not in st.session_state:
             if _self.userId is not None:
                 st.session_state["save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "main")
-                mk_dirs([st.session_state.save_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
             else:
                 st.session_state["save_path"] =os.environ["S3_MAIN_PATH"]
             # if "temp_path" not in st.session_state:
             st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        paths = [os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+        paths = [st.session_state.save_path,
+                os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
                 os.path.join(st.session_state.save_path, st.session_state.sessionId),
                 # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
                 os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
                 ]
         mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
-    # @st.cache_data()
+   
     def _init_display(_self):
 
         """ Initializes UI. """
@@ -259,30 +259,7 @@ class Chat():
         # </style>
         # """
 
-        # if 'spinner_placeholder' not in st.session_state:
-        #     st.session_state["spinner_placeholder"] = st.empty()
 
-        # sample_questions = [
-        #     "help me generate a cover letter", 
-        #     "Evaluate my resume",
-        #     "rewrite my resume using a new template",
-        #     "tailor my document to a job position",
-        # ]
-        # selected_questions = st.multiselect(
-        #     label="Job Titles",
-        #     options=sample_questions,
-        #     default=None,
-        #     placeholder="Choose an option",
-        # )
-        # chat_input = st.chat_input(placeholder="Chat with me:",
-        #                             key="input",)
-        # selected_questions.append(chat_input)
-        # st.markdown(textinput_styl, unsafe_allow_html=True)
-        # st.markdown(selectbox_styl, unsafe_allow_html=True)
-        # st.session_state["selected"]=None 
-        # if st.session_state.cover_letter_modal.is_open():
-        #     print("cover letter modal is open")
-        #     _self.cover_letter_popup()
 
         if "resume help" not in st.session_state and "match" not in st.session_state:
             if "resume_path" in st.session_state:
@@ -299,14 +276,16 @@ class Chat():
                 match_resume_to_job()
 
         with st._main:
-            if st.session_state.placeholder_profile.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary"):
-                st.switch_page("pages/streamlit_user.py")
+            _, c1 = st.columns([10, 1])
+            with c1:
+                if st.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary"):
+                    st.switch_page("pages/streamlit_user.py")
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
             _, c1, c2=st.columns([1, 2,  2])
             with c1:
                 if st.button("Resume Help", key="resume_button",):
-                    _self.general_form_popup(selection="resume help", job_required=False)
+                    _self.resume_form_popup(job_required=False)
             with c2:
                 if st.button("Mock Interview", key="interview_button"):
                     st.switch_page("pages/streamlit_interviewbot.py")
@@ -413,16 +392,9 @@ class Chat():
 
 
     @st.experimental_dialog(" ", )
-    def general_form_popup(self, selection, resume_required=True, job_required = False, ):
+    def resume_form_popup(self, resume_required=True, job_required = False, ):
         
-        # if "type_selection" not in st.session_state or st.session_state.type_selection==[]:
-        #     st.session_state.job_description_disabled=True
-        #     st.session_state.job_posting_disabled=True
-        #     st.session_state.resume_disabled=True
-        # else:
-        #     st.session_state.job_description_disabled=False
-        #     st.session_state.job_posting_disabled=False
-        #     st.session_state.resume_disabled=False
+        """ Form popup for resume help"""
         add_vertical_space(2)
         if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
             st.session_state.conti_disabled=True
@@ -442,20 +414,14 @@ class Chat():
             st.session_state.expanded=True
         else:
             st.session_state.expanded=False
-        # selected = st.multiselect(f"What kind of help do you need?",  
-        #                             resume_options,
-        #                         #   index= options.index(st.session_state["cl_type_selection"]) if "cl_type_selection" in st.session_state else None, 
-        #                          placeholder="Please make a selection...", 
-        #                          key="type_selectionx",
-        #                           on_change=self.form_callback )
-        if selection=="resume help":
-            if "job_required" in st.session_state:
-                st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
-            elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
-                st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
-            else:
-                st.info("Your resume will be evaluated and tailored to the job posting")
-            skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.skip_evaluation_callback)
+
+        if "job_required" in st.session_state:
+            st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
+        elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
+            st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
+        else:
+            st.info("Your resume will be evaluated and tailored to the job posting")
+        skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.form_callback)
         with st.expander(f"Add a job posting for tailoring {st.session_state.job_posting_checkmark}", expanded=st.session_state.expanded):
             job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
@@ -502,17 +468,17 @@ class Chat():
                            key="next_button", 
                            disabled=st.session_state.conti_disabled, 
                           ):
-            st.session_state[selection]=True
+            st.session_state["resume help"]=True
             st.rerun()
 
 
-    def skip_evaluation_callback(self, ):
+    # def skip_evaluation_callback(self, ):
 
-        if st.session_state["skip_evaluation"]:
-            st.session_state["job_required"]=True
-        else:
-            if "job_required" in st.session_state:
-                del st.session_state["job_required"]
+    #     if st.session_state["skip_evaluation"]:
+    #         st.session_state["job_required"]=True
+    #     else:
+    #         if "job_required" in st.session_state:
+    #             del st.session_state["job_required"]
 
 
     # @st.experimental_fragment
@@ -525,14 +491,11 @@ class Chat():
         if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
             st.session_state["evaluation"]=True
         if "use_default_resume" not in st.session_state:
-            if "job_posting_path" not in st.session_state and "job_description" not in st.session_state:
-                st.session_state["resume_dict"] = retrieve_or_create_resume_info(st.session_state.resume_path, )  
-            else:
-                resume_q = multiprocessing.Queue()
-                resume_t=multiprocessing.Process(target=retrieve_or_create_resume_info, 
-                                        args=(st.session_state.resume_path_final, resume_q, ),
-                                        daemon=True)
-                resume_t.start()
+            resume_q = multiprocessing.Queue()
+            resume_t= multiprocessing.Process(target=retrieve_or_create_resume_info, 
+                                    args=(st.session_state.resume_path_final, resume_q, ),
+                                    daemon=True)
+            resume_t.start()
         if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
             st.session_state["tailoring"]=True
             posting_q = multiprocessing.Queue()
@@ -775,6 +738,16 @@ class Chat():
                self.process(job_description, "job_description")
         except Exception:
             pass
+        try: 
+            skip_eval = st.session_state["skip_evaluation"]
+            if skip_eval:
+                st.session_state["job_required"]=True
+            else:
+                if "job_required" in st.session_state:
+                    del st.session_state["job_required"]
+        except Exception:
+            pass
+
         # try:
         #     pursuit_job=st.session_state.pursuit_job
         #     if pursuit_job:

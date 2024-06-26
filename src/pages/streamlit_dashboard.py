@@ -32,7 +32,7 @@ def main():
     if "Evaluation" in st.session_state.tabs:
         with tabs[count]:
             display_resume_eval()
-            thread = multiprocessing.Process(
+            thread = threading.Thread(
                 target = evaluate_resume,
                 args=(
                     st.session_state["resume_path_final"], 
@@ -64,7 +64,7 @@ def main():
     if "Tailoring" in st.session_state.tabs:
         with tabs[count]:
             display_tailoring()
-            thread = multiprocessing.Process(
+            thread = threading.Thread(
                 target = tailor_resume, 
                 args = (
                     st.session_state["resume_dict"], 
@@ -209,5 +209,4 @@ def display_resume_eval():
     if back:
         st.switch_page("pages/streamlit_interviewbot.py")
 
-
-main()
+# main()

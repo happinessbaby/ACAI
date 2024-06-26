@@ -93,16 +93,16 @@ class User():
                 st.session_state["s3_client"] = get_client('s3')
                 st.session_state["bucket_name"] = bucket_name
                 st.session_state["storage"] = "CLOUD"
-                st.session_state["save_path"] = os.environ["S3_USER_PATH"]
+                st.session_state["user_save_path"] = os.environ["S3_USER_PATH"]
             elif STORAGE=="LOCAL":
                 st.session_state["s3_client"] = None
                 st.session_state["bucket_name"] = None
                 st.session_state["storage"] = "LOCAL"
-                st.session_state["save_path"] = os.environ["USER_PATH"]
+                st.session_state["user_save_path"] = os.environ["USER_PATH"]
             paths=[
-                os.path.join(st.session_state.save_path,  _self.userId),
-                os.path.join(st.session_state.save_path,  _self.userId, "profile"),
-                os.path.join(st.session_state.save_path,  _self.userId, "profile", "uploads"),
+                os.path.join(st.session_state.user_save_path,  _self.userId),
+                os.path.join(st.session_state.user_save_path,  _self.userId, "profile"),
+                os.path.join(st.session_state.user_save_path,  _self.userId, "profile", "uploads"),
                 ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
@@ -565,7 +565,7 @@ class User():
 
     def process(self, input_value: Any, input_type:str):
         if input_type=="resume":
-            result = process_uploads(input_value, st.session_state.save_path, self.userId)
+            result = process_uploads(input_value, st.session_state.user_save_path, self.userId)
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="resume":
