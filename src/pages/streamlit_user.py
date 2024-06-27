@@ -23,6 +23,10 @@ from geopy.exc import GeocoderTimedOut
 import json
 from json.decoder import JSONDecodeError
 from utils.aws_manager import get_client
+import google_auth_oauthlib.flow
+from googleapiclient.discovery import build
+import webbrowser
+
 
 
 # st.set_page_config(layout="wide")
@@ -36,6 +40,7 @@ db_path=os.environ["LANCEDB_PATH"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 cookie_name = os.environ["COOKIE_NAME"]
 cookie_key=os.environ["COOKIE_KEY"]
+client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 # store = FeatureStore("./my_feature_repo/")
 
 # st.set_page_config(initial_sidebar_state="collapsed")
@@ -93,16 +98,15 @@ class User():
                 st.session_state["s3_client"] = get_client('s3')
                 st.session_state["bucket_name"] = bucket_name
                 st.session_state["storage"] = "CLOUD"
-                st.session_state["user_save_path"] = os.environ["S3_USER_PATH"]
+                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
             elif STORAGE=="LOCAL":
                 st.session_state["s3_client"] = None
                 st.session_state["bucket_name"] = None
                 st.session_state["storage"] = "LOCAL"
-                st.session_state["user_save_path"] = os.environ["USER_PATH"]
+                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
             paths=[
-                os.path.join(st.session_state.user_save_path,  _self.userId),
-                os.path.join(st.session_state.user_save_path,  _self.userId, "profile"),
-                os.path.join(st.session_state.user_save_path,  _self.userId, "profile", "uploads"),
+                os.path.join(st.session_state.user_save_path,),
+                os.path.join(st.session_state.user_save_path, "uploads"),
                 ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
@@ -205,7 +209,32 @@ class User():
                     st.rerun()
             with col3:
                 forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
-        # st.markdown("or")
+        st.divider()
+        st.markdown("""
+        <style>.element-container:has(#button-after) + div button {
+                cursor: pointer;
+                transition: background-color .3s, box-shadow .3s;
+                    
+                padding: 12px 16px 12px 42px;
+                border: none;
+                border-radius: 3px;
+                box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
+                
+                color: #757575;
+                font-size: 14px;
+                font-weight: 500;
+                font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
+                
+                background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=);
+                background-color: white;
+                background-repeat: no-repeat;
+                background-position: 12px 11px;
+                }
+                .element-container:has(#button-after) + div button:hover { 
+                       box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
+                }
+            </style>""", unsafe_allow_html=True)
+        self.google_signin()
         # user_info = my_component(name="signin", key="signin")
         # if user_info!=-1:
         #     user_info=user_info.split(",")
@@ -219,6 +248,38 @@ class User():
         #     set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
         #     time.sleep(3)
 
+    def google_signin(self,):
+
+        auth_code = st.query_params.get("code")
+        st.session_state["redirect_uri"]="http://localhost:8501/"
+        flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+            client_secret_json,
+            scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
+            redirect_uri=st.session_state["redirect_uri"],)
+        if auth_code:
+            flow.fetch_token(code=auth_code)
+            credentials = flow.credentials
+            st.write("Login Done")
+            user_info_service = build(
+                serviceName="oauth2",
+                version="v2",
+                credentials=credentials,
+            )
+            user_info = user_info_service.userinfo().get().execute()
+            assert user_info.get("email"), "Email not found in infos"
+            # st.session_state["google_auth_code"] = auth_code
+            # st.session_state["user_info"] = user_info
+            cookie = encode_jwt(user_info.get("email"), user_info.get("email"), cookie_key)
+            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
+            st.session_state["mode"]="signedin"
+        else:
+            st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
+            if st.button("Sign in with Google"):
+                authorization_url, state = flow.authorization_url(
+                    access_type="offline",
+                    include_granted_scopes="true",
+                )
+                webbrowser.open_new_tab(authorization_url)
 
     def sign_up(self, authenticator:stauth.Authenticate):
 
@@ -565,7 +626,7 @@ class User():
 
     def process(self, input_value: Any, input_type:str):
         if input_type=="resume":
-            result = process_uploads(input_value, st.session_state.user_save_path, self.userId)
+            result = process_uploads(input_value, st.session_state.user_save_path, "")
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="resume":
