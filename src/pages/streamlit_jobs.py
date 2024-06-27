@@ -28,8 +28,8 @@ class Job():
             # Ask user to sign in
         if not self.userId:
             print("User needs to sign in first before job search")
+            st.session_state.redirect_page="http://localhost:8501/streamlit_jobs"
             st.switch_page("pages/streamlit_user.py")
-            #TODO: redirect back to this page
         self._init_session_states()
         self._init_job_recommender()
 
@@ -49,9 +49,11 @@ class Job():
                     # users = {}  
                     # users[_self.userId]={}
             st.session_state["users"] = users
+            st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
         try:
-            st.session_state["user_profile"]=st.session_state["users"][_self.userId]
+            st.session_state["user_profile"]=st.session_state["users_dict"][_self.userId]
         except Exception:
+            st.session_state.redirect_page="http://localhost:8501/streamlit_jobs"
             st.switch_page("pages/streamlit_user.py")
       
 

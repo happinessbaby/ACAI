@@ -125,7 +125,8 @@ class Chat():
                 except JSONDecodeError:
                     raise
         try:
-            st.session_state["resume_dict"]=st.session_state["users"][_self.userId]["resume_info_dict"]
+            st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
+            st.session_state["resume_dict"]=st.session_state["users_dict"][_self.userId]["resume_info_dict"]
         except Exception:
             pass
         # _, c1 = st.columns([10, 1])
@@ -456,13 +457,14 @@ class Chat():
         with c2:
             add_vertical_space(5)
             if self.userId and "resume_dict" in st.session_state:
-                if st.checkbox("use my default resume"):
-                    st.session_state["use_default_resume"]=True 
+                st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
             elif self.userId and "resume_dict" not in st.session_state:
+                st.session_state["redirect_page"]="http://localhost:8501/"
                 st.page_link("pages/streamlit_user.py", label="create my default resume", )       
             else:
                 st.write("Login to use or create a default resume")
                 if st.button("login", type="primary"):
+                    st.session_state["redirect_page"]="http://localhost:8501/"
                     st.switch_page("pages/streamlit_user.py")
         if st.button(label="next",
                            key="next_button", 
@@ -745,6 +747,14 @@ class Chat():
             else:
                 if "job_required" in st.session_state:
                     del st.session_state["job_required"]
+        except Exception:
+            pass
+        try:
+            use_default = st.session_state["default_resume_checkbox"]
+            if use_default:
+                st.session_state["use_default_resume"]=True 
+                st.session_state["resume_path"] = st.session_state["users_dict"][self.userId]["resume_path"]
+                print(st.session_state.resume_path)
         except Exception:
             pass
 

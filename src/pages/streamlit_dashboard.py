@@ -5,6 +5,7 @@ import pandas as pd
 import threading
 import multiprocessing
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+import webbrowser
 
 
 st.set_page_config(layout="wide")
@@ -12,7 +13,7 @@ st.session_state["tabs"] = []
 html("""
     <script>
       parent.window.onbeforeunload = function() {
-        return "Data will be lost if you leave the page, are you sure?";
+        return "Your result will be lost if you leave the page, are you sure?";
         };
     </script>
     """)
@@ -24,9 +25,13 @@ class Dashboard():
     ctx = get_script_run_ctx()
 
     def __init__(self,):
+
+        self.eval_t=None
+        self.tailor_t=None
         self.main()
 
     def get_dict(self, type):
+        
         if type=="evaluation":
             try:
                 eval_dict= st.session_state["eval_dict"]
@@ -58,7 +63,7 @@ class Dashboard():
         if "Evaluation" in st.session_state.tabs:
             with tabs[count]:
                 self.display_resume_eval()
-                thread = threading.Thread(
+                self.eval_t = threading.Thread(
                     target = evaluate_resume,
                     args=(
                         st.session_state["resume_path_final"], 
@@ -67,8 +72,8 @@ class Dashboard():
                     ),
                     daemon=True, 
                     )
-                add_script_run_ctx(thread, self.ctx)
-                thread.start()
+                add_script_run_ctx(self.eval_t, self.ctx)
+                self.eval_t.start()
             count+=1
         # if "Reformatted resume" in st.session_state.tabs: 
         #     with tabs[count]:
@@ -91,7 +96,7 @@ class Dashboard():
         if "Tailoring" in st.session_state.tabs:
             with tabs[count]:
                 self.display_tailoring()
-                thread = threading.Thread(
+                self.tailor_t = threading.Thread(
                     target = tailor_resume, 
                     args = (
                         st.session_state["resume_dict"], 
@@ -99,7 +104,8 @@ class Dashboard():
                     ),
                     daemon=True,
                 )
-                thread.start()
+                add_script_run_ctx(self.eval_t, self.ctx)
+                self.tailor_t.start()
             count+=1
         # del st.session_state.resume_path, st.session_state.job_posting_path, st.session_state.job_description
 
@@ -226,7 +232,11 @@ class Dashboard():
 
         back = st.button("Go back to main menu", type="primary", )
         if back:
-            st.switch_page("pages/streamlit_interviewbot.py")
+            if self.eval_t:
+                self.eval_t.join()
+            if self.tailor_t:
+                self.tailor_t.join()
+            webbrowser.open("http://localhost:8501/")
 
 if __name__=="__main__":
     dashboard = Dashboard()

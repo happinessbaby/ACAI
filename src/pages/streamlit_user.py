@@ -75,7 +75,7 @@ class User():
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-     
+        st.session_state["redirect_uri"]="http://localhost:8501/streamlit_user.py"
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -87,9 +87,8 @@ class User():
                 if not isinstance(users, list):
                     users = [users]
                 st.session_state["users"] = users
+                st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
             except JSONDecodeError:
-                # users = {}  # Icate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-                # users[_self.userId]={}
                 raise 
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
@@ -131,9 +130,9 @@ class User():
             print("signed in")
             #TODO: if redirected to here, needs to redirect back
             try:
-                user_profile = st.session_state["users"][self.userId]
+                print(st.session_state.users_dict)
+                user_profile = st.session_state["users_dict"][self.userId]
                 print("user profile already exists")
-                #TODO display user profile
                 self.display_profile(user_profile)
             except Exception:
                 print("user profile does not exists yet")
@@ -162,53 +161,41 @@ class User():
             # st.button("X", on_click=self.close_modal, args=["signin_modal"])
         st.header("Welcome back")
         name, authentication_status, username = authenticator.login('', 'main')
-        print(name, authentication_status, username)
-        if authentication_status:
-            print("setting cookie")
-            cookie = encode_jwt(name, username, cookie_key)
-            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
-            st.session_state["mode"]="signedin"
-            st.rerun()
-            # time.sleep(3)
-        # elif authentication_status == False:
-        #     st.error('Username/password is incorrect')
-        # elif authentication_status == None:
-        #     st.warning('Please enter your username and password')
-        else:
-            st.markdown(
-                """
-                <style>
-                button[kind="primary"] {
-                    background: none!important;
-                    border: none;
-                    padding: 0!important;
-                    color: black !important;
-                    text-decoration: none;
-                    cursor: pointer;
-                    border: none !important;
-                }
-                button[kind="primary"]:hover {
-                    text-decoration: none;
-                    color: blue !important;
-                }
-                button[kind="primary"]:focus {
-                    outline: none !important;
-                    box-shadow: none !important;
-                    color: blue !important;
-                }
-                </style>
-                """,
-                unsafe_allow_html=True,
-            )
-            col1, col2, col3 = st.columns([5, 1, 1])
-            with col2:
-                # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
-                sign_up = st.button(label="sign up", key="signup",  type="primary")
-                if sign_up:
-                    st.session_state["mode"]="signup"
-                    st.rerun()
-            with col3:
-                forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
+        placeholder_error = st.empty()
+        st.markdown(
+            """
+            <style>
+            button[kind="primary"] {
+                background: none!important;
+                border: none;
+                padding: 0!important;
+                color: black !important;
+                text-decoration: none;
+                cursor: pointer;
+                border: none !important;
+            }
+            button[kind="primary"]:hover {
+                text-decoration: none;
+                color: blue !important;
+            }
+            button[kind="primary"]:focus {
+                outline: none !important;
+                box-shadow: none !important;
+                color: blue !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        col1, col2, col3 = st.columns([5, 1, 1])
+        with col2:
+            # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
+            sign_up = st.button(label="sign up", key="signup",  type="primary")
+            if sign_up:
+                st.session_state["mode"]="signup"
+                st.rerun()
+        with col3:
+            forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
         st.divider()
         st.markdown("""
         <style>.element-container:has(#button-after) + div button {
@@ -235,6 +222,17 @@ class User():
                 }
             </style>""", unsafe_allow_html=True)
         self.google_signin()
+        print(name, authentication_status, username)
+        if authentication_status:
+            print("setting cookie")
+            cookie = encode_jwt(name, username, cookie_key)
+            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
+            st.session_state["mode"]="signedin"
+            webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
+            # st.rerun()
+            # time.sleep(3)
+        elif authentication_status == False:
+            placeholder_error.error('Username/password is incorrect')
         # user_info = my_component(name="signin", key="signin")
         # if user_info!=-1:
         #     user_info=user_info.split(",")
@@ -251,11 +249,12 @@ class User():
     def google_signin(self,):
 
         auth_code = st.query_params.get("code")
-        st.session_state["redirect_uri"]="http://localhost:8501/"
+      
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
             scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
-            redirect_uri=st.session_state["redirect_uri"],)
+            redirect_uri=st.session_state["redirect_uri"] if "redirect_page" not in st.session_state else st.session_state.redirect_page,
+            )
         if auth_code:
             flow.fetch_token(code=auth_code)
             credentials = flow.credentials
@@ -294,7 +293,7 @@ class User():
                 st.success("User registered successfully")
                 cookie = encode_jwt(name, username, cookie_key)
                 set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
-                st.rerun()
+                webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
@@ -655,17 +654,17 @@ class User():
 
 
 
-    def display_profile(self):
+    def display_profile(self, user_profile):
 
         """Loads from user file and displays profile"""
 
         with st.expander(label="Bio"):
             try:
-                value = st.session_state["users"][self.userId]["resume_info_dict"]["contact"]["name"]
+                value = user_profile["resume_info_dict"]["contact"]["name"]
             except Exception as e:
                 print(e)
                 value = ""
-                st.text_input("name", value=value)
+            st.text_input("name", value=value, on_change=self.update_personal_info)
 
             
   
