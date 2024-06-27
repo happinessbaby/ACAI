@@ -30,7 +30,7 @@ import base64
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.callbacks.base import BaseCallbackHandler
 import time
-from utils.cookie_manager import retrieve_userId
+from utils.cookie_manager import CookieManager
 # from utils.aws_manager import get_client, request_aws4auth
 # from st_multimodal_chatinput import multimodal_chatinput
 # from streamlit_datalist import stDatalist
@@ -50,7 +50,7 @@ import queue
 # from utils.streamlit_utils import loading
 import multiprocessing
 from utils.async_utils import asyncio_run
-
+from pages.streamlit_user import User
 
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -100,8 +100,9 @@ class Chat():
     
     def __init__(self):
 
-
-        self.userId = retrieve_userId()
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -122,10 +123,10 @@ class Chat():
             with open(user_profile_file, 'r') as file:
                 try:
                     st.session_state["users"] = json.load(file)
+                    st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
                 except JSONDecodeError:
                     raise
         try:
-            st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
             st.session_state["resume_dict"]=st.session_state["users_dict"][_self.userId]["resume_info_dict"]
         except Exception:
             pass
@@ -279,8 +280,20 @@ class Chat():
         with st._main:
             _, c1 = st.columns([10, 1])
             with c1:
-                if st.button("Log in" if _self.userId is None else "Profile", key="profile_button", type="primary"):
-                    st.switch_page("pages/streamlit_user.py")
+                if not _self.userId:
+                    if st.button("Log in", key="profile_button", type="primary"):
+                        st.switch_page("pages/streamlit_user.py")
+                else:
+                    with st.popover(label="👤",):
+                        if st.button("My profile", type="primary"):
+                            st.session_state["force_user_mode"]="display_profile"
+                            st.switch_page("pages/streamlit_user.py")
+                        if st.button("Log out", type="primary"):
+                            st.session_state["force_user_mode"]="signout"
+                            user=User()
+                            user.sign_out()
+                            st.rerun()
+
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
             _, c1, c2=st.columns([1, 2,  2])

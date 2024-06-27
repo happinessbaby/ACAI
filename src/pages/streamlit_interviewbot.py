@@ -33,7 +33,7 @@ from langchain.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTo
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
-from utils.cookie_manager import retrieve_userId
+from utils.cookie_manager import CookieManager
 from utils.aws_manager import get_client
 import pywinctl as pwc
 from interview_component import my_component
@@ -92,7 +92,9 @@ class Interview():
 
     def __init__(self, data_queue, socket_client):
 
-        self.userId = retrieve_userId()
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
         if "interview_sessionId" not in st.session_state:
             st.session_state["interview_sessionId"] = str(uuid.uuid4())
             self.interview_sessionId = st.session_state.interview_sessionId

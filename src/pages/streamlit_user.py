@@ -7,7 +7,7 @@ import streamlit_authenticator as stauth
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import get_cookie, set_cookie, delete_cookie, encode_jwt, retrieve_userId
+from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
@@ -60,25 +60,29 @@ st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 class User():
 
 
-    def __init__(self):
+    def __init__(self, user_mode=None):
         # NOTE: userId is retrieved from browser cookie
-
-        self.userId = retrieve_userId()
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
-            st.session_state["mode"]="signedin" 
+            st.session_state["user_mode"]="signedin" 
         else:
-            if "mode" not in st.session_state or st.session_state["mode"]!="signup" or st.session_state["mode"]!="signedin":  
-                st.session_state["mode"]="signedout"
+            if "user_mode" not in st.session_state or st.session_state["user_mode"]!="signup" or st.session_state["user_mode"]!="signedin":  
+                st.session_state["user_mode"]="signedout"
+        if user_mode:
+            st.session_state["user_mode"]=user_mode
         self._init_session_states()
-        self._init_user()
+        self._init_display()
 
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-        st.session_state["redirect_uri"]="http://localhost:8501/streamlit_user.py"
+        st.session_state["redirect_uri"]="http://localhost:8501/streamlit_user"
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
+        st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
         # Open users profile file
         with open(user_profile_file, 'r') as file:
             try:
@@ -90,6 +94,7 @@ class User():
                 st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
             except JSONDecodeError:
                 raise 
+    
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if _self.userId is not None:
@@ -114,21 +119,52 @@ class User():
 
 
 
-    def _init_user(self):
+    def _init_display(self):
 
         """ Initalizes user page according to user's sign in status"""
-
-        config = st.session_state["config"]
-        authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
-        if st.session_state.mode=="signup":
+        st.markdown(
+            """
+            <style>
+            button[kind="primary"] {
+                background: none!important;
+                border: none;
+                padding: 0!important;
+                color: black !important;
+                text-decoration: none;
+                cursor: pointer;
+                border: none !important;
+            }
+            button[kind="primary"]:hover {
+                text-decoration: none;
+                color: blue !important;
+            }
+            button[kind="primary"]:focus {
+                outline: none !important;
+                box-shadow: none !important;
+                color: blue !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        # config = st.session_state["config"]
+        
+        # authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+        if st.session_state.user_mode=="signup":
             print("signing up")
-            self.sign_up(authenticator)
-        elif st.session_state.mode=="signedout":
+            self.sign_up()
+        elif st.session_state.user_mode=="signedout":
             print("signed out")
-            self.sign_in(authenticator)
-        elif st.session_state.mode=="signedin":
+            self.sign_in()
+        elif st.session_state.user_mode=="signedin":
             print("signed in")
-            #TODO: if redirected to here, needs to redirect back
+            _, c1 = st.columns([10, 1])
+            with c1:
+                with st.popover(label="👤",):
+                    if st.button("My profile", type="primary"):
+                        self.display_profile()
+                    if st.button("Log out", type="primary"):
+                        self.sign_out()
             try:
                 print(st.session_state.users_dict)
                 user_profile = st.session_state["users_dict"][self.userId]
@@ -137,30 +173,35 @@ class User():
             except Exception:
                 print("user profile does not exists yet")
                 self.about_resume()
+        elif st.session_state.user_mode=="display_profile":
+            try:
+                print(st.session_state.users_dict)
+                user_profile = st.session_state["users_dict"][self.userId]
+                print("user profile already exists")
+                self.display_profile(user_profile)
+            except Exception:
+                print("user profile does not exists yet")
+                self.about_resume()
+
     
    
     
 
-    def sign_out(self, authenticator):
+    def sign_out(self, ):
 
-        logout = authenticator.logout('Logout', 'sidebar')
-        if logout:
-            # Hacky way to log out of Google
-            print('signing out')
-            _ = my_component("signout", key="signout")
-            delete_cookie(get_cookie(cookie_name), key="deleteCookie")
-            st.session_state["mode"]="signedout"
-            st.rerun()
+        # logout = st.session_state.authenticator.logout('Logout', 'sidebar')
+        print('signing out')
+        st.session_state.cm.delete_cookie()
+        st.session_state["user_mode"]="signedout"
+        st.rerun()
 
 
 
-    def sign_in(self, authenticator):
+    def sign_in(self, ):
 
-        # modal = Modal("   ", key="sign_in_popup", max_width=500, close_button=False)
-        # with modal.container():
-            # st.button("X", on_click=self.close_modal, args=["signin_modal"])
+
         st.header("Welcome back")
-        name, authentication_status, username = authenticator.login('', 'main')
+        name, authentication_status, username = st.session_state.authenticator.login('', 'main')
         placeholder_error = st.empty()
         st.markdown(
             """
@@ -192,7 +233,7 @@ class User():
             # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
             sign_up = st.button(label="sign up", key="signup",  type="primary")
             if sign_up:
-                st.session_state["mode"]="signup"
+                st.session_state["user_mode"]="signup"
                 st.rerun()
         with col3:
             forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
@@ -225,26 +266,16 @@ class User():
         print(name, authentication_status, username)
         if authentication_status:
             print("setting cookie")
-            cookie = encode_jwt(name, username, cookie_key)
-            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
-            st.session_state["mode"]="signedin"
-            webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
-            # st.rerun()
-            # time.sleep(3)
+            st.session_state.cm.set_cookie(name, username, )
+            st.session_state["user_mode"]="signedin"
+            time.sleep(5)
+            if "redirect_page" in st.session_state:
+                webbrowser.open(st.session_state.redirect_page)
+            else:
+                st.rerun()
         elif authentication_status == False:
             placeholder_error.error('Username/password is incorrect')
-        # user_info = my_component(name="signin", key="signin")
-        # if user_info!=-1:
-        #     user_info=user_info.split(",")
-        #     name = user_info[0]
-        #     email = user_info[1]
-        #     token = user_info[2]
-        #     cookie = encode_jwt(name, email, "test")
-        #     print(f"user signed in through google: {user_info}")
-        #     # NOTE: Google's token expires after 1 hour
-        #     # set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.datetime.now()+datetime.timedelta(hours=1))
-        #     set_cookie("userInfo", cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(days=1))
-        #     time.sleep(3)
+
 
     def google_signin(self,):
 
@@ -268,9 +299,8 @@ class User():
             assert user_info.get("email"), "Email not found in infos"
             # st.session_state["google_auth_code"] = auth_code
             # st.session_state["user_info"] = user_info
-            cookie = encode_jwt(user_info.get("email"), user_info.get("email"), cookie_key)
-            set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
-            st.session_state["mode"]="signedin"
+            st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("email"),)
+            st.session_state["user_mode"]="signedin"
         else:
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
             if st.button("Sign in with Google"):
@@ -278,7 +308,7 @@ class User():
                     access_type="offline",
                     include_granted_scopes="true",
                 )
-                webbrowser.open_new_tab(authorization_url)
+                st.rerun()
 
     def sign_up(self, authenticator:stauth.Authenticate):
 
@@ -289,11 +319,14 @@ class User():
             password = authenticator.credentials["usernames"][username]["password"]
             email = authenticator.credentials["usernames"][username]["email"]
             if self.save_password( username, name, password, email):
-                st.session_state["mode"]="signedin"
+                st.session_state["user_mode"]="signedin"
                 st.success("User registered successfully")
-                cookie = encode_jwt(name, username, cookie_key)
-                set_cookie(cookie_name, cookie, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600),)
-                webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
+                st.session_state.cm.set_cookie(name, username,)
+                time.sleep(5)
+                if "redirect_page" in st.session_state:
+                    webbrowser.open(st.session_state.redirect_page)
+                else:
+                    st.rerun()
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
@@ -713,5 +746,12 @@ class User():
 
 
 if __name__ == '__main__':
-    user = User()
+    if "force_user_mode" in st.session_state:
+        if st.session_state.force_user_mode == "signout":
+            user = User("signout")
+        elif st.session_state.force_user_mode == "display_profile":
+            user=User("display_profile")
+    else:
+        user=User()
+    
 

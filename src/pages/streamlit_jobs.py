@@ -4,7 +4,7 @@ import os
 import json
 from json import JSONDecodeError
 from backend.job_recommender import Recommender
-from utils.cookie_manager import retrieve_userId
+from utils.cookie_manager import CookieManager
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
@@ -24,7 +24,9 @@ class Job():
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
-        self.userId = retrieve_userId()
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
             # Ask user to sign in
         if not self.userId:
             print("User needs to sign in first before job search")
