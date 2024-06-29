@@ -47,13 +47,14 @@ import asyncio
 import json
 import base64
 import threading
-# from six.moves import queue
+# from six.moves import queues
 from google.cloud import speech
 from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
 from utils.whisper_stt import whisper_stt
+from utils.streamlit_utils import nav_to
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -361,7 +362,7 @@ class Interview():
                 # st.markdown('<a href="http://localhost:3001/" target="_self">click here to proceed</a>', unsafe_allow_html=True)
                 greeting_json = f'{{"name":"{st.session_state.host}", "greeting":"{st.session_state.greeting}"}}'
                 interview = my_component(greeting_json) 
-                _self.nav_to("http://localhost:3001/" )
+                nav_to("http://localhost:3001/" )
             elif   "mode" in st.session_state and st.session_state["mode"]=="phone interview" and "baseinterview" in st.session_state:
                 print('entering phone mode')
                 with st.container():
@@ -579,12 +580,7 @@ class Interview():
                 # # RuntimeError: threads can only be started once  
                 # except RuntimeError as e:
                 #     pass
-    def nav_to(self, url):
-        nav_script = """
-            <meta http-equiv="refresh" content="0; url='%s'">
-        """ % (url)
-        st.write(nav_script, unsafe_allow_html=True)
-
+   
     def invoke_lambda(self, payload, ):
 
         """Invokes """

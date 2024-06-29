@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field, validator
 from typing import Any, List, Union, Dict, Optional
+import lancedb
+from lancedb.pydantic import LanceModel, Vector
+from utils.lancedb_utils import func
 
 class Job(BaseModel):
     job_title: Optional[str] = Field(
@@ -199,3 +202,34 @@ class Replacement(BaseModel):
     )
 class Replacements(BaseModel):
     replacements: List[Replacement]
+
+
+
+
+class ResumeUsers(LanceModel):
+    resume_content: str = func.SourceField() 
+    vector: Vector(func.ndims()) = func.VectorField(default=None)
+    pursuit_jobs: Optional[List[str]]
+    name: Optional[str] 
+    email: Optional[str]
+    phone: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    linkedin: Optional[str] 
+    website: Optional[str]
+    degree: Optional[str]
+    study: Optional[str] 
+    graduation_year:Optional[str]
+    gpa:Optional[int]
+    # sections: ResumeFields
+    summary_objective_section: Optional[str]
+    skills_section: Optional[str]
+    work_experience_section:  Optional[str]
+    accomplishments_section: Optional[str]
+    awards_honors_section: Optional[str] 
+    projects_section: Optional[str]
+    # work_experience: Jobs
+    # education: Education
+    # projects: Projects
+    # certifications: Certification
+    # skills: Skills

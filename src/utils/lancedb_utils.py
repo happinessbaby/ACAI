@@ -9,7 +9,7 @@ import os
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
-db_path="./lancetest"
+db_path=os.environ["LANCEDB_PATH"]
 
 
 db = lancedb.connect(db_path)
@@ -39,11 +39,12 @@ def register_model(model_name):
     model = registry.get(model_name).create()
     return model
 
-def create_lancedb_table(table_name,  ):
+def create_lancedb_table(table_name, schema , mode="overwrite"):
 
     table = db.create_table(
         table_name,
-        schema = Schema,
+        schema=schema,
+        mode=mode,
     )
     return table
 
@@ -63,7 +64,7 @@ def create_lancedb_index(table_name, distance_type):
     table=db.open_table(table_name)
     table.create_index(metric=distance_type)
 
-def lancedb_table_exists(table_name):
+def retrieve_lancedb_table(table_name):
 
     try:
         table=db.open_table(table_name)
@@ -75,7 +76,7 @@ def lancedb_table_exists(table_name):
 
 def query_lancedb_table(query, table_name, top_k=1):
     try:
-        table = lancedb_table_exists(table_name)
+        table = retrieve_lancedb_table(table_name)
         results = (
             table.search(query)
             .limit(top_k)

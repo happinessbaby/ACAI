@@ -79,7 +79,8 @@ from time import sleep
 from selenium import webdriver 
 from unstructured.partition.html import partition_html
 from dateutil import parser
-from utils.pydantic_schema import ResumeFields, ResumeFieldDetail,Keywords, Jobs, Projects, Skills
+from utils.pydantic_schema import ResumeFields, ResumeFieldDetail,Keywords, Jobs, Projects, Skills, ResumeUsers
+from utils.lancedb_utils import create_lancedb_table, retrieve_lancedb_table, add_to_lancedb_table
 
 
 # from feast import FeatureStore
@@ -997,17 +998,18 @@ def match_resume_to_job(resume_dict, job_dict):
 
 #     return generated_responses
 
-def create_resume_info(resume_path="", preexisting_info_dict={}):
+def create_resume_info(resume_path="", preexisting_info_dict={},):
 
     resume_info_dict={resume_path: preexisting_info_dict}
     # resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
     if (Path(resume_path).is_file()):
         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
         # Extract resume fields
+        resume_info_dict[resume_path].update({"resume_content":resume_content})
         field_content =  create_pydantic_parser(resume_content, ResumeFields)
         field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
         # resume_info_dict[resume_path]["resume fields"].update(field_content)
-        resume_info_dict[resume_path].update(field_content)
+        resume_info_dict[resume_path].update({"sections":field_content})
         resume_info_dict[resume_path].update(field_details)
         if field_details["work_experience"]:
             jobs_list = field_details["work_experience"]
@@ -1015,49 +1017,9 @@ def create_resume_info(resume_path="", preexisting_info_dict={}):
                 years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
                 jobs_list[i].update({"years_of_experience": years_experience})
             resume_info_dict[resume_path].update({"work_experience": jobs_list})
-
-        # Extract pursuit job
-        # pursuit_jobs = extract_pursuit_job(resume_content)
-        # resume_info_dict[resume_path].update({"pursuit_jobs": pursuit_jobs})
-        # Extract contact information
-        # if field_content["personal contact"]!=-1:s
-        #     personal_info_dict = extract_personal_information(resume_content)
-        #     resume_info_dict[resume_path]["contact"].update(personal_info_dict)
-        # Extract education specific information
-        # if field_content["education"]!=-1:
-        #     education_info_dict = extract_education_information(resume_content)
-        #     resume_info_dict[resume_path]["education"].update(education_info_dict)
-        #     if education_info_dict["graduation year"]:
-        #         years_since_grad = calculate_graduation_years(education_info_dict["graduation year"])
-        #         resume_info_dict[resume_path]["education"].update({"years since graduation": years_since_grad})
-        #     else:
-        #         resume_info_dict[resume_path]["education"].update({"years since graduation": -1})
-        # Extract job experience specific information
-        # if field_content["work experience"]!=-1:
-        #     jobs = extract_job_experiences(resume_content)
-        #     jobs_list = jobs["jobs"]
-        #     for i in range(len(jobs_list)):
-        #         years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
-        #         jobs_list[i].update({"years of experience": years_experience})
-        #     # if years_experience>=0 and years_experience<2:
-        #     #     jobs[i].update({"level": "entry level"})
-        #     # elif years_experience>2 and years_experience<=5:
-        #     #     jobs[i].update({"level": "junior level"})
-        #     # elif years_experience>5 and years_experience<=10:
-        #     #     jobs[i].update({"level": "senior level"})
-        #     resume_info_dict[resume_path].update({"work experience": jobs_list})
-        # if field_content["projects"]!=-1:
-        #     projects = extract_projects_accomplishments(resume_content)
-        #     resume_info_dict[resume_path].update(projects)
-        # if field_content["professional accomplishment"]!=-1:
-        #     accomplishments = extract_projects_accomplishments(resume_content)
-        #     accomplishments["professional accomplishment"] = accomplishments.pop("projects")
-        #     resume_info_dict[resume_path].update(accomplishments)
-        # Extract hard skills and soft skills
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
-    # Write dictionary to JSON (TEMPORARY SOLUTION)
-    # print(resume_info_dict)
+
     with open(resume_info_file, 'a') as json_file:
         json.dump(resume_info_dict, json_file, indent=4)
     return resume_info_dict[resume_path]
@@ -1110,14 +1072,15 @@ def create_job_posting_info(posting_path="", about_job="", ):
         json.dump(job_posting_info_dict, json_file, indent=4)
     return job_posting_info_dict[job_posting]
 
-def retrieve_or_create_resume_info(resume_path, q=None):
+def retrieve_or_create_resume_info(resume_path, q=None, ):
     #NOTE: JSON file is the temp solution, will move to database
+   
     try: 
-       with open("./test_resume_info.json") as f:
-        resume = json.load(f)
-        resume_dict = resume[resume_path]
+        with open("./test_resume_info.json") as f:
+            resume = json.load(f)
+            resume_dict = resume[resume_path]
     except Exception:
-      resume_dict = create_resume_info(resume_path=resume_path, )
+        resume_dict = create_resume_info(resume_path=resume_path, )
     if q:
         q.put(resume_dict)
     return resume_dict

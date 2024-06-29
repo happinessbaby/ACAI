@@ -10,8 +10,8 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import create_lancedb_table, lancedb_table_exists, add_to_lancedb_table, query_lancedb_table
-from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, retrieve_or_create_resume_info
+from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table
+from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, create_resume_info
 from utils.basic_utils import mk_dirs
 from typing import Any, List
 from pathlib import Path
@@ -26,6 +26,8 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
+from utils.streamlit_utils import nav_to
+from utils.pydantic_schema import ResumeUsers
 
 
 
@@ -68,7 +70,7 @@ class User():
         if self.userId:
             st.session_state["user_mode"]="signedin" 
         else:
-            if "user_mode" not in st.session_state or st.session_state["user_mode"]!="signup" or st.session_state["user_mode"]!="signedin":  
+            if "user_mode" not in st.session_state or (st.session_state["user_mode"]!="signup" and st.session_state["user_mode"]!="signedin"):  
                 st.session_state["user_mode"]="signedout"
         if user_mode:
             st.session_state["user_mode"]=user_mode
@@ -78,22 +80,23 @@ class User():
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-        st.session_state["redirect_uri"]="http://localhost:8501/streamlit_user"
+        st.session_state["redirect_uri"]="http://localhost:8501/"
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
         st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
         # Open users profile file
-        with open(user_profile_file, 'r') as file:
-            try:
-                users = json.load(file)
-                # Convert the single object into a list of objects if it's not already
-                if not isinstance(users, list):
-                    users = [users]
-                st.session_state["users"] = users
-                st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
-            except JSONDecodeError:
-                raise 
+        # with open(user_profile_file, 'r') as file:
+        #     try:
+        #         #TODO: instead of json files, get user table
+        #         users = json.load(file)
+        #         # Convert the single object into a list of objects if it's not already
+        #         if not isinstance(users, list):
+        #             users = [users]
+        #         st.session_state["users"] = users
+        #         st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
+        #     except JSONDecodeError:
+        #         raise 
     
         # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
@@ -158,33 +161,20 @@ class User():
             self.sign_in()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
-            _, c1 = st.columns([10, 1])
-            with c1:
-                with st.popover(label="👤",):
-                    if st.button("My profile", type="primary"):
-                        self.display_profile()
-                    if st.button("Log out", type="primary"):
-                        self.sign_out()
-            try:
-                print(st.session_state.users_dict)
-                user_profile = st.session_state["users_dict"][self.userId]
-                print("user profile already exists")
-                self.display_profile(user_profile)
-            except Exception:
-                print("user profile does not exists yet")
-                self.about_resume()
+            nav_to(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
         elif st.session_state.user_mode=="display_profile":
             try:
-                print(st.session_state.users_dict)
-                user_profile = st.session_state["users_dict"][self.userId]
-                print("user profile already exists")
+                table = retrieve_lancedb_table(self.userId)
+                #TODO convert table to python dictionary
+                # print(st.session_state.users_dict)
+                # user_profile = st.session_state["users_dict"][self.userId]
+                # print("user profile already exists")
                 self.display_profile(user_profile)
             except Exception:
                 print("user profile does not exists yet")
                 self.about_resume()
 
     
-   
     
 
     def sign_out(self, ):
@@ -265,14 +255,13 @@ class User():
         self.google_signin()
         print(name, authentication_status, username)
         if authentication_status:
+            email = st.session_state.authenticator.credentials["usernames"][username]["email"]
             print("setting cookie")
-            st.session_state.cm.set_cookie(name, username, )
+            st.session_state.cm.set_cookie(name, email, )
             st.session_state["user_mode"]="signedin"
             time.sleep(5)
-            if "redirect_page" in st.session_state:
-                webbrowser.open(st.session_state.redirect_page)
-            else:
-                st.rerun()
+            st.rerun()
+            # webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_url)
         elif authentication_status == False:
             placeholder_error.error('Username/password is incorrect')
 
@@ -301,6 +290,8 @@ class User():
             # st.session_state["user_info"] = user_info
             st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("email"),)
             st.session_state["user_mode"]="signedin"
+            time.sleep(5)
+            st.rerun()
         else:
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
             if st.button("Sign in with Google"):
@@ -308,25 +299,28 @@ class User():
                     access_type="offline",
                     include_granted_scopes="true",
                 )
-                st.rerun()
+                webbrowser.open_new_tab(authorization_url)
 
-    def sign_up(self, authenticator:stauth.Authenticate):
+    def sign_up(self,):
 
         print("inside signing up")
+        authenticator = st.session_state.authenticator
         username= authenticator.register_user("Create an account", "main", preauthorization=False)
         if username:
             name = authenticator.credentials["usernames"][username]["name"]
             password = authenticator.credentials["usernames"][username]["password"]
             email = authenticator.credentials["usernames"][username]["email"]
             if self.save_password( username, name, password, email):
+                if STORAGE=="LOCAL":
+                    user_path = os.path.join(os.environ["USER_PATH"], email)
+                elif STORAGE=="CLOUD":
+                    user_path = os.path.join(os.environ["USER_PATH"], email)
+                mk_dirs([user_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                 st.session_state["user_mode"]="signedin"
                 st.success("User registered successfully")
-                st.session_state.cm.set_cookie(name, username,)
+                st.session_state.cm.set_cookie(name, email,)
                 time.sleep(5)
-                if "redirect_page" in st.session_state:
-                    webbrowser.open(st.session_state.redirect_page)
-                else:
-                    st.rerun()
+                st.rerun()
             else:
                 st.info("Failed to register user, please try again")
                 st.rerun()
@@ -514,15 +508,17 @@ class User():
     def form_callback(self, type):
         """"""
         if type=="resume":
-            resume_dict = retrieve_or_create_resume_info(st.session_state.user_resume_path, )
-            user = {
-                "userId": self.userId,
-                "resume_path": st.session_state.user_resume_path,
-                "resume_info_dict": resume_dict
-            }
-            st.session_state["users"].append(user)
-            with open(user_profile_file, 'w') as file:
-                json.dump(st.session_state["users"], file, indent=2)
+            resume_dict = create_resume_info(st.session_state.user_resume_path,)
+            user_dict = {}
+            user_dict.update(resume_dict["sections"])
+            user_dict.update(resume_dict["contact"])
+            user_dict.update(resume_dict["education"])
+            user_dict.update({"resume_content":resume_dict["resume_content"]})
+            table = create_lancedb_table(self.userId, ResumeUsers)
+            #NOTE: the data added has to be a LIST!
+            add_to_lancedb_table(self.userId, [user_dict])
+            print("Successfully aded user to lancedb table")
+
 
 
     # def test_clear(self):
@@ -693,29 +689,33 @@ class User():
 
         with st.expander(label="Bio"):
             try:
-                value = user_profile["resume_info_dict"]["contact"]["name"]
+                value = user_profile["name"]
             except Exception as e:
                 print(e)
                 value = ""
-            st.text_input("name", value=value, on_change=self.update_personal_info)
+            st.text_input("name", value=value, key="profile_name", on_change=self.update_personal_info, args=(user_profile, ))
 
+        save_changes = st.button("Save", key="profile_save_buttonn",)
+        if save_changes:
+            print("saving changes")
+            #TODO: save changes to user table
             
   
-    def update_personal_info(self):
-        """ """
+    def update_personal_info(self, user_profile):
 
+        """ updates user profile"""
+
+        try:
+            name = st.session_state.profile_name
+            #TODO: update lancedb table field: should not update here, should update only when save change button is hit
+            # user_profile["resume_info_dict"]["contact"]["name"] = name
+        except Exception:
+            pass
         # update user information to vectorstore
         # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
         # record_manager=create_record_manager(self.userId)
         # update_index(docs, record_manager, vectorstore)
-        # try:
-        #     del st.session_state["init_user1"]
-        # except Exception:
-        #     pass
-        # if "init_user1" not in st.session_state:
-        #     self.about_user1()
-        # if "init_user1" in st.session_state and st.session_state["init_user1"]==True and "init_user2" not in st.session_state:
-        #     self.about_user2()
+    
 
 
 
