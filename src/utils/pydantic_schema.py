@@ -209,6 +209,8 @@ class Replacements(BaseModel):
 class ResumeUsers(LanceModel):
     resume_content: str = func.SourceField() 
     vector: Vector(func.ndims()) = func.VectorField(default=None)
+    user_id: str
+    resume_path: str
     pursuit_jobs: Optional[List[str]]
     name: Optional[str] 
     email: Optional[str]

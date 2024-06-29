@@ -1045,13 +1045,6 @@ def create_job_posting_info(posting_path="", about_job="", ):
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     job_posting_info_dict[job_posting].update({"summary": posting})
-    # Extract basic job and company names
-    # pursuit_info_dict = extract_pursuit_information(posting)
-    # for key, value in pursuit_info_dict.items():
-    #     if value == -1:
-    #         pursuit_info_dict[key]=pursuit_info_dict1[key]
-    # job_posting_info_dict[job_posting].update(pursuit_info_dict)
-    # Extract job posting specific requirements
     basic_info_dict = create_pydantic_parser(posting, Keywords)
     job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required

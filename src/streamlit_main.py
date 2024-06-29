@@ -47,10 +47,11 @@ from stqdm import stqdm
 from time import sleep
 import threading
 import queue
-# from utils.streamlit_utils import loading
+from utils.streamlit_utils import retrieve_user_profile_dict
 import multiprocessing
 from utils.async_utils import asyncio_run
 from pages.streamlit_user import User
+
 
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -103,6 +104,10 @@ class Chat():
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
+        if self.userId:
+            st.session_state["user_mode"]="signedin" 
+            if "user_profile_dict" not in st.session_state:
+                st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -117,20 +122,20 @@ class Chat():
 
         """ Initializes Streamlit session states. """
 
-        #TODO: chnage this to retrieve from lancedb
-        try:
-            st.session_state["users"]
-        except Exception:
-            with open(user_profile_file, 'r') as file:
-                try:
-                    st.session_state["users"] = json.load(file)
-                    st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
-                except JSONDecodeError:
-                    raise
-        try:
-            st.session_state["resume_dict"]=st.session_state["users_dict"][_self.userId]["resume_info_dict"]
-        except Exception:
-            pass
+        # #TODO: chnage this to retrieve from lancedb
+        # try:
+        #     st.session_state["users"]
+        # except Exception:
+        #     with open(user_profile_file, 'r') as file:
+        #         try:
+        #             st.session_state["users"] = json.load(file)
+        #             st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
+        #         except JSONDecodeError:
+        #             raise
+        # try:
+        #     st.session_state["resume_dict"]=st.session_state["users_dict"][_self.userId]["resume_info_dict"]
+        # except Exception:
+        #     pass
         # _, c1 = st.columns([10, 1])
         # with c1:
         #     st.session_state["placeholder_profile"]=st.empty()
@@ -470,9 +475,9 @@ class Chat():
             st.write("or")
         with c2:
             add_vertical_space(5)
-            if self.userId and "resume_dict" in st.session_state:
+            if self.userId and "user_profile_dict" in st.session_state:
                 st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
-            elif self.userId and "resume_dict" not in st.session_state:
+            elif self.userId and "user_profile_dict" not in st.session_state:
                 st.session_state["redirect_page"]="http://localhost:8501/"
                 st.page_link("pages/streamlit_user.py", label="create my default resume", )       
             else:
@@ -503,15 +508,17 @@ class Chat():
         # Generate resume and job posting dictionaries
         posting_q=None
         resume_q=None
-        st.session_state["resume_path_final"]=st.session_state["resume_path"]
+        if "default_resume_checkbox" in st.session_state and st.session_state["default_resume_checkbox"]:
+            st.session_state["resume_path_final"] = st.session_state["user_profile_dict"]["resume_path"]
+        else:
+            st.session_state["resume_path_final"]=st.session_state["resume_path"]
         if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
             st.session_state["evaluation"]=True
-        if "use_default_resume" not in st.session_state:
-            resume_q = queue.Queue()
-            resume_t= threading.Thread(target=retrieve_or_create_resume_info, 
-                                    args=(st.session_state.resume_path_final, resume_q, ),
-                                    daemon=True)
-            resume_t.start()
+        resume_q = queue.Queue()
+        resume_t= threading.Thread(target=retrieve_or_create_resume_info, 
+                                args=(st.session_state.resume_path_final, resume_q, ),
+                                daemon=True)
+        resume_t.start()
         if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
             st.session_state["tailoring"]=True
             posting_q = queue.Queue()
@@ -763,14 +770,12 @@ class Chat():
                     del st.session_state["job_required"]
         except Exception:
             pass
-        try:
-            use_default = st.session_state["default_resume_checkbox"]
-            if use_default:
-                st.session_state["use_default_resume"]=True 
-                st.session_state["resume_path"] = st.session_state["users_dict"][self.userId]["resume_path"]
-                print(st.session_state.resume_path)
-        except Exception:
-            pass
+        # try:
+        #     use_default = st.session_state["default_resume_checkbox"]
+        #     if use_default:
+        #         st.session_state["use_default_resume"]=True 
+        # except Exception:
+        #     pass
 
         # try:
         #     pursuit_job=st.session_state.pursuit_job

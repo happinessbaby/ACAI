@@ -26,7 +26,7 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.streamlit_utils import nav_to
+from utils.streamlit_utils import nav_to, retrieve_user_profile_dict
 from utils.pydantic_schema import ResumeUsers
 
 
@@ -43,6 +43,7 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 cookie_name = os.environ["COOKIE_NAME"]
 cookie_key=os.environ["COOKIE_KEY"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
+lance_users_table = os.environ["LANCE_USERS_TABLE"]
 # store = FeatureStore("./my_feature_repo/")
 
 # st.set_page_config(initial_sidebar_state="collapsed")
@@ -69,6 +70,9 @@ class User():
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
             st.session_state["user_mode"]="signedin" 
+            if "user_profile_dict" not in st.session_state:
+                if "user_profile_dict" not in st.session_state:
+                    st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state or (st.session_state["user_mode"]!="signup" and st.session_state["user_mode"]!="signedin"):  
                 st.session_state["user_mode"]="signedout"
@@ -163,14 +167,9 @@ class User():
             print("signed in")
             nav_to(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
         elif st.session_state.user_mode=="display_profile":
-            try:
-                table = retrieve_lancedb_table(self.userId)
-                #TODO convert table to python dictionary
-                # print(st.session_state.users_dict)
-                # user_profile = st.session_state["users_dict"][self.userId]
-                # print("user profile already exists")
-                self.display_profile(user_profile)
-            except Exception:
+            if "user_profile_dict" in st.session_state:
+                self.display_profile()
+            else:
                 print("user profile does not exists yet")
                 self.about_resume()
 
@@ -492,18 +491,18 @@ class User():
     #     st.session_state["init_user1"]=True
 
                 
-    def form_callback2(self):
+    # def form_callback2(self):
 
-        summary = create_profile_summary(self.userId)
-        print("profile summary",  summary)
-        st.session_state["users"][self.userId]["summary"] = summary
-         # Save the updated user profiles back to the JSON file
-        with open(user_profile_file, 'w') as file:
-            json.dump(st.session_state["users"], file, indent=2)
-        data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
-        print(data)
-        add_to_lancedb_table(self.userId, data)
-        st.session_state["init_user2"]=True
+    #     summary = create_profile_summary(self.userId)
+    #     print("profile summary",  summary)
+    #     st.session_state["users"][self.userId]["summary"] = summary
+    #      # Save the updated user profiles back to the JSON file
+    #     with open(user_profile_file, 'w') as file:
+    #         json.dump(st.session_state["users"], file, indent=2)
+    #     data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
+    #     print(data)
+    #     add_to_lancedb_table(self.userId, data)
+    #     st.session_state["init_user2"]=True
 
     def form_callback(self, type):
         """"""
@@ -514,9 +513,11 @@ class User():
             user_dict.update(resume_dict["contact"])
             user_dict.update(resume_dict["education"])
             user_dict.update({"resume_content":resume_dict["resume_content"]})
-            table = create_lancedb_table(self.userId, ResumeUsers)
+            user_dict.update({"resume_path": st.session_state.user_resume_path})
+            user_dict.update({"user_id": self.userId})
+            # table = create_lancedb_table(lance_users_table, ResumeUsers)
             #NOTE: the data added has to be a LIST!
-            add_to_lancedb_table(self.userId, [user_dict])
+            add_to_lancedb_table(lance_users_table, [user_dict], ResumeUsers)
             print("Successfully aded user to lancedb table")
 
 
@@ -683,17 +684,17 @@ class User():
 
 
 
-    def display_profile(self, user_profile):
+    def display_profile(self,):
 
         """Loads from user file and displays profile"""
-
+        profile=st.session_state["user_profile_dict"]
         with st.expander(label="Bio"):
             try:
-                value = user_profile["name"]
+                value = profile["name"]
             except Exception as e:
                 print(e)
                 value = ""
-            st.text_input("name", value=value, key="profile_name", on_change=self.update_personal_info, args=(user_profile, ))
+            st.text_input("name", value=value, key="profile_name", on_change=self.update_personal_info, args=(profile, ))
 
         save_changes = st.button("Save", key="profile_save_buttonn",)
         if save_changes:

@@ -48,14 +48,14 @@ def create_lancedb_table(table_name, schema , mode="overwrite"):
     )
     return table
 
-def add_to_lancedb_table(table_name, data, mode="append"):
+def add_to_lancedb_table(table_name, data, schema, mode="append"):
 
     try:
         table=db.open_table(table_name)
         table.add(data, mode=mode)
     except FileNotFoundError:
-        create_lancedb_table(table_name)
-        add_to_lancedb_table(table_name, data)
+        create_lancedb_table(table_name, schema)
+        add_to_lancedb_table(table_name, data,schema)
 
 def create_lancedb_index(table_name, distance_type):
 
