@@ -1,6 +1,7 @@
 import streamlit as st
 import extra_streamlit_components as stx
 from interview_component import my_component
+from streamlit_extras.add_vertical_space import add_vertical_space
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
@@ -92,7 +93,6 @@ class User():
         # Open users profile file
         # with open(user_profile_file, 'r') as file:
         #     try:
-        #         #TODO: instead of json files, get user table
         #         users = json.load(file)
         #         # Convert the single object into a list of objects if it's not already
         #         if not isinstance(users, list):
@@ -407,9 +407,7 @@ class User():
                             accept_multiple_files=False, 
                             on_change=self.field_check, 
                             help="This will become your default resume.")
-        # if resume:
-        #     self.process([resume], "resume")
-        st.markdown("#")
+        add_vertical_space(3)
         st.button(label="submit", on_click=self.form_callback, args=("resume", ), disabled=st.session_state.resume_disabled)
         st.button(label='skip', type="primary", on_click=self.display_profile)
 
@@ -688,30 +686,41 @@ class User():
 
         """Loads from user file and displays profile"""
         profile=st.session_state["user_profile_dict"]
+        updated_dict = {}
         with st.expander(label="Bio"):
             try:
-                value = profile["name"]
+                value = profile["name"][0]
             except Exception as e:
                 print(e)
                 value = ""
-            st.text_input("name", value=value, key="profile_name", on_change=self.update_personal_info, args=(profile, ))
-
+            if st.text_input("name", value=value, key="profile_name",  args=(profile, )):
+                updated_dict.update({"name":st.session_state.profile_name})
+            try:
+                value = profile["email"][0]
+            except Exception as e:
+                print(e)
+                value = ""
+            if st.text_input("email", value=value, key="profile_email",  args=(profile, )):
+                updated_dict.update({"email":st.session_state.profile_email})
         save_changes = st.button("Save", key="profile_save_buttonn",)
         if save_changes:
             print("saving changes")
-            #TODO: save changes to user table
+            self.update_personal_info(updated_dict)
+ 
             
   
-    def update_personal_info(self, user_profile):
+    def update_personal_info(self, updated_dict):
 
         """ updates user profile"""
 
         try:
-            name = st.session_state.profile_name
-            #TODO: update lancedb table field: should not update here, should update only when save change button is hit
-            # user_profile["resume_info_dict"]["contact"]["name"] = name
-        except Exception:
-            pass
+            users_table = retrieve_lancedb_table(lance_users_table)
+            user_id = self.userId
+            users_table.update(where=f"user_id = '{self.userId}'", values=updated_dict)
+            print("Successfully updated user profile")
+        except Exception as e:
+            raise e
+
         # update user information to vectorstore
         # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
         # record_manager=create_record_manager(self.userId)

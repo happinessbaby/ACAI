@@ -22,7 +22,7 @@ def nav_to(url):
 def retrieve_user_profile_dict(userId):
     users_table = retrieve_lancedb_table(lance_users_table)
     try:
-        table=users_table.search().where(f"user_id = {userId}", prefilter=True).to_pandas().to_dict("list")
+        table=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
         print("Retrieved user profile dict from lancedb")
     except Exception as e:
         print(e)

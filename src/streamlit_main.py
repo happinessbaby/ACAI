@@ -122,7 +122,6 @@ class Chat():
 
         """ Initializes Streamlit session states. """
 
-        # #TODO: chnage this to retrieve from lancedb
         # try:
         #     st.session_state["users"]
         # except Exception:
