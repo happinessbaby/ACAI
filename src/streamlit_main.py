@@ -287,17 +287,21 @@ class Chat():
             with c1:
                 if not _self.userId:
                     if st.button("Log in", key="profile_button", type="primary"):
+                        st.session_state["user_mode"] = "signedout"
+                        st.session_state["redirect_page"] = "http://localhost:8501/"
                         st.switch_page("pages/streamlit_user.py")
                 else:
                     with st.popover(label="👤",):
                         if st.button("My profile", type="primary"):
-                            st.session_state["force_user_mode"]="display_profile"
+                            st.session_state["user_mode"]="display_profile"
                             st.switch_page("pages/streamlit_user.py")
                         if st.button("Log out", type="primary"):
-                            st.session_state["force_user_mode"]="signout"
-                            user=User()
-                            user.sign_out()
-                            st.rerun()
+                            st.session_state["redirect_page"] = "http://localhost:8501/"
+                            st.session_state["user_mode"]="signout"
+                            st.switch_page("pages/streamlit_user.py")
+                            # user=User()
+                            # user.sign_out()
+                            # st.rerun()
 
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
@@ -537,59 +541,6 @@ class Chat():
             posting_t.join()
             st.session_state["job_posting_dict"] = posting_q.get()
 
-
-
-
-
-    @st.experimental_dialog("Please pick out a template", width="large")
-    def resume_template_popup(self,):
-        
-
-        # if type=="cover letter":
-        #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
-        #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
-        #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
-        type = st.session_state["resume_type"]
-        if type=="functional" or type=="student":
-            thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png"]
-            images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png"]
-            paths =  ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx"]
-        elif type=="chronological":
-            thumb_images= ["./resume_templates/chronological/chronological0_thmb.png", "./resume_templates/chronological/chronological1_thmb.png"]
-            images= ["./backend/resume_templates/chronological/chronological0.png", "./backend/resume_templates/chronological/chronological1.png"]
-            paths = ["./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-        modal = Modal(title="Please pick out a template", key="template_popup")
-        path=""
-        # with st.form(key="test_form"):
-        selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
-        image_placeholder=st.empty()
-        image_placeholder.image(images[selected_idx])
-        path = paths[selected_idx]
-        submit = st.button("Next", )
-            # submit = st.form_submit_button("submit",)
-        if submit:
-            st.session_state["template_path"] = path
-            st.rerun()
-
-
-        # st.button("Next", on_click=self.selection_callback, args=(True, path, type, ))
-                # images=[]
-                # for file in images:
-                #     with open(file, "rb") as image:
-                #         encoded = base64.b64encode(image.read()).decode()
-                #         images.append(f"data:image/png;base64,{encoded}")
-                # clicked = clickable_images(
-                #     images,
-                #     # titles=["data analyst", "software engineer"],
-                #     div_style={"display": "flex", "justify-content": "center", "flex-wrap": "wrap"},
-                #     img_style={"margin": "5px", "height": "200px"},
-                #     key="cl_template_clickables"
-                # )
-                # image_placeholder=st.empty()
-                # st.form_submit_button("Next", on_click=self.selection_callback, args=(True, path, type, ))
-                # if clicked>-1:
-                #     image_placeholder.image(images[clicked])
-                #     path=paths[clicked]
                 
 
     

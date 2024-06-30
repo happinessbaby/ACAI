@@ -425,6 +425,9 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     return resume_type
 
 
+def reformat_resume(template_path):
+    """"Reformats user profile information with a resume template"""
+    print("reformatting resume")
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
 

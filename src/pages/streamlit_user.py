@@ -29,7 +29,8 @@ from googleapiclient.discovery import build
 import webbrowser
 from utils.streamlit_utils import nav_to, retrieve_user_profile_dict
 from utils.pydantic_schema import ResumeUsers
-
+from streamlit_image_select import image_select
+from backend.upgrade_resume import reformat_resume
 
 
 # st.set_page_config(layout="wide")
@@ -70,22 +71,23 @@ class User():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
-            st.session_state["user_mode"]="signedin" 
+            if "user_mode" not in st.session_state:
+                st.session_state["user_mode"]="signedin" 
             if "user_profile_dict" not in st.session_state:
                 if "user_profile_dict" not in st.session_state:
                     st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
-            if "user_mode" not in st.session_state or (st.session_state["user_mode"]!="signup" and st.session_state["user_mode"]!="signedin"):  
+            if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
-        if user_mode:
-            st.session_state["user_mode"]=user_mode
+        # if user_mode:
+        #     st.session_state["user_mode"]=user_mode
         self._init_session_states()
         self._init_display()
 
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-        st.session_state["redirect_uri"]="http://localhost:8501/"
+        # st.session_state["redirect_uri"]="http://localhost:8501/"
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -154,9 +156,8 @@ class User():
             """,
             unsafe_allow_html=True,
         )
-        # config = st.session_state["config"]
-        
-        # authenticator = stauth.Authenticate( config['credentials'], config['cookie']['name'], config['cookie']['key'], config['cookie']['expiry_days'], config['preauthorized'] )
+        if "template_path" in st.session_state:
+            reformat_resume(st.session_state.template_path)
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -165,7 +166,19 @@ class User():
             self.sign_in()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
-            nav_to(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_uri)
+            if "redirect_page" in st.session_state:
+                nav_to(st.session_state.redirect_page)
+            else:
+                st.session_state["user_mode"]="display_profile"
+                st.rerun()
+        elif st.session_state.user_mode=="signout":
+            print('signing out')
+            st.session_state.cm.delete_cookie()
+            st.session_state["user_mode"]="signedout"
+            if "redirect_page" in st.session_state:
+                nav_to(st.session_state.redirect_page)
+            else:
+                st.rerun()
         elif st.session_state.user_mode=="display_profile":
             if "user_profile_dict" in st.session_state:
                 self.display_profile()
@@ -176,13 +189,13 @@ class User():
     
     
 
-    def sign_out(self, ):
+    # def sign_out(self, ):
 
-        # logout = st.session_state.authenticator.logout('Logout', 'sidebar')
-        print('signing out')
-        st.session_state.cm.delete_cookie()
-        st.session_state["user_mode"]="signedout"
-        st.rerun()
+    #     # logout = st.session_state.authenticator.logout('Logout', 'sidebar')
+    #     print('signing out')
+    #     st.session_state.cm.delete_cookie()
+    #     st.session_state["user_mode"]="signedout"
+    #     st.rerun()
 
 
 
@@ -513,7 +526,6 @@ class User():
             user_dict.update({"resume_content":resume_dict["resume_content"]})
             user_dict.update({"resume_path": st.session_state.user_resume_path})
             user_dict.update({"user_id": self.userId})
-            # table = create_lancedb_table(lance_users_table, ResumeUsers)
             #NOTE: the data added has to be a LIST!
             add_to_lancedb_table(lance_users_table, [user_dict], ResumeUsers)
             print("Successfully aded user to lancedb table")
@@ -685,28 +697,57 @@ class User():
     def display_profile(self,):
 
         """Loads from user file and displays profile"""
-        profile=st.session_state["user_profile_dict"]
-        updated_dict = {}
+        # profile=st.session_state["user_profile_dict"]
+        #TODO: has to dynamically retrieve it here since updates are instanteously saved to table
+        profile = retrieve_user_profile_dict(self.userId)
+        self.updated_dict = {}
         with st.expander(label="Bio"):
             try:
                 value = profile["name"][0]
             except Exception as e:
                 print(e)
                 value = ""
-            if st.text_input("name", value=value, key="profile_name",  args=(profile, )):
-                updated_dict.update({"name":st.session_state.profile_name})
+            if st.text_input("name", value=value, key="profile_name",  args=(profile, ))!=value:
+                self.updated_dict.update({"name":st.session_state.profile_name})
             try:
                 value = profile["email"][0]
             except Exception as e:
                 print(e)
                 value = ""
-            if st.text_input("email", value=value, key="profile_email",  args=(profile, )):
-                updated_dict.update({"email":st.session_state.profile_email})
-        save_changes = st.button("Save", key="profile_save_buttonn",)
-        if save_changes:
-            print("saving changes")
-            self.update_personal_info(updated_dict)
- 
+            if st.text_input("email", value=value, key="profile_email",  args=(profile, ))!=value:
+                self.updated_dict.update({"email":st.session_state.profile_email})
+        _, c1 = st.columns([3, 1])
+        with c1:
+            if st.button("Save changes", key="profile_save_buttonn",):
+                self.update_personal_info(self.updated_dict)
+                self.update_dict={}
+        add_vertical_space(3)
+        if st.button(":blue[Turn my profile into a resume]", key="resume_format_button"):
+            if self.updated_dict:
+                print(self.updated_dict)
+                st.info("Please save your changes before proceeding")
+            else:
+                self.resume_template_popup()
+
+    @st.experimental_dialog("Please pick out a template", width="large")
+    def resume_template_popup(self,):
+        
+
+        # if type=="cover letter":
+        #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
+        #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
+        #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
+        thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png", "./resume_templates/chronological/chronological0_thmb.png", "./resume_templates/chronological/chronological1_thmb.png"]
+        images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png", "./backend/resume_templates/chronological/chronological0.png", "./backend/resume_templates/chronological/chronological1.png"]
+        paths = ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
+        path=""
+        selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
+        image_placeholder=st.empty()
+        image_placeholder.image(images[selected_idx])
+        path = paths[selected_idx]
+        if st.button("Next", ):
+            st.session_state["template_path"] = path
+            st.rerun()
             
   
     def update_personal_info(self, updated_dict):
@@ -715,8 +756,8 @@ class User():
 
         try:
             users_table = retrieve_lancedb_table(lance_users_table)
-            user_id = self.userId
             users_table.update(where=f"user_id = '{self.userId}'", values=updated_dict)
+            st.toast("Successfully updated profile")
             print("Successfully updated user profile")
         except Exception as e:
             raise e
@@ -756,12 +797,12 @@ class User():
 
 
 if __name__ == '__main__':
-    if "force_user_mode" in st.session_state:
-        if st.session_state.force_user_mode == "signout":
-            user = User("signout")
-        elif st.session_state.force_user_mode == "display_profile":
-            user=User("display_profile")
-    else:
+    # if "force_user_mode" in st.session_state:
+    #     if st.session_state.force_user_mode == "signout":
+    #         user = User("signout")
+    #     elif st.session_state.force_user_mode == "display_profile":
+    #         user=User("display_profile")
+    # else:
         user=User()
     
 
