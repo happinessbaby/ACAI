@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 from streamlit_modal import Modal
-from utils.lancedb_utils import retrieve_lancedb_table
 import os
 
 
@@ -19,12 +18,26 @@ def nav_to(url):
     """ % (url)
     st.write(nav_script, unsafe_allow_html=True)
 
-def retrieve_user_profile_dict(userId):
-    users_table = retrieve_lancedb_table(lance_users_table)
-    try:
-        table=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        print("Retrieved user profile dict from lancedb")
-    except Exception as e:
-        print(e)
-        table=None
-    return table
+def display_user_menu(userId, page, ):
+    _, c1 = st.columns([10, 1])
+    with c1:
+        if not userId:
+            if st.button("Log in", key="profile_button", type="primary"):
+                st.session_state["user_mode"] = "signedout"
+                st.switch_page("pages/streamlit_user.py")
+        else:
+            with st.popover(label="👤",):
+                if page!="main":
+                    if st.button("Home", type="primary"):
+                        nav_to("http://localhost:8501/")
+                if st.button("My resume", type="primary"):
+                    st.session_state["user_mode"]="display_profile"
+                    st.switch_page("pages/streamlit_user.py")
+                if st.button("Log out", type="primary"):
+                    st.session_state["user_mode"]="signout"
+                    st.switch_page("pages/streamlit_user.py")
+                # if page=="profile":
+                #     if st.button("Delete my profile", type="primary"):
+                #         st.session_state["user_mode"] = "delete_profile"
+                #         st.switch_page("pages/streamlit_user.py")
+

@@ -11,9 +11,9 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table
+from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table
 from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, create_resume_info
-from utils.basic_utils import mk_dirs
+from utils.basic_utils import mk_dirs, binary_file_downloader_html
 from typing import Any, List
 from pathlib import Path
 import re
@@ -27,10 +27,10 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.streamlit_utils import nav_to, retrieve_user_profile_dict
 from utils.pydantic_schema import ResumeUsers
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
+from utils.streamlit_utils import nav_to, display_user_menu
 
 
 # st.set_page_config(layout="wide")
@@ -42,10 +42,9 @@ bucket_name = os.environ["BUCKET_NAME"]
 login_file = os.environ["LOGIN_FILE_PATH"]
 db_path=os.environ["LANCEDB_PATH"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
-cookie_name = os.environ["COOKIE_NAME"]
-cookie_key=os.environ["COOKIE_KEY"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
+placeholder_about_resume=st.empty()
 # store = FeatureStore("./my_feature_repo/")
 
 # st.set_page_config(initial_sidebar_state="collapsed")
@@ -73,9 +72,7 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin" 
-            if "user_profile_dict" not in st.session_state:
-                if "user_profile_dict" not in st.session_state:
-                    st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -87,7 +84,7 @@ class User():
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-        # st.session_state["redirect_uri"]="http://localhost:8501/"
+        st.session_state["profile_page"]="http://localhost:8501/streamlit_user"
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -120,6 +117,7 @@ class User():
             paths=[
                 os.path.join(st.session_state.user_save_path,),
                 os.path.join(st.session_state.user_save_path, "uploads"),
+                os.path.join(st.session_state.user_save_path, "downloads"),
                 ]
             mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
 
@@ -156,8 +154,13 @@ class User():
             """,
             unsafe_allow_html=True,
         )
+        if st.session_state.user_mode!="signedout":
+            display_user_menu(self.userId, page="profile")
         if "template_path" in st.session_state:
-            reformat_resume(st.session_state.template_path)
+            filename = str(uuid.uuid4())
+            end_path = os.path.join(st.session_state.user_save_path, "downloads", filename+".docx")
+            download_path=reformat_resume(st.session_state.template_path, end_path)
+            st.markdown(binary_file_downloader_html(download_path), unsafe_allow_html=True)
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -166,27 +169,41 @@ class User():
             self.sign_in()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
-            if "redirect_page" in st.session_state:
-                nav_to(st.session_state.redirect_page)
-            else:
-                st.session_state["user_mode"]="display_profile"
-                st.rerun()
+            st.session_state["user_mode"]="display_profile"
+            # if "redirect_page" in st.session_state:
+            nav_to(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.profile_page)
+            # else:
+            #     st.rerun()
         elif st.session_state.user_mode=="signout":
             print('signing out')
             st.session_state.cm.delete_cookie()
             st.session_state["user_mode"]="signedout"
-            if "redirect_page" in st.session_state:
-                nav_to(st.session_state.redirect_page)
-            else:
-                st.rerun()
+            # if "redirect_page" in st.session_state:
+            nav_to(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.profile_page)
+            # else:
+            #     st.rerun()
         elif st.session_state.user_mode=="display_profile":
-            if "user_profile_dict" in st.session_state:
+            if  st.session_state["user_profile_dict"]:
                 self.display_profile()
             else:
                 print("user profile does not exists yet")
                 self.about_resume()
-
+        # elif st.session_state.user_mode=="delete_profile":
+        #     self.delete_profile()            
     
+
+    @st.experimental_dialog("Are you sure?")
+    def delete_profile_popup(self):
+        st.warning("Your current profile will be lost.")
+        if st.button("I'll upload a new profile", type="primary"):
+            delete_user_from_table(lance_users_table, self.userId)
+            st.session_state["user_mode"]="display_profile"
+            st.rerun()
+        if st.button("go back"):
+            st.session_state["user_mode"]="display_profile"
+            st.rerun()
+
+
     
 
     # def sign_out(self, ):
@@ -205,6 +222,7 @@ class User():
         st.header("Welcome back")
         name, authentication_status, username = st.session_state.authenticator.login('', 'main')
         placeholder_error = st.empty()
+
         st.markdown(
             """
             <style>
@@ -285,7 +303,7 @@ class User():
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
             scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
-            redirect_uri=st.session_state["redirect_uri"] if "redirect_page" not in st.session_state else st.session_state.redirect_page,
+            redirect_uri=st.session_state.redirect_page,
             )
         if auth_code:
             flow.fetch_token(code=auth_code)
@@ -405,8 +423,9 @@ class User():
         # if submitted:
         #     st.session_state["init_user2"]=True
 
-
+    
     def about_resume(self):
+
 
         st.title("Let's get started with your resume")
         if "user_resume_path" in st.session_state:
@@ -421,8 +440,10 @@ class User():
                             on_change=self.field_check, 
                             help="This will become your default resume.")
         add_vertical_space(3)
-        st.button(label="submit", on_click=self.form_callback, args=("resume", ), disabled=st.session_state.resume_disabled)
-        st.button(label='skip', type="primary", on_click=self.display_profile)
+        if st.button(label="submit", disabled=st.session_state.resume_disabled):
+            self.resume_form_callback()
+        if st.button(label="I'll manually populate it", type="primary",):
+            self.display_profile()
 
     def about_future(self):
 
@@ -515,20 +536,19 @@ class User():
     #     add_to_lancedb_table(self.userId, data)
     #     st.session_state["init_user2"]=True
 
-    def form_callback(self, type):
+    def resume_form_callback(self, ):
         """"""
-        if type=="resume":
-            resume_dict = create_resume_info(st.session_state.user_resume_path,)
-            user_dict = {}
-            user_dict.update(resume_dict["sections"])
-            user_dict.update(resume_dict["contact"])
-            user_dict.update(resume_dict["education"])
-            user_dict.update({"resume_content":resume_dict["resume_content"]})
-            user_dict.update({"resume_path": st.session_state.user_resume_path})
-            user_dict.update({"user_id": self.userId})
-            #NOTE: the data added has to be a LIST!
-            add_to_lancedb_table(lance_users_table, [user_dict], ResumeUsers)
-            print("Successfully aded user to lancedb table")
+        resume_dict = create_resume_info(st.session_state.user_resume_path,)
+        user_dict = resume_dict["sections"]
+        user_dict.update(resume_dict["contact"])
+        user_dict.update(resume_dict["education"])
+        user_dict.update({"resume_content":resume_dict["resume_content"]})
+        user_dict.update({"resume_path": st.session_state.user_resume_path})
+        user_dict.update({"user_id": self.userId})
+        #NOTE: the data added has to be a LIST!
+        add_to_lancedb_table(lance_users_table, [user_dict], ResumeUsers)
+        print("Successfully aded user to lancedb table")
+        st.rerun()
 
 
 
@@ -698,36 +718,157 @@ class User():
 
         """Loads from user file and displays profile"""
         # profile=st.session_state["user_profile_dict"]
-        #TODO: has to dynamically retrieve it here since updates are instanteously saved to table
+        #NOTE: has to dynamically retrieve it here since updates are instanteously saved to table
         profile = retrieve_user_profile_dict(self.userId)
         self.updated_dict = {}
-        with st.expander(label="Bio"):
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            with st.expander(label="Contact"):
+                try:
+                    value = profile["name"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Name", value=value, key="profile_name",)!=value:
+                    self.updated_dict.update({"name":st.session_state.profile_name})
+                try:
+                    value = profile["email"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Email", value=value, key="profile_email", )!=value:
+                    self.updated_dict.update({"email":st.session_state.profile_email})
+                try:
+                    value = profile["phone"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Phone", value=value, key="profile_phone", )!=value:
+                    self.updated_dict.update({"phone":st.session_state.profile_phone})
+                try:
+                    value = profile["city"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("City", value=value, key="profile_city", )!=value:
+                    self.updated_dict.update({"city":st.session_state.profile_city})
+                try:
+                    value = profile["state"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("State", value=value, key="profile_state", )!=value:
+                    self.updated_dict.update({"state":st.session_state.profile_state})
+                try:
+                    value = profile["linkedin"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Linkedin", value=value, key="profile_linkedin", )!=value:
+                    self.updated_dict.update({"linkedin":st.session_state.profile_linkedin})
+                try:
+                    value = profile["website"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Personal website", value=value, key="profile_website", )!=value:
+                    self.updated_dict.update({"website":st.session_state.profile_webiste})
+        with c2:
+            with st.expander(label="Education"):
+                try:
+                    value = profile["degree"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Degree", value=value, key="profile_degree", )!=value:
+                    self.updated_dict.update({"degree":st.session_state.profile_degree})
+                try:
+                    value = profile["study"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Area of study", value=value, key="profile_study", )!=value:
+                    self.updated_dict.update({"degree":st.session_state.profile_study})
+                try:
+                    value = profile["graduation_year"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("Graduation year", value=value, key="profile_grad_year", )!=value:
+                    self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
+                try:
+                    value = profile["gpa"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_input("GPA", value=value, key="profile_gpa", )!=value:
+                    self.updated_dict.update({"gpa":st.session_state.profile_gpa})
+        
+        with st.expander(label="Summary/Objective"):
             try:
-                value = profile["name"][0]
+                value = profile["summary_objective_section"][0]
             except Exception as e:
                 print(e)
                 value = ""
-            if st.text_input("name", value=value, key="profile_name",  args=(profile, ))!=value:
-                self.updated_dict.update({"name":st.session_state.profile_name})
+            if st.text_area("S/O", value=value, key="profile_summary", label_visibility="hidden")!=value:
+                self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
+        with st.expander(label="Work experience"):
             try:
-                value = profile["email"][0]
+                value = profile["work_experience_section"][0]
             except Exception as e:
                 print(e)
                 value = ""
-            if st.text_input("email", value=value, key="profile_email",  args=(profile, ))!=value:
-                self.updated_dict.update({"email":st.session_state.profile_email})
-        _, c1 = st.columns([3, 1])
+            if st.text_area("Work experience", value=value, key="profile_work", )!=value:
+                self.updated_dict.update({"work_experience_section":st.session_state.profile_work})
+        with st.expander(label="Skills"):
+            try:
+                value = profile["skills_section"][0]
+            except Exception as e:
+                print(e)
+                value = ""
+            if st.text_area("Skills", value=value, key="profile_skills", )!=value:
+                self.updated_dict.update({"skills_section":st.session_state.profile_skills})
+        _, c1 = st.columns([5, 1])
         with c1:
             if st.button("Save changes", key="profile_save_buttonn",):
                 self.update_personal_info(self.updated_dict)
                 self.update_dict={}
-        add_vertical_space(3)
-        if st.button(":blue[Turn my profile into a resume]", key="resume_format_button"):
-            if self.updated_dict:
-                print(self.updated_dict)
-                st.info("Please save your changes before proceeding")
-            else:
-                self.resume_template_popup()
+            if st.button("Upload a new resume", type="primary"):
+                self.delete_profile_popup()
+        _, c2, _ = st.columns([1, 1, 1])
+        with c2:
+            st.markdown("""<style> .element-container:has(#button-after2) + div button {
+                box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+                background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
+                background-color:#79bbff;
+                border-radius:6px;
+                border:1px solid #84bbf3;
+                display:inline-block;
+                cursor:pointer;
+                color:#ffffff;
+                font-family:Arial;
+                font-size:15px;
+                font-weight:bold;
+                padding:6px 24px;
+                text-decoration:none;
+                text-shadow:0px 1px 0px #528ecc;
+            .element-container:has(#button-after2) + div button:hover {
+                background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
+                background-color:#378de5;
+            }
+            .element-container:has(#button-after2) + div button:active {
+                position:relative;
+                top:1px;
+            }
+                
+        }</style>""", unsafe_allow_html=True)    
+            st.markdown('<span id="button-after2"></span>', unsafe_allow_html=True)
+            if st.button("Convert my profile to a new resume ✨", key="resume_format_button"):
+                if self.updated_dict:
+                    print(self.updated_dict)
+                    st.info("Please save your changes before proceeding")
+                else:
+                    self.resume_template_popup()
 
     @st.experimental_dialog("Please pick out a template", width="large")
     def resume_template_popup(self,):

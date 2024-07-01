@@ -14,6 +14,8 @@ db_path=os.environ["LANCEDB_PATH"]
 
 db = lancedb.connect(db_path)
 
+lance_users_table = os.environ["LANCE_USERS_TABLE"]
+
 # this is the schema for table of UserInfo
 #FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
 # class BasicInfo(LanceModel):
@@ -86,8 +88,18 @@ def query_lancedb_table(query, table_name, top_k=1):
         raise e
     return results
 
-def delete_lancedb_table(table_name):
-    db.drop_table(table_name)
+def delete_user_from_table(table_name, userId):
+    table = retrieve_lancedb_table(table_name)
+    table.delete(f"user_id = '{userId}'")
 
+
+
+def retrieve_user_profile_dict(userId):
+    users_table = retrieve_lancedb_table(lance_users_table)
+    profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+    print(f"Retrieved user profile dict from lancedb: {profile_dict}")
+    if not profile_dict["user_id"]:
+        profile_dict = None
+    return profile_dict
 
 

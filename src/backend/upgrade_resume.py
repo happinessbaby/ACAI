@@ -22,9 +22,9 @@ from typing import Dict, List, Optional, Union
 # from langchain.chains import LLMChain
 # import docx
 # import uuid
-# from docxtpl import DocxTemplate	
-# from docx import Document
-# from docx.shared import Inches
+from docxtpl import DocxTemplate	
+from docx import Document
+from docx.shared import Inches
 import boto3
 import re
 from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
@@ -425,9 +425,36 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     return resume_type
 
 
-def reformat_resume(template_path):
+def reformat_resume(template_path, info_dict, end_path):
+
     """"Reformats user profile information with a resume template"""
+
+
     print("reformatting resume")
+    doc_template = DocxTemplate(template_path)
+    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    personal_context = {
+        "NAME": func("name", "YOUR NAME"),
+        "ADDRESS": func("address", "YOUR ADDRESS"),
+        "PHONE": func("phone", "YOUR PHONE"),
+        "EMAIL": func("email", "YOUR EMAIL"),
+        "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
+        "WEBSITE": func("website", "WEBSITE"),
+    }
+    education_context = {
+        "DEGREE": func("degree", "YOUR DEGREE"),
+        "STUDY": func("study", "YOUR AREA OF STUDY"),
+        "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
+    }
+    context={}
+    context.update(personal_context)
+    doc_template.render(context)
+    if STORAGE=="LOCAL":
+        local_save_path=end_path
+    doc_template.save(local_save_path) 
+    if STORAGE=="S3":
+        s3.upload_file(local_save_path, bucket_name, end_path)
+    return local_save_path
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
 

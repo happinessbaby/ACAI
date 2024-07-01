@@ -59,7 +59,7 @@ class Education(BaseModel):
         default="", description="the year of graduation from the highest degree of education"
     )
     gpa:Optional[int] = Field(
-        default=-1, description="the gpa of the highest degree of graduation"
+        default="", description="the gpa of the highest degree of graduation"
     )
 
 class Project(BaseModel):
@@ -222,7 +222,7 @@ class ResumeUsers(LanceModel):
     degree: Optional[str]
     study: Optional[str] 
     graduation_year:Optional[str]
-    gpa:Optional[int]
+    gpa:Optional[str]
     # sections: ResumeFields
     summary_objective_section: Optional[str]
     skills_section: Optional[str]

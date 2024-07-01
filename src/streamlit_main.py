@@ -47,10 +47,10 @@ from stqdm import stqdm
 from time import sleep
 import threading
 import queue
-from utils.streamlit_utils import retrieve_user_profile_dict
+from utils.lancedb_utils import retrieve_user_profile_dict
+from utils.streamlit_utils import display_user_menu
 import multiprocessing
-from utils.async_utils import asyncio_run
-from pages.streamlit_user import User
+
 
 
 # from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
@@ -105,9 +105,10 @@ class Chat():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
-            st.session_state["user_mode"]="signedin" 
-            if "user_profile_dict" not in st.session_state:
-                st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+            if "user_mode" not in st.session_state:
+                st.session_state["user_mode"]="signedin" 
+            # if "user_profile_dict" not in st.session_state:
+            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -283,25 +284,8 @@ class Chat():
                 match_resume_to_job()
 
         with st._main:
-            _, c1 = st.columns([10, 1])
-            with c1:
-                if not _self.userId:
-                    if st.button("Log in", key="profile_button", type="primary"):
-                        st.session_state["user_mode"] = "signedout"
-                        st.session_state["redirect_page"] = "http://localhost:8501/"
-                        st.switch_page("pages/streamlit_user.py")
-                else:
-                    with st.popover(label="👤",):
-                        if st.button("My profile", type="primary"):
-                            st.session_state["user_mode"]="display_profile"
-                            st.switch_page("pages/streamlit_user.py")
-                        if st.button("Log out", type="primary"):
-                            st.session_state["redirect_page"] = "http://localhost:8501/"
-                            st.session_state["user_mode"]="signout"
-                            st.switch_page("pages/streamlit_user.py")
-                            # user=User()
-                            # user.sign_out()
-                            # st.rerun()
+            st.session_state["redirect_page"] =  "http://localhost:8501/"
+            display_user_menu(_self.userId, page="main")
 
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
@@ -418,6 +402,7 @@ class Chat():
     def resume_form_popup(self, resume_required=True, job_required = False, ):
         
         """ Form popup for resume help"""
+
         add_vertical_space(2)
         if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
             st.session_state.conti_disabled=True
@@ -478,11 +463,13 @@ class Chat():
             st.write("or")
         with c2:
             add_vertical_space(5)
-            if self.userId and "user_profile_dict" in st.session_state:
-                st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
-            elif self.userId and "user_profile_dict" not in st.session_state:
-                st.session_state["redirect_page"]="http://localhost:8501/"
-                st.page_link("pages/streamlit_user.py", label="create my default resume", )       
+            if self.userId:
+                if st.session_state["user_profile_dict"]:
+                    st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
+                else:
+                    st.session_state["redirect_page"]="http://localhost:8501/"
+                    st.session_state["user_mode"] = "display_profile"
+                    st.page_link("pages/streamlit_user.py", label="create my default resume", )       
             else:
                 st.write("Login to use or create a default resume")
                 if st.button("login", type="primary"):
@@ -636,18 +623,18 @@ class Chat():
             #         except Exception:
             #             pass  
         
-    def retrieve_downloads(self):
+    # def retrieve_downloads(self):
 
-        """ Displays AI generated files in sidebar downloads tab, if available, of the current session. """
+    #     """ Displays AI generated files in sidebar downloads tab, if available, of the current session. """
         
-        # files = self.check_user_downloads(st.session_state["current_session"])
-        files = self.check_user_downloads()
-        with st.session_state.download_placeholder.container():
-            if files:
-                for file in files:
-                    st.markdown(self.binary_file_downloader_html(file), unsafe_allow_html=True)
-            else:
-                st.write("AI generated files will be shown here")
+    #     # files = self.check_user_downloads(st.session_state["current_session"])
+    #     files = self.check_user_downloads()
+    #     with st.session_state.download_placeholder.container():
+    #         if files:
+    #             for file in files:
+    #                 st.markdown(self.binary_file_downloader_html(file), unsafe_allow_html=True)
+    #         else:
+    #             st.write("AI generated files will be shown here")
 
     # def display_past_sessions(self):
 
@@ -828,68 +815,50 @@ class Chat():
         
 
 
-    def update_entities(self, content_type:str, content_topics: set[str], end_path:str) -> None:
+    # def update_entities(self, content_type:str, content_topics: set[str], end_path:str) -> None:
 
-        """ Adds entities to chat agent. 
+    #     """ Adds entities to chat agent. 
         
-        Args:
+    #     Args:
 
-            content_type: file's content categorized as one of the following ["empty", "resume", "cover letter", "job posting", "education program", "personal statement", "browser error", "learning material", "other"]
+    #         content_type: file's content categorized as one of the following ["empty", "resume", "cover letter", "job posting", "education program", "personal statement", "browser error", "learning material", "other"]
 
-            content_topics: topics of the content, if available, for learning material specifically
+    #         content_topics: topics of the content, if available, for learning material specifically
             
-            end_path: file path
+    #         end_path: file path
             
-        """
+    #     """
 
-        if content_type!="other" and content_type!="learning material":
-            delimiter=""
-            if content_type=="job posting":
-                delimiter = "@@@"
-            elif content_type=="resume":
-                delimiter = "$$$"    
-            if content_type=="job posting":
-                content = read_txt(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name,s3=st.session_state.s3_client)
-                token_count = num_tokens_from_text(content)
-                if token_count>max_token_count:
-                    shorten_content(end_path, content_type) 
-            content_type = content_type.replace(" ", "_").strip()
-            entity = f"""{content_type}_file: {end_path} /n"""+delimiter
-            self.new_chat.update_entities(entity, delimiter)
-        if content_type=="learning material" :
-            # update user material, to be used for "search_user_material" tool
-            delimiter = "###"
-            record_name = self.userId if self.userId is not None else st.session_state.sessionId
-            vs_path = user_vs_name if st.session_state.storage=="CLOUD" else os.path.join(st.session_state.save_path, st.session_state.sessionId, user_vs_name)
-            update_vectorstore(end_path=end_path, vs_path =vs_path,  index_name=user_vs_name, record_name=record_name, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-            entity = f"""user_material_path: {vs_path} /n"""+delimiter
-            self.new_chat.update_entities(entity, delimiter)
-            if content_topics:
-                delimiter = "###"
-                topics = ", ".join(content_topics)
-                entity = f"""user_material_topics: {topics} /n"""+delimiter
-                self.new_chat.update_entities(entity, delimiter)
+    #     if content_type!="other" and content_type!="learning material":
+    #         delimiter=""
+    #         if content_type=="job posting":
+    #             delimiter = "@@@"
+    #         elif content_type=="resume":
+    #             delimiter = "$$$"    
+    #         if content_type=="job posting":
+    #             content = read_txt(end_path, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name,s3=st.session_state.s3_client)
+    #             token_count = num_tokens_from_text(content)
+    #             if token_count>max_token_count:
+    #                 shorten_content(end_path, content_type) 
+    #         content_type = content_type.replace(" ", "_").strip()
+    #         entity = f"""{content_type}_file: {end_path} /n"""+delimiter
+    #         self.new_chat.update_entities(entity, delimiter)
+    #     if content_type=="learning material" :
+    #         # update user material, to be used for "search_user_material" tool
+    #         delimiter = "###"
+    #         record_name = self.userId if self.userId is not None else st.session_state.sessionId
+    #         vs_path = user_vs_name if st.session_state.storage=="CLOUD" else os.path.join(st.session_state.save_path, st.session_state.sessionId, user_vs_name)
+    #         update_vectorstore(end_path=end_path, vs_path =vs_path,  index_name=user_vs_name, record_name=record_name, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+    #         entity = f"""user_material_path: {vs_path} /n"""+delimiter
+    #         self.new_chat.update_entities(entity, delimiter)
+    #         if content_topics:
+    #             delimiter = "###"
+    #             topics = ", ".join(content_topics)
+    #             entity = f"""user_material_topics: {topics} /n"""+delimiter
+    #             self.new_chat.update_entities(entity, delimiter)
 
 
 
-    def binary_file_downloader_html(self, file: str) -> str:
-
-        """ Creates the download link for AI generated file. 
-        
-        Args: 
-        
-            file: file path
-            
-        Returns:
-
-            a link tag that includes the href to the file location   
-
-        """
-
-        data = read_file(file, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-        bin_str = base64.b64encode(data).decode() 
-        href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
-        return href
     
     # def save_current_session(self):
 
@@ -969,43 +938,43 @@ class Chat():
 
 
 
-    # @st.cache_resource()
-    def check_user_downloads(self) -> List[str]:
+    # # @st.cache_resource()
+    # def check_user_downloads(self) -> List[str]:
 
-        """ Checks AI generated files in download folder and returns a list of file paths. """
+    #     """ Checks AI generated files in download folder and returns a list of file paths. """
 
-        download_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads")
-        generated_files = []
-        if st.session_state.storage=="LOCAL":
-            try:
-                for path in Path(download_dir).glob('**/*.docx*'):
-                    file=str(path)
-                    print(f"DOWNLOAD FILE: {file}")
-                    generated_files.append(file)
-            except Exception:
-                pass
-        elif st.session_state.storage=="CLOUD":
-            try:
-                response = st.session_state.s3_client.list_objects(Bucket=st.session_state.bucket_name, Prefix=download_dir)
-                for content in response.get('Contents', []):
-                    file=content.get['Key']
-                    if Path(file).suffix==".docx":
-                        generated_files.append(file)
-            except Exception:
-                pass
-        return generated_files
+    #     download_dir = os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads")
+    #     generated_files = []
+    #     if st.session_state.storage=="LOCAL":
+    #         try:
+    #             for path in Path(download_dir).glob('**/*.docx*'):
+    #                 file=str(path)
+    #                 print(f"DOWNLOAD FILE: {file}")
+    #                 generated_files.append(file)
+    #         except Exception:
+    #             pass
+    #     elif st.session_state.storage=="CLOUD":
+    #         try:
+    #             response = st.session_state.s3_client.list_objects(Bucket=st.session_state.bucket_name, Prefix=download_dir)
+    #             for content in response.get('Contents', []):
+    #                 file=content.get['Key']
+    #                 if Path(file).suffix==".docx":
+    #                     generated_files.append(file)
+    #         except Exception:
+    #             pass
+    #     return generated_files
 
     
-class StreamHandler(BaseCallbackHandler):
-    def __init__(self, container, initial_text=""):
-        self.container = container
-        self.text = initial_text
+# class StreamHandler(BaseCallbackHandler):
+#     def __init__(self, container, initial_text=""):
+#         self.container = container
+#         self.text = initial_text
 
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        self.text += token
-        # self.container.markdown(self.text)
-        with self.container.container():
-            st.chat_message("ai").write(self.text)
+#     def on_llm_new_token(self, token: str, **kwargs) -> None:
+#         self.text += token
+#         # self.container.markdown(self.text)
+#         with self.container.container():
+#             st.chat_message("ai").write(self.text)
 
 
 

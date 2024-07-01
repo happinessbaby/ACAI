@@ -41,12 +41,27 @@ import nltk
 from nltk.tokenize import word_tokenize
 import PyPDF2
 import subprocess
+import base64
+import boto3
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
+
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
 
 def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None) -> bool:
 
@@ -360,6 +375,24 @@ def save_website_as_html(url, filename):
         print(f"An error occurred: {str(e)}")
 
 
+def binary_file_downloader_html(self, file: str) -> str:
+
+    """ Creates the download link for AI generated file. 
+    
+    Args: 
+    
+        file: file path
+        
+    Returns:
+
+        a link tag that includes the href to the file location   
+
+    """
+
+    data = read_file(file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    bin_str = base64.b64encode(data).decode() 
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
+    return href
 
 
 # def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:

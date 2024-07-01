@@ -6,6 +6,7 @@ import threading
 import multiprocessing
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import webbrowser
+from utils.streamlit_utils import nav_to
 
 
 st.set_page_config(layout="wide")
@@ -236,7 +237,7 @@ class Dashboard():
                 self.eval_t.join()
             if self.tailor_t:
                 self.tailor_t.join()
-            webbrowser.open("http://localhost:8501/")
+            nav_to("http://localhost:8501/")
 
 if __name__=="__main__":
     dashboard = Dashboard()
