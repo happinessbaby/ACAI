@@ -9,7 +9,6 @@ import webbrowser
 from utils.streamlit_utils import nav_to
 
 
-st.set_page_config(layout="wide")
 st.session_state["tabs"] = []
 html("""
     <script>

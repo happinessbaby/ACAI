@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table
 from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, create_resume_info
-from utils.basic_utils import mk_dirs, binary_file_downloader_html
+from utils.basic_utils import mk_dirs, binary_file_downloader_html, convert_docx_to_img
 from typing import Any, List
 from pathlib import Path
 import re
@@ -30,10 +30,10 @@ import webbrowser
 from utils.pydantic_schema import ResumeUsers
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
-from utils.streamlit_utils import nav_to, display_user_menu
+from utils.streamlit_utils import nav_to, user_menu
+from css.streamlit_css import general_button, primary_button
 
 
-# st.set_page_config(layout="wide")
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -47,7 +47,6 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder_about_resume=st.empty()
 # store = FeatureStore("./my_feature_repo/")
 
-# st.set_page_config(initial_sidebar_state="collapsed")
 
 # st.markdown(
 #     """
@@ -129,38 +128,9 @@ class User():
     def _init_display(self):
 
         """ Initalizes user page according to user's sign in status"""
-        st.markdown(
-            """
-            <style>
-            button[kind="primary"] {
-                background: none!important;
-                border: none;
-                padding: 0!important;
-                color: black !important;
-                text-decoration: none;
-                cursor: pointer;
-                border: none !important;
-            }
-            button[kind="primary"]:hover {
-                text-decoration: none;
-                color: blue !important;
-            }
-            button[kind="primary"]:focus {
-                outline: none !important;
-                box-shadow: none !important;
-                color: blue !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown(primary_button, unsafe_allow_html=True )
         if st.session_state.user_mode!="signedout":
-            display_user_menu(self.userId, page="profile")
-        if "template_path" in st.session_state:
-            filename = str(uuid.uuid4())
-            end_path = os.path.join(st.session_state.user_save_path, "downloads", filename+".docx")
-            download_path=reformat_resume(st.session_state.template_path, end_path)
-            st.markdown(binary_file_downloader_html(download_path), unsafe_allow_html=True)
+            user_menu(self.userId, page="profile")
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -188,20 +158,26 @@ class User():
             else:
                 print("user profile does not exists yet")
                 self.about_resume()
-        # elif st.session_state.user_mode=="delete_profile":
-        #     self.delete_profile()            
+        elif st.session_state.user_mode == "reformat_resume":
+            self.display_resume_templates()
+          
     
 
-    @st.experimental_dialog("Are you sure?")
+    @st.experimental_dialog(" ")
     def delete_profile_popup(self):
-        st.warning("Your current profile will be lost.")
-        if st.button("I'll upload a new profile", type="primary"):
-            delete_user_from_table(lance_users_table, self.userId)
-            st.session_state["user_mode"]="display_profile"
-            st.rerun()
-        if st.button("go back"):
-            st.session_state["user_mode"]="display_profile"
-            st.rerun()
+        add_vertical_space(2)
+        st.warning("Your current profile will be lost. Are you sure?")
+        add_vertical_space(2)
+        c1, _, c2 = st.columns([1, 1, 1])
+        with c2:
+            if st.button("yes, I'll upload a new profile", type="primary"):
+                delete_user_from_table(lance_users_table, self.userId)
+                st.session_state["user_mode"]="display_profile"
+                st.rerun()
+        with c1:
+            if st.button("go back"):
+                st.session_state["user_mode"]="display_profile"
+                st.rerun()
 
 
     
@@ -218,82 +194,83 @@ class User():
 
     def sign_in(self, ):
 
+        _, c1, _ = st.columns([1, 1, 1])
+        with c1:
+            st.header("Welcome back")
+            name, authentication_status, username = st.session_state.authenticator.login('', 'main')
+            placeholder_error = st.empty()
 
-        st.header("Welcome back")
-        name, authentication_status, username = st.session_state.authenticator.login('', 'main')
-        placeholder_error = st.empty()
-
-        st.markdown(
-            """
-            <style>
-            button[kind="primary"] {
-                background: none!important;
-                border: none;
-                padding: 0!important;
-                color: black !important;
-                text-decoration: none;
-                cursor: pointer;
-                border: none !important;
-            }
-            button[kind="primary"]:hover {
-                text-decoration: none;
-                color: blue !important;
-            }
-            button[kind="primary"]:focus {
-                outline: none !important;
-                box-shadow: none !important;
-                color: blue !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
-        col1, col2, col3 = st.columns([5, 1, 1])
-        with col2:
-            # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
-            sign_up = st.button(label="sign up", key="signup",  type="primary")
-            if sign_up:
-                st.session_state["user_mode"]="signup"
-                st.rerun()
-        with col3:
-            forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
-        st.divider()
-        st.markdown("""
-        <style>.element-container:has(#button-after) + div button {
-                cursor: pointer;
-                transition: background-color .3s, box-shadow .3s;
+            st.markdown(
+                """
+                <style>
+                button[kind="primary"] {
+                    background: none!important;
+                    border: none;
+                    padding: 0!important;
+                    color: black !important;
+                    text-decoration: none;
+                    cursor: pointer;
+                    border: none !important;
+                }
+                button[kind="primary"]:hover {
+                    text-decoration: none;
+                    color: blue !important;
+                }
+                button[kind="primary"]:focus {
+                    outline: none !important;
+                    box-shadow: none !important;
+                    color: blue !important;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+            col1, col2, col3 = st.columns([5, 1, 1])
+            with col2:
+                # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
+                sign_up = st.button(label="sign up", key="signup",  type="primary")
+                if sign_up:
+                    st.session_state["user_mode"]="signup"
+                    st.rerun()
+            with col3:
+                forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
+            st.divider()
+            st.markdown("""
+            <style>.element-container:has(#button-after) + div button {
+                    cursor: pointer;
+                    transition: background-color .3s, box-shadow .3s;
+                        
+                    padding: 12px 16px 12px 42px;
+                    border: none;
+                    border-radius: 3px;
+                    box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
                     
-                padding: 12px 16px 12px 42px;
-                border: none;
-                border-radius: 3px;
-                box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
-                
-                color: #757575;
-                font-size: 14px;
-                font-weight: 500;
-                font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
-                
-                background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=);
-                background-color: white;
-                background-repeat: no-repeat;
-                background-position: 12px 11px;
-                }
-                .element-container:has(#button-after) + div button:hover { 
-                       box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
-                }
-            </style>""", unsafe_allow_html=True)
-        self.google_signin()
-        print(name, authentication_status, username)
-        if authentication_status:
-            email = st.session_state.authenticator.credentials["usernames"][username]["email"]
-            print("setting cookie")
-            st.session_state.cm.set_cookie(name, email, )
-            st.session_state["user_mode"]="signedin"
-            time.sleep(5)
-            st.rerun()
-            # webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_url)
-        elif authentication_status == False:
-            placeholder_error.error('Username/password is incorrect')
+                    color: #757575;
+                    font-size: 14px;
+                    font-weight: 500;
+                    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
+                    
+                    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=);
+                    background-color: white;
+                    background-repeat: no-repeat;
+                    background-position: 12px 11px;
+                    }
+                    .element-container:has(#button-after) + div button:hover { 
+                        box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
+                    }
+                </style>""", unsafe_allow_html=True)
+            self.google_signin()
+            print(name, authentication_status, username)
+            if authentication_status:
+                email = st.session_state.authenticator.credentials["usernames"][username]["email"]
+                print("setting cookie")
+                st.session_state.cm.set_cookie(name, email, )
+                st.session_state["user_mode"]="signedin"
+                time.sleep(5)
+                st.rerun()
+                # webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_url)
+            elif authentication_status == False:
+                placeholder_error.error('Username/password is incorrect')
 
 
     def google_signin(self,):
@@ -440,10 +417,14 @@ class User():
                             on_change=self.field_check, 
                             help="This will become your default resume.")
         add_vertical_space(3)
-        if st.button(label="submit", disabled=st.session_state.resume_disabled):
-            self.resume_form_callback()
-        if st.button(label="I'll manually populate it", type="primary",):
-            self.display_profile()
+        _, c1 = st.columns([5, 1])
+        with c1:
+            # st.markdown(general_button, unsafe_allow_html=True)
+            # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+            if st.button(label="Submit", disabled=st.session_state.resume_disabled):
+                self.resume_form_callback()
+            if st.button(label="I'll do it later", type="primary",):
+                self.display_profile()
 
     def about_future(self):
 
@@ -717,178 +698,193 @@ class User():
     def display_profile(self,):
 
         """Loads from user file and displays profile"""
-        # profile=st.session_state["user_profile_dict"]
+        # st.subheader("Your Profile")
         #NOTE: has to dynamically retrieve it here since updates are instanteously saved to table
-        profile = retrieve_user_profile_dict(self.userId)
+        # profile = retrieve_user_profile_dict(self.userId)
         self.updated_dict = {}
-        c1, c2 = st.columns([1, 1])
+        c1, c2, _ = st.columns([1, 2, 1])
         with c1:
-            with st.expander(label="Contact"):
-                try:
-                    value = profile["name"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Name", value=value, key="profile_name",)!=value:
-                    self.updated_dict.update({"name":st.session_state.profile_name})
-                try:
-                    value = profile["email"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Email", value=value, key="profile_email", )!=value:
-                    self.updated_dict.update({"email":st.session_state.profile_email})
-                try:
-                    value = profile["phone"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Phone", value=value, key="profile_phone", )!=value:
-                    self.updated_dict.update({"phone":st.session_state.profile_phone})
-                try:
-                    value = profile["city"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("City", value=value, key="profile_city", )!=value:
-                    self.updated_dict.update({"city":st.session_state.profile_city})
-                try:
-                    value = profile["state"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("State", value=value, key="profile_state", )!=value:
-                    self.updated_dict.update({"state":st.session_state.profile_state})
-                try:
-                    value = profile["linkedin"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Linkedin", value=value, key="profile_linkedin", )!=value:
-                    self.updated_dict.update({"linkedin":st.session_state.profile_linkedin})
-                try:
-                    value = profile["website"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Personal website", value=value, key="profile_website", )!=value:
-                    self.updated_dict.update({"website":st.session_state.profile_webiste})
-        with c2:
-            with st.expander(label="Education"):
-                try:
-                    value = profile["degree"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Degree", value=value, key="profile_degree", )!=value:
-                    self.updated_dict.update({"degree":st.session_state.profile_degree})
-                try:
-                    value = profile["study"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Area of study", value=value, key="profile_study", )!=value:
-                    self.updated_dict.update({"degree":st.session_state.profile_study})
-                try:
-                    value = profile["graduation_year"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("Graduation year", value=value, key="profile_grad_year", )!=value:
-                    self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
-                try:
-                    value = profile["gpa"][0]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_input("GPA", value=value, key="profile_gpa", )!=value:
-                    self.updated_dict.update({"gpa":st.session_state.profile_gpa})
-        
-        with st.expander(label="Summary/Objective"):
-            try:
-                value = profile["summary_objective_section"][0]
-            except Exception as e:
-                print(e)
-                value = ""
-            if st.text_area("S/O", value=value, key="profile_summary", label_visibility="hidden")!=value:
-                self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
-        with st.expander(label="Work experience"):
-            try:
-                value = profile["work_experience_section"][0]
-            except Exception as e:
-                print(e)
-                value = ""
-            if st.text_area("Work experience", value=value, key="profile_work", )!=value:
-                self.updated_dict.update({"work_experience_section":st.session_state.profile_work})
-        with st.expander(label="Skills"):
-            try:
-                value = profile["skills_section"][0]
-            except Exception as e:
-                print(e)
-                value = ""
-            if st.text_area("Skills", value=value, key="profile_skills", )!=value:
-                self.updated_dict.update({"skills_section":st.session_state.profile_skills})
-        _, c1 = st.columns([5, 1])
-        with c1:
-            if st.button("Save changes", key="profile_save_buttonn",):
-                self.update_personal_info(self.updated_dict)
-                self.update_dict={}
-            if st.button("Upload a new resume", type="primary"):
-                self.delete_profile_popup()
-        _, c2, _ = st.columns([1, 1, 1])
-        with c2:
-            st.markdown("""<style> .element-container:has(#button-after2) + div button {
-                box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-                background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
-                background-color:#79bbff;
-                border-radius:6px;
-                border:1px solid #84bbf3;
-                display:inline-block;
-                cursor:pointer;
-                color:#ffffff;
-                font-family:Arial;
-                font-size:15px;
-                font-weight:bold;
-                padding:6px 24px;
-                text-decoration:none;
-                text-shadow:0px 1px 0px #528ecc;
-            .element-container:has(#button-after2) + div button:hover {
-                background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
-                background-color:#378de5;
-            }
-            .element-container:has(#button-after2) + div button:active {
-                position:relative;
-                top:1px;
-            }
-                
-        }</style>""", unsafe_allow_html=True)    
-            st.markdown('<span id="button-after2"></span>', unsafe_allow_html=True)
-            if st.button("Convert my profile to a new resume ✨", key="resume_format_button"):
+            profile=st.session_state["user_profile_dict"]
+            st.write("Your profile is your resume! Customize it and convert it to a downloadable resume. Try it now!")
+            st.markdown(general_button, unsafe_allow_html=True)    
+            st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+            reformat= st.button("Convert to a new resume ✨", key="resume_format_button", )
+            if reformat:
                 if self.updated_dict:
-                    print(self.updated_dict)
                     st.info("Please save your changes before proceeding")
                 else:
-                    self.resume_template_popup()
+                    st.session_state["user_mode"]="reformat_resume"
+                    st.rerun()
+        with c2:
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                with st.expander(label="Contact", ):
+                    try:
+                        value = profile["name"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Name", value=value, key="profile_name",)!=value:
+                        self.updated_dict.update({"name":st.session_state.profile_name})
+                    try:
+                        value = profile["email"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Email", value=value, key="profile_email", )!=value:
+                        self.updated_dict.update({"email":st.session_state.profile_email})
+                    try:
+                        value = profile["phone"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Phone", value=value, key="profile_phone", )!=value:
+                        self.updated_dict.update({"phone":st.session_state.profile_phone})
+                    try:
+                        value = profile["city"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("City", value=value, key="profile_city", )!=value:
+                        self.updated_dict.update({"city":st.session_state.profile_city})
+                    try:
+                        value = profile["state"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("State", value=value, key="profile_state", )!=value:
+                        self.updated_dict.update({"state":st.session_state.profile_state})
+                    try:
+                        value = profile["linkedin"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Linkedin", value=value, key="profile_linkedin", )!=value:
+                        self.updated_dict.update({"linkedin":st.session_state.profile_linkedin})
+                    try:
+                        value = profile["website"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Personal website", value=value, key="profile_website", )!=value:
+                        self.updated_dict.update({"website":st.session_state.profile_webiste})
+            with c2:
+                with st.expander(label="Education",):
+                    try:
+                        value = profile["degree"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Degree", value=value, key="profile_degree", )!=value:
+                        self.updated_dict.update({"degree":st.session_state.profile_degree})
+                    try:
+                        value = profile["study"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Area of study", value=value, key="profile_study", )!=value:
+                        self.updated_dict.update({"degree":st.session_state.profile_study})
+                    try:
+                        value = profile["graduation_year"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("Graduation year", value=value, key="profile_grad_year", )!=value:
+                        self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
+                    try:
+                        value = profile["gpa"][0]
+                    except Exception as e:
+                        print(e)
+                        value = ""
+                    if st.text_input("GPA", value=value, key="profile_gpa", )!=value:
+                        self.updated_dict.update({"gpa":st.session_state.profile_gpa})
+            
+            with st.expander(label="Summary/Objective",):
+                try:
+                    value = profile["summary_objective_section"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_area("S/O", value=value, key="profile_summary", label_visibility="hidden")!=value:
+                    self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
+            with st.expander(label="Work experience",):
+                try:
+                    value = profile["work_experience_section"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_area("Work experience", value=value, key="profile_work", )!=value:
+                    self.updated_dict.update({"work_experience_section":st.session_state.profile_work})
+            with st.expander(label="Skills",):
+                try:
+                    value = profile["skills_section"][0]
+                except Exception as e:
+                    print(e)
+                    value = ""
+                if st.text_area("Skills", value=value, key="profile_skills", )!=value:
+                    self.updated_dict.update({"skills_section":st.session_state.profile_skills})
+            st.divider()
+            c1, c2, c3 = st.columns([1, 1, 1])
+            with c3:
+                st.markdown(general_button, unsafe_allow_html=True)
+                st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+                if st.button("Save changes", key="profile_save_buttonn", type="primary"):
+                    self.update_personal_info(self.updated_dict)
+                    self.update_dict={}
+            # with c1:
+                # st.markdown(general_button, unsafe_allow_html=True)
+                # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+                if st.button("Upload a new resume", ):
+                    self.delete_profile_popup()
+            
+    def display_resume_templates(self, ):
 
-    @st.experimental_dialog("Please pick out a template", width="large")
-    def resume_template_popup(self,):
+        paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
+        formatted_docx_paths = []
+        formatted_pdf_paths = []
+        image_paths = []
+        for path in paths:
+            filename = str(uuid.uuid4())
+            docx_path = os.path.join(st.session_state.user_save_path, "downloads", filename+".docx")
+            reformat_resume(path, st.session_state["user_profile_dict"], docx_path)
+            formatted_docx_paths.append(docx_path)
+            output_dir = os.path.join(st.session_state.user_save_path, "downloads")
+            img_path, pdf_path = convert_docx_to_img(docx_path, output_dir)
+            formatted_pdf_paths.append(pdf_path)
+            image_paths.append(img_path)
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            selected_idx=image_select("Select a template", images=image_paths, return_value="index")
+            # if st.button("Download as docx"):
+            st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
+            st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
+        with c2:
+            st.image(image_paths[selected_idx])
+
+
         
+            
 
-        # if type=="cover letter":
-        #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
-        #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
-        #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
-        thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png", "./resume_templates/chronological/chronological0_thmb.png", "./resume_templates/chronological/chronological1_thmb.png"]
-        images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png", "./backend/resume_templates/chronological/chronological0.png", "./backend/resume_templates/chronological/chronological1.png"]
-        paths = ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-        path=""
-        selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
-        image_placeholder=st.empty()
-        image_placeholder.image(images[selected_idx])
-        path = paths[selected_idx]
-        if st.button("Next", ):
-            st.session_state["template_path"] = path
-            st.rerun()
+    
+    
+    # @st.experimental_dialog("Please pick out a template", width="large")
+    # def resume_template_popup(self,):
+    
+    #     # if type=="cover letter":
+    #     #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
+    #     #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
+    #     #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
+    #     thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png", "./resume_templates/chronological/chronological0_thmb.png", "./resume_templates/chronological/chronological1_thmb.png"]
+    #     images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png", "./backend/resume_templates/chronological/chronological0.png", "./backend/resume_templates/chronological/chronological1.png"]
+    #     paths = ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
+    #     path=""
+    #     selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
+    #     image_placeholder=st.empty()
+    #     image_placeholder.image(images[selected_idx])
+    #     path = paths[selected_idx]
+    #     if st.button("Next", ):
+    #         st.session_state["template_path"] = path
+    #         st.rerun()
             
   
     def update_personal_info(self, updated_dict):

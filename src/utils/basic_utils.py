@@ -43,6 +43,7 @@ import PyPDF2
 import subprocess
 import base64
 import boto3
+import aspose.words as aw
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -375,7 +376,7 @@ def save_website_as_html(url, filename):
         print(f"An error occurred: {str(e)}")
 
 
-def binary_file_downloader_html(self, file: str) -> str:
+def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
     """ Creates the download link for AI generated file. 
     
@@ -391,18 +392,27 @@ def binary_file_downloader_html(self, file: str) -> str:
 
     data = read_file(file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     bin_str = base64.b64encode(data).decode() 
-    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">Download Link</a>'
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">{text}</a>'
     return href
 
+def convert_docx_to_img(file_path, output_dir, image_format='png'):
 
-# def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
-#     context = {key: None for key in field_name}
-#     for field in field_name:
-#         if field_content[field] != -1:
-#             context[field] = field_content[field]
-#     doc.render(context)
-#     doc.save(res_path)
-#     print(f"Succesfully written {field_name} to {res_path}.")
+      # Convert DOCX to PDF using LibreOffice
+    pdf_path = convert_to_pdf(file_path)
+    # Convert PDF to Image using pdftoppm
+    image_output_path = os.path.join(output_dir, 'output_image')
+    subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
+    # Return path to the image
+    return f"{image_output_path}-1.{image_format}", pdf_path
+
+def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
+    context = {key: None for key in field_name}
+    for field in field_name:
+        if field_content[field] != -1:
+            context[field] = field_content[field]
+    doc.render(context)
+    doc.save(res_path)
+    print(f"Succesfully written {field_name} to {res_path}.")
 
 # source code: https://github.com/trancethehuman/entities-extraction-web-scraper/blob/main/scrape.py
 async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
@@ -578,10 +588,10 @@ if __name__=="__main__":
     #    "https://jobs.lever.co/missiongraduates/596a25c8-5998-469b-9cb8-53b2afd1ceab",
     #     save_path =f"./my_material/data_analyst3.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
-    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist_yp.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist.txt")
+    # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist_yp.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
     # count_pages("./my_material/resume2023v2.pdf")
-
+    convert_docx_to_img("./backend/resume_templates/functional/functional0.docx")
 
 
 

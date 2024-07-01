@@ -48,12 +48,11 @@ from time import sleep
 import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict
-from utils.streamlit_utils import display_user_menu
+from utils.streamlit_utils import user_menu
 import multiprocessing
 
 
-
-# from todo_tmp.generate_cover_letter import generate_preformatted_cover_letter, generate_basic_cover_letter
+st.set_page_config(layout="wide")
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your
@@ -285,7 +284,7 @@ class Chat():
 
         with st._main:
             st.session_state["redirect_page"] =  "http://localhost:8501/"
-            display_user_menu(_self.userId, page="main")
+            user_menu(_self.userId, page="main")
 
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)

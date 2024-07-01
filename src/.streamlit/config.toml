@@ -6,9 +6,9 @@ enableCORS = false
 showSidebarNavigation = false
 
 [theme]
-primaryColor="#c88b3e"
-backgroundColor="#FFFFFF"
+primaryColor="#768d87"
+backgroundColor="#ffffff"
 secondaryBackgroundColor="#e6f7f8"
-textColor="#0d0e0es"
+textColor="#2d2e29"
 font="serif"
 base="light"

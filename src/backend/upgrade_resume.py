@@ -435,7 +435,8 @@ def reformat_resume(template_path, info_dict, end_path):
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
-        "ADDRESS": func("address", "YOUR ADDRESS"),
+        "CITY": func("city", "YOUR CITY"),
+        "STATE": func("state", "YOUR STATE"),
         "PHONE": func("phone", "YOUR PHONE"),
         "EMAIL": func("email", "YOUR EMAIL"),
         "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
