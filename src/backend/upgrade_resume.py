@@ -86,7 +86,7 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
     if job_posting_dict:
         pursuit_jobs=job_posting_dict["job"]
     else:
-        pursuit_jobs=", ".join(resume_dict["pursuit_jobs"])
+        pursuit_jobs=resume_dict["pursuit_jobs"]
     # Evaluate resume length
     word_count = count_length(resume_file)
     st.session_state.eval_dict.update({"word_count": word_count})

@@ -392,7 +392,7 @@ def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
     data = read_file(file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     bin_str = base64.b64encode(data).decode() 
-    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}">{text}</a>'
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}" class="general-button">{text}</a>'
     return href
 
 def convert_docx_to_img(file_path, output_dir, image_format='png'):

@@ -3,23 +3,28 @@ from typing import Any, List, Union, Dict, Optional
 import lancedb
 from lancedb.pydantic import LanceModel, Vector
 from utils.lancedb_utils import func
+import pyarrow as pa
 
 class Job(BaseModel):
-    job_title: Optional[str] = Field(
-        default="", description="the job position"
-        )
+    #NOTE: FIELDS ARE IN ALPHABETIC ORDER
     company: Optional[str] = Field(
         default="", description = "the company of the job position"
     )
-    start_date: Optional[str] = Field(
-      default=-1, description = "the start date of the job position if available"
+    description: Optional[str] = Field(
+      default="", description = """description of the responsibilities and roles of the job experience, do not leave out any details"""
       )
     end_date: Optional[str] = Field(
-      default=-1, description = "the end date of the job position if available"
+      default="", description = "the end date of the job position if available"
       )
-    responsibilities: Optional[List[str]] = Field(
-      default=[], description = """responsibilities or roles of the job position, do not leave out any content details"""
+    job_title: Optional[str] = Field(
+        default="", description="the job position"
+        )
+    start_date: Optional[str] = Field(
+      default="", description = "the start date of the job position if available"
       )
+    
+
+
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
@@ -58,51 +63,51 @@ class Education(BaseModel):
     graduation_year:Optional[str] = Field(
         default="", description="the year of graduation from the highest degree of education"
     )
-    gpa:Optional[int] = Field(
+    gpa:Optional[str] = Field(
         default="", description="the gpa of the highest degree of graduation"
     )
 
 class Project(BaseModel):
+    description: Optional[str] = Field(
+        default="", description = "accomplishements or details about the project, this should not be in the work experience section"
+    )
     title: Optional[str] = Field(
         default="", description="the name of the project or professional accomplishment, this should not be in the work experience section"
-    )
-    description: Optional[List[str]] = Field(
-        default=[], description = "list of accomplishements or details about the project, this should not be in the work experience section"
     )
 class Projects(BaseModel):
     projects: List[Project]
 
 class Certification(BaseModel):
-    title: Optional[str] = Field(
-        default="", description="name of the certification"
+    description: Optional[str] = Field(
+        default="", descripton = "details about the certificate"
     )
     issue_date: Optional[str] = Field(
         default="", description="the issuing date of the certification"
     )
-    description: Optional[List[str]] = Field(
-        default=[], descripton = "list of details about the certificate"
+    title: Optional[str] = Field(
+        default="", description="name of the certification"
     )
 
 
 class Skill(BaseModel):
-    skill:Optional[str] = Field(
-        default="", description="a skill listed "
-    )
     example:Optional[str] = Field(
         default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
     )
-    type: Optional[bool] = Field(
-        default=False, description="categorize the skill, if hard skill, output True, else if soft skill, output False "
+    skill:Optional[str] = Field(
+        default="", description="a skill listed "
+    )
+    type: Optional[str] = Field(
+        default="", description="categorize the skill into 'hard skill' or 'soft skill' "
     )
 class Skills(BaseModel):
     skills : List[Skill]
 
 class ResumeFieldDetail(BaseModel):
-    contact: Optional[Contact]
-    work_experience:Optional[List[Job]]
-    education: Optional[Education]
-    projects: Optional[List[Project]]
-    certifications: Optional[List[Certification]]
+    contact: Contact
+    work_experience:List[Job]
+    education: Education
+    projects: List[Project]
+    certifications: List[Certification]
 
 class ResumeFields(BaseModel):
     # contact: Optional[Contact]
@@ -110,8 +115,9 @@ class ResumeFields(BaseModel):
     # education: Optional[Education]
     # projects: Optional[List[Project]]
     # certifications: Optional[List[Certification]]
-    pursuit_jobs: Optional[List[str]] = Field(
-        default= [], description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume"""
+    pursuit_jobs: Optional[str] = Field(
+        default= "", description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume. 
+        Separate each be a comma."""
     )
     summary_objective_section: Optional[str] = Field(
         default = "", description="the summary of objective section of the resume"
@@ -206,12 +212,13 @@ class Replacements(BaseModel):
 
 
 
-class ResumeUsers(LanceModel):
-    resume_content: str = func.SourceField() 
-    vector: Vector(func.ndims()) = func.VectorField(default=None)
-    user_id: str
-    resume_path: str
-    pursuit_jobs: Optional[List[str]]
+class ResumeUsers(BaseModel):
+    # resume_content: str = func.SourceField() 
+    # vector: Vector(func.ndims()) = func.VectorField(default=None)
+    user_id: str = Field(..., description="ID of user")
+    resume_path: str = Field(..., description="path to the resume")
+    resume_content: str
+    pursuit_jobs: Optional[str]
     name: Optional[str] 
     email: Optional[str]
     phone: Optional[str]
@@ -230,8 +237,42 @@ class ResumeUsers(LanceModel):
     accomplishments_section: Optional[str]
     awards_honors_section: Optional[str] 
     projects_section: Optional[str]
-    # work_experience: Jobs
+    work_experience: List[Job] = Field(..., description="List of jobs")
     # education: Education
-    # projects: Projects
-    # certifications: Certification
-    # skills: Skills
+    projects: List[Project] = Field(..., description="List of projects")
+    certifications: List[Certification] = Field(..., description="List of certifications")
+    skills: List[Skill] = Field(..., description="List of skills")
+
+
+
+def convert_pydantic_schema_to_arrow(schema: Any) -> pa.schema:
+    fields = []
+    for field_name, model_field in schema.__fields__.items():
+        if field_name=="vector":
+            fields.append(pa.field(field_name, pa.list_(pa.float32())))
+        if hasattr(model_field.type_, "__fields__"):
+            # Assuming list of nested Pydantic models
+            nested_model = model_field.type_
+            print("list field name:", field_name)
+            nested_fields = [pa.field(name, pa.string()) for name in nested_model.__fields__.keys()]
+            # nested_fields = []
+            # for name, field in nested_model.__fields__.items():
+            #     if field.outer_type_ == list:
+            #         # Handle nested lists if needed
+            #         nested_fields.append(pa.field(name, pa.list_(pa.string())))
+            #     else:
+            #           # Determine the Arrow data type based on Pydantic field type
+            #         if issubclass(field.type_, str) or issubclass(field.type_, Optional):
+            #             arrow_type = pa.string()
+            #         elif issubclass(field.type_, int):
+            #             arrow_type = pa.int64()
+            #         else:
+            #             arrow_type = pa.string()  # Default to string if unsure
+            #         nested_fields.append(pa.field(name, arrow_type))
+            # Ensure fields are in the expected order for Arrow struct
+            nested_fields = sorted(nested_fields, key=lambda f: f.name)
+            fields.append(pa.field(field_name, pa.list_(pa.struct(nested_fields))))
+        else:
+            fields.append(pa.field(field_name, pa.string()))
+
+    return pa.schema(fields)

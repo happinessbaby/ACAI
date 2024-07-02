@@ -1008,15 +1008,14 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
         resume_info_dict[resume_path].update({"resume_content":resume_content})
         field_content =  create_pydantic_parser(resume_content, ResumeFields)
         field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
-        # resume_info_dict[resume_path]["resume fields"].update(field_content)
-        resume_info_dict[resume_path].update({"sections":field_content})
+        resume_info_dict[resume_path].update(field_content)
         resume_info_dict[resume_path].update(field_details)
-        if field_details["work_experience"]:
-            jobs_list = field_details["work_experience"]
-            for i in range(len(jobs_list)):
-                years_experience = calculate_work_experience_years(jobs_list[i]["start_date"], jobs_list[i]["end_date"])
-                jobs_list[i].update({"years_of_experience": years_experience})
-            resume_info_dict[resume_path].update({"work_experience": jobs_list})
+        work_experience = field_details["work_experience"]
+        # if work_experience:
+        #     for i in range(len(work_experience)):
+        #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
+        #         work_experience[i].update({"years_of_experience": years_experience})
+        #     resume_info_dict[resume_path].update({"work_experience": work_experience})
         skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update(skills)
 

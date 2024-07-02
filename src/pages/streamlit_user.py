@@ -27,7 +27,7 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.pydantic_schema import ResumeUsers
+from utils.pydantic_schema import ResumeUsers, convert_pydantic_schema_to_arrow
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
 from utils.streamlit_utils import nav_to, user_menu
@@ -70,8 +70,11 @@ class User():
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
             if "user_mode" not in st.session_state:
-                st.session_state["user_mode"]="signedin" 
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+                st.session_state["user_mode"]="signedin"
+            try: 
+                st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+            except Exception:
+                st.session_state["user_profile_dict"] = None
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -403,28 +406,29 @@ class User():
     
     def about_resume(self):
 
-
-        st.title("Let's get started with your resume")
-        if "user_resume_path" in st.session_state:
-            st.session_state.resume_disabled = False
-        else:
-            st.session_state.resume_disabled = True
-        st.markdown("#")
-        # c1, _, c2 = st.columns([5, 1, 3])
-        resume = st.file_uploader(label="Upload your resume",
-                        key="user_resume",
-                            accept_multiple_files=False, 
-                            on_change=self.field_check, 
-                            help="This will become your default resume.")
-        add_vertical_space(3)
-        _, c1 = st.columns([5, 1])
-        with c1:
-            # st.markdown(general_button, unsafe_allow_html=True)
-            # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-            if st.button(label="Submit", disabled=st.session_state.resume_disabled):
-                self.resume_form_callback()
-            if st.button(label="I'll do it later", type="primary",):
-                self.display_profile()
+        _, c, _ = st.columns([1, 1, 1])
+        with c:
+            st.title("Let's get started with your resume")
+            if "user_resume_path" in st.session_state:
+                st.session_state.resume_disabled = False
+            else:
+                st.session_state.resume_disabled = True
+            st.markdown("#")
+            # c1, _, c2 = st.columns([5, 1, 3])
+            resume = st.file_uploader(label="Upload your resume",
+                            key="user_resume",
+                                accept_multiple_files=False, 
+                                on_change=self.field_check, 
+                                help="This will become your default resume.")
+            add_vertical_space(3)
+            _, c1 = st.columns([5, 1])
+            with c1:
+                # st.markdown(general_button, unsafe_allow_html=True)
+                # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+                if st.button(label="Submit", disabled=st.session_state.resume_disabled):
+                    self.resume_form_callback()
+                if st.button(label="I'll do it later", type="primary",):
+                    self.display_profile()
 
     def about_future(self):
 
@@ -520,14 +524,25 @@ class User():
     def resume_form_callback(self, ):
         """"""
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
-        user_dict = resume_dict["sections"]
-        user_dict.update(resume_dict["contact"])
-        user_dict.update(resume_dict["education"])
-        user_dict.update({"resume_content":resume_dict["resume_content"]})
-        user_dict.update({"resume_path": st.session_state.user_resume_path})
-        user_dict.update({"user_id": self.userId})
+        #NOTE: lancedb does not support updating nested fields, so the following unnest education and contact for easy update
+        education = resume_dict["education"] 
+        contact = resume_dict["contact"]
+        del resume_dict["education"]
+        del resume_dict["contact"]
+        resume_dict.update(education)
+        resume_dict.update(contact)
+        # user_dict = resume_dict["sections"]
+        # user_dict.update(resume_dict["contact"])
+        # user_dict.update(resume_dict["education"])
+        # user_dict.update({"resume_content":resume_dict["resume_content"]})
+        # user_dict.update({"resume_path": st.session_state.user_resume_path})
+        # user_dict.update({"user_id": self.userId})
+        resume_dict.update({"resume_path":st.session_state.user_resume_path})
+        resume_dict.update({"user_id": self.userId})
+        
         #NOTE: the data added has to be a LIST!
-        add_to_lancedb_table(lance_users_table, [user_dict], ResumeUsers)
+        schema = convert_pydantic_schema_to_arrow(ResumeUsers)
+        add_to_lancedb_table(lance_users_table, [resume_dict], schema)
         print("Successfully aded user to lancedb table")
         st.rerun()
 
@@ -693,6 +708,82 @@ class User():
 
 
 
+    @st.experimental_fragment()
+    def update_skills(self):
+
+        def skills_callback(idx, skill):
+            try:
+                new_skill = st.session_state.add_skill
+                if new_skill:
+                    self.skills_set.add(new_skill)
+                    st.session_state.add_skill=''
+            except Exception:
+                    pass
+            try:
+                name = f"remove_skill_{idx}"
+                remove_skill = st.session_state[name]
+                if remove_skill:
+                    print('remove skill', skill)
+                    self.skills_set.remove(skill)
+            except Exception:
+                pass
+
+        c1, c2=st.columns([1, 1])
+        with c1:
+            for idx, skill in enumerate(self.skills_set):
+                x = st.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+        with c2:
+            st.text_input("Add a skill not from the suggestion", key="add_skill", on_change=skills_callback, args=("", "", ))
+
+
+    def display_work_experience(self, job_title, company, start_date, end_date, description, idx):
+
+        def experience_callback():
+            try:
+                title = st.session_state[f"experience_title_{idx}"]
+                if title:
+                    self.experience_list[idx]["job_title"] = title
+            except Exception:
+                pass
+            try:
+                company = st.session_state[f"company_{idx}"]
+                if company:
+                    self.experience_list[idx]["company"] = company
+            except Exception:
+                pass
+            try:
+                start_date = st.session_state[f"start_date_{idx}"]
+                if start_date:
+                    self.experience_list[idx]["start_date"] = start_date
+            except Exception:
+                pass
+            try:
+                end_date = st.session_state[f"end_date_{idx}"]
+                if end_date:
+                    self.experience_list[idx]["end_date"] = end_date
+            except Exception:
+                pass
+            try:
+                experience_description = st.session_state[f"experience_description_{idx}"]
+                if experience_description:
+                    self.experience_list[idx]["description"] = experience_description
+            except Exception:
+                pass
+
+        c1, c2, c3= st.columns([2, 1, 1])
+        with c1:
+            st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=experience_callback, )
+            st.text_input("Company", value=company, key=f"company_{idx}", on_change=experience_callback, )
+        with c2:
+            st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=experience_callback, )
+        with c3:
+            st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=experience_callback, )
+        st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=experience_callback, )
+        st.divider()
+        
+
+
+
 
 
     def display_profile(self,):
@@ -809,26 +900,34 @@ class User():
                     self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
             with st.expander(label="Work experience",):
                 try:
-                    value = profile["work_experience_section"][0]
+                    work_experience = profile["work_experience"][0]
                 except Exception as e:
                     print(e)
-                    value = ""
-                if st.text_area("Work experience", value=value, key="profile_work", )!=value:
-                    self.updated_dict.update({"work_experience_section":st.session_state.profile_work})
+                self.experience_list = []
+                for idx, work in enumerate(work_experience):
+                    self.experience_list.append(work)
+                    self.display_work_experience(work["job_title"], work["company"], work["start_date"], work["end_date"], work["description"], idx) 
             with st.expander(label="Skills",):
                 try:
-                    value = profile["skills_section"][0]
+                    skills = profile["skills"][0]
                 except Exception as e:
                     print(e)
-                    value = ""
-                if st.text_area("Skills", value=value, key="profile_skills", )!=value:
-                    self.updated_dict.update({"skills_section":st.session_state.profile_skills})
+                self.skills_set= set()
+                for skill in skills:
+                    self.skills_set.add(skill["skill"])
+                self.update_skills()
             st.divider()
             c1, c2, c3 = st.columns([1, 1, 1])
             with c3:
                 st.markdown(general_button, unsafe_allow_html=True)
                 st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
                 if st.button("Save changes", key="profile_save_buttonn", type="primary"):
+                    if self.skills_set:
+                        for skill in self.skills_set:
+                            profile["skills"][0].append({"example": "","skill":skill, "type":""})
+                    if self.experience_list:
+                        new_experience_dict = {"work_experience", self.experience_list}
+                        self.updated_dict.update(new_experience_dict)
                     self.update_personal_info(self.updated_dict)
                     self.update_dict={}
             # with c1:
@@ -855,7 +954,7 @@ class User():
         c1, c2 = st.columns([1, 3])
         with c1:
             selected_idx=image_select("Select a template", images=image_paths, return_value="index")
-            # if st.button("Download as docx"):
+            st.markdown(general_button, unsafe_allow_html=True)    
             st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
             st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
         with c2:

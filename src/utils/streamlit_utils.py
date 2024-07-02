@@ -7,7 +7,7 @@ import os
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 
 @st.experimental_dialog(" ", )
-def loading(text, container=st.empty(), interval=5):
+def loading(text, container=st.empty(), interval=5):  
     with container.container():
         with st.spinner(text):
             time.sleep(interval)
