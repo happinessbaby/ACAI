@@ -216,7 +216,7 @@ def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
     if storage=="LOCAL":
         for path in paths:
             try: 
-                os.mkdir(path)
+                os.makedirs(path, exist_ok=True)
                 print("Successfully made directories")
             except FileExistsError:
                 pass

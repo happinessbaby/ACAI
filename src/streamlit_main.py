@@ -48,7 +48,7 @@ from time import sleep
 import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict
-from utils.streamlit_utils import user_menu
+from pages.streamlit_utils import user_menu
 import multiprocessing
 
 
@@ -286,7 +286,7 @@ class Chat():
                 match_resume_to_job()
 
         with st._main:
-            st.session_state["redirect_page"] =  "http://localhost:8501/"
+            st.session_state["redirect_page"] =  "streamlit_main.py"
             user_menu(_self.userId, page="main")
 
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
@@ -469,13 +469,13 @@ class Chat():
                 if st.session_state["user_profile_dict"]:
                     st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
                 else:
-                    st.session_state["redirect_page"]="http://localhost:8501/"
+                    st.session_state["redirect_page"]="streamlit_main.py"
                     st.session_state["user_mode"] = "display_profile"
                     st.page_link("pages/streamlit_user.py", label="create my default resume", )       
             else:
                 st.write("Login to use or create a default resume")
                 if st.button("login", type="primary"):
-                    st.session_state["redirect_page"]="http://localhost:8501/"
+                    st.session_state["redirect_page"]="streamlit_main.py"
                     st.switch_page("pages/streamlit_user.py")
         if st.button(label="next",
                            key="next_button", 

@@ -4,6 +4,7 @@ from lancedb.embeddings import get_registry
 from lancedb.pydantic import LanceModel, Vector
 import streamlit as st
 import os
+import numpy as np
 
 
 model="gpt-3.5-turbo-0613"
@@ -92,14 +93,32 @@ def delete_user_from_table(table_name, userId):
     table = retrieve_lancedb_table(table_name)
     table.delete(f"user_id = '{userId}'")
 
+def clean_field(data, field_name):
 
+    clean_field = []
+    for item in data[field_name]:
+        for dict_item in item:  # Remove the array wrapper
+            clean_field.append(dict_item)
+    # print("clean field", clean_field)
+    return clean_field
 
 def retrieve_user_profile_dict(userId):
     users_table = retrieve_lancedb_table(lance_users_table)
     profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-    print(f"Retrieved user profile dict from lancedb: {profile_dict}")
     if not profile_dict["user_id"]:
-        profile_dict = None
+        return None
+    for key in profile_dict:
+        if isinstance(profile_dict[key], list):
+            value=profile_dict[key][0]
+            if isinstance(value, str):  # Handle strings
+                profile_dict[key]=value
+                # print(profile_dict[key])
+            elif isinstance(value, (np.ndarray, list)):  # Handle arrays
+                profile_dict[key]= clean_field(profile_dict, key)
+                # print(profile_dict[key])
+            else:                   # Handle None and anomalies
+                profile_dict[key] = ''
+    print(f"Retrieved user profile dict from lancedb")
     return profile_dict
 
 

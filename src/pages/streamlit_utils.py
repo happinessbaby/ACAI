@@ -29,7 +29,7 @@ def user_menu(userId, page, ):
             with st.popover(label="👤",):
                 if page!="main":
                     if st.button("Home", type="primary"):
-                        nav_to("http://localhost:8501/")
+                        st.switch_page("streamlit_main.py")
                 if page!="profile":
                     if st.button("My profile", type="primary"):
                         st.session_state["user_mode"]="display_profile"

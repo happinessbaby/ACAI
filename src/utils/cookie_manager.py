@@ -17,7 +17,7 @@ class CookieManager():
         self.userId=None
         self.cookie_manager = self.get_cookie_manager()
 
-    @st.cache_resource(experimental_allow_widgets=True)
+    # @st.cache_resource(experimental_allow_widgets=True)
     def get_cookie_manager(_self, ):
 
         return stx.CookieManager(key="init_cookie_manager")
