@@ -44,6 +44,7 @@ import subprocess
 import base64
 import boto3
 import aspose.words as aw
+import glob
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -395,15 +396,17 @@ def binary_file_downloader_html(file: str, text:str="Download link") -> str:
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}" class="general-button">{text}</a>'
     return href
 
-def convert_docx_to_img(file_path, output_dir, image_format='png'):
+def convert_docx_to_img(file_path, output_dir, idx, image_format='png'):
 
       # Convert DOCX to PDF using LibreOffice
     pdf_path = convert_to_pdf(file_path)
     # Convert PDF to Image using pdftoppm
-    image_output_path = os.path.join(output_dir, 'output_image')
+    image_output_path = os.path.join(output_dir, f'image_{idx}')
     subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
     # Return path to the image
-    return f"{image_output_path}-1.{image_format}", pdf_path
+    pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
+    matching_files = glob.glob(pattern)
+    return matching_files, pdf_path
 
 def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
     context = {key: None for key in field_name}

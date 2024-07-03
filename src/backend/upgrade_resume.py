@@ -431,8 +431,9 @@ def reformat_resume(template_path, info_dict, end_path):
 
 
     print("reformatting resume")
+    print(info_dict)
     doc_template = DocxTemplate(template_path)
-    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    func = lambda key, default: default if info_dict[key][0]==-1 else info_dict[key][0]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
         "CITY": func("city", "YOUR CITY"),
@@ -449,6 +450,8 @@ def reformat_resume(template_path, info_dict, end_path):
     }
     context={}
     context.update(personal_context)
+    context.update(education_context)
+    context.update({"WORK_EXPERIENCE": info_dict["work_experience"]})
     doc_template.render(context)
     if STORAGE=="LOCAL":
         local_save_path=end_path

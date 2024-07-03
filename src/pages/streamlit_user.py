@@ -32,6 +32,7 @@ from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
 from utils.streamlit_utils import nav_to, user_menu
 from css.streamlit_css import general_button, primary_button
+import glob
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -792,20 +793,38 @@ class User():
         # st.subheader("Your Profile")
         #NOTE: has to dynamically retrieve it here since updates are instanteously saved to table
         # profile = retrieve_user_profile_dict(self.userId)
+        # def clean_field(data, field_name):
+        #     clean_field = []
+        #     for item in data[field_name]:
+        #         for dict_item in item:  # Remove the array wrapper
+        #             clean_field.append(dict_item)
+        #     # print("clean field", clean_field)
+        #     return clean_field
+        def save_changes(user_mode):
+            # if self.skills_set:
+            #     for skill in self.skills_set:
+            #         profile["skills"][0].append({"example": "","skill":skill, "type":""})
+                    # if self.experience_list:
+            # new_experience_dict = {"work_experience": self.experience_list}
+            # st.session_state["user_profile_dict"].update(new_experience_dict)
+            # self.update_personal_info(self.updated_dict)
+            # self.updated_dict={}
+            if user_mode=="reformat_resume":
+                st.session_state["user_mode"]="reformat_resume"
+           
+            
         self.updated_dict = {}
         c1, c2, _ = st.columns([1, 2, 1])
         with c1:
             profile=st.session_state["user_profile_dict"]
-            st.write("Your profile is your resume! Customize it and convert it to a downloadable resume. Try it now!")
+            st.write("Ready to convert your profile into a downloadable resume. Try it now!")
             st.markdown(general_button, unsafe_allow_html=True)    
             st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-            reformat= st.button("Convert to a new resume ✨", key="resume_format_button", )
-            if reformat:
-                if self.updated_dict:
-                    st.info("Please save your changes before proceeding")
-                else:
-                    st.session_state["user_mode"]="reformat_resume"
-                    st.rerun()
+            reformat= st.button("Convert to a new resume ✨", key="resume_format_button", on_click=save_changes, args=("reformat_resume", ))
+            # if reformat:
+            #     save_changes()
+            #     st.session_state["user_mode"]="reformat_resume"
+            #     st.rerun()
         with c2:
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -921,15 +940,15 @@ class User():
             with c3:
                 st.markdown(general_button, unsafe_allow_html=True)
                 st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                if st.button("Save changes", key="profile_save_buttonn", type="primary"):
-                    if self.skills_set:
-                        for skill in self.skills_set:
-                            profile["skills"][0].append({"example": "","skill":skill, "type":""})
-                    if self.experience_list:
-                        new_experience_dict = {"work_experience", self.experience_list}
-                        self.updated_dict.update(new_experience_dict)
-                    self.update_personal_info(self.updated_dict)
-                    self.update_dict={}
+                st.button("Save changes", key="profile_save_buttonn", type="primary", on_click=save_changes, args=("", ))
+                    # if self.skills_set:
+                    #     for skill in self.skills_set:
+                    #         profile["skills"][0].append({"example": "","skill":skill, "type":""})
+                    # # if self.experience_list:
+                    # new_experience_dict = {"work_experience": self.experience_list}
+                    # self.updated_dict.update(new_experience_dict)
+                    # self.update_personal_info(self.updated_dict)
+                    # self.update_dict={}
             # with c1:
                 # st.markdown(general_button, unsafe_allow_html=True)
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
@@ -938,22 +957,33 @@ class User():
             
     def display_resume_templates(self, ):
 
+        def clean_field(data, field_name):
+            clean_field = []
+            for item in data[field_name]:
+                for dict_item in item:  # Remove the array wrapper
+                    clean_field.append(dict_item)
+            # print("clean field", clean_field)
+            return clean_field
+        
         paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
         formatted_docx_paths = []
         formatted_pdf_paths = []
         image_paths = []
-        for path in paths:
+        for idx, path in enumerate(paths):
             filename = str(uuid.uuid4())
             docx_path = os.path.join(st.session_state.user_save_path, "downloads", filename+".docx")
+            st.session_state["user_profile_dict"].update({"work_experience": clean_field(st.session_state["user_profile_dict"], "work_experience")})
             reformat_resume(path, st.session_state["user_profile_dict"], docx_path)
             formatted_docx_paths.append(docx_path)
             output_dir = os.path.join(st.session_state.user_save_path, "downloads")
-            img_path, pdf_path = convert_docx_to_img(docx_path, output_dir)
+            img_paths, pdf_path = convert_docx_to_img(docx_path, output_dir, idx)
             formatted_pdf_paths.append(pdf_path)
-            image_paths.append(img_path)
+            image_paths.append(img_paths)
         c1, c2 = st.columns([1, 3])
         with c1:
-            selected_idx=image_select("Select a template", images=image_paths, return_value="index")
+            print("image paths", image_paths)
+            previews = [paths[0] for paths in image_paths]
+            selected_idx=image_select("Select a template", images=previews, return_value="index")
             st.markdown(general_button, unsafe_allow_html=True)    
             st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
             st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
@@ -990,9 +1020,12 @@ class User():
 
         """ updates user profile"""
 
+        #NOTE: updating nested columns such as work_experience is not yet supported, therefore for now, deleting and adding back whole dictionary
         try:
             users_table = retrieve_lancedb_table(lance_users_table)
-            users_table.update(where=f"user_id = '{self.userId}'", values=updated_dict)
+            print("value", updated_dict)
+            # users_table.update(where=f"user_id = '{self.userId}'", values=updated_dict)
+            add_to_lancedb_table(lance_users_table, [st.session_state["user_profile_dict"]], schema=convert_pydantic_schema_to_arrow(ResumeUsers), mode="overwrite" )
             st.toast("Successfully updated profile")
             print("Successfully updated user profile")
         except Exception as e:
