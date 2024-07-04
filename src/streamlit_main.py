@@ -49,6 +49,7 @@ import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict
 from pages.streamlit_utils import user_menu
+from css.streamlit_css import tabs
 import multiprocessing
 
 
@@ -107,10 +108,8 @@ class Chat():
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin" 
             # if "user_profile_dict" not in st.session_state:
-            try: 
+            if "user_profile_dict" not in st.session_state: 
                 st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
-            except Exception:
-                st.session_state["user_profile_dict"] = None
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -292,21 +291,23 @@ class Chat():
             st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
             add_vertical_space(5)
             _, c1, c2=st.columns([1, 2,  2])
-            with c1:
+            st.markdown(tabs, unsafe_allow_html=True)
+            resume, interview = st.tabs(["               Resume                  ", "                       Interview"])
+            with resume:
                 if st.button("Resume Help", key="resume_button",):
                     _self.resume_form_popup(job_required=False)
-            with c2:
+            with interview:
                 if st.button("Mock Interview", key="interview_button"):
                     st.switch_page("pages/streamlit_interviewbot.py")
             # with c3:
             #     job_option = st.button("Job Search", key="job_button")
             # if job_option:
             #     st.switch_page("pages/streamlit_jobs.py")
-            add_vertical_space(5)
-            _, c2, _ = st.columns([1, 1, 1])
-            with c2:
-                if st.button("Match Me!"):
-                    _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
+            # add_vertical_space(5)
+            # _, c2, _ = st.columns([1, 1, 1])
+            # with c2:
+            #     if st.button("Match Me!"):
+            #         _self.general_form_popup(selection="match", job_required=True, resume_required=True,)
         
 
             # for msg in st.session_state.messages:

@@ -2,6 +2,7 @@ import streamlit as st
 import time
 from streamlit_modal import Modal
 import os
+import extra_streamlit_components as stx
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
@@ -42,6 +43,11 @@ def user_menu(userId, page, ):
                 #     if st.button("Delete my profile", type="primary"):
                 #         st.session_state["user_mode"] = "delete_profile"
                 #         st.switch_page("pages/streamlit_user.py")
+
+
+def progress_bar():
+    progress = stx.stepper_bar(steps=["Step 1: Upload a profile", "Step 2: Reformat with a template",  "Step 3: Tailor to a job", "Step 4: Let AI evaluates it", "Step 5: Download your resume"])
+    
 
 def site_logo():
     """"""

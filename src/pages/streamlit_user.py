@@ -30,9 +30,10 @@ import webbrowser
 from utils.pydantic_schema import ResumeUsers, convert_pydantic_schema_to_arrow
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
-from pages.streamlit_utils import nav_to, user_menu
-from css.streamlit_css import general_button, primary_button
+from pages.streamlit_utils import nav_to, user_menu, progress_bar
+from css.streamlit_css import general_button, primary_button, google_button
 import glob
+from backend.upgrade_resume import tailor_resume
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -72,11 +73,8 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            try: 
+            if "user_profile_dict" not in st.session_state: 
                 st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
-            except Exception as e:
-                print(e)
-                st.session_state["user_profile_dict"] = None
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -240,30 +238,6 @@ class User():
             with col3:
                 forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
             st.divider()
-            st.markdown("""
-            <style>.element-container:has(#button-after) + div button {
-                    cursor: pointer;
-                    transition: background-color .3s, box-shadow .3s;
-                        
-                    padding: 12px 16px 12px 42px;
-                    border: none;
-                    border-radius: 3px;
-                    box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
-                    
-                    color: #757575;
-                    font-size: 14px;
-                    font-weight: 500;
-                    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;
-                    
-                    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=);
-                    background-color: white;
-                    background-repeat: no-repeat;
-                    background-position: 12px 11px;
-                    }
-                    .element-container:has(#button-after) + div button:hover { 
-                        box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
-                    }
-                </style>""", unsafe_allow_html=True)
             self.google_signin()
             print(name, authentication_status, username)
             if authentication_status:
@@ -305,6 +279,7 @@ class User():
             time.sleep(5)
             st.rerun()
         else:
+            st.markdown(google_button, unsafe_allow_html=True)
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
             if st.button("Sign in with Google"):
                 authorization_url, state = flow.authorization_url(
@@ -782,11 +757,124 @@ class User():
             st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=experience_callback, )
         st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=experience_callback, )
         st.divider()
+
+    @st.experimental_fragment()   
+    def display_field_content(self, name):
+
+        """"""
+
+        def get_display():
+            for idx, cert in enumerate(st.session_state["user_profile_dict"][name]):
+                print(idx, cert)
+                add_container(idx)
+            st.button("add", key=f"add_{name}_button", on_click=add_profile, )
+                  
+        def add_profile():
+            if name=="certifications":
+                st.session_state["user_profile_dict"][name].append({"description":"","issue_date":"", "title":""})
+            if name=="work_experience":
+                st.session_state["user_profile_dict"][name].append({"company":"","description":"","end_date":"","job_title":"","start_date":""})
+            
+        def delete_container(placeholder, idx):
+            print("deleted", st.session_state["user_profile_dict"][name][idx])
+            del st.session_state["user_profile_dict"][name][idx]
+            placeholder.empty()
+
+        def add_container(idx):
+
+            placeholder=st.empty()
+            print("adding idx", idx)
+            if name=="certifications":
+                title = st.session_state["user_profile_dict"]["certifications"][idx]["title"]
+                date = st.session_state["user_profile_dict"]["certifications"][idx]["issue_date"]
+                description = st.session_state["user_profile_dict"]["certifications"][idx]["description"]
+                with placeholder.container(border=True):
+                    _, x = st.columns([10, 1])
+                    with x:
+                        st.button(":red[X]", type="primary", key=f"cert_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                    c1, c2=st.columns([1, 1])
+                    with c1:
+                        st.text_input("Title", value=title, key=f"cert_title_{idx}", on_change=callback, args=(idx, ))
+                    with c2:
+                        st.text_input("Issue date", value=date, key=f"cert_date_{idx}", on_change=callback, args=(idx, ))
+                    st.text_area("Description", value=description, key=f"cert_descr_{idx}", on_change=callback, args=(idx,) )
+            if name=="work_experience":
+                job_title = st.session_state["user_profile_dict"][name][idx]["job_title"]
+                company = st.session_state["user_profile_dict"][name][idx]["company"]
+                start_date = st.session_state["user_profile_dict"][name][idx]["start_date"]
+                end_date = st.session_state["user_profile_dict"][name][idx]["end_date"]
+                description = st.session_state["user_profile_dict"][name][idx]["description"]
+                with placeholder.container(border=True):
+                    _, x = st.columns([10, 1])
+                    with x:
+                        st.button(":red[X]", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                    c1, c2, c3= st.columns([2, 1, 1])
+                    with c1:
+                        st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback, )
+                        st.text_input("Company", value=company, key=f"company_{idx}", on_change=callback, )
+                    with c2:
+                        st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=callback, )
+                    with c3:
+                        st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, )
+                    st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=callback, )
+                   
+
+        def callback(idx):
+            try:
+                title = st.session_state[f"cert_title_{idx}"]
+                if title:
+                    st.session_state["user_profile_dict"]["certifications"][idx]["title"]=title
+            except Exception:
+                pass
+            try:
+                date = st.session_state[f"cert_date_{idx}"]
+                if date:
+                    st.session_state["user_profile_dict"]["certifications"][idx]["issue_date"]=date
+            except Exception:
+                pass
+            try:
+                descr = st.session_state[f"cert_descr_{idx}"]
+                if descr:
+                    st.session_state["user_profile_dict"]["certifications"][idx]["description"]=descr
+            except Exception:
+                pass
+            try:
+                title = st.session_state[f"experience_title_{idx}"]
+                if title:
+                    # self.experience_list[idx]["job_title"] = title
+                    st.session_state["user_profile_dict"]["work_experience"][idx]["job_title"] = title
+            except Exception:
+                pass
+            try:
+                company = st.session_state[f"company_{idx}"]
+                if company:
+                    # self.experience_list[idx]["company"] = company
+                    st.session_state["user_profile_dict"]["work_experience"][idx]["company"] = company
+            except Exception:
+                pass
+            try:
+                start_date = st.session_state[f"start_date_{idx}"]
+                if start_date:
+                    st.session_state["user_profile_dict"]["work_experience"][idx]["start_date"] =start_date
+            except Exception:
+                pass
+            try:
+                end_date = st.session_state[f"end_date_{idx}"]
+                if end_date:
+                    st.session_state["user_profile_dict"]["work_experience"][idx]["end_date"] = end_date
+            except Exception:
+                pass
+            try:
+                experience_description = st.session_state[f"experience_description_{idx}"]
+                if experience_description:
+                    # self.experience_list[idx]["description"] = experience_description
+                    st.session_state["user_profile_dict"]["work_experience"][idx]["description"] = experience_description
+            except Exception:
+                pass
+            
+        return get_display
+      
         
-
-
-
-
 
     def display_profile(self,):
 
@@ -794,9 +882,11 @@ class User():
         # st.subheader("Your Profile")
         #NOTE: has to dynamically retrieve it here since updates are instanteously saved to table
         # profile = retrieve_user_profile_dict(self.userId)
+        progress_bar()
         def save_changes():
 
             try:
+                delete_user_from_table(lance_users_table, self.userId)
                 add_to_lancedb_table(lance_users_table, [st.session_state["user_profile_dict"]], schema=convert_pydantic_schema_to_arrow(ResumeUsers), mode="overwrite" )
                 st.toast("Successfully updated profile")
                 print("Successfully updated user profile")
@@ -805,8 +895,9 @@ class User():
             
         self.updated_dict = {}
         profile=st.session_state["user_profile_dict"]
-        c1, c2, c3 = st.columns([1, 2, 1])
-        with c1:
+        c1, c2 = st.columns([2, 1])
+        with c2:
+            st.subheader("Step 2")
             st.write("Ready to convert your profile into a downloadable resume. Try it now!")
             st.markdown(general_button, unsafe_allow_html=True)    
             st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
@@ -814,7 +905,8 @@ class User():
             if reformat:
                 save_changes()
                 st.switch_page("pages/streamlit_reformat.py")
-        with c2:
+ 
+        with c1:
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", ):
@@ -919,14 +1011,8 @@ class User():
                     # self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
                     st.session_state["user_profile_dict"].update({"summary_objective":st.session_state.profile_summary})
             with st.expander(label="Work experience",):
-                try:
-                    work_experience = profile["work_experience"]
-                except Exception as e:
-                    print(e)
-                # self.experience_list = []
-                for idx, work in enumerate(work_experience):
-                    # self.experience_list.append(work)
-                    self.display_work_experience(work["job_title"], work["company"], work["start_date"], work["end_date"], work["description"], idx) 
+                get_display=self.display_field_content("work_experience")
+                get_display()
             with st.expander(label="Skills",):
                 try:
                     included_skills = profile["included_skills"]
@@ -940,29 +1026,14 @@ class User():
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
                 self.update_skills()
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                with st.expander(label="Certifications", ):
-                    try:
-                        certifications = profile["certifications"]
-                    except Exception:
-                        print(e)
-                # self.display_certifications
-            # with c2:
-            #     with st.expander(label="Awards & Honors"):
-            #         try:
-            #             value = profile["awards"][0]
-            #         except Exception:
-            #             print(e)
-            #         if st.text_area("awards" value=value, key="profile_summary", label_visibility="hidden")!=value:
-
-            
+            with st.expander(label="Certifications", ):
+                get_display=self.display_field_content("certifications")
+                get_display()
+           
             st.divider()
             c1, c2, c3 = st.columns([1, 1, 1])
             with c3:
-                st.markdown(general_button, unsafe_allow_html=True)
-                st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                st.button("Save changes", key="profile_save_buttonn", type="primary", on_click=save_changes, args=("", ))
+                st.button("Save changes", key="profile_save_button", type="primary", on_click=save_changes, args=("", ))
             # with c1:
                 # st.markdown(general_button, unsafe_allow_html=True)
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)

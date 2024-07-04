@@ -53,22 +53,22 @@ class Contact(BaseModel):
         
 class Education(BaseModel):
     coursework: Optional[str] = Field(
-        default="", description = "the courseworks studied while attending the highest degree of education."
+        default="", description = "the courseworks studied while attending the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
     degree: Optional[str] = Field(
-        default="", description="the highest degree of education, ignore any cerfications"
+        default="", description="the highest degree of education. THIS SHOULD NOT BE A CERTIFICATION. "
     )
     study: Optional[str] = Field(
-        default="", description="the area of study including any majors and minors for the highest degree of education"
+        default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
     graduation_year:Optional[str] = Field(
-        default="", description="the year of graduation from the highest degree of education"
+        default="", description="the year of graduation from the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
     gpa:Optional[str] = Field(
-        default="", description="the gpa of the highest degree of graduation"
+        default="", description="the gpa of the highest degree of graduation. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
     institution: Optional[str] = Field(
-        default="", description="the institution at where the highest degree of education is attained"
+        default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
 
 class Project(BaseModel):
@@ -80,6 +80,16 @@ class Project(BaseModel):
     )
 class Projects(BaseModel):
     projects: List[Project]
+
+class Award(BaseModel):
+    description: Optional[str] = Field(
+        default="", description = "what the award, honor, or strengh is about"
+    )
+    title: Optional[str] = Field(
+        default="", description = "name of the award, honor, or strength"
+    )
+class Awards(BaseModel):
+    awards: List[Award]
 
 class Certification(BaseModel):
     description: Optional[str] = Field(
@@ -157,8 +167,8 @@ class SpecialResumeFields(BaseModel):
         Includea all details about the certification including any description."""
     )
     awards_honors_sections: Optional[str] = Field(
-        default="", description = """the awards and honors listed in the resume, these should not be certifications. 
-         Includea all details about the awards and honnors including any description.
+        default="", description = """the awards, honors, strengths of the candidate listed in the resume. 
+         Includea all details of the award and strength including any description.
         """    
     )
     projects_section: Optional[str] = Field(
@@ -273,6 +283,7 @@ class ResumeUsers(BaseModel):
     included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
     suggested_skills: Optional[List[Skill]] = Field(..., description="List of skills not in resume but suggested by AI to include")
     qualifications: Optional[List[Qualification]]
+    awards: Optional[List[Award]]
 
 
 def convert_pydantic_schema_to_arrow(schema: Any) -> pa.schema:
