@@ -737,9 +737,7 @@ class User():
             for idx, cert in enumerate(st.session_state["profile"][name]):
                 print(idx, cert)
                 add_container(idx)
-            _, c = st.columns([15, 1])
-            with c:
-                st.button("add", key=f"add_{name}_button", on_click=add_profile, )
+            st.button("add", key=f"add_{name}_button", on_click=add_profile, use_container_width=True)
                   
         def add_profile():
             if name=="certifications":

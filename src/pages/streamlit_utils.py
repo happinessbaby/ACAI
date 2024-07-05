@@ -49,7 +49,7 @@ def user_menu(userId, page, ):
 
 def progress_bar():
     #TODO create a custom one
-    progress = stx.stepper_bar(steps=["Step 1: Upload a profile", "Step 2: Reformat with a template",  "Step 3: Tailor to a job", "Step 4: Let AI evaluates it", "Step 5: Download your resume"],)
+    progress = stx.stepper_bar(steps=["Step 1: Upload a profile",  "Step 2: Tailor to a job", "Step 3: Pick a template", "Step 4: Download your resume"],)
     # if progress==0:
     #     st.switch_page("pages/streamlit_user.py")
     # if progress==1:
