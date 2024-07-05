@@ -11,8 +11,8 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table
-from utils.common_utils import check_content, process_linkedin, create_profile_summary, process_uploads, create_resume_info
+from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info
 from utils.basic_utils import mk_dirs, binary_file_downloader_html, convert_docx_to_img
 from typing import Any, List
 from pathlib import Path
@@ -27,13 +27,14 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.pydantic_schema import ResumeUsers, convert_pydantic_schema_to_arrow
+from utils.pydantic_schema import ResumeUsers
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
 from pages.streamlit_utils import nav_to, user_menu, progress_bar
 from css.streamlit_css import general_button, primary_button, google_button
 import glob
 from backend.upgrade_resume import tailor_resume
+from streamlit_float import *
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -47,6 +48,8 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder_about_resume=st.empty()
+# initialize float feature/capability
+float_init()
 # store = FeatureStore("./my_feature_repo/")
 
 
@@ -73,8 +76,8 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            if "user_profile_dict" not in st.session_state: 
-                st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+            # if "user_profile_dict" not in st.session_state: 
+            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -150,13 +153,7 @@ class User():
             else:
                 st.rerun()
         elif st.session_state.user_mode=="signout":
-            print('signing out')
-            st.session_state.cm.delete_cookie()
-            st.session_state["user_mode"]="signedout"
-            if "redirect_page" in st.session_state:
-                st.switch_page(st.session_state.redirect_page)
-            else:
-                st.rerun()
+            self.sign_out()
         elif st.session_state.user_mode=="display_profile":
             if  st.session_state["user_profile_dict"]:
                 self.display_profile()
@@ -166,7 +163,7 @@ class User():
           
     
 
-    @st.experimental_dialog(" ")
+    @st.experimental_dialog("Warning")
     def delete_profile_popup(self):
         add_vertical_space(2)
         st.warning("Your current profile will be lost. Are you sure?")
@@ -185,13 +182,15 @@ class User():
 
     
 
-    # def sign_out(self, ):
+    def sign_out(self, ):
 
-    #     # logout = st.session_state.authenticator.logout('Logout', 'sidebar')
-    #     print('signing out')
-    #     st.session_state.cm.delete_cookie()
-    #     st.session_state["user_mode"]="signedout"
-    #     st.rerun()
+        print('signing out')
+        st.session_state.cm.delete_cookie()
+        st.session_state["user_mode"]="signedout"
+        if "redirect_page" in st.session_state:
+            st.switch_page(st.session_state.redirect_page)
+        else:
+            st.rerun()
 
 
 
@@ -656,6 +655,24 @@ class User():
             else:
                 print("upload didn't work")
                 st.info("That didn't work, please try again.")
+        elif input_type=="job_posting":
+            result = process_links(input_value, st.session_state.save_path, st.session_state.sessionId)
+            if result is not None:
+                content_safe, content_type, content_topics, end_path = result
+                if content_safe and content_type=="job posting":
+                    st.session_state["job_posting_path"]=end_path
+                else:
+                    # st.session_state.job_posting_checkmark=":red[*]"
+                    st.info("Please upload your job posting link here")
+            else:
+                st.info("That didn't work. Please try pasting the content in job description instead.")
+        elif input_type=="job_description":
+            result = process_inputs(input_value, match_topic="job posting or job description")
+            if result is not None:
+                st.session_state["job_description"] = input_value
+            else:
+                st.info("Please share a job description here")
+
         if input_type=="birthday":
             st.session_state.birthday = input_value.strftime('%Y-%m-%d')
             #TODO: get age instead
@@ -710,110 +727,69 @@ class User():
                 y = st.button(skill +" :green[o]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             st.text_input("Add a skill not from the suggestion", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
 
-    @st.experimental_fragment()
-    def display_work_experience(self, job_title, company, start_date, end_date, description, idx):
-
-        def experience_callback():
-            try:
-                title = st.session_state[f"experience_title_{idx}"]
-                if title:
-                    # self.experience_list[idx]["job_title"] = title
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["job_title"] = title
-            except Exception:
-                pass
-            try:
-                company = st.session_state[f"company_{idx}"]
-                if company:
-                    # self.experience_list[idx]["company"] = company
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["company"] = company
-            except Exception:
-                pass
-            try:
-                start_date = st.session_state[f"start_date_{idx}"]
-                if start_date:
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["start_date"] =start_date
-            except Exception:
-                pass
-            try:
-                end_date = st.session_state[f"end_date_{idx}"]
-                if end_date:
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["end_date"] = end_date
-            except Exception:
-                pass
-            try:
-                experience_description = st.session_state[f"experience_description_{idx}"]
-                if experience_description:
-                    # self.experience_list[idx]["description"] = experience_description
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["description"] = experience_description
-            except Exception:
-                pass
-        c1, c2, c3= st.columns([2, 1, 1])
-        with c1:
-            st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=experience_callback, )
-            st.text_input("Company", value=company, key=f"company_{idx}", on_change=experience_callback, )
-        with c2:
-            st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=experience_callback, )
-        with c3:
-            st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=experience_callback, )
-        st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=experience_callback, )
-        st.divider()
 
     @st.experimental_fragment()   
     def display_field_content(self, name):
 
         """"""
-
+        #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
-            for idx, cert in enumerate(st.session_state["user_profile_dict"][name]):
+            for idx, cert in enumerate(st.session_state["profile"][name]):
                 print(idx, cert)
                 add_container(idx)
-            st.button("add", key=f"add_{name}_button", on_click=add_profile, )
+            _, c = st.columns([15, 1])
+            with c:
+                st.button("add", key=f"add_{name}_button", on_click=add_profile, )
                   
         def add_profile():
             if name=="certifications":
-                st.session_state["user_profile_dict"][name].append({"description":"","issue_date":"", "title":""})
-            if name=="work_experience":
-                st.session_state["user_profile_dict"][name].append({"company":"","description":"","end_date":"","job_title":"","start_date":""})
+                st.session_state["profile"][name].append({"description":"","issue_date":"", "title":""})
+            elif name=="work_experience":
+                st.session_state["profile"][name].append({"company":"","description":"","end_date":"","job_title":"","location":"","start_date":""})
+            elif name=="awards":
+                st.session_state["profile"][name].append({"title":"","description":""})
             
         def delete_container(placeholder, idx):
-            print("deleted", st.session_state["user_profile_dict"][name][idx])
-            del st.session_state["user_profile_dict"][name][idx]
+            print("deleted", st.session_state["profile"][name][idx])
+            del st.session_state["profile"][name][idx]
             placeholder.empty()
 
         def add_container(idx):
 
             placeholder=st.empty()
-            print("adding idx", idx)
-            if name=="certifications":
-                title = st.session_state["user_profile_dict"]["certifications"][idx]["title"]
-                date = st.session_state["user_profile_dict"]["certifications"][idx]["issue_date"]
-                description = st.session_state["user_profile_dict"]["certifications"][idx]["description"]
-                with placeholder.container(border=True):
-                    _, x = st.columns([10, 1])
-                    with x:
-                        st.button(":red[X]", type="primary", key=f"cert_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                    c1, c2=st.columns([1, 1])
-                    with c1:
-                        st.text_input("Title", value=title, key=f"cert_title_{idx}", on_change=callback, args=(idx, ))
-                    with c2:
-                        st.text_input("Issue date", value=date, key=f"cert_date_{idx}", on_change=callback, args=(idx, ))
+            with placeholder.container(border=True):
+                c1, x = st.columns([18, 1])
+                with c1:
+                    st.write(f"**{name} {idx}**")
+                with x:
+                    st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                if name=="awards":
+                    title = st.session_state["profile"]["awards"][idx]["title"]
+                    description = st.session_state["profile"]["awards"][idx]["description"]
+                    st.text_input("Title", value=title, key=f"award_title_{idx}", on_change=callback, args=(idx, ))
+                    st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
+                elif name=="certifications":
+                    title = st.session_state["profile"]["certifications"][idx]["title"]
+                    date = st.session_state["profile"]["certifications"][idx]["issue_date"]
+                    description = st.session_state["profile"]["certifications"][idx]["description"]
+                    st.text_input("Title", value=title, key=f"cert_title_{idx}", on_change=callback, args=(idx, ))
+                    st.text_input("Issue date", value=date, key=f"cert_date_{idx}", on_change=callback, args=(idx, ))
                     st.text_area("Description", value=description, key=f"cert_descr_{idx}", on_change=callback, args=(idx,) )
-            if name=="work_experience":
-                job_title = st.session_state["user_profile_dict"][name][idx]["job_title"]
-                company = st.session_state["user_profile_dict"][name][idx]["company"]
-                start_date = st.session_state["user_profile_dict"][name][idx]["start_date"]
-                end_date = st.session_state["user_profile_dict"][name][idx]["end_date"]
-                description = st.session_state["user_profile_dict"][name][idx]["description"]
-                with placeholder.container(border=True):
-                    _, x = st.columns([10, 1])
-                    with x:
-                        st.button(":red[X]", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                elif name=="work_experience":
+                    job_title = st.session_state["profile"][name][idx]["job_title"]
+                    company = st.session_state["profile"][name][idx]["company"]
+                    start_date = st.session_state["profile"][name][idx]["start_date"]
+                    end_date = st.session_state["profile"][name][idx]["end_date"]
+                    description = st.session_state["profile"][name][idx]["description"]
+                    print(st.session_state["profile"][name][idx])
+                    location = st.session_state["profile"][name][idx]["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
                         st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback, )
                         st.text_input("Company", value=company, key=f"company_{idx}", on_change=callback, )
                     with c2:
                         st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=callback, )
+                        st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, )
                     st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=callback, )
@@ -821,204 +797,189 @@ class User():
 
         def callback(idx):
             try:
+                title = st.session_state[f"award_title_{idx}"]
+                if title:
+                    st.session_state["profile"]["awards"][idx]["title"]=title
+            except Exception:
+                pass
+            try:
+                descr = st.session_state[f"award_descr_{idx}"]
+                if descr:
+                    st.session_state["profile"]["awards"][idx]["description"]=descr
+            except Exception:
+                pass
+            try:
                 title = st.session_state[f"cert_title_{idx}"]
                 if title:
-                    st.session_state["user_profile_dict"]["certifications"][idx]["title"]=title
+                    st.session_state["profile"]["certifications"][idx]["title"]=title
             except Exception:
                 pass
             try:
                 date = st.session_state[f"cert_date_{idx}"]
                 if date:
-                    st.session_state["user_profile_dict"]["certifications"][idx]["issue_date"]=date
+                    st.session_state["profile"]["certifications"][idx]["issue_date"]=date
             except Exception:
                 pass
             try:
                 descr = st.session_state[f"cert_descr_{idx}"]
                 if descr:
-                    st.session_state["user_profile_dict"]["certifications"][idx]["description"]=descr
+                    st.session_state["profile"]["certifications"][idx]["description"]=descr
             except Exception:
                 pass
             try:
                 title = st.session_state[f"experience_title_{idx}"]
                 if title:
                     # self.experience_list[idx]["job_title"] = title
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["job_title"] = title
+                    st.session_state["profile"]["work_experience"][idx]["job_title"] = title
             except Exception:
                 pass
             try:
                 company = st.session_state[f"company_{idx}"]
                 if company:
                     # self.experience_list[idx]["company"] = company
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["company"] = company
+                    st.session_state["profile"]["work_experience"][idx]["company"] = company
             except Exception:
                 pass
             try:
                 start_date = st.session_state[f"start_date_{idx}"]
                 if start_date:
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["start_date"] =start_date
+                    st.session_state["profile"]["work_experience"][idx]["start_date"] =start_date
             except Exception:
                 pass
             try:
                 end_date = st.session_state[f"end_date_{idx}"]
                 if end_date:
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["end_date"] = end_date
+                    st.session_state["profile"]["work_experience"][idx]["end_date"] = end_date
+            except Exception:
+                pass
+            try:
+                location = st.session_state[f"experience_location_{idx}"]
+                if location:
+                    st.session_state["profile"]["work_experience"][idx]["location"] = location
             except Exception:
                 pass
             try:
                 experience_description = st.session_state[f"experience_description_{idx}"]
                 if experience_description:
                     # self.experience_list[idx]["description"] = experience_description
-                    st.session_state["user_profile_dict"]["work_experience"][idx]["description"] = experience_description
+                    st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
             except Exception:
                 pass
             
         return get_display
       
-        
+    @st.experimental_dialog("Please provide a job posting")   
+    def job_posting_form(self):
+
+        def tailor_callback():
+            save_user_changes(self.userId, ResumeUsers)
+            if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
+                st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+                    st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
+                    st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+                )
+                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"])
+
+        job_posting = st.radio(f" ", 
+                                key="job_posting_radio", options=["job description", "job posting link"], 
+                                index = 1 if "job_description"  not in st.session_state else 0
+                                )
+        if job_posting=="job posting link":
+            job_posting_link = st.text_input(label="Job posting link",
+                                            key="job_posting", 
+                                            )
+            if job_posting_link:
+                self.process(job_posting_link, "job_posting")
+        elif job_posting=="job description":
+            job_description = st.text_area("Job description", 
+                                        key="job_descriptionx", 
+                                        value=st.session_state.job_description if "job_description" in st.session_state else "",
+                                            )
+            if job_description:
+                self.process(job_description, "job_description")
+        st.button("Next", on_click=tailor_callback,)
+
+
 
     def display_profile(self,):
 
         """Loads from user file and displays profile"""
         # st.subheader("Your Profile")
-        #NOTE: has to dynamically retrieve it here since updates are instanteously saved to table
-        # profile = retrieve_user_profile_dict(self.userId)
-        progress_bar()
-        def save_changes():
 
-            try:
-                delete_user_from_table(lance_users_table, self.userId)
-                add_to_lancedb_table(lance_users_table, [st.session_state["user_profile_dict"]], schema=convert_pydantic_schema_to_arrow(ResumeUsers), mode="overwrite" )
-                st.toast("Successfully updated profile")
-                print("Successfully updated user profile")
-            except Exception as e:
-                raise e
-            
+        progress_bar()
         self.updated_dict = {}
-        profile=st.session_state["user_profile_dict"]
+        if "profile" not in st.session_state:
+            st.session_state["profile"]=st.session_state["user_profile_dict"]
         c1, c2 = st.columns([2, 1])
         with c2:
-            st.subheader("Step 2")
-            st.write("Ready to convert your profile into a downloadable resume. Try it now!")
-            st.markdown(general_button, unsafe_allow_html=True)    
-            st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-            reformat= st.button("Convert to a new resume ✨", key="resume_format_button", )
-            if reformat:
-                save_changes()
-                st.switch_page("pages/streamlit_reformat.py")
- 
+            float_container = st.container()
+            with float_container:
+                st.subheader("Step 2")
+                st.write("Have a job posting you want to tailor to?")
+                st.markdown(general_button, unsafe_allow_html=True )
+                st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+                tailor = st.button("Tailor to a job posting ✨", key="resume_tailor_button")
+                if tailor:
+                    self.job_posting_form()
+                float_parent()
+    
         with c1:
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", ):
-                    try:
-                        value = profile["name"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Name", value=value, key="profile_name",)!=value:
-                        # self.updated_dict.update({"name":st.session_state.profile_name})
-                        st.session_state["user_profile_dict"].update({"name":st.session_state.profile_name})
-                    try:
-                        value = profile["email"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Email", value=value, key="profile_email", )!=value:
-                        # self.updated_dict.update({"email":st.session_state.profile_email})
-                        st.session_state["user_profile_dict"].update({"email":st.session_state.profile_email})
-                    try:
-                        value = profile["phone"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Phone", value=value, key="profile_phone", )!=value:
-                        # self.updated_dict.update({"phone":st.session_state.profile_phone})
-                        st.session_state["user_profile_dict"].update({"phone":st.session_state.profile_phone})
-                    try:
-                        value = profile["city"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("City", value=value, key="profile_city", )!=value:
-                        # self.updated_dict.update({"city":st.session_state.profile_city})
-                        st.session_state["user_profile_dict"].update({"city":st.session_state.profile_city})
-                    try:
-                        value = profile["state"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("State", value=value, key="profile_state", )!=value:
-                        # self.updated_dict.update({"state":st.session_state.profile_state})
-                        st.session_state["user_profile_dict"].update({"state":st.session_state.profile_state})
-                    try:
-                        value = profile["linkedin"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Linkedin", value=value, key="profile_linkedin", )!=value:
-                        # self.updated_dict.update({"linkedin":st.session_state.profile_linkedin})
-                        st.session_state["user_profile_dict"].update({"linkedin":st.session_state.profile_linkedin})
-                    try:
-                        value = profile["website"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Personal website", value=value, key="profile_website", )!=value:
-                        # self.updated_dict.update({"website":st.session_state.profile_webiste})
-                        st.session_state["user_profile_dict"].update({"website":st.session_state.profile_website})
+                    name = st.session_state["profile"]["name"]
+                    if st.text_input("Name", value=name, key="profile_name",)!=name:
+                        st.session_state["profile"]["name"]=st.session_state.profile_name
+                    email = st.session_state["profile"]["email"]
+                    if st.text_input("Email", value=email, key="profile_email", )!=email:
+                        value = st.session_state["profile"]["email"] = st.session_state.profile_email
+                    phone = st.session_state["profile"]["phone"]
+                    if st.text_input("Phone", value=phone, key="profile_phone", )!=phone:
+                        st.session_state["profile"]["phone"]=st.session_state.profile_phone
+                    city = st.session_state["profile"]["city"]
+                    if st.text_input("City", value=city, key="profile_city", )!=city:
+                        st.session_state["profile"]["city"]=st.session_state.profile_city
+                    state = st.session_state["profile"]["state"]
+                    if st.text_input("State", value=state, key="profile_state", )!=state:
+                        st.session_state["profile"]["state"]=st.session_state.profile_state
+                    linkedin = st.session_state["profile"]["linkedin"]
+                    if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", )!=linkedin:
+                        st.session_state["profile"]["linkedin"]=st.session_state.profile_linkedin
+                    website = st.session_state["profile"]["website"]
+                    if st.text_input("Personal website", value=website, key="profile_website", )!=website:
+                        st.session_state["profile"]["website"]=st.session_state.profile_website
             with c2:
                 with st.expander(label="Education",):
-                    try:
-                        value = profile["degree"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Degree", value=value, key="profile_degree", )!=value:
+                    degree = st.session_state["profile"]["degree"]
+                    if st.text_input("Degree", value=degree, key="profile_degree", )!=degree:
                         # self.updated_dict.update({"degree":st.session_state.profile_degree})
-                        st.session_state["user_profile_dict"].update({"degree":st.session_state.profile_degree})
-                    try:
-                        value = profile["study"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Area of study", value=value, key="profile_study", )!=value:
+                        st.session_state["profile"]["degree"]=st.session_state.profile_degree
+                    study = st.session_state["profile"]["study"]
+                    if st.text_input("Area of study", value=study, key="profile_study", )!=study:
                         # self.updated_dict.update({"degree":st.session_state.profile_study})
-                        st.session_state["user_profile_dict"].update({"study":st.session_state.profile_study})
-                    try:
-                        value = profile["graduation_year"]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("Graduation year", value=value, key="profile_grad_year", )!=value:
+                        st.session_state["profile"]["study"]=st.session_state.profile_study
+                    grad_year = st.session_state["profile"]["graduation_year"]
+                    if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", )!=grad_year:
                         # self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
-                        st.session_state["user_profile_dict"].update({"graduation_year":st.session_state.profile_grad_year})
-                    try:
-                        value = profile["gpa"][0]
-                    except Exception as e:
-                        print(e)
-                        value = ""
-                    if st.text_input("GPA", value=value, key="profile_gpa", )!=value:
+                        st.session_state["profile"]["graduation_year"]=st.session_state.profile_grad_year
+                    gpa = st.session_state["profile"]["gpa"]
+                    if st.text_input("GPA", value=gpa, key="profile_gpa", )!=gpa:
                         # self.updated_dict.update({"gpa":st.session_state.profile_gpa})
-                        st.session_state["user_profile_dict"].update({"gpa":st.session_state.profile_gpa})
-
+                        st.session_state["profile"]["gpa"]=st.session_state.profile_gpa
+                    coursework = st.session_state["profile"]["coursework"]
+                    if st.text_area("Course work", value=coursework, key="profile_coursework", )!=coursework:
+                        st.session_state["profile"]["coursework"] = st.session_state["profile_coursework"]
             with st.expander(label="Summary/Objective",):
-                try:
-                    value = profile["summary_objective"]
-                except Exception as e:
-                    print(e)
-                    value = ""
-                if st.text_area("Summary", value=value, key="profile_summary", label_visibility="hidden")!=value:
+                summary = st.session_state["profile"]["summary_objective"]
+                if st.text_area("Summary", value=summary, key="profile_summary", label_visibility="hidden")!=summary:
                     # self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
-                    st.session_state["user_profile_dict"].update({"summary_objective":st.session_state.profile_summary})
+                    st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
             with st.expander(label="Work experience",):
                 get_display=self.display_field_content("work_experience")
                 get_display()
             with st.expander(label="Skills",):
-                try:
-                    included_skills = profile["included_skills"]
-                    suggested_skills = profile["suggested_skills"]
-                except Exception as e:
-                    print(e)
+                included_skills = st.session_state["profile"]["included_skills"]
+                suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= set()
                 self.generated_skills_set=set()
                 for skill in included_skills:
@@ -1026,91 +987,27 @@ class User():
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
                 self.update_skills()
-            with st.expander(label="Certifications", ):
-                get_display=self.display_field_content("certifications")
-                get_display()
+            c1, c2=st.columns([1, 1])
+            with c1:
+                with st.expander(label="Certifications", ):
+                    get_display=self.display_field_content("certifications")
+                    get_display()
+            with c2:
+                with st.expander("Awards & Honors"):
+                    get_display=self.display_field_content("awards")
+                    get_display()
+                
            
             st.divider()
             c1, c2, c3 = st.columns([1, 1, 1])
             with c3:
-                st.button("Save changes", key="profile_save_button", type="primary", on_click=save_changes, args=("", ))
+                st.button("Set as default", key="profile_save_button", type="primary", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
             # with c1:
                 # st.markdown(general_button, unsafe_allow_html=True)
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
                 if st.button("Upload a new resume", ):
                     self.delete_profile_popup()
-            
-    # def display_resume_templates(self, ):
-        
-    #     paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-    #     formatted_docx_paths = []
-    #     formatted_pdf_paths = []
-    #     image_paths = []
-    #     for idx, path in enumerate(paths):
-    #         filename = str(uuid.uuid4())
-    #         docx_path = os.path.join(st.session_state.user_save_path, "downloads", filename+".docx")
-    #         reformat_resume(path, st.session_state["user_profile_dict"], docx_path)
-    #         formatted_docx_paths.append(docx_path)
-    #         output_dir = os.path.join(st.session_state.user_save_path, "downloads")
-    #         img_paths, pdf_path = convert_docx_to_img(docx_path, output_dir, idx)
-    #         formatted_pdf_paths.append(pdf_path)
-    #         image_paths.append(img_paths)
-    #     c1, c2 = st.columns([1, 3])
-    #     with c1:
-    #         print("image paths", image_paths)
-    #         previews = [paths[0] for paths in image_paths]
-    #         selected_idx=image_select("Select a template", images=previews, return_value="index")
-    #         st.markdown(general_button, unsafe_allow_html=True)    
-    #         st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
-    #         st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
-    #     with c2:
-    #         st.image(image_paths[selected_idx])
-
-
-        
-            
-
     
-    
-    # @st.experimental_dialog("Please pick out a template", width="large")
-    # def resume_template_popup(self,):
-    
-    #     # if type=="cover letter":
-    #     #     thumb_images = ["./cover_letter_templates/template1.png", "./cover_letter_templates/template2.png"]
-    #     #     images =  ["./backend/cover_letter_templates/template1.png", "./backend/cover_letter_templates/template2.png"]
-    #     #     paths = ["./backend/cover_letter_templates/template1.docx", "./backend/cover_letter_templates/template2.docx"]
-    #     thumb_images = ["./resume_templates/functional/functional0_thmb.png","./resume_templates/functional/functional1_thmb.png", "./resume_templates/chronological/chronological0_thmb.png", "./resume_templates/chronological/chronological1_thmb.png"]
-    #     images =  ["./backend/resume_templates/functional/functional0.png","./backend/resume_templates/functional/functional1.png", "./backend/resume_templates/chronological/chronological0.png", "./backend/resume_templates/chronological/chronological1.png"]
-    #     paths = ["./resume_templates/functional/functional0.docx","./resume_templates/funcional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-    #     path=""
-    #     selected_idx=image_select("Select a template", images=thumb_images, return_value="index")
-    #     image_placeholder=st.empty()
-    #     image_placeholder.image(images[selected_idx])
-    #     path = paths[selected_idx]
-    #     if st.button("Next", ):
-    #         st.session_state["template_path"] = path
-    #         st.rerun()
-            
-  
-    # def update_personal_info(self, updated_dict):
-
-    #     """ updates user profile"""
-
-    #     #NOTE: updating nested columns such as work_experience is not yet supported, therefore for now, deleting and adding back whole dictionary
-    #     try:
-    #         users_table = retrieve_lancedb_table(lance_users_table)
-    #         print("value", updated_dict)
-    #         # users_table.update(where=f"user_id = '{self.userId}'", values=updated_dict)
-    #         add_to_lancedb_table(lance_users_table, [st.session_state["user_profile_dict"]], schema=convert_pydantic_schema_to_arrow(ResumeUsers), mode="overwrite" )
-    #         st.toast("Successfully updated profile")
-    #         print("Successfully updated user profile")
-    #     except Exception as e:
-    #         raise e
-
-        # update user information to vectorstore
-        # vectorstore=create_vectorstore("elasticsearch", index_name=self.userId)
-        # record_manager=create_record_manager(self.userId)
-        # update_index(docs, record_manager, vectorstore)
     
 
 

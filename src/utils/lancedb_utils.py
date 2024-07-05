@@ -5,7 +5,7 @@ from lancedb.pydantic import LanceModel, Vector
 import streamlit as st
 import os
 import numpy as np
-
+import pyarrow as pa
 
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
@@ -104,21 +104,67 @@ def clean_field(data, field_name):
 
 def retrieve_user_profile_dict(userId):
     users_table = retrieve_lancedb_table(lance_users_table)
-    profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-    if not profile_dict["user_id"]:
+    if users_table:
+        profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        if not profile_dict["user_id"]:
+            return None
+        for key in profile_dict:
+            if isinstance(profile_dict[key], list):
+                value=profile_dict[key][0]
+                if isinstance(value, str):  # Handle strings
+                    profile_dict[key]=value
+                    # print(profile_dict[key])
+                elif isinstance(value, (np.ndarray, list)):  # Handle arrays
+                    profile_dict[key]= clean_field(profile_dict, key)
+                    # print(profile_dict[key])
+                else:                   # Handle None and anomalies
+                    profile_dict[key] = ''
+        print(f"Retrieved user profile dict from lancedb")
+        return profile_dict
+    else:
         return None
-    for key in profile_dict:
-        if isinstance(profile_dict[key], list):
-            value=profile_dict[key][0]
-            if isinstance(value, str):  # Handle strings
-                profile_dict[key]=value
-                # print(profile_dict[key])
-            elif isinstance(value, (np.ndarray, list)):  # Handle arrays
-                profile_dict[key]= clean_field(profile_dict, key)
-                # print(profile_dict[key])
-            else:                   # Handle None and anomalies
-                profile_dict[key] = ''
-    print(f"Retrieved user profile dict from lancedb")
-    return profile_dict
 
 
+def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
+    fields = []
+    for field_name, model_field in schema.__fields__.items():
+        if field_name=="vector":
+            fields.append(pa.field(field_name, pa.list_(pa.float32())))
+        if hasattr(model_field.type_, "__fields__"):
+            # Assuming list of nested Pydantic models
+            nested_model = model_field.type_
+            print("list field name:", field_name)
+            nested_fields = [pa.field(name, pa.string()) for name in nested_model.__fields__.keys()]
+            # nested_fields = []
+            # for name, field in nested_model.__fields__.items():
+            #     if field.outer_type_ == list:
+            #         # Handle nested lists if needed
+            #         nested_fields.append(pa.field(name, pa.list_(pa.string())))
+            #     else:
+            #           # Determine the Arrow data type based on Pydantic field type
+            #         if issubclass(field.type_, str) or issubclass(field.type_, Optional):
+            #             arrow_type = pa.string()
+            #         elif issubclass(field.type_, int):
+            #             arrow_type = pa.int64()
+            #         else:
+            #             arrow_type = pa.string()  # Default to string if unsure
+            #         nested_fields.append(pa.field(name, arrow_type))
+            # Ensure fields are in the expected order for Arrow struct
+            nested_fields = sorted(nested_fields, key=lambda f: f.name)
+            fields.append(pa.field(field_name, pa.list_(pa.struct(nested_fields))))
+        else:
+            fields.append(pa.field(field_name, pa.string()))
+
+    return pa.schema(fields)
+
+def save_user_changes(userId, schema):
+
+    try:
+        delete_user_from_table(lance_users_table, userId)
+        schema = convert_pydantic_schema_to_arrow(schema)
+        add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
+        st.toast("Successfully updated profile")
+        del st.session_state["profile"]
+    except Exception as e:
+        raise e
+    

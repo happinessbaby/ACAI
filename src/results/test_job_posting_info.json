@@ -229,4 +229,77 @@
         "salary": "$60,000-75,000 annually",
         "on_site": false
     }
+}{
+    "The Data Analyst will support quantitative researc": {
+        "skills": [
+            {
+                "example": "The Data Analyst will need to identify potential data problems and recommend solutions to the research team.",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "The Data Analyst will collaborate on the dissemination of results through data visualization and preparing manuscripts, briefs, and reports.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "The Data Analyst will need to manage and fulfill rapid research requests and technical assistance needs of community partners and collaborators.",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "The Data Analyst will carry out data analysis plans for research projects using statistical software such as Stata and/or R.",
+                "skill": "Data analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will harmonize and prepare survey, administrative, and population data for statistical analysis, including transforming variables.",
+                "skill": "Data management",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will provide statistical analysis support for the development of manuscripts, reports, grants, and presentations.",
+                "skill": "Statistical analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will develop, maintain, and/or implement procedures for data entry, data cleaning, and documentation, including coding and documenting missing data and fixing miscoded data.",
+                "skill": "Data entry and cleaning",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will monitor data quality and identify potential data problems by performing systematic analytic queries of missing and inconsistent information and recommend solutions to the research team.",
+                "skill": "Data quality monitoring",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will create and maintain data dictionaries/codebooks and metadata for primary data collection projects and administrative/population data, as needed.",
+                "skill": "Data documentation",
+                "type": "hard skill"
+            },
+            {
+                "example": "The Data Analyst will create or provide data sets and subsets for specific analyses, including merging and harmonizing datasets.",
+                "skill": "Data manipulation",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "The Data Analyst will support quantitative research projects related to sexual and reproductive health by developing systems for data collection and management, analyzing primary and secondary data, and contributing to the interpretation of results. They will also collaborate on the dissemination of results through data visualization and preparing manuscripts, briefs and reports. This position reports to the Data Scientist, or Research Scientist, as assigned.\n\nEssential duties and responsibilities\n\n\n\n\n1. Contributes to the development of and carries out data analysis plans for research projects using diverse survey, administrative, and population data and statistical software, such as Stata and/or R\n2. Harmonizes and prepares survey, administrative, and population data for statistical analysis, including transforming variables\n3. Provides statistical analysis support for the development of manuscripts, reports, grants, and presentations\n4. Assists with managing and fulfilling rapid research requests and technical assistance needs of community partners and collaborators\n5. Develops, maintains and/or implements procedures for data entry, data cleaning, and documentation, including coding and documenting missing data and fixing miscoded data\n6. Monitors data quality and identifies potential data problems by performing systematic analytic queries of missing and inconsistent information and recommends solutions to the research team\n7. Creates and maintains data dictionaries/codebooks and meta data for primary data collection projects and administrative/population data, as needed\n8. Creates or provides data sets and subsets for specific analyses, including merging and harmonizing datasets \n\nOther duties and responsibilities\n",
+        "job": "",
+        "about_job": "",
+        "company": "",
+        "company_description": "",
+        "qualifications": [],
+        "responsibilities": [
+            "Contributes to the development of and carries out data analysis plans for research projects using diverse survey, administrative, and population data and statistical software, such as Stata and/or R",
+            "Harmonizes and prepares survey, administrative, and population data for statistical analysis, including transforming variables",
+            "Provides statistical analysis support for the development of manuscripts, reports, grants, and presentations",
+            "Assists with managing and fulfilling rapid research requests and technical assistance needs of community partners and collaborators",
+            "Develops, maintains and/or implements procedures for data entry, data cleaning, and documentation, including coding and documenting missing data and fixing miscoded data",
+            "Monitors data quality and identifies potential data problems by performing systematic analytic queries of missing and inconsistent information and recommends solutions to the research team",
+            "Creates and maintains data dictionaries/codebooks and meta data for primary data collection projects and administrative/population data, as needed",
+            "Creates or provides data sets and subsets for specific analyses, including merging and harmonizing datasets"
+        ],
+        "salary": "",
+        "on_site": null
+    }
 }

@@ -19,6 +19,8 @@ def nav_to(url):
     """ % (url)
     st.write(nav_script, unsafe_allow_html=True)
 
+
+            
 def user_menu(userId, page, ):
     _, c1 = st.columns([10, 1])
     with c1:
@@ -46,7 +48,13 @@ def user_menu(userId, page, ):
 
 
 def progress_bar():
-    progress = stx.stepper_bar(steps=["Step 1: Upload a profile", "Step 2: Reformat with a template",  "Step 3: Tailor to a job", "Step 4: Let AI evaluates it", "Step 5: Download your resume"])
+    #TODO create a custom one
+    progress = stx.stepper_bar(steps=["Step 1: Upload a profile", "Step 2: Reformat with a template",  "Step 3: Tailor to a job", "Step 4: Let AI evaluates it", "Step 5: Download your resume"],)
+    # if progress==0:
+    #     st.switch_page("pages/streamlit_user.py")
+    # if progress==1:
+    #     st.switch_page("pages/streamlit_reformat.py")
+    print("progress", progress)
     
 
 def site_logo():

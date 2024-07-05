@@ -431,7 +431,6 @@ def reformat_resume(template_path, info_dict, end_path):
 
 
     print("reformatting resume")
-    print(info_dict)
     doc_template = DocxTemplate(template_path)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     personal_context = {

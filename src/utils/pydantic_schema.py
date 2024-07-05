@@ -3,7 +3,7 @@ from typing import Any, List, Union, Dict, Optional
 import lancedb
 from lancedb.pydantic import LanceModel, Vector
 from utils.lancedb_utils import func
-import pyarrow as pa
+
 
  #NOTE: ALL NESTED PYDANTIC FIELDS ARE IN ALPHABETIC ORDER FOR THE SCHEMA VALIDATION
 class Job(BaseModel):
@@ -19,6 +19,9 @@ class Job(BaseModel):
     job_title: Optional[str] = Field(
         default="", description="the job position"
         )
+    location: Optional[str] = Field(
+        default="remote", description="the location where the candidate worked for this job position"
+    )
     start_date: Optional[str] = Field(
       default="", description = "the start date of the job position if available"
       )
@@ -83,10 +86,10 @@ class Projects(BaseModel):
 
 class Award(BaseModel):
     description: Optional[str] = Field(
-        default="", description = "what the award, honor, or strengh is about"
+        default="", description = "what the award or honor is about, should not be that of a certification"
     )
     title: Optional[str] = Field(
-        default="", description = "name of the award, honor, or strength"
+        default="", description = "name of the award or honor, this should not be a certification"
     )
 class Awards(BaseModel):
     awards: List[Award]
@@ -166,9 +169,9 @@ class SpecialResumeFields(BaseModel):
         default="", description = """the certifications listed in the resume, these should not be education but may be in the education sections.
         Includea all details about the certification including any description."""
     )
-    awards_honors_sections: Optional[str] = Field(
-        default="", description = """the awards, honors, strengths of the candidate listed in the resume. 
-         Includea all details of the award and strength including any description.
+    awards_honors_section: Optional[str] = Field(
+        default="", description = """the awards and honors listed in the resume. 
+         Includea all details of the award including any description.
         """    
     )
     projects_section: Optional[str] = Field(
@@ -286,34 +289,3 @@ class ResumeUsers(BaseModel):
     awards: Optional[List[Award]]
 
 
-def convert_pydantic_schema_to_arrow(schema: Any) -> pa.schema:
-    fields = []
-    for field_name, model_field in schema.__fields__.items():
-        if field_name=="vector":
-            fields.append(pa.field(field_name, pa.list_(pa.float32())))
-        if hasattr(model_field.type_, "__fields__"):
-            # Assuming list of nested Pydantic models
-            nested_model = model_field.type_
-            print("list field name:", field_name)
-            nested_fields = [pa.field(name, pa.string()) for name in nested_model.__fields__.keys()]
-            # nested_fields = []
-            # for name, field in nested_model.__fields__.items():
-            #     if field.outer_type_ == list:
-            #         # Handle nested lists if needed
-            #         nested_fields.append(pa.field(name, pa.list_(pa.string())))
-            #     else:
-            #           # Determine the Arrow data type based on Pydantic field type
-            #         if issubclass(field.type_, str) or issubclass(field.type_, Optional):
-            #             arrow_type = pa.string()
-            #         elif issubclass(field.type_, int):
-            #             arrow_type = pa.int64()
-            #         else:
-            #             arrow_type = pa.string()  # Default to string if unsure
-            #         nested_fields.append(pa.field(name, arrow_type))
-            # Ensure fields are in the expected order for Arrow struct
-            nested_fields = sorted(nested_fields, key=lambda f: f.name)
-            fields.append(pa.field(field_name, pa.list_(pa.struct(nested_fields))))
-        else:
-            fields.append(pa.field(field_name, pa.string()))
-
-    return pa.schema(fields)
