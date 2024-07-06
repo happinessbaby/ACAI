@@ -728,18 +728,62 @@ class User():
             st.text_input("Add a skill not from the suggestion", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
 
 
+    def display_field_details(self, field_name, x, field_detail, type):
+
+        def get_display():
+            for idx, value in enumerate(st.session_state["profile"][field_name][x][field_detail]):
+                add_detail(value, idx,)
+            if type=="bullet_points":
+                c1, c2, y = st.columns([1, 20, 1])
+                with y: 
+                    st.button("**+**", key=f"add_bullets_{field_detail}_{x}", on_click=add_new_entry, use_container_width=True)
+
+        def delete_entry(placeholder, idx):
+            if type=="bullet_points":
+                del st.session_state["profile"][field_name][x][field_detail][idx]
+            placeholder.empty()
+
+        def add_new_entry():
+    
+            st.session_state["profile"][field_name][x][field_detail].append("")
+
+        def add_detail(value, idx,):
+            
+            placeholder = st.empty()
+            if type=="bullet_points":
+                with placeholder.container():
+                    c1, c2, x = st.columns([1, 20, 1])
+                    with c1:
+                        st.write("•")
+                    with c2: 
+                        st.text_input("" , value=value, key=f"{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ))
+                    with x:
+                        st.button("**x**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+
+        def callback(idx, ):
+            
+            try:
+                new_entry = st.session_state[f"{field_name}_{x}_{field_detail}_{idx}"]
+                st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
+            except Exception:
+                pass
+
+
+        return get_display
+
+
     @st.experimental_fragment()   
     def display_field_content(self, name):
 
         """"""
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
-            for idx, cert in enumerate(st.session_state["profile"][name]):
-                print(idx, cert)
-                add_container(idx)
-            st.button("add", key=f"add_{name}_button", on_click=add_profile, use_container_width=True)
+            for idx, value in enumerate(st.session_state["profile"][name]):
+                print(idx, value)
+                add_container(idx, value)
+            st.button("add", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
-        def add_profile():
+        def add_new_entry():
             if name=="certifications":
                 st.session_state["profile"][name].append({"description":"","issue_date":"", "title":""})
             elif name=="work_experience":
@@ -752,7 +796,8 @@ class User():
             del st.session_state["profile"][name][idx]
             placeholder.empty()
 
-        def add_container(idx):
+
+        def add_container(idx, value):
 
             placeholder=st.empty()
             with placeholder.container(border=True):
@@ -760,10 +805,10 @@ class User():
                 with c1:
                     st.write(f"**{name} {idx}**")
                 with x:
-                    st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                    st.button("**x**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
                 if name=="awards":
-                    title = st.session_state["profile"]["awards"][idx]["title"]
-                    description = st.session_state["profile"]["awards"][idx]["description"]
+                    title = value["title"]
+                    description = value["description"]
                     st.text_input("Title", value=title, key=f"award_title_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
                 elif name=="certifications":
@@ -774,12 +819,12 @@ class User():
                     st.text_input("Issue date", value=date, key=f"cert_date_{idx}", on_change=callback, args=(idx, ))
                     st.text_area("Description", value=description, key=f"cert_descr_{idx}", on_change=callback, args=(idx,) )
                 elif name=="work_experience":
-                    job_title = st.session_state["profile"][name][idx]["job_title"]
+                    print(value)
+                    job_title = value["job_title"]
                     company = st.session_state["profile"][name][idx]["company"]
                     start_date = st.session_state["profile"][name][idx]["start_date"]
                     end_date = st.session_state["profile"][name][idx]["end_date"]
-                    description = st.session_state["profile"][name][idx]["description"]
-                    print(st.session_state["profile"][name][idx])
+                    descriptions = st.session_state["profile"][name][idx]["description"]
                     location = st.session_state["profile"][name][idx]["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
@@ -790,8 +835,13 @@ class User():
                         st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, )
-                    st.text_area("Description", value=description, key=f"experience_description_{idx}", on_change=callback, )
-                   
+                    st.text("description")
+                    # for x, descr in enumerate(descriptions):
+                    #     # st.text_input("-", value=descr, key=f"experience_descr_{idx}_{x}", on_change=callback, )
+                    #     # st.write("-" + descr)
+                    get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
+                    get_display()
+                
 
         def callback(idx):
             try:
@@ -994,8 +1044,9 @@ class User():
                 with st.expander("Awards & Honors"):
                     get_display=self.display_field_content("awards")
                     get_display()
-                
-           
+            #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
+            # placeholder = st.empty()
+            # st.button("Add Custom Field", on_click=self.add_custom_field, args=(placeholder, ))
             st.divider()
             c1, c2, c3 = st.columns([1, 1, 1])
             with c3:

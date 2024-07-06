@@ -10,8 +10,8 @@ class Job(BaseModel):
     company: Optional[str] = Field(
         default="", description = "the company of the job position"
     )
-    description: Optional[str] = Field(
-      default="", description = """description of the responsibilities and roles of the job experience, do not leave out any details"""
+    description: Optional[List[str]] = Field(
+      default=[], description = """bullet point description of the responsibilities and roles of the job experience, do not leave out any details"""
       )
     end_date: Optional[str] = Field(
       default="", description = "the end date of the job position if available"
@@ -108,12 +108,12 @@ class Certifications(BaseModel):
     certifications: List[Certification]
 
 class Qualification(BaseModel):
-    title: Optional[str] = Field(
-        default="", description = "The name of the skill or qualification"
-    )
     description: Optional[str] = Field(
         default="", description = """description of the qualification, such as details of accomplishments, skills that may include responsibilities, metrics, etc.
         Include all details. """
+    )
+    title: Optional[str] = Field(
+        default="", description = "The name of the skill or qualification"
     )
 class Qualifications(BaseModel):
     qualifications: List[Qualification]
