@@ -11182,4 +11182,464 @@
             }
         ]
     }
+}{
+    "./users/tebi@gmail.com/profile/uploads/9e692afe-3243-48c6-bb48-b21643b3d9f8.txt": {
+        "resume_content": "pages:2Yueqi Peng\nBirmingham, AL | 205-514-1594 | yueqipeng2021@gmail.com |  https://www.linkedin.com/in/yueqi-peng/\nData analyst with hands-on experience in conducting data analysis and modeling  and collaboration with teams and stakeholders . \nSeeking a business intelligence analyst  role where I can apply my ability to identify areas for improvement and recommend \nsolutions. Committed to leveraging my skills in the development and  maintainance of  data pipelines and reports to drive data-\ndriven solutions. \nRELEVANT SKILLS & EXPERTISE\nTools/Languages: Python, Excel, SQL, Tableau, Jupyter Notebook, \nData Management: Data Collection, Data Modeling,  Data Warehousing, Data and Statistical Analysis, Data Visualization, ETL\nStrengths: Problem-Solving, Communication, Critical Thinking, Project Management\nPROJECTS\nAI Career Builder Platform  \u2022 Personal\nOngoing\n\uf06cCreating a job recommendation system, mock interview experience,  and resume help feature using generative AI \n\uf06cImplementing Python programming, AWS services, backend and frontend development  and database solutons\nReinforcement Learning 3D Box Packing Capstone  \u2022 FourthBrain\n04/2023\n\uf06cSet up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training \nML agents, and trained multiple agents in 3D parallel settings\n\uf06cShowcased the project\u2019s business values, which included saving space in 3D box packing for logistic companies by increasing\nKPI for percentage of space packed from 70% to 75% \nBig Data ETL Capstone \u2022 Revature 03/2022\n\uf06cCollaborated with other team members to successfully set up a live-streaming ETL pipeline, composed of feeding from real-\ntime data source to downstream data analysis of financial data\n\uf06cHelped team members built cloud solutions and data analytic strategies\nPROFESSIONAL EXPERIENCE\nProfessionally Active Career Break 01/2023 \u2013 04/2024\n\uf06c One of multiple people laid off due to a cshange in company strategy\n\uf081Completed coursework via virtual platform and remote learning towards Machine Learning Engineer Program \ncertification at FourthBrain, developing statistical analysis, predictive modeling, and other ML skills\n\uf081Received professional training in Tableau through TaskImpetus Inc., buidling charts, dashboards and stories\n\uf081Developing an AI-powered career builder site, utilizing Python, database, and cloud computing skills \nBig Data Engineer \u2022 Walmart via Revature, Remote 01/2022 - 12/2022\n\uf06cImproved error handling and data handling to meet the functional programming paradigm, and aided in the management \nof data stored in Google Cloud Storage, including organizing data and implementing basic data lifecycle management \npolicies.\n\uf06cDeployed workflows through continuous integration, revamped old codebase, wrote unit tests, and composed bi-weekly \nteam documentations on team accomplishments, gaining skills in Scala, Spark, Jenkins and Jira\n\uf06cWorked with cross-functional teams to develop and document a low-level design feature, effectively bringing together \nglobal team members, overcoming communication barriers and facilitating team progressProfessionally Active Career Break              09/2018 - \n05/2021\n\uf06cRelocated to China for career path development, gaining experience in teaching and content writing\n\uf081Assisted in teaching live classes to non-speakers of English in China, planned course materials and assisted other \nnew teachers with preparation works, helping students and new teachers grow in skills and tenacity\n\uf081Performed freelance work in academic content research and content writing, acquiring critical thinking and \nresearch skills in various academic fields\nStore Associate \u2022 Walmart, Trussville, Alabama 01/2018 - 06/2018\n\uf06cAddressed customer inquiries, resolved issues, and ensured  a positive shopping experience for customers, providing \nexceptional customer service that resulted in high customer satifaction rate\n\uf06cCommunicated effectively with colleagues and management regarding task assignments, store policies, and customer \nfeedback, and assisted fellow associates during busy periods or when additional help is needed\nEDUCATION & CERTIFICATIONS\nGoogle Data Analytics Certificate \u2022 Merit America, Virtual Expected in 07/2024\n\uf0b7Cultivated skills in the collection, transformation, organization, and visualization  of data in order to draw conclusions, make \npredictions, and drive informed decision-making\n\uf0b7Completed hands-on labs and a capstone project (case study) to master the art and science of asking questions, preparing, \nprocessing, analyzing, visualizing, and acting on data as encountered in real-world scenarios\n\uf0b7Collaborated with training cohort to gain proficiency in team-based project management, task prioritization, problem-\nsolving, and frequent use of Google Workspace  tools\nMachine Learning Engineer Program \u2022 FourthBrain, Virtual                                                                                                                    04/2023\n\uf0b7Utilized Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing \npricing trends developing forecasting models, and conducting statistical analysis\nCELTA (Certificate in Teaching English to Speakers of Other Languages ) \u2022 Cambridge English, Virtual                                           10/2020\nBachelors of Arts in Mathematics \u2022 Universtity of Chicago, Chicago, IL                                                                                                  06/2013",
+        "pursuit_jobs": "business intelligence analyst",
+        "summary_objective": "Data analyst with hands-on experience in conducting data analysis and modeling, seeking a business intelligence analyst role where I can apply my skills in developing and maintaining data pipelines and reports to drive data-driven solutions.",
+        "work_experience_section": "Big Data Engineer at Walmart via Revature, Remote 01/2022 - 12/2022: Improved error handling and data handling to meet the functional programming paradigm, aided in the management of data stored in Google Cloud Storage, deployed workflows through continuous integration, revamped old codebase, wrote unit tests, composed bi-weekly team documentations, gained skills in Scala, Spark, Jenkins, and Jira. Store Associate at Walmart, Trussville, Alabama 01/2018 - 06/2018: Addressed customer inquiries, resolved issues, ensured a positive shopping experience for customers, communicated effectively with colleagues and management, assisted fellow associates, achieved high customer satisfaction rate. Professionally Active Career Break 09/2018 - 05/2021: Relocated to China for career path development, gained experience in teaching and content writing, assisted in teaching live classes, planned course materials, performed freelance work in academic content research and writing.",
+        "skills_section": "Python, Excel, SQL, Tableau, Jupyter Notebook, Data Collection, Data Modeling, Data Warehousing, Data and Statistical Analysis, Data Visualization, ETL, Problem-Solving, Communication, Critical Thinking, Project Management",
+        "name": "Yueqi Peng",
+        "email": "yueqipeng2021@gmail.com",
+        "phone": "205-514-1594",
+        "city": "Birmingham",
+        "state": "AL",
+        "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+        "website": null,
+        "coursework": "Data Analytics, Machine Learning, Teaching English to Speakers of Other Languages",
+        "degree": "Bachelors of Arts",
+        "study": "Mathematics",
+        "graduation_year": "06/2013",
+        "gpa": null,
+        "institution": "University of Chicago",
+        "work_experience": [
+            {
+                "company": "Walmart via Revature",
+                "description": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations",
+                    "Gained skills in Scala, Spark, Jenkins, and Jira"
+                ],
+                "end_date": "12/2022",
+                "job_title": "Big Data Engineer",
+                "location": "Remote",
+                "start_date": "01/2022"
+            },
+            {
+                "company": "Walmart",
+                "description": [
+                    "Addressed customer inquiries",
+                    "Resolved issues",
+                    "Ensured a positive shopping experience for customers",
+                    "Communicated effectively with colleagues and management",
+                    "Assisted fellow associates",
+                    "Achieved high customer satisfaction rate"
+                ],
+                "end_date": "06/2018",
+                "job_title": "Store Associate",
+                "location": "Trussville, Alabama",
+                "start_date": "01/2018"
+            },
+            {
+                "company": "",
+                "description": [
+                    "Relocated to China for career path development",
+                    "Gained experience in teaching and content writing",
+                    "Assisted in teaching live classes",
+                    "Planned course materials",
+                    "Performed freelance work in academic content research and writing"
+                ],
+                "end_date": "05/2021",
+                "job_title": "Professionally Active Career Break",
+                "location": "remote",
+                "start_date": "09/2018"
+            }
+        ],
+        "included_skills": [
+            {
+                "example": "",
+                "skill": "Python",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Excel",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "SQL",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Tableau",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Jupyter Notebook",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data Collection",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data Modeling",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data Warehousing",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data and Statistical Analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data Visualization",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "ETL",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Problem-Solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Critical Thinking",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Project Management",
+                "type": "soft skill"
+            }
+        ],
+        "projects": [
+            {
+                "description": "Creating a job recommendation system, mock interview experience, and resume help feature using generative AI. Implementing Python programming, AWS services, backend and frontend development, and database solutions.",
+                "title": "AI Career Builder Platform \u2022 Personal"
+            },
+            {
+                "description": "Set up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training ML agents, and trained multiple agents in 3D parallel settings. Showcased the project\u2019s business values, including saving space in 3D box packing for logistic companies by increasing KPI for percentage of space packed from 70% to 75%",
+                "title": "Reinforcement Learning 3D Box Packing Capstone \u2022 FourthBrain"
+            },
+            {
+                "description": "Collaborated with other team members to successfully set up a live-streaming ETL pipeline, composed of feeding from real-time data source to downstream data analysis of financial data. Helped team members build cloud solutions and data analytic strategies",
+                "title": "Big Data ETL Capstone \u2022 Revature"
+            }
+        ],
+        "certifications": [
+            {
+                "description": "",
+                "issue_date": "04/2023",
+                "title": "Machine Learning Engineer Program"
+            },
+            {
+                "description": "",
+                "issue_date": "Expected in 07/2024",
+                "title": "Google Data Analytics Certificate"
+            },
+            {
+                "description": "",
+                "issue_date": "10/2020",
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)"
+            }
+        ],
+        "qualifications": [
+            {
+                "description": "Data analyst with hands-on experience in conducting data analysis and modeling and collaboration with teams and stakeholders. Seeking a business intelligence analyst role. Committed to leveraging skills in the development and maintenance of data pipelines and reports to drive data-driven solutions.",
+                "title": "Data Analyst"
+            },
+            {
+                "description": "Tools/Languages: Python, Excel, SQL, Tableau, Jupyter Notebook. Data Management skills include Data Collection, Data Modeling, Data Warehousing, Data and Statistical Analysis, Data Visualization, ETL. Strengths in Problem-Solving, Communication, Critical Thinking, Project Management.",
+                "title": "Skills & Expertise"
+            },
+            {
+                "description": "AI Career Builder Platform: Creating a job recommendation system, mock interview experience, and resume help feature using generative AI. Reinforcement Learning 3D Box Packing Capstone: Set up a 3D box packing environment, implemented reinforcement learning algorithm, showcased business values by increasing KPI for percentage of space packed. Big Data ETL Capstone: Collaborated to set up a live-streaming ETL pipeline, built cloud solutions, and data analytic strategies.",
+                "title": "Projects"
+            },
+            {
+                "description": "Professionally Active Career Break: Completed coursework towards Machine Learning Engineer Program certification, received Tableau training, and developed an AI-powered career builder site. Big Data Engineer at Walmart via Revature: Improved error handling and data handling, deployed workflows, revamped codebase, and worked with cross-functional teams. Store Associate at Walmart: Addressed customer inquiries, resolved issues, provided exceptional customer service, and communicated effectively with colleagues and management.",
+                "title": "Professional Experience"
+            },
+            {
+                "description": "Google Data Analytics Certificate: Cultivated skills in data collection, transformation, organization, visualization, completed hands-on labs, capstone project, and gained proficiency in team-based project management. Machine Learning Engineer Program: Utilized Exploratory Data Analysis, feature engineering, statistical modeling, and forecasting. CELTA Certificate: Certificate in Teaching English to Speakers of Other Languages. Bachelors of Arts in Mathematics from the University of Chicago.",
+                "title": "Education & Certifications"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "Developed a job recommendation system using generative AI to match candidates with suitable roles.",
+                "skill": "Problem-Solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Effectively communicated with colleagues, management, and stakeholders in roles such as a Big Data Engineer at Walmart.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Applied critical thinking in projects like the Reinforcement Learning 3D Box Packing Capstone to optimize space usage and increase KPIs.",
+                "skill": "Critical Thinking",
+                "type": "soft skill"
+            },
+            {
+                "example": "Successfully managed tasks and timelines in the Big Data ETL Capstone project, collaborating with team members to set up a live-streaming ETL pipeline.",
+                "skill": "Project Management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Utilized data analysis and modeling skills in projects such as the Reinforcement Learning 3D Box Packing Capstone to optimize logistics processes.",
+                "skill": "Data Analysis and Modeling",
+                "type": "hard skill"
+            },
+            {
+                "example": "Proficient in data collection, data warehousing, and ETL processes, demonstrated in projects like the Big Data ETL Capstone.",
+                "skill": "Data Management",
+                "type": "hard skill"
+            },
+            {
+                "example": "Skilled in Python, Excel, SQL, Tableau, and Jupyter Notebook for data analysis and visualization purposes.",
+                "skill": "Tools/Languages",
+                "type": "hard skill"
+            },
+            {
+                "example": "Applied machine learning techniques in projects like the AI Career Builder Platform to enhance job matching algorithms.",
+                "skill": "Machine Learning",
+                "type": "hard skill"
+            },
+            {
+                "example": "Utilized cloud services in projects like the AI Career Builder Platform for scalability and efficiency.",
+                "skill": "Cloud Computing",
+                "type": "hard skill"
+            },
+            {
+                "example": "Applied statistical analysis in data-driven solutions to derive insights and make informed decisions.",
+                "skill": "Statistics",
+                "type": "hard skill"
+            },
+            {
+                "example": "Effectively collaborated with team members in projects like the Big Data ETL Capstone, showcasing teamwork and coordination abilities.",
+                "skill": "Collaboration",
+                "type": "hard skill"
+            }
+        ]
+    }
+}{
+    "./users/tebi@gmail.com/profile/uploads/6a34526e-abb9-4fe0-89ec-9de2aa32742e.txt": {
+        "resume_content": "pages:2Yueqi Peng\nBirmingham, AL | 205-514-1594 | yueqipeng2021@gmail.com |  https://www.linkedin.com/in/yueqi-peng/\nData analyst with hands-on experience in conducting data analysis and modeling  and driving business strategies. Seeking a business \nintelligence analyst role where I can apply my ability to identify areas for improvement and recommend solutions . Committed to \nleveraging my skills in the maintainance of  data pipelines and reports to participate in data governance and security\nRELEVANT SKILLS & EXPERTISE\nTools/Languages: Python, Excel, SQL, Tableau, Jupyter Notebook, \nData Management: Data Collection, Data Modeling,  Data Storage, Data Analysis, Data Visualization, Statistical Analysis\nStrengths: Problem-Solving, Communication, Critical Thinking, Project Management\nPROJECTS\nAI Career Builder Platform  \u2022 Personal\nOngoing\n\uf06cCreating a job recommendation system, mock interview experience,  and resume help feature using generative AI \n\uf06cImplementing Python programming, AWS services, backend and frontend development  and database solutons\nReinforcement Learning 3D Box Packing Capstone  \u2022 FourthBrain\n04/2023\n\uf06cSet up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training \nML agents, and trained multiple agents in 3D parallel settings\n\uf06cShowcased the project\u2019s business values, which included saving space in 3D box packing for logistic companies by increasing\nKPI for percentage of space packed from 70% to 75% \nBig Data ETL Capstone \u2022 Revature 03/2022\n\uf06cCollaborated with other team members to successfully set up a live-streaming pipeline, composed of feeding from real-time\ndata source to downstream data analysis of financial data\n\uf06cHelped team members built cloud solutions and data analytic strategies\nPROFESSIONAL EXPERIENCE\nProfessionally Active Career Break 01/2023 \u2013 04/2024\n\uf06c One of multiple people laid off due to a cshange in company strategy\n\uf081Completed coursework via virtual platform and remote learning towards Machine Learning Engineer Program \ncertification at FourthBrain, developing statistical analysis, predictive modeling, and other ML skills\n\uf081Received professional training in Tableau through TaskImpetus Inc., buidling charts, dashboards and stories\n\uf081Developing an AI-powered career builder site, utilizing Python, database, and cloud computing skills \nBig Data Engineer \u2022 Walmart via Revature, Remote 01/2022 - 12/2022\n\uf06cImproved error handling and data handling to meet the functional programming paradigm, and aided in the management \nof data stored in Google Cloud Storage, including organizing data and implementing basic data lifecycle management \npolicies.\n\uf06cDeployed workflows through continuous integration, revamped old codebase, wrote unit tests, and composed bi-weekly \nteam documentations on team accomplishments, gaining skills in Scala, Spark, Jenkins and Jira\n\uf06cWorked with cross-functional teams to develop and document a low-level design feature, effectively bringing together \nglobal team members, overcoming communication barriers and facilitating team progressProfessionally Active Career Break              09/2018 - \n05/2021\n\uf06cRelocated to China for career path development, gaining experience in teaching and content writing\n\uf081Assisted in teaching live classes to non-speakers of English in China, planned course materials and assisted other \nnew teachers with preparation works,  helping students and new teachers grow in skills and tenacity\n\uf081Performed freelance work in academic content research and content writing, acquiring critical thinking and \nresearch skills in various academic fields\nStore Associate \u2022 Walmart, Trussville, Alabama 01/2018 - 06/2018\n\uf06cAddressed customer inquiries, resolved issues,  and ensured  a positive shopping experience for customers, providing \nexceptional customer service that resulted in high customer satifaction rate\n\uf06cCommunicated effectively with colleagues and management regarding task assignments, store policies, and customer \nfeedback, and assisted fellow associates during busy periods or when additional help is needed\nEDUCATION & CERTIFICATIONS\nGoogle Data Analytics Certificate \u2022 Merit America, Virtual Expected in 07/2024\n\uf0b7Cultivated skills in the collection, transformation, organization, and visualization  of data in order to draw conclusions, make \npredictions, and drive informed decision-making\n\uf0b7Completed hands-on labs and a capstone project (case study) to master the art and science of asking questions, preparing, \nprocessing, analyzing, visualizing, and acting on data as encountered in real-world scenarios\n\uf0b7Collaborated with training cohort to gain proficiency in team-based project management, task prioritization, problem-\nsolving, and frequent use of Google Workspace  tools\nMachine Learning Engineer Program \u2022 FourthBrain, Virtual                                                                                                                    04/2023\n\uf0b7Utilized Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing \npricing trends developing forecasting models, and conducting statistical analysis\nCELTA (Certificate in Teaching English to Speakers of Other Languages ) \u2022 Cambridge English, Virtual                                           10/2020\nBachelors of Arts in Mathematics \u2022 Universtity of Chicago, Chicago, IL                                                                                                  06/2013",
+        "pursuit_jobs": "business intelligence analyst",
+        "summary_objective": "Data analyst with hands-on experience in conducting data analysis and modeling, seeking a business intelligence analyst role.",
+        "work_experience_section": "Professionally Active Career Break 01/2023 \u2013 04/2024, Big Data Engineer at Walmart via Revature, Remote 01/2022 - 12/2022, Professionally Active Career Break 09/2018 - 05/2021, Store Associate at Walmart, Trussville, Alabama 01/2018 - 06/2018",
+        "skills_section": "Python, Excel, SQL, Tableau, Jupyter Notebook, Data Collection, Data Modeling, Data Storage, Data Analysis, Data Visualization, Statistical Analysis, Problem-Solving, Communication, Critical Thinking, Project Management",
+        "name": "Yueqi Peng",
+        "email": "yueqipeng2021@gmail.com",
+        "phone": "205-514-1594",
+        "city": "Birmingham",
+        "state": "AL",
+        "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+        "website": "",
+        "coursework": "",
+        "degree": "Bachelors of Arts",
+        "study": "Mathematics",
+        "graduation_year": "06/2013",
+        "gpa": "",
+        "institution": "Universtity of Chicago",
+        "work_experience": [
+            {
+                "company": "Walmart via Revature",
+                "description": [],
+                "end_date": "04/2024",
+                "job_title": "Big Data Engineer",
+                "location": "Remote",
+                "start_date": "01/2023"
+            },
+            {
+                "company": "Walmart",
+                "description": [],
+                "end_date": "06/2018",
+                "job_title": "Store Associate",
+                "location": "Trussville, Alabama",
+                "start_date": "01/2018"
+            }
+        ],
+        "included_skills": [
+            {
+                "example": "",
+                "skill": "Python",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Excel",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "SQL",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Tableau",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Jupyter Notebook",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Data Collection",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Data Modeling",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Data Storage",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Data Analysis",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Data Visualization",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Statistical Analysis",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Problem-Solving",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Critical Thinking",
+                "type": ""
+            },
+            {
+                "example": "",
+                "skill": "Project Management",
+                "type": ""
+            }
+        ],
+        "projects": [
+            {
+                "description": "Creating a job recommendation system, mock interview experience, and resume help feature using generative AI. Implementing Python programming, AWS services, backend and frontend development, and database solutions.",
+                "title": "AI Career Builder Platform"
+            },
+            {
+                "description": "Set up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training ML agents, and trained multiple agents in 3D parallel settings. Showcased the project\u2019s business values, which included saving space in 3D box packing for logistic companies by increasing KPI for percentage of space packed from 70% to 75%",
+                "title": "Reinforcement Learning 3D Box Packing Capstone"
+            },
+            {
+                "description": "Collaborated with other team members to successfully set up a live-streaming pipeline, composed of feeding from real-time data source to downstream data analysis of financial data. Helped team members built cloud solutions and data analytic strategies",
+                "title": "Big Data ETL Capstone"
+            }
+        ],
+        "certifications": [
+            {
+                "description": "",
+                "issue_date": "04/2023",
+                "title": "Machine Learning Engineer Program"
+            },
+            {
+                "description": "",
+                "issue_date": "Expected in 07/2024",
+                "title": "Google Data Analytics Certificate"
+            },
+            {
+                "description": "",
+                "issue_date": "10/2020",
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)"
+            }
+        ],
+        "qualifications": [
+            {
+                "description": "Data analyst with hands-on experience in conducting data analysis and modeling and driving business strategies. Seeking a business intelligence analyst role where I can apply my ability to identify areas for improvement and recommend solutions. Committed to leveraging my skills in the maintenance of data pipelines and reports to participate in data governance and security.",
+                "title": null
+            },
+            {
+                "description": "Tools/Languages: Python, Excel, SQL, Tableau, Jupyter Notebook. Data Management: Data Collection, Data Modeling, Data Storage, Data Analysis, Data Visualization, Statistical Analysis. Strengths: Problem-Solving, Communication, Critical Thinking, Project Management.",
+                "title": null
+            }
+        ],
+        "awards": [],
+        "suggested_skills": [
+            {
+                "example": "Identified and implemented innovative solutions to enhance job recommendation algorithms and mock interview experiences in the AI Career Builder Platform project.",
+                "skill": "Problem-Solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Effectively communicated complex technical concepts to non-technical team members and stakeholders in the Big Data ETL Capstone project, facilitating collaboration and understanding.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Applied critical thinking skills in analyzing data trends and patterns to optimize space utilization in the Reinforcement Learning 3D Box Packing Capstone project, resulting in a significant increase in key performance indicators.",
+                "skill": "Critical Thinking",
+                "type": "soft skill"
+            },
+            {
+                "example": "Successfully managed project timelines, resources, and stakeholder expectations in the development of the AI Career Builder Platform, ensuring timely delivery of features and functionalities.",
+                "skill": "Project Management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Demonstrated proficiency in data collection, modeling, storage, analysis, visualization, and statistical analysis across various projects and experiences.",
+                "skill": "Data Management",
+                "type": "hard skill"
+            },
+            {
+                "example": "Expertise in Python, Excel, SQL, Tableau, and Jupyter Notebook for data analysis and visualization tasks.",
+                "skill": "Tools/Languages",
+                "type": "hard skill"
+            },
+            {
+                "example": "Applied machine learning techniques in projects like the Reinforcement Learning 3D Box Packing Capstone to train ML agents and optimize algorithms for business value.",
+                "skill": "Machine Learning",
+                "type": "hard skill"
+            },
+            {
+                "example": "Utilized data engineering skills in setting up live-streaming pipelines and handling real-time data sources for financial analysis in the Big Data ETL Capstone project.",
+                "skill": "Data Engineering",
+                "type": "hard skill"
+            },
+            {
+                "example": "Deployed cloud solutions and workflows for continuous integration in projects like the AI Career Builder Platform, showcasing proficiency in cloud computing technologies.",
+                "skill": "Cloud Computing",
+                "type": "hard skill"
+            }
+        ]
+    }
 }

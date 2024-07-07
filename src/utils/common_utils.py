@@ -1014,6 +1014,8 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
         # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
         resume_info_dict[resume_path].update({"pursuit_jobs":basic_field_content["pursuit_jobs"]})
         resume_info_dict[resume_path].update({"summary_objective": basic_field_content["summary_objective_section"]})
+        resume_info_dict[resume_path].update({"work_experience_section": basic_field_content["work_experience_section"]})
+        resume_info_dict[resume_path].update({"skills_section": basic_field_content["skills_section"]})
         # resume_info_dict[resume_path].update(field_details)
         # work_experience = field_details["work_experience"]
         # if work_experience:
@@ -1064,8 +1066,9 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
             awards = create_pydantic_parser(special_field_content["awards_honors_section"], Awards)
             resume_info_dict[resume_path].update(awards)
         else:
-            awards = create_pydantic_parser(resume_content, Awards)
-            resume_info_dict[resume_path].update(awards)
+            resume_info_dict[resume_path].update({"awards":[]})
+        #     awards = create_pydantic_parser(resume_content, Awards)
+        #     resume_info_dict[resume_path].update(awards)
         suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
         resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
 

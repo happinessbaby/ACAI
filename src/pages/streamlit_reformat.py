@@ -15,19 +15,19 @@ def display_resume_templates():
     
     progress_bar()
     paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-    if "image_paths" not in st.session_state:
-        st.session_state["formatted_docx_paths"] = []
-        st.session_state["formatted_pdf_paths"] = []
-        st.session_state["image_paths"] = []
-        for idx, path in enumerate(paths):
-            filename = str(uuid.uuid4())
-            output_dir = st.session_state["users_download_path"]
-            docx_path = os.path.join(output_dir, filename+".docx")
-            reformat_resume(path, st.session_state["user_profile_dict"], docx_path)
-            st.session_state["formatted_docx_paths"].append(docx_path)
-            img_paths, pdf_path = convert_docx_to_img(docx_path, output_dir, idx)
-            st.session_state["formatted_pdf_paths"].append(pdf_path)
-            st.session_state["image_paths"].append(img_paths)
+    # if "image_paths" not in st.session_state:
+    st.session_state["formatted_docx_paths"] = []
+    st.session_state["formatted_pdf_paths"] = []
+    st.session_state["image_paths"] = []
+    for idx, path in enumerate(paths):
+        filename = str(uuid.uuid4())
+        output_dir = st.session_state["users_download_path"]
+        docx_path = os.path.join(output_dir, filename+".docx")
+        reformat_resume(path, st.session_state["profile"], docx_path)
+        st.session_state["formatted_docx_paths"].append(docx_path)
+        img_paths, pdf_path = convert_docx_to_img(docx_path, output_dir, idx)
+        st.session_state["formatted_pdf_paths"].append(pdf_path)
+        st.session_state["image_paths"].append(img_paths)
         
     c1, c2, c3 = st.columns([1, 3, 1])
     with c1:
@@ -41,17 +41,17 @@ def display_resume_templates():
         if st.button("Chose this template", key="resume_template_button"):
             st.session_state["user_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
             print("user picked template")
-    with c3:
-        float_container = st.container()
-        with float_container():
-            st.subheader("Step 3")
-            st.write("Ready to convert your profile into a downloadable resume. Try it now!")
-            st.markdown(general_button, unsafe_allow_html=True)    
-            st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-            reformat= st.button("Convert to a new resume ✨", key="resume_format_button", )
-            if reformat:
-                save_user_changes()
-                st.switch_page("pages/streamlit_reformat.py")
+    # with c3:
+    #     float_container = st.container()
+    #     with float_container:
+    #         st.subheader("Step 3")
+    #         st.write("Ready to convert your profile into a downloadable resume. Try it now!")
+    #         st.markdown(general_button, unsafe_allow_html=True)    
+    #         st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+    #         reformat= st.button("Convert to a new resume ✨", key="resume_format_button", )
+    #         if reformat:
+    #             save_user_changes()
+    #             st.switch_page("pages/streamlit_reformat.py")
             # st.subheader("Step 2")
             # st.write("Have a job posting you want to tailor to?")
             # st.markdown(general_button, unsafe_allow_html=True )

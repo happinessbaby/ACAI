@@ -75,3 +75,4 @@ python-dateutil
 docx2pdf
 PyPDF2
 stqdm
+plotly==5.22.0

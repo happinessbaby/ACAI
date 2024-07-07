@@ -78,43 +78,48 @@ else:
 #         tailor_resume(resume_file, posting_path, about_job)
 
 
-def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
+def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[str, str]:
 
     print("start evaluating...")
-    st.session_state["eval_dict"] = {"in_depth": {}, "comparison":{}}
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    if job_posting_dict:
-        pursuit_jobs=job_posting_dict["job"]
-    else:
+    if type=="general":
+        st.session_state["eval_dict"] = {"comparison":{}}
+        # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        # if job_posting_dict:
+        #     pursuit_jobs=job_posting_dict["job"]
+        # else:
         pursuit_jobs=resume_dict["pursuit_jobs"]
-    # Evaluate resume length
-    word_count = count_length(resume_file)
-    st.session_state.eval_dict.update({"word_count": word_count})
-    pattern = r'pages:(\d+)'
-    # Search for the pattern in the text
-    match = re.search(pattern, resume_content)
-    # If a match is found, extract and return the number
-    if match:
-        page_num = match.group(1)
-    else:
-        page_num = ""
-    st.session_state.eval_dict.update({"page_number": page_num})
-    # Research and analyze resume type
-    ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
-    st.session_state.eval_dict.update({"ideal_type": ideal_type})
-    type_dict= analyze_resume_type(resume_content,)
-    st.session_state.eval_dict.update(type_dict)
-    # Generate overall impression
-    section_names = {"objective_summary_section", "work_experience_section"}
-    for section in section_names:
-        comparison_dict = analyze_via_comparison(resume_dict[section], section,  pursuit_jobs)
-        st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        resume_content = resume_dict["resume_content"]
+        resume_file = resume_dict["resume_path"]
+        # Evaluate resume length
+        word_count = count_length(resume_file)
+        st.session_state.eval_dict.update({"word_count": word_count})
+        pattern = r'pages:(\d+)'
+        # Search for the pattern in the text
+        match = re.search(pattern, resume_content)
+        # If a match is found, extract and return the number
+        if match:
+            page_num = match.group(1)
+        else:
+            page_num = ""
+        st.session_state.eval_dict.update({"page_number": page_num})
+        # Research and analyze resume type
+        ideal_type = research_resume_type(resume_dict=resume_dict, )
+        st.session_state.eval_dict.update({"ideal_type": ideal_type})
+        # type_dict= analyze_resume_type(resume_content,)
+        # st.session_state.eval_dict.update(type_dict)
+        # Generate overall impression
+        section_names = ["summary_objective", "work_experience_section", "skills_section"]
+        for section in section_names:
+            comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
+            st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
-    cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-    st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
-    # # Evaluates specific field  content
-    evaluated_work= analyze_field_content(resume_dict["work_experience_section"], "work experience")
-    st.session_state.eval_dict["in_depth"].update({"work experience":evaluated_work})
+        cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
+        st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
+    # Evaluates specific field  content
+    if type=="work_experience":
+        work_experience= resume_dict["work_experience_section"]
+        evaluated_work= analyze_field_content(work_experience, "work experience")
+        st.session_state["evaluated_work_experience"]=evaluated_work
 
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
@@ -149,7 +154,7 @@ def analyze_field_content(field_content, field_type):
         return response
             
 
-def analyze_via_comparison(field_content, field_type,  jobs):
+def analyze_via_comparison(field_content, field_name, jobs):
 
     """Analyzes overall resume by comparing to other samples"""
 
@@ -158,17 +163,19 @@ def analyze_via_comparison(field_content, field_type,  jobs):
     sample_tools, tool_names = create_sample_tools(related_samples, "resume")
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-    Assess the quality of the candidate resume's field content in terms of how closely it resembles other sample resume's field content.
+    Assess the quality of the candidate resume's {field_name} in terms of how closely it resembles other sample resume's {field_name}.
     
-    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. Research only the {field_type} of these resume.
+    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
     
     The sample resume are for comparative purpose only. You should not analyze them. 
 
-    As your final output, analyze how close the candidate resume's {field_type} resembles other sample {field_type} resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+    Please search for only the {field_name} of the sample resume.
+
+    As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
     Please output one of the metrics meter and provide your reasoning. 
 
-    candidate resume field content: {field_content} \
+    candidate resume's {field_name} content: {field_content} \
     
     """
     # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 

@@ -259,6 +259,8 @@ class ResumeUsers(BaseModel):
     user_id: str = Field(..., description="ID of user")
     resume_path: str = Field(..., description="path to the resume")
     resume_content: str
+    # contact: Contact
+    # education: Education
     name: Optional[str] 
     email: Optional[str]
     phone: Optional[str]
@@ -272,12 +274,11 @@ class ResumeUsers(BaseModel):
     graduation_year:Optional[str]
     gpa:Optional[str]
     coursework: Optional[str]
-    # sections: ResumeFields
     pursuit_jobs: Optional[str]
     summary_objective: Optional[str]
-    # skills_section: Optional[str]
-    # work_experience_section:  Optional[str]
-    # accomplishments_section: Optional[str]
+    skills_section: Optional[str]
+    work_experience_section:  Optional[str]
+    # qualifications_section: Optional[str]
     # awards_honors_section: Optional[str] 
     # projects_section: Optional[str]
     work_experience: Optional[List[Job]] = Field(..., description="List of jobs")
