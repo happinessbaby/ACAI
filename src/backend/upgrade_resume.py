@@ -235,7 +235,7 @@ def analyze_resume_type(resume_content, ):
     type_dict = create_pydantic_parser(response, ResumeType)
     return type_dict
 
-def tailor_resume(resume_dict={}, job_posting_dict={}):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
 
     # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)

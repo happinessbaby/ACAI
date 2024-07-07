@@ -38,7 +38,7 @@ from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import plotly.graph_objects as go
-
+from st_pages import get_pages, get_script_run_ctx 
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -67,6 +67,8 @@ float_init()
 #     unsafe_allow_html=True,
 # )
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
+pages = get_pages("")
+ctx = get_script_run_ctx()
 
 class User():
 
@@ -760,19 +762,20 @@ class User():
                     with c1:
                         st.write("•")
                     with c2: 
-                        st.text_input(" " , value=value, key=f"{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ))
+                        text = st.text_input(" " , value=value, key=f"bullet_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
                     with x:
                         st.button("**x**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
 
         def callback(idx, ):
             
-            print("???????????????")
             try:
-                new_entry = st.session_state[f"{field_name}_{x}_{field_detail}_{idx}"]
-                st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
-                print("added new bullet point")
-            except Exception:
-                print("KJHVBHJKLJHBBHJK")
+                new_entry = st.session_state[f"bullet_{field_name}_{x}_{field_detail}_{idx}"]
+                if new_entry:
+                    st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
+                    print("added new bullet point")
+                    st.toast("YYYYYYYYYYYYYY")
+            except Exception as e:
+                st.toast(e)
                 pass
 
 
@@ -794,7 +797,7 @@ class User():
             if name=="certifications":
                 st.session_state["profile"][name].append({"description":"","issue_date":"", "title":""})
             elif name=="work_experience":
-                st.session_state["profile"][name].append({"company":"","description":"","end_date":"","job_title":"","location":"","start_date":""})
+                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","job_title":"","location":"","start_date":""})
             elif name=="awards":
                 st.session_state["profile"][name].append({"title":"","description":""})
             
@@ -851,6 +854,7 @@ class User():
                 
 
         def callback(idx):
+       
             try:
                 title = st.session_state[f"award_title_{idx}"]
                 if title:
@@ -922,7 +926,30 @@ class User():
                 pass
             
         return get_display
-      
+
+    def display_field_eval_tailor(self, field_name):
+
+        def tailor_callback():
+            if "job_posting_dict" in st.session_state:
+                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
+            else:
+                self.job_posting_popup()
+
+        if f"evaluated_{field_name}" in st.session_state:
+            with st.popover("Show evaluation"):
+                evaluation = st.session_state[f"evaluated_{field_name}"]
+                st.write(evaluation)
+                st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+        else:
+            evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+        if f"tailored_{field_name}" in st.session_state:
+            with st.popover("Show tailoring"):
+                tailoring = st.session_state[f"tailored_{field_name}"]
+                st.write(tailoring)
+        else:
+            tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=tailor_callback, args=(field_name, ))
+          
+    
     @st.experimental_dialog("Please provide a job posting")   
     def job_posting_popup(self):
 
@@ -967,7 +994,8 @@ class User():
         """Loads from user file and displays profile"""
         # st.subheader("Your Profile")
 
-        progress_bar()
+        current_page = self.get_current_page()
+        progress_bar(current_page["page_name"])
         # self.updated_dict = {}
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
@@ -1032,32 +1060,17 @@ class User():
                     if st.text_area("Course work", value=coursework, key="profile_coursework", )!=coursework:
                         st.session_state["profile"]["coursework"] = st.session_state["profile_coursework"]
             with st.expander(label="Summary/Objective",):
+                self.display_field_eval_tailor("summary")
                 summary = st.session_state["profile"]["summary_objective"]
                 if st.text_area("Summary", value=summary, key="profile_summary", label_visibility="hidden")!=summary:
                     # self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
             with st.expander(label="Work experience",):
-                if "evaluated_work_experience" in st.session_state:
-                    with st.popover("Show evaluation"):
-                        evaluation = st.session_state["evaluated_work_experience"]
-                        st.write(evaluation)
-                        st.button("evaluate again ✨", on_click=evaluate_resume, args=("", st.session_state["profile"], "work_experience", ), )
-                else:
-                    evaluate = st.button("evaluate ✨", on_click=evaluate_resume, args=("", st.session_state["profile"], "work_experience", ), )
-                if "tailored_work_experience" in st.session_state:
-                    with st.popover("Show tailoring"):
-                        tailoring = st.session_state["tailored_work_experience"]
-                        st.write(tailoring)
-                else:
-                    tailor = st.button("tailor ✨", )
-                    if tailor:
-                        if "job_posting_dict" in st.session_state:
-                            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"])
-                        else:
-                            self.job_posting_popup()
+                self.display_field_eval_tailor("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
             with st.expander(label="Skills",):
+                self.display_field_eval_tailor("skills")
                 included_skills = st.session_state["profile"]["included_skills"]
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= set()
@@ -1090,19 +1103,15 @@ class User():
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
                 if st.button("Upload a new resume", ):
                     self.delete_profile_popup()
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                if "finished_eval" not in st.session_state:
-                    self.display_evaluation()
-                    evaluate_resume(resume_dict=st.session_state["profile"], type="general")
-                else:
-                    self.display_evaluation()
-            #     st.write("Want to have AI evaluate it?")
-            #     st.markdown(general_button, unsafe_allow_html=True )
-            #     st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-            #     evaluate = st.button("Evaluate my profile ✨", key="resume_evaluate_button", )
-            #     if evaluate:
+        # with eval_col:
+        #     float_container= st.container()
+        #     with float_container:
+        #         if "finished_eval" not in st.session_state:
+        #             self.display_evaluation()
+        #             evaluate_resume(resume_dict=st.session_state["profile"], type="general")
+        #         else:
+        #             self.display_evaluation()
+        
 
 
     def get_dict(self, type):
@@ -1198,6 +1207,17 @@ class User():
             return True
         except Exception as e:
             return False
+        
+    def get_current_page(self, ):
+        try:
+            current_page = pages[ctx.page_script_hash]
+        except KeyError:
+            current_page = [
+                p for p in pages.values() if p["relative_page_hash"] == ctx.page_script_hash
+            ][0]
+        print("Current page:", current_page)
+        return current_page
+
         
 
 

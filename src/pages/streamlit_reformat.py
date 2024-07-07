@@ -9,11 +9,15 @@ from backend.upgrade_resume import tailor_resume
 from pages.streamlit_utils import progress_bar
 from streamlit_float import *
 from utils.common_utils import process_uploads, process_links, process_inputs
+from st_pages import get_pages, get_script_run_ctx 
 
+pages = get_pages("")
+ctx = get_script_run_ctx()
 
 def display_resume_templates():
     
-    progress_bar()
+    current_page = get_current_page()
+    progress_bar(current_page["page_name"])
     paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
     # if "image_paths" not in st.session_state:
     st.session_state["formatted_docx_paths"] = []
@@ -77,7 +81,7 @@ def display_resume_templates():
             #                                         )
                 
             #     tailor_resume()
-            float_parent()
+            # float_parent()
     # with c3:
     #     st.subheader("Last step! Let AI Evaluate it for one final check!")
     #     if st.button("Evaluate my resume", key="resume_evaluation_button",):
@@ -128,5 +132,16 @@ def process(self, uploads, upload_type) -> None:
             else:
                 st.info("Please share a job description here")
 
+def get_current_page():
+    try:
+        current_page = pages[ctx.page_script_hash]
+    except KeyError:
+        current_page = [
+            p for p in pages.values() if p["relative_page_hash"] == ctx.page_script_hash
+        ][0]
+    print("Current page:", current_page)
+    return current_page
+
 
 display_resume_templates()
+

@@ -3,9 +3,18 @@ import time
 from streamlit_modal import Modal
 import os
 import extra_streamlit_components as stx
+# Note that you can also import these from streamlit directly
+from st_pages import get_pages, get_script_run_ctx 
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
+
+
+
+pages = get_pages("")
+ctx = get_script_run_ctx()
+
+
 
 @st.experimental_dialog(" ", )
 def loading(text, container=st.empty(), interval=5):  
@@ -47,13 +56,15 @@ def user_menu(userId, page, ):
                 #         st.switch_page("pages/streamlit_user.py")
 
 
-def progress_bar():
+def progress_bar(current_page):
     #TODO create a custom one
     progress = stx.stepper_bar(steps=["Step 1: Upgrade your profile", "Step 3: Pick a template", "Step 4: Download your resume"],)
     # if progress==0:
-    #     st.switch_page("pages/streamlit_user.py")
+    #     if current_page!="streamlit_user":
+    #         st.switch_page("pages/streamlit_user.py")
     if progress==1:
-        st.switch_page("pages/streamlit_reformat.py")
+        if current_page!="streamlit_reformat":
+            st.switch_page("pages/streamlit_reformat.py")
     print("progress", progress)
     
 
