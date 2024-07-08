@@ -737,6 +737,7 @@ class User():
     def display_field_details(self, field_name, x, field_detail, type):
 
         def get_display():
+       
             for idx, value in enumerate(st.session_state["profile"][field_name][x][field_detail]):
                 add_detail(value, idx,)
             if type=="bullet_points":
@@ -758,12 +759,12 @@ class User():
             placeholder = st.empty()
             if type=="bullet_points":
                 with placeholder.container():
-                    c1, c2, x = st.columns([1, 20, 1])
+                    c1, c2, x_col = st.columns([1, 20, 1])
                     with c1:
                         st.write("•")
                     with c2: 
                         text = st.text_input(" " , value=value, key=f"bullet_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
-                    with x:
+                    with x_col:
                         st.button("**x**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
 
         def callback(idx, ):
@@ -772,10 +773,7 @@ class User():
                 new_entry = st.session_state[f"bullet_{field_name}_{x}_{field_detail}_{idx}"]
                 if new_entry:
                     st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
-                    print("added new bullet point")
-                    st.toast("YYYYYYYYYYYYYY")
             except Exception as e:
-                st.toast(e)
                 pass
 
 
@@ -934,20 +932,22 @@ class User():
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
             else:
                 self.job_posting_popup()
-
-        if f"evaluated_{field_name}" in st.session_state:
-            with st.popover("Show evaluation"):
-                evaluation = st.session_state[f"evaluated_{field_name}"]
-                st.write(evaluation)
-                st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
-        else:
-            evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
-        if f"tailored_{field_name}" in st.session_state:
-            with st.popover("Show tailoring"):
-                tailoring = st.session_state[f"tailored_{field_name}"]
-                st.write(tailoring)
-        else:
-            tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=tailor_callback, args=(field_name, ))
+        _, c1, c2 = st.columns([4, 1, 1])
+        with c1:
+            if f"evaluated_{field_name}" in st.session_state:
+                with st.popover("Show evaluation"):
+                    evaluation = st.session_state[f"evaluated_{field_name}"]
+                    st.write(evaluation)
+                    st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+            else:
+                evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+        with c2:
+            if f"tailored_{field_name}" in st.session_state:
+                with st.popover("Show tailoring"):
+                    tailoring = st.session_state[f"tailored_{field_name}"]
+                    st.write(tailoring)
+            else:
+                tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=tailor_callback, args=(field_name, ))
           
     
     @st.experimental_dialog("Please provide a job posting")   
