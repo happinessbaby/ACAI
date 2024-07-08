@@ -55,14 +55,14 @@ class Contact(BaseModel):
         )
         
 class Education(BaseModel):
-    coursework: Optional[str] = Field(
-        default="", description = "the courseworks studied while attending the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
-    )
     degree: Optional[str] = Field(
         default="", description="the highest degree of education. THIS SHOULD NOT BE A CERTIFICATION. "
     )
     study: Optional[str] = Field(
         default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
+    )
+    institution: Optional[str] = Field(
+        default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
     graduation_year:Optional[str] = Field(
         default="", description="the year of graduation from the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
@@ -70,8 +70,8 @@ class Education(BaseModel):
     gpa:Optional[str] = Field(
         default="", description="the gpa of the highest degree of graduation. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
-    institution: Optional[str] = Field(
-        default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
+    coursework: Optional[List[str]] = Field(
+        default=[], description = "the courseworks studied while attending the highest degree of education. "
     )
 
 class Project(BaseModel):
@@ -86,25 +86,52 @@ class Projects(BaseModel):
 
 class Award(BaseModel):
     description: Optional[str] = Field(
-        default="", description = "what the award or honor is about, should not be that of a certification"
+        default="", description = "any descriptions of the award or honor"
     )
     title: Optional[str] = Field(
-        default="", description = "name of the award or honor, this should not be a certification"
+        default="", description = """the award or honor listed in the resume, this should not be job-specific ceritifications or skills, but awards received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. 
+        """    
     )
 class Awards(BaseModel):
     awards: List[Award]
 
 class Certification(BaseModel):
     description: Optional[str] = Field(
-        default="", descripton = "include all details and description about the certification"
+        default="", descripton = "details and description about the certification"
     )
     issue_date: Optional[str] = Field(
         default="", description="the issuing date of the certification"
     )
+    issue_organization: Optional[str] = Field(
+        default="", description ="the industry-specific organization or professional body that issued the certification"
+    )
     title: Optional[str] = Field(
-        default="", description="name of the certification"
+        default="", description="""the title of the certifications, these may be in the education section, 
+        should be industry-specific, should not be a degree"""
     )
 class Certifications(BaseModel):
+    certifications: List[Certification]
+
+class License(BaseModel):
+    description: Optional[str] = Field(
+        default="", description = "any description of the license"
+    )
+    issue_date: Optional[str] = Field(
+        default="", description="the issuing date of the license"
+    )
+    issue_organization: Optional[str] = Field(
+        default="", description ="the government organization or professional body that issued the occupational license"
+    )
+    title: Optional[str] = Field(
+        default="", description="""the title of the occupational license"""
+    )
+class Licenses(BaseModel):
+    licenses: List[License]
+
+class SpecialFieldGroup1(BaseModel):
+    licenses: List[License]
+    awards: List[Award]
     certifications: List[Certification]
 
 class Qualification(BaseModel):
@@ -131,52 +158,46 @@ class Skill(BaseModel):
 class Skills(BaseModel):
     skills : List[Skill]
 
-class ResumeFieldDetail(BaseModel):
-    contact: Contact
-    work_experience:List[Job]
-    education: Education
-    projects: List[Project]
-    certifications: List[Certification]
+# class ResumeFieldDetail(BaseModel):
+#     contact: Contact
+#     work_experience:List[Job]
+#     education: Education
+#     projects: List[Project]
+#     certifications: List[Certification]
     
 
 class BasicResumeFields(BaseModel):
-    pursuit_jobs: Optional[str] = Field(
-        default= "", description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume. 
-        Separate each be a comma."""
-    )
     contact: Optional[Contact] = Field(
         default="", description = "The contact section of the resume, usually includes name, address, personal websites, etc."
     )
     education: Optional[Education] = Field(
         default="", description = "the education part of the resume where some degree is obtained"
     )
-    summary_objective_section: Optional[str] = Field(
-        default = "", description="the summary of objective section of the resume"
-    )
-    skills_section: Optional[str] = Field(
-        default="", description=" the skills section of the resume"
-    )
     work_experience_section:  Optional[str] = Field(
         default="", description=" the work experience section of the resume"
     )
 
 class SpecialResumeFields(BaseModel):
+    pursuit_jobs: Optional[str] = Field(
+        default= "", description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume. 
+        If there are many, separate each by a comma."""
+    )
+    summary_objective_section: Optional[str] = Field(
+        default = "", description="the summary or objective section of the resume"
+    )
+    skills_section: Optional[str] = Field(
+        default="", description=" the skills section of the resume, please include all listed skills and skillsets.  "
+    )
     qualifications_section: Optional[str] = Field(
-        default="", description="""the accomplishment or qualification section of the resume that is not work experience. 
-        This section should have detailed description of each accomplishment,  qualification, etc. If there's no description, do not include it here."""
-    )
-    certifications_section: Optional[str] = Field(
-        default="", description = """the certifications listed in the resume, these should not be education but may be in the education sections.
-        Includea all details about the certification including any description."""
-    )
-    awards_honors_section: Optional[str] = Field(
-        default="", description = """the awards and honors listed in the resume. 
-         Includea all details of the award including any description.
-        """    
+        default="", description="""the accomplishment/qualification section of the resume that is not work experience, 
+        should have detailed description of each accomplishment,  qualification, skill. If there's no description, do not include it here. """
     )
     projects_section: Optional[str] = Field(
         default="", description = """the projects sections of the resume. This should not be a section about qualifications or skills. 
-        Projects include personal projects or work-related projects. Include al details about the projects, including any description."""    
+        Projects include personal projects or work-related projects. Please include the whole section. """    
+    )
+    hobbies_section: Optional[List[str]] = Field(
+        default=[], description = "a list of hobbies in the resume"
     )
 
 
@@ -273,11 +294,11 @@ class ResumeUsers(BaseModel):
     study: Optional[str] 
     graduation_year:Optional[str]
     gpa:Optional[str]
-    coursework: Optional[str]
+    coursework: Optional[List[str]]
     pursuit_jobs: Optional[str]
     summary_objective: Optional[str]
-    skills_section: Optional[str]
-    work_experience_section:  Optional[str]
+    # skills_section: Optional[str]
+    # work_experience_section:  Optional[str]
     # qualifications_section: Optional[str]
     # awards_honors_section: Optional[str] 
     # projects_section: Optional[str]
@@ -288,5 +309,7 @@ class ResumeUsers(BaseModel):
     suggested_skills: Optional[List[Skill]] = Field(..., description="List of skills not in resume but suggested by AI to include")
     qualifications: Optional[List[Qualification]]
     awards: Optional[List[Award]]
+    licenses: Optional[List[License]]
+    hobbies: Optional[List[str]]
 
 

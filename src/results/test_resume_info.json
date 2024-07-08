@@ -11642,4 +11642,424 @@
             }
         ]
     }
+}{
+    "./users/tebi@gmail.com/profile/uploads/53be7746-a8f3-4ec4-8d8f-a7ae60d20670.txt": {
+        "resume_content": "pages:2Yueqi Peng\nBirmingham, AL | 205-514-1594 | yueqipeng2021@gmail.com |  https://www.linkedin.com/in/yueqi-peng/|\nyueqipeng.my.canva.site\nSoftware Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in \ndata management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist  role with \nopportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.  \nRELEVANT SKILLS & EXPERTISE\nTools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking\nDATA ANALYSIS PROJECTS\n(Optional) Project of Your Choosing [LINK] [DEMO] MM/YYYY\n\uf06cCleaned and analyzed a dataset on [subject of your choice - e.g. COVID statistics] in [tool of your choice - e.g. BigQuery, \nMySQL, MSSQL], creating views with data subsets to analyze [specific variables - e.g. growth/change over time, differences \nacross regions/countries, etc.]\n\uf06cImported views to [Microsoft Excel/Google Sheets] to clean and format data for use in visualizations\n\uf06cCreated various visuals in [tool of your choice - e.g. Tableau, Power BI, Excel], including [bar charts, line graphs, and a map \nchart/other visuals], to display data conclusions, then compiled them into an interactive dashboard\nData Analytics Capstone Project [LINK] [DEMO] \u2022 Google Data Analytics Professional Certificate MM/YYYY\n\uf06cImported 12 Excel datasheets with millions of entries into R, then used tidyr package to clean the datasets and prepare \nthem for analysis\n\uf06cJoined all of the datasets together, created subsets of the data, and converted each attribute to the proper data type before\nperforming analysis to find differences between members and casual customers\n\uf06cDeveloped visuals using the ggplot2 package to display the analysis results and provide meaningful conclusions for \nstakeholders to implement\nReinforcement Learning 3D Box Packing Capstone \u2022 FourthBrain 04/2023\n\uf06cSet up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training \nML agents, and trained multiple agents in 3D parallel settings, gaining programming skills in C# and ML life cycle knowledge\n\uf06cShowcased the project\u2019s business values, including saving space in 3D box packing for logistic companies by increasing KPI \nfor percentage of space packed from 70% to 75%\nBig Data ETL Capstone  \u2022 Revature                                                                                                                                                                03/2022\n\uf06cCollaborated with other team members to successfully set up a live-streaming Big Data pipeline composed of ingesting data\nfrom real-time data source and feeding to downstream sinks for data analysis\n\uf06cBuilt data collection and  data analytic strategies, including Kafka-Spark streaming and Spark ML integration\nPROFESSIONAL EXPERIENCE\nBig Data Engineer \u2022 Walmart via Revature, Remote 01/2022 - 12/2022\n\uf06cImproved error handling and data handling to meet the functional programming paradigm, and aided in the management \nof data stored in Google Cloud Storage, including organizing data and implementing basic data lifecycle management \npolicies\n\uf06cDeployed workflows through continuous integration, revamped old codebase, wrote unit tests, and composed bi-weekly \nteam documentations on team accomplishments, gaining skills in Scala, Spark, Jenkins and Jira\n\uf06cWorked with cross-functional teams to develop and document a low-level design, effectively bringing together global \nteams, overcoming communication barriers and ensuring team successProfessionally Active Career Break              09/2018 - \n05/2021\n\uf06cRelocated to China for career path development\n\uf081Assisted in teaching live class of 20+ adult English learners to non-speakers of English, planned course materials \nand assisted other new teachers with preparation works, ensuring the cultivation of a positive learning \nenvironment\n\uf081Performed weekly freelance work in academic content research and content writing with tight due dates, acquiring\nresearch skills in various academic fields and time management skills\nStore Associate \u2022 Walmart, Trussville, Alabama 01/2018 - 06/2018\n\uf06cCommunicated effectively with colleagues and management regarding task assignments, store policies, and customer \nfeedback, assisting fellow associates during busy periods or when additional help is needed \n\uf06cProvided clear and accurate information or solutions to customers and maintained a calm and professional demeanor, even\nin challenging situations, ensuring an above average satisfaction rate \nEDUCATION, CERTIFICATES, & CERTIFICATIONS\nGoogle Data Analytics Certificate \u2022 Merit America, Virtual 07/2024\n\uf06cCultivated skills in the collection, transformation, organization, and visualization of data in order to draw conclusions, \nmake predictions, and drive informed decision-making\n\uf06cCompleted hands-on labs and a capstone project (case study) to master the art and science of asking questions, preparing, \nprocessing, analyzing, visualizing, and acting on data as encountered in real-world scenarios\n\uf06cCollaborated with training cohort to gain proficiency in team-based project management, task prioritization, problem-\nsolving, and frequent use of Google Workspace tools\nMachine Learning Engineer Program \u2022 FourthBrain, Virtual                                                                                                                     04/2023\n\uf06cUtilized Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing \npricing trends developing forecasting models, and conducting statistical analysis\nCELTA (Certificate in Teaching English to Speakers of Other Languages) \u2022 Cambridge English, Virtual 10/2020\nBachelor of Arts in Mathematics \u2022 Univeristy of Chicago, Chicago, IL                                                                                                     06/2013",
+        "pursuit_jobs": "data strategist",
+        "summary_objective": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in data management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist role with opportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "hobbies": null,
+        "name": "Yueqi Peng",
+        "email": "yueqipeng2021@gmail.com",
+        "phone": "205-514-1594",
+        "city": "Birmingham",
+        "state": "AL",
+        "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+        "website": "yueqipeng.my.canva.site",
+        "coursework": [
+            "Data Collection",
+            "Data Cleaning",
+            "Data Structures",
+            "Data Analysis",
+            "Data Visualization",
+            "Data Ethics"
+        ],
+        "degree": "Bachelor of Arts",
+        "study": "Mathematics",
+        "graduation_year": "06/2013",
+        "gpa": null,
+        "institution": "Univeristy of Chicago, Chicago, IL",
+        "work_experience": [
+            {
+                "company": "Walmart via Revature",
+                "description": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "end_date": "12/2022",
+                "job_title": "Big Data Engineer",
+                "location": "Remote",
+                "start_date": "01/2022"
+            },
+            {
+                "company": "Walmart",
+                "description": [
+                    "Communicated effectively with colleagues and management regarding task assignments",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "end_date": "06/2018",
+                "job_title": "Store Associate",
+                "location": "Trussville, Alabama",
+                "start_date": "01/2018"
+            }
+        ],
+        "included_skills": [
+            {
+                "example": "",
+                "skill": "Spreadsheets",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "SQL (BigQuery, MySQL)",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Tableau",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "R (RStudio)",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Python",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Scala",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Spark",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Jupyter Notebook",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "GCP",
+                "type": "hard skill"
+            }
+        ],
+        "projects": [
+            {
+                "description": "Imported 12 Excel datasheets with millions of entries into R, then used tidyr package to clean the datasets and prepare them for analysis. Joined all datasets, created subsets, and converted attributes before analysis. Developed visuals using ggplot2 to display results.",
+                "title": "Data Analytics Capstone Project"
+            },
+            {
+                "description": "Set up a 3D box packing environment in Unity, implemented reinforcement learning algorithm, trained multiple agents, gained programming skills in C# and ML knowledge. Increased space packed from 70% to 75% for logistic companies.",
+                "title": "Reinforcement Learning 3D Box Packing Capstone"
+            },
+            {
+                "description": "Collaborated to set up a live-streaming Big Data pipeline ingesting data from real-time source for downstream analysis. Built data collection and analytic strategies including Kafka-Spark streaming and Spark ML integration.",
+                "title": "Big Data ETL Capstone"
+            }
+        ],
+        "qualifications": [
+            {
+                "description": "Improved error handling and data handling to meet the functional programming paradigm",
+                "title": ""
+            },
+            {
+                "description": "Aided in the management of data stored in Google Cloud Storage",
+                "title": ""
+            },
+            {
+                "description": "Deployed workflows through continuous integration, revamped old codebase, wrote unit tests, and composed bi-weekly team documentations on team accomplishments",
+                "title": ""
+            },
+            {
+                "description": "Relocated to China for career path development",
+                "title": ""
+            },
+            {
+                "description": "Assisted in teaching live class of 20+ adult English learners to non-speakers of English",
+                "title": ""
+            },
+            {
+                "description": "Performed weekly freelance work in academic content research and content writing with tight due dates",
+                "title": ""
+            },
+            {
+                "description": "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                "title": ""
+            },
+            {
+                "description": "Provided clear and accurate information or solutions to customers and maintained a calm and professional demeanor, even in challenging situations",
+                "title": ""
+            }
+        ],
+        "licenses": [
+            {
+                "description": "",
+                "issue_date": "07/2024",
+                "issue_organization": "Merit America",
+                "title": "Google Data Analytics Certificate"
+            }
+        ],
+        "certifications": [
+            {
+                "description": "",
+                "issue_date": "07/2024",
+                "issue_organization": "Merit America",
+                "title": "Google Data Analytics Certificate"
+            }
+        ],
+        "awards": [
+            {
+                "description": "",
+                "title": "Google Data Analytics Certificate"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "Ability to clean and analyze datasets, troubleshoot issues, and develop solutions in various data analysis projects",
+                "skill": "Problem-Solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Effective communication with colleagues, management, and customers in previous roles",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Managing multiple projects simultaneously, meeting tight deadlines for academic content research work, and completing tasks efficiently",
+                "skill": "Time Management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Data Management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Tools/Languages",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Software Development",
+                "type": "hard skill"
+            },
+            {
+                "example": "Experience in ML life cycle knowledge, reinforcement learning algorithms, and training ML agents in 3D parallel settings",
+                "skill": "Machine Learning",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Technical Skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Programming Languages",
+                "type": "hard skill"
+            }
+        ]
+    }
+}{
+    "./users/tebi@gmail.com/profile/uploads/b6e92efe-ff46-4cc8-bb43-696faa3a1ece.txt": {
+        "resume_content": "pages:2Yueqi Peng\nBirmingham, AL | 205-514-1594 | yueqipeng2021@gmail.com |  https://www.linkedin.com/in/yueqi-peng/|\nyueqipeng.my.canva.site\nSoftware Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Experienced in \ndata management, ETL, and ML with expertise in software development and data life cycles. Seeking a data strategist  role with \nopportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.  \nRELEVANT SKILLS & EXPERTISE\nTools/Languages: Spreadsheets, SQL (BigQuery, MySQL), Tableau, R (RStudio), Python, Scala, Spark, Jupyter Notebook, GCP\nData Management: Data Collection, Data Cleaning, Data Structures, Data Analysis, Data Visualization, Data Ethics\nSoftware Platforms: Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, Jira\nStrengths: Problem-Solving, Collaboration, Attention to Detail, Project Management, Troubleshooting, Critical Thinking\nDATA ANALYSIS PROJECTS\n(Optional) Project of Your Choosing [LINK] [DEMO] MM/YYYY\n\uf06cCleaned and analyzed a dataset on [subject of your choice - e.g. COVID statistics] in [tool of your choice - e.g. BigQuery, \nMySQL, MSSQL], creating views with data subsets to analyze [specific variables - e.g. growth/change over time, differences \nacross regions/countries, etc.]\n\uf06cImported views to [Microsoft Excel/Google Sheets] to clean and format data for use in visualizations\n\uf06cCreated various visuals in [tool of your choice - e.g. Tableau, Power BI, Excel], including [bar charts, line graphs, and a map \nchart/other visuals], to display data conclusions, then compiled them into an interactive dashboard\nData Analytics Capstone Project [LINK] [DEMO] \u2022 Google Data Analytics Professional Certificate MM/YYYY\n\uf06cImported 12 Excel datasheets with millions of entries into R, then used tidyr package to clean the datasets and prepare \nthem for analysis\n\uf06cJoined all of the datasets together, created subsets of the data, and converted each attribute to the proper data type before\nperforming analysis to find differences between members and casual customers\n\uf06cDeveloped visuals using the ggplot2 package to display the analysis results and provide meaningful conclusions for \nstakeholders to implement\nReinforcement Learning 3D Box Packing Capstone \u2022 FourthBrain 04/2023\n\uf06cSet up a 3D box packing environment in Unity gaming platform, implemented reinforcement learning algorithm for training \nML agents, and trained multiple agents in 3D parallel settings, gaining programming skills in C# and ML life cycle knowledge\n\uf06cShowcased the project\u2019s business values, including saving space in 3D box packing for logistic companies by increasing KPI \nfor percentage of space packed from 70% to 75%\nBig Data ETL Capstone  \u2022 Revature                                                                                                                                                                03/2022\n\uf06cCollaborated with other team members to successfully set up a live-streaming Big Data pipeline composed of ingesting data\nfrom real-time data source and feeding to downstream sinks for data analysis\n\uf06cBuilt data collection and  data analytic strategies, including Kafka-Spark streaming and Spark ML integration\nPROFESSIONAL EXPERIENCE\nBig Data Engineer \u2022 Walmart via Revature, Remote 01/2022 - 12/2022\n\uf06cImproved error handling and data handling to meet the functional programming paradigm, and aided in the management \nof data stored in Google Cloud Storage, including organizing data and implementing basic data lifecycle management \npolicies\n\uf06cDeployed workflows through continuous integration, revamped old codebase, wrote unit tests, and composed bi-weekly \nteam documentations on team accomplishments, gaining skills in Scala, Spark, Jenkins and Jira\n\uf06cWorked with cross-functional teams to develop and document a low-level design, effectively bringing together global \nteams, overcoming communication barriers and ensuring team successProfessionally Active Career Break              09/2018 - \n05/2021\n\uf06cRelocated to China for career path development\n\uf081Assisted in teaching live class of 20+ adult English learners to non-speakers of English, planned course materials \nand assisted other new teachers with preparation works, ensuring the cultivation of a positive learning \nenvironment\n\uf081Performed weekly freelance work in academic content research and content writing with tight due dates, acquiring\nresearch skills in various academic fields and time management skills\nStore Associate \u2022 Walmart, Trussville, Alabama 01/2018 - 06/2018\n\uf06cCommunicated effectively with colleagues and management regarding task assignments, store policies, and customer \nfeedback, assisting fellow associates during busy periods or when additional help is needed \n\uf06cProvided clear and accurate information or solutions to customers and maintained a calm and professional demeanor, even\nin challenging situations, ensuring an above average satisfaction rate \nEDUCATION, CERTIFICATES, & CERTIFICATIONS\nGoogle Data Analytics Certificate \u2022 Merit America, Virtual 07/2024\n\uf06cCultivated skills in the collection, transformation, organization, and visualization of data in order to draw conclusions, \nmake predictions, and drive informed decision-making\n\uf06cCompleted hands-on labs and a capstone project (case study) to master the art and science of asking questions, preparing, \nprocessing, analyzing, visualizing, and acting on data as encountered in real-world scenarios\n\uf06cCollaborated with training cohort to gain proficiency in team-based project management, task prioritization, problem-\nsolving, and frequent use of Google Workspace tools\nMachine Learning Engineer Program \u2022 FourthBrain, Virtual                                                                                                                     04/2023\n\uf06cUtilized Exploratory Data Analysis, feature engineering, and statistical principles and modeling technique through analyzing \npricing trends developing forecasting models, and conducting statistical analysis\nCELTA (Certificate in Teaching English to Speakers of Other Languages) \u2022 Cambridge English, Virtual 10/2020\nBachelor of Arts in Mathematics \u2022 Univeristy of Chicago, Chicago, IL                                                                                                     06/2013",
+        "licenses": [],
+        "awards": [],
+        "certifications": [
+            {
+                "description": "",
+                "issue_date": "07/2024",
+                "issue_organization": "Merit America",
+                "title": "Google Data Analytics Certificate"
+            },
+            {
+                "description": "",
+                "issue_date": "10/2020",
+                "issue_organization": "Cambridge English",
+                "title": "CELTA (Certificate in Teaching English to Speakers of Other Languages)"
+            }
+        ],
+        "pursuit_jobs": "data strategist",
+        "summary_objective": "Software Engineer with 2 years of experience in retail and currently completing Google Data Analytics certificate. Seeking a data strategist role with opportunities for leveraging my skills to drive insights and solutions, contributing to the growth and success of teams.",
+        "hobbies": null,
+        "name": "Yueqi Peng",
+        "email": "yueqipeng2021@gmail.com",
+        "phone": "205-514-1594",
+        "city": "Birmingham",
+        "state": "AL",
+        "linkedin": "https://www.linkedin.com/in/yueqi-peng/",
+        "website": "yueqipeng.my.canva.site",
+        "coursework": [],
+        "degree": "Bachelor of Arts",
+        "study": "Mathematics",
+        "graduation_year": "06/2013",
+        "gpa": "",
+        "institution": "University of Chicago",
+        "work_experience": [
+            {
+                "company": "Walmart via Revature",
+                "description": [
+                    "Improved error handling and data handling to meet the functional programming paradigm",
+                    "Aided in the management of data stored in Google Cloud Storage",
+                    "Deployed workflows through continuous integration",
+                    "Revamped old codebase",
+                    "Wrote unit tests",
+                    "Composed bi-weekly team documentations on team accomplishments",
+                    "Worked with cross-functional teams to develop and document a low-level design"
+                ],
+                "end_date": "12/2022",
+                "job_title": "Big Data Engineer",
+                "location": "Remote",
+                "start_date": "01/2022"
+            },
+            {
+                "company": "Walmart",
+                "description": [
+                    "Communicated effectively with colleagues and management regarding task assignments, store policies, and customer feedback",
+                    "Provided clear and accurate information or solutions to customers",
+                    "Maintained a calm and professional demeanor, even in challenging situations"
+                ],
+                "end_date": "06/2018",
+                "job_title": "Store Associate",
+                "location": "Trussville, Alabama",
+                "start_date": "01/2018"
+            }
+        ],
+        "included_skills": [
+            {
+                "example": "",
+                "skill": "Spreadsheets",
+                "type": "hard skill"
+            },
+            {
+                "example": "BigQuery, MySQL",
+                "skill": "SQL",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Tableau",
+                "type": "hard skill"
+            },
+            {
+                "example": "RStudio",
+                "skill": "R",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Python",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Scala",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Spark",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Jupyter Notebook",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "GCP",
+                "type": "hard skill"
+            }
+        ],
+        "projects": [
+            {
+                "description": "Imported Excel datasheets into R, cleaned datasets using tidyr package, and created visuals using ggplot2 package. Analyzed differences between members and casual customers.",
+                "title": "Data Analytics Capstone Project"
+            },
+            {
+                "description": "Set up a 3D box packing environment in Unity gaming platform and implemented reinforcement learning algorithm. Showcased business values of the project.",
+                "title": "Reinforcement Learning 3D Box Packing Capstone"
+            },
+            {
+                "description": "Collaborated on setting up a live-streaming Big Data pipeline and building data collection and analytic strategies using Kafka-Spark streaming and Spark ML integration.",
+                "title": "Big Data ETL Capstone"
+            }
+        ],
+        "qualifications": [
+            {
+                "description": "Cleaned and analyzed datasets on various subjects using tools like BigQuery, MySQL, and Excel.",
+                "title": ""
+            },
+            {
+                "description": "Developed visuals using ggplot2 package and created interactive dashboards.",
+                "title": ""
+            },
+            {
+                "description": "Experienced in data management, ETL, and ML with expertise in software development and data life cycles.",
+                "title": ""
+            },
+            {
+                "description": "Collaborated on projects involving Big Data ETL, reinforcement learning, and data analytics capstone projects.",
+                "title": ""
+            },
+            {
+                "description": "Proficient in Microsoft 365 Suite, Google Workspace, Slack, Zoom, Kaggle, Loom, Jenkins, and Jira.",
+                "title": ""
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "Demonstrated through projects like the Data Analytics Capstone Project and the Big Data ETL Capstone where the candidate cleaned and analyzed datasets to draw meaningful conclusions.",
+                "skill": "Problem-Solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Evident in the candidate's experience as a Big Data Engineer where they worked with cross-functional teams to develop and document designs, improving communication and ensuring team success.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Shown during the candidate's career break where they balanced teaching English, freelance work, and personal development while in China.",
+                "skill": "Time Management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Highlighted in various projects and roles where the candidate worked with team members to achieve project goals and success.",
+                "skill": "Collaboration",
+                "type": "soft skill"
+            },
+            {
+                "example": "Seen in the candidate's strengths, which include attention to detail, troubleshooting, and critical thinking.",
+                "skill": "Attention to Detail",
+                "type": "soft skill"
+            },
+            {
+                "example": "Expertise in data collection, cleaning, structures, analysis, visualization, and ethics.",
+                "skill": "Data Management",
+                "type": "hard skill"
+            },
+            {
+                "example": "Proficiency in tools/languages like SQL, Tableau, R, Python, Scala, Spark, and platforms like Microsoft 365 Suite, Google Workspace.",
+                "skill": "Software Development",
+                "type": "hard skill"
+            },
+            {
+                "example": "Experience in ML algorithms and models through projects like the Reinforcement Learning 3D Box Packing Capstone.",
+                "skill": "Machine Learning",
+                "type": "hard skill"
+            },
+            {
+                "example": "Demonstrated through projects like the Data Analytics Capstone Project and the Big Data ETL Capstone where the candidate analyzed data and developed insights.",
+                "skill": "Data Analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "Proficiency in tools like Jupyter Notebook, GCP, Kafka-Spark streaming, Spark ML integration, and programming skills in C#.",
+                "skill": "Technical Skills",
+                "type": "hard skill"
+            }
+        ]
+    }
 }

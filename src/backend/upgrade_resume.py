@@ -117,7 +117,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
     # Evaluates specific field  content
     if type=="work_experience":
-        work_experience= resume_dict["work_experience_section"]
+        work_experience= resume_dict["work_experience"]
         evaluated_work= analyze_field_content(work_experience, "work experience")
         st.session_state["evaluated_work_experience"]=evaluated_work
 
@@ -127,6 +127,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
     #     evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
     # in_depth_view = ""
     # return evaluation_dict
+
 
 
 
@@ -455,9 +456,16 @@ def reformat_resume(template_path, info_dict, end_path):
         "STUDY": func("study", "YOUR AREA OF STUDY"),
         "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
     }
+    other_context = {
+        "SUMMARY": func("summary_objective", "SUMMARY"),
+        "SKILLS": func("included_skills", "YOUR SKILLS"),
+        "PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),
+        "CERTIFICATIONS": func("certifications", "CERTIFICATIONS")
+    }
     context={}
     context.update(personal_context)
     context.update(education_context)
+    context.update(other_context)
     context.update({"WORK_EXPERIENCE": info_dict["work_experience"]})
     doc_template.render(context)
     if STORAGE=="LOCAL":

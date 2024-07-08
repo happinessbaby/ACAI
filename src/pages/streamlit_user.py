@@ -792,8 +792,8 @@ class User():
             st.button("add", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
-            if name=="certifications":
-                st.session_state["profile"][name].append({"description":"","issue_date":"", "title":""})
+            if name=="certifications" or name=="licenses":
+                st.session_state["profile"][name].append({"description":"","issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","job_title":"","location":"","start_date":""})
             elif name=="awards":
@@ -819,13 +819,15 @@ class User():
                     description = value["description"]
                     st.text_input("Title", value=title, key=f"award_title_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
-                elif name=="certifications":
-                    title = st.session_state["profile"]["certifications"][idx]["title"]
-                    date = st.session_state["profile"]["certifications"][idx]["issue_date"]
-                    description = st.session_state["profile"]["certifications"][idx]["description"]
-                    st.text_input("Title", value=title, key=f"cert_title_{idx}", on_change=callback, args=(idx, ))
-                    st.text_input("Issue date", value=date, key=f"cert_date_{idx}", on_change=callback, args=(idx, ))
-                    st.text_area("Description", value=description, key=f"cert_descr_{idx}", on_change=callback, args=(idx,) )
+                elif name=="certifications" or name=="licenses":
+                    title = value["title"]
+                    organization = value["issue_organization"]
+                    date = value["issue_date"]
+                    description = value["description"]
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
+                    st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ))
+                    st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ))
+                    st.text_area("Description", value=description, key=f"{name}_descr_{idx}", on_change=callback, args=(idx,) )
                 elif name=="work_experience":
                     print(value)
                     job_title = value["job_title"]
@@ -866,21 +868,27 @@ class User():
             except Exception:
                 pass
             try:
-                title = st.session_state[f"cert_title_{idx}"]
+                title = st.session_state[f"{name}_title_{idx}"]
                 if title:
-                    st.session_state["profile"]["certifications"][idx]["title"]=title
+                    st.session_state["profile"][name][idx]["title"]=title
             except Exception:
                 pass
             try:
-                date = st.session_state[f"cert_date_{idx}"]
+                date = st.session_state[f"{name}_date_{idx}"]
                 if date:
-                    st.session_state["profile"]["certifications"][idx]["issue_date"]=date
+                    st.session_state["profile"][name][idx]["issue_date"]=date
             except Exception:
                 pass
             try:
-                descr = st.session_state[f"cert_descr_{idx}"]
+                date = st.session_state[f"{name}_org_{idx}"]
+                if date:
+                    st.session_state["profile"][name][idx]["issue_date"]=date
+            except Exception:
+                pass
+            try:
+                descr = st.session_state[f"{name}_descr_{idx}"]
                 if descr:
-                    st.session_state["profile"]["certifications"][idx]["description"]=descr
+                    st.session_state["profile"][name][idx]["description"]=descr
             except Exception:
                 pass
             try:
@@ -999,7 +1007,7 @@ class User():
         # self.updated_dict = {}
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
-        eval_col, profile_col, c3 = st.columns([1, 2, 1])
+        eval_col, profile_col = st.columns([1, 2])
                 
         # with c3:
         #     float_container = st.container()
@@ -1057,8 +1065,7 @@ class User():
                         # self.updated_dict.update({"gpa":st.session_state.profile_gpa})
                         st.session_state["profile"]["gpa"]=st.session_state.profile_gpa
                     coursework = st.session_state["profile"]["coursework"]
-                    if st.text_area("Course work", value=coursework, key="profile_coursework", )!=coursework:
-                        st.session_state["profile"]["coursework"] = st.session_state["profile_coursework"]
+                    #TODO list courseworks
             with st.expander(label="Summary/Objective",):
                 self.display_field_eval_tailor("summary")
                 summary = st.session_state["profile"]["summary_objective"]
@@ -1080,7 +1087,7 @@ class User():
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
                 self.update_skills()
-            c1, c2=st.columns([1, 1])
+            c1, c2, c3=st.columns([1, 1, 1])
             with c1:
                 with st.expander(label="Certifications", ):
                     get_display=self.display_field_content("certifications")
@@ -1088,6 +1095,10 @@ class User():
             with c2:
                 with st.expander("Awards & Honors"):
                     get_display=self.display_field_content("awards")
+                    get_display()
+            with c3:
+                with st.expander("Licenses"):
+                    get_display=self.display_field_content("licenses")
                     get_display()
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
             # placeholder = st.empty()
