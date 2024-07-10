@@ -195,7 +195,7 @@ class SpecialResumeFields(BaseModel):
         default = "", description="the summary or objective section of the resume"
     )
     included_skills: Optional[List[str]] = Field(
-        default=set(), description=" all the skills and skillsets listed in the resume "
+        default=[], description=" all the skills and skillsets listed in the resume "
     )
     qualifications_section: Optional[str] = Field(
         default="", description="""the accomplishment/qualification section of the resume that is not work experience, 

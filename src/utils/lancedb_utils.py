@@ -136,15 +136,13 @@ def retrieve_user_profile_dict(userId):
                 if isinstance(value, str):  # Handle strings
                     profile_dict[key]=value
                 elif isinstance(value, (np.ndarray, list)):  # Handle arrays
-                    print(value)
+                    # print(value)
                     cleaned_data= clean_field(profile_dict, key)
                     profile_dict[key] = convert_arrays_to_lists(cleaned_data)
                     # print("list pydantic arrays", profile_dict[key])
                 elif isinstance(value, dict):
                     for k in value:
-                        if isinstance(k, (np.ndarray, list)):
-                            print("AAAAAAAAAAAAAAAAAAAa")
-                            print(f"{k} is array")
+                        if isinstance(value[k], (np.ndarray, list)):
                             cleaned_data = clean_field(value, k)
                             value[k] = convert_arrays_to_lists(cleaned_data)
                     profile_dict[key]=value
@@ -152,7 +150,7 @@ def retrieve_user_profile_dict(userId):
                 #     profile_dict[key]=value
                 # else:                   # Handle None and anomalies
                 #     profile_dict[key] = ''
-        print(f"Retrieved user profile dict from lancedb",)
+        print(f"Retrieved user profile dict from lancedb", )
         return profile_dict
     else:
         return None

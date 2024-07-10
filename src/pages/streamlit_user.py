@@ -746,8 +746,12 @@ class User():
     def display_field_details(self, field_name, x, field_detail, type):
 
         def get_display():
-       
-            for idx, value in enumerate(st.session_state["profile"][field_name][x][field_detail]):
+            
+            if x!=-1:
+                field_list = st.session_state["profile"][field_name][x][field_detail]
+            else:
+                field_list = st.session_state["profile"][field_name][field_detail]
+            for idx, value in enumerate(field_list):
                 add_detail(value, idx,)
             if type=="bullet_points":
                 c1, c2, y = st.columns([1, 20, 1])
@@ -756,12 +760,19 @@ class User():
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
-                del st.session_state["profile"][field_name][x][field_detail][idx]
+                if x!=-1:
+                    del st.session_state["profile"][field_name][x][field_detail][idx]
+                else:
+                    del st.session_state["profile"][field_name][field_detail][idx]
             placeholder.empty()
 
         def add_new_entry():
             print("added new entry")
-            st.session_state["profile"][field_name][x][field_detail].append("")
+            if type=="bullet_points":
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail].append("")
+                else:
+                    st.session_state["profile"][field_name][field_detail].append("")
 
         def add_detail(value, idx,):
             
@@ -781,7 +792,10 @@ class User():
             try:
                 new_entry = st.session_state[f"descr_{field_name}_{x}_{field_detail}_{idx}"]
                 if new_entry:
-                    st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
+                    if x!=-1:
+                        st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
+                    else:
+                        st.session_state["profile"][field_name][field_detail][idx] = new_entry
             except Exception as e:
                 pass
 
@@ -992,7 +1006,7 @@ class User():
                                             )
             if job_posting_link:
                 self.process(job_posting_link, "job_posting")
-        elif job_posting=="job description":
+        elif job_posting=="job descriptsion":
             job_description = st.text_area("Job description", 
                                         key="job_descriptionx", 
                                         value=st.session_state.job_description if "job_description" in st.session_state else "",
@@ -1076,8 +1090,10 @@ class User():
                     if st.text_input("GPA", value=gpa, key="profile_gpa", )!=gpa:
                         # self.updated_dict.update({"gpa":st.session_state.profile_gpa})
                         st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
-                    coursework = st.session_state["profile"]["education"]["coursework"]
-                    #TODO list courseworks
+                    st.markdown("Course works")
+                    display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
+                    display_detail()
+                    # #TODO list courseworks
             with st.expander(label="Summary/Objective",):
                 self.display_field_eval_tailor("summary")
                 summary = st.session_state["profile"]["summary_objective"]
