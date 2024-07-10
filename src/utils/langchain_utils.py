@@ -616,9 +616,10 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
             ]
         )
     runnable = prompt | llm.with_structured_output(schema=schema)
-    response = runnable.invoke({"content": content}).dict()
-    print(response)
-    return response
+    response = runnable.invoke({"content": content})
+    response_dict = response.dict()
+    print(response_dict)
+    return response_dict
 
 def create_comma_separated_list_parser(input_variables, base_template, query_dict):
 

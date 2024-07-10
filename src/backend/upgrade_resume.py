@@ -440,7 +440,7 @@ def reformat_resume(template_path, info_dict, end_path):
 
     print("reformatting resume")
     doc_template = DocxTemplate(template_path)
-    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
     personal_context = {
         "NAME": func("name", "YOUR NAME"),
         "CITY": func("city", "YOUR CITY"),
@@ -450,17 +450,20 @@ def reformat_resume(template_path, info_dict, end_path):
         "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
         "WEBSITE": func("website", "WEBSITE"),
     }
+    func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
     education_context = {
         "INSTITUTION": func("institution", "YOUR INSTITUTION"),
         "DEGREE": func("degree", "YOUR DEGREE"),
         "STUDY": func("study", "YOUR AREA OF STUDY"),
         "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
     }
+    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     other_context = {
         "SUMMARY": func("summary_objective", "SUMMARY"),
         "SKILLS": func("included_skills", "YOUR SKILLS"),
         "PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),
-        "CERTIFICATIONS": func("certifications", "CERTIFICATIONS")
+        "CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),
+        "SKILLS": func("included_skills", "YOUR SKILLS")
     }
     context={}
     context.update(personal_context)

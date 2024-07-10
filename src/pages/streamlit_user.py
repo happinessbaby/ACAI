@@ -296,26 +296,28 @@ class User():
     def sign_up(self,):
 
         print("inside signing up")
-        authenticator = st.session_state.authenticator
-        username= authenticator.register_user("Create an account", "main", preauthorization=False)
-        if username:
-            name = authenticator.credentials["usernames"][username]["name"]
-            password = authenticator.credentials["usernames"][username]["password"]
-            email = authenticator.credentials["usernames"][username]["email"]
-            if self.save_password( username, name, password, email):
-                if STORAGE=="LOCAL":
-                    user_path = os.path.join(os.environ["USER_PATH"], email)
-                elif STORAGE=="CLOUD":
-                    user_path = os.path.join(os.environ["USER_PATH"], email)
-                mk_dirs([user_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
-                st.session_state["user_mode"]="signedin"
-                st.success("User registered successfully")
-                st.session_state.cm.set_cookie(name, email,)
-                time.sleep(5)
-                st.rerun()
-            else:
-                st.info("Failed to register user, please try again")
-                st.rerun()
+        _, c, _ = st.columns([1, 1, 1])
+        with c:
+            authenticator = st.session_state.authenticator
+            username= authenticator.register_user("Create an account", "main", preauthorization=False)
+            if username:
+                name = authenticator.credentials["usernames"][username]["name"]
+                password = authenticator.credentials["usernames"][username]["password"]
+                email = authenticator.credentials["usernames"][username]["email"]
+                if self.save_password( username, name, password, email):
+                    # if STORAGE=="LOCAL":
+                    #     user_path = os.path.join(os.environ["USER_PATH"], email)
+                    # elif STORAGE=="CLOUD":
+                    #     user_path = os.path.join(os.environ["USER_PATH"], email)
+                    # mk_dirs([user_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+                    st.session_state["user_mode"]="signedin"
+                    st.success("User registered successfully")
+                    st.session_state.cm.set_cookie(name, email,)
+                    time.sleep(5)
+                    st.rerun()
+                else:
+                    st.info("Failed to register user, please try again")
+                    st.rerun()
 
 
                     
@@ -416,9 +418,7 @@ class User():
 
         st.text_area("Where do you see yourself in 5 years?")
 
-    def about_skills(self):
 
-        st.text_area("What are your skills and talent?")
 
 
     def about_bio(self):
@@ -507,8 +507,7 @@ class User():
         """"""
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
-        resume_dict.update({"user_id": self.userId})
-        
+        resume_dict.update({"user_id": self.userId}) 
         #NOTE: the data added has to be a LIST!
         schema = convert_pydantic_schema_to_arrow(ResumeUsers)
         add_to_lancedb_table(lance_users_table, [resume_dict], schema)
@@ -698,11 +697,25 @@ class User():
     @st.experimental_fragment()
     def update_skills(self, ):
 
+        def get_display():
+            c1, c2=st.columns([1, 1])
+            with c1:
+                with st.container(border=True):
+                    st.write("Your skills")
+                    for idx, skill in enumerate(self.skills_set):
+                        x = st.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+            with c2:
+                st.write("Suggested skills to include")
+                for idx, skill in enumerate(self.generated_skills_set):
+                    y = st.button(skill +" :green[o]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+            st.text_input("Add a skill not from the suggestion", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
+            
         def skills_callback(idx, skill):
             try:
                 new_skill = st.session_state.add_skill_custom
                 if new_skill:
                     self.skills_set.add(new_skill)
+                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
                     st.session_state.add_skill_custom=''
             except Exception:
                     pass
@@ -712,7 +725,9 @@ class User():
                 if add_skill:
                     print('add skill', skill)
                     self.skills_set.add(skill)
+                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
                     self.generated_skills_set.remove(skill)
+                    st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
             except Exception:
                 pass
             try:
@@ -721,17 +736,11 @@ class User():
                 if remove_skill:
                     print('remove skill', skill)
                     self.skills_set.remove(skill)
+                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
             except Exception:
                 pass
+        return get_display
 
-        c1, c2=st.columns([1, 1])
-        with c1:
-            for idx, skill in enumerate(self.skills_set):
-                x = st.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-        with c2:
-            for idx, skill in enumerate(self.generated_skills_set):
-                y = st.button(skill +" :green[o]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-            st.text_input("Add a skill not from the suggestion", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
 
     @st.experimental_fragment()
     def display_field_details(self, field_name, x, field_detail, type):
@@ -743,7 +752,7 @@ class User():
             if type=="bullet_points":
                 c1, c2, y = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**+**", key=f"add_bullets_{field_detail}_{x}", on_click=add_new_entry, use_container_width=True)
+                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a bullet point description", use_container_width=True)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -751,7 +760,7 @@ class User():
             placeholder.empty()
 
         def add_new_entry():
-    
+            print("added new entry")
             st.session_state["profile"][field_name][x][field_detail].append("")
 
         def add_detail(value, idx,):
@@ -763,14 +772,14 @@ class User():
                     with c1:
                         st.write("•")
                     with c2: 
-                        text = st.text_input(" " , value=value, key=f"bullet_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
+                        text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
                     with x_col:
                         st.button("**x**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
 
         def callback(idx, ):
             
             try:
-                new_entry = st.session_state[f"bullet_{field_name}_{x}_{field_detail}_{idx}"]
+                new_entry = st.session_state[f"descr_{field_name}_{x}_{field_detail}_{idx}"]
                 if new_entry:
                     st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
             except Exception as e:
@@ -787,17 +796,18 @@ class User():
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
             for idx, value in enumerate(st.session_state["profile"][name]):
-                print(idx, value)
                 add_container(idx, value)
             st.button("add", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
             if name=="certifications" or name=="licenses":
-                st.session_state["profile"][name].append({"description":"","issue_date":"", "issue_organization":"", "title":""})
+                st.session_state["profile"][name].append({"description":[],"issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","job_title":"","location":"","start_date":""})
             elif name=="awards":
-                st.session_state["profile"][name].append({"title":"","description":""})
+                st.session_state["profile"][name].append({"description":[],"title":""})
+            elif name=="projects" or name=="qualifications":
+                st.session_state["profile"][name].append({"description":[],"title":""})
             
         def delete_container(placeholder, idx):
             print("deleted", st.session_state["profile"][name][idx])
@@ -814,27 +824,30 @@ class User():
                 #     st.write(f"**{name} {idx}**")
                 with x:
                     st.button("**x**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                if name=="awards":
+                if name=="awards" or name=="projects" or name=="qualifications":
                     title = value["title"]
-                    description = value["description"]
-                    st.text_input("Title", value=title, key=f"award_title_{idx}", on_change=callback, args=(idx, ))
-                    st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
+                    # description = value["description"]
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
+                    # st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
+                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display()
                 elif name=="certifications" or name=="licenses":
                     title = value["title"]
                     organization = value["issue_organization"]
                     date = value["issue_date"]
-                    description = value["description"]
+                    # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ))
-                    st.text_area("Description", value=description, key=f"{name}_descr_{idx}", on_change=callback, args=(idx,) )
+                    # st.text_area("Description", value=description, key=f"{name}_descr_{idx}", on_change=callback, args=(idx,) )
+                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display()
                 elif name=="work_experience":
-                    print(value)
                     job_title = value["job_title"]
                     company = st.session_state["profile"][name][idx]["company"]
                     start_date = st.session_state["profile"][name][idx]["start_date"]
                     end_date = st.session_state["profile"][name][idx]["end_date"]
-                    descriptions = st.session_state["profile"][name][idx]["description"]
+                    # descriptions = st.session_state["profile"][name][idx]["description"]
                     location = st.session_state["profile"][name][idx]["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
@@ -845,7 +858,6 @@ class User():
                         st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,) )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,) )
-                    st.text("description")
                     # for x, descr in enumerate(descriptions):
                     #     # st.text_input("-", value=descr, key=f"experience_descr_{idx}_{x}", on_change=callback, )
                     #     # st.write("-" + descr)
@@ -855,18 +867,18 @@ class User():
 
         def callback(idx):
        
-            try:
-                title = st.session_state[f"award_title_{idx}"]
-                if title:
-                    st.session_state["profile"]["awards"][idx]["title"]=title
-            except Exception:
-                pass
-            try:
-                descr = st.session_state[f"award_descr_{idx}"]
-                if descr:
-                    st.session_state["profile"]["awards"][idx]["description"]=descr
-            except Exception:
-                pass
+            # try:
+            #     title = st.session_state[f"award_title_{idx}"]
+            #     if title:
+            #         st.session_state["profile"]["awards"][idx]["title"]=title
+            # except Exception:
+            #     pass
+            # try:
+            #     descr = st.session_state[f"award_descr_{idx}"]
+            #     if descr:
+            #         st.session_state["profile"]["awards"][idx]["description"]=descr
+            # except Exception:
+            #     pass
             try:
                 title = st.session_state[f"{name}_title_{idx}"]
                 if title:
@@ -996,7 +1008,7 @@ class User():
             self.display_evaluation()
             evaluate_resume(resume_dict=st.session_state["profile"], type="general")
         # float_parent()
-
+    
     def display_profile(self,):
 
         """Loads from user file and displays profile"""
@@ -1025,46 +1037,46 @@ class User():
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", expanded=True ):
-                    name = st.session_state["profile"]["name"]
+                    name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name",)!=name:
-                        st.session_state["profile"]["name"]=st.session_state.profile_name
-                    email = st.session_state["profile"]["email"]
+                        st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+                    email = st.session_state["profile"]["contact"]["email"]
                     if st.text_input("Email", value=email, key="profile_email", )!=email:
-                        value = st.session_state["profile"]["email"] = st.session_state.profile_email
-                    phone = st.session_state["profile"]["phone"]
+                        value = st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+                    phone = st.session_state["profile"]["contact"]["phone"]
                     if st.text_input("Phone", value=phone, key="profile_phone", )!=phone:
-                        st.session_state["profile"]["phone"]=st.session_state.profile_phone
-                    city = st.session_state["profile"]["city"]
+                        st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
+                    city = st.session_state["profile"]["contact"]["city"]
                     if st.text_input("City", value=city, key="profile_city", )!=city:
-                        st.session_state["profile"]["city"]=st.session_state.profile_city
-                    state = st.session_state["profile"]["state"]
+                        st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
+                    state = st.session_state["profile"]["contact"]["state"]
                     if st.text_input("State", value=state, key="profile_state", )!=state:
-                        st.session_state["profile"]["state"]=st.session_state.profile_state
-                    linkedin = st.session_state["profile"]["linkedin"]
+                        st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
+                    linkedin = st.session_state["profile"]["contact"]["linkedin"]
                     if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", )!=linkedin:
-                        st.session_state["profile"]["linkedin"]=st.session_state.profile_linkedin
-                    website = st.session_state["profile"]["website"]
+                        st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
+                    website = st.session_state["profile"]["contact"]["website"]
                     if st.text_input("Personal website", value=website, key="profile_website", )!=website:
-                        st.session_state["profile"]["website"]=st.session_state.profile_website
+                        st.session_state["profile"]["contact"]["website"]=st.session_state.profile_website
             with c2:
                 with st.expander(label="Education", expanded=True):
-                    degree = st.session_state["profile"]["degree"]
+                    degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", )!=degree:
                         # self.updated_dict.update({"degree":st.session_state.profile_degree})
-                        st.session_state["profile"]["degree"]=st.session_state.profile_degree
-                    study = st.session_state["profile"]["study"]
+                        st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
+                    study = st.session_state["profile"]["education"]["study"]
                     if st.text_input("Area of study", value=study, key="profile_study", )!=study:
                         # self.updated_dict.update({"degree":st.session_state.profile_study})
-                        st.session_state["profile"]["study"]=st.session_state.profile_study
-                    grad_year = st.session_state["profile"]["graduation_year"]
+                        st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
+                    grad_year = st.session_state["profile"]["education"]["graduation_year"]
                     if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", )!=grad_year:
                         # self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
-                        st.session_state["profile"]["graduation_year"]=st.session_state.profile_grad_year
-                    gpa = st.session_state["profile"]["gpa"]
+                        st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
+                    gpa = st.session_state["profile"]["education"]["gpa"]
                     if st.text_input("GPA", value=gpa, key="profile_gpa", )!=gpa:
                         # self.updated_dict.update({"gpa":st.session_state.profile_gpa})
-                        st.session_state["profile"]["gpa"]=st.session_state.profile_gpa
-                    coursework = st.session_state["profile"]["coursework"]
+                        st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
+                    coursework = st.session_state["profile"]["education"]["coursework"]
                     #TODO list courseworks
             with st.expander(label="Summary/Objective",):
                 self.display_field_eval_tailor("summary")
@@ -1080,13 +1092,25 @@ class User():
                 self.display_field_eval_tailor("skills")
                 included_skills = st.session_state["profile"]["included_skills"]
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
-                self.skills_set= set()
+                self.skills_set= set(included_skills)
                 self.generated_skills_set=set()
-                for skill in included_skills:
-                    self.skills_set.add(skill["skill"])
+                # for skill in included_skills:
+                #     self.skills_set.add(skill["skill"])
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
-                self.update_skills()
+                get_display=self.update_skills()
+                get_display()
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                with st.expander(label="Professional Accomplihsment/Qualifications"):
+                    st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
+                                 label="learn more")
+                    get_display=self.display_field_content("qualifications")
+                    get_display()
+            with c2:
+                with st.expander(label="Projects"):
+                    get_display=self.display_field_content("projects")
+                    get_display()
             c1, c2, c3=st.columns([1, 1, 1])
             with c1:
                 with st.expander(label="Certifications", ):

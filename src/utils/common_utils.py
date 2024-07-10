@@ -1016,6 +1016,7 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
         # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
         resume_info_dict[resume_path].update({"pursuit_jobs":special_field_content["pursuit_jobs"]})
         resume_info_dict[resume_path].update({"summary_objective": special_field_content["summary_objective_section"]})
+        resume_info_dict[resume_path].update({"included_skills":special_field_content["included_skills"]})
         resume_info_dict[resume_path].update({"hobbies":special_field_content["hobbies_section"]})
         # resume_info_dict[resume_path].update(field_details)
         # work_experience = field_details["work_experience"]
@@ -1025,20 +1026,26 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
         #         work_experience[i].update({"years_of_experience": years_experience})
         #     resume_info_dict[resume_path].update({"work_experience": work_experience})
         contact = create_pydantic_parser(resume_content, Contact)
-        resume_info_dict[resume_path].update(contact)
+        resume_info_dict[resume_path].update({"contact":contact})
         education = create_pydantic_parser(resume_content, Education)
-        resume_info_dict[resume_path].update(education)
+        resume_info_dict[resume_path].update({"education":education})
         experience = create_pydantic_parser(resume_content, Jobs)
         resume_info_dict[resume_path].update(experience)
-        if special_field_content["skills_section"]:
-            included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
-            resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
+        # if special_field_content["skills_section"]:
+        #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
+        #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
+        # else:
+        #     resume_info_dict[resume_path].update({"included_skills": None})
         if special_field_content["projects_section"]:
             projects = create_pydantic_parser(special_field_content["projects_section"], Projects)
             resume_info_dict[resume_path].update(projects)
+        else:
+            resume_info_dict[resume_path].update({"projects": None})
         if special_field_content["qualifications_section"]:
             qualifications = create_pydantic_parser(special_field_content["qualifications_section"], Qualifications)
             resume_info_dict[resume_path].update(qualifications)
+        else:
+            resume_info_dict[resume_path].update({"qualifications": None})
         licenses = create_pydantic_parser(resume_content, Licenses)
         resume_info_dict[resume_path].update(licenses)
         certifications = create_pydantic_parser(resume_content, Certifications)

@@ -6,7 +6,7 @@ import streamlit as st
 import os
 import numpy as np
 import pyarrow as pa
-from typing import List, Dict, Optional, get_args, get_origin
+from typing import List, Dict, Optional, get_args, get_origin, Set
 
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
@@ -135,13 +135,23 @@ def retrieve_user_profile_dict(userId):
                 value=profile_dict[key][0]
                 if isinstance(value, str):  # Handle strings
                     profile_dict[key]=value
-                    print("list strings", profile_dict[key])
                 elif isinstance(value, (np.ndarray, list)):  # Handle arrays
+                    print(value)
                     cleaned_data= clean_field(profile_dict, key)
                     profile_dict[key] = convert_arrays_to_lists(cleaned_data)
-                    print("list pydantic arrays", profile_dict[key])
-                else:                   # Handle None and anomalies
-                    profile_dict[key] = ''
+                    # print("list pydantic arrays", profile_dict[key])
+                elif isinstance(value, dict):
+                    for k in value:
+                        if isinstance(k, (np.ndarray, list)):
+                            print("AAAAAAAAAAAAAAAAAAAa")
+                            print(f"{k} is array")
+                            cleaned_data = clean_field(value, k)
+                            value[k] = convert_arrays_to_lists(cleaned_data)
+                    profile_dict[key]=value
+                # else:
+                #     profile_dict[key]=value
+                # else:                   # Handle None and anomalies
+                #     profile_dict[key] = ''
         print(f"Retrieved user profile dict from lancedb",)
         return profile_dict
     else:
@@ -201,6 +211,7 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
 
         elif hasattr(field_type, "__fields__"):
             # Handling nested Pydantic models (non-list)
+            ""
             nested_fields = [
                 pa.field(name, pa.list_(pa.string()) if get_origin(field.outer_type_) is list else pa.string())
                 for name, field in field_type.__fields__.items()
@@ -213,7 +224,6 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
 
     return pa.schema(fields)
 
-    return pa.schema(fields)
 
 def save_user_changes(userId, schema):
 
