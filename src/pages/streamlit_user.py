@@ -723,7 +723,7 @@ class User():
                 name = f"add_skill_{idx}"
                 add_skill = st.session_state[name]
                 if add_skill:
-                    print('add skill', skill)
+                    # print('add skill', skill)
                     self.skills_set.add(skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
                     self.generated_skills_set.remove(skill)
@@ -734,7 +734,7 @@ class User():
                 name = f"remove_skill_{idx}"
                 remove_skill = st.session_state[name]
                 if remove_skill:
-                    print('remove skill', skill)
+                    # print('remove skill', skill)
                     self.skills_set.remove(skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
             except Exception:

@@ -13577,4 +13577,473 @@
             }
         ]
     }
+}{
+    "./users/sample2@gmail.com/profile/uploads/b9c6e9a3-2718-475a-9cf2-53e37a04e961.txt": {
+        "resume_content": "4321 South 55 Street\nBellevue, Nebraska 68005\n(402) 291-5432\nimasample2@xxx.com\nOBJECTIVE: Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills\nEDUCATION:\nWORK\nHISTORY:\nCOMMUNITY\nSERVICE:\nBS in Business Administration with Marketing Emphasis\nBellevue University, Bellevue, NE\n\uf0b7 Expected Graduation Date: June, 20xx\n\uf0b7 GPA to date: 3.56/4.00\nRelevant Coursework\nPrinciples of Marketing\nBusiness Communication\nInternet Marketing\nConsumer Behavior\nPublic Relations\nBusiness Policy & Stretegy\nAacademic Tutor (20xx to present)\nBellevue University, Bellevue, NE\n\uf0b7 Assist college students in overcoming deficiencies and\nsuccessfully mastering academic coursework.\nSenior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\uf0b7 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\uf0b7 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\uf0b7 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\uf0b7 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon\nADDED VALUE: Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop\nREFERENCES: Available Upon RequestCHRONOLOGICAL\n",
+        "pursuit_jobs": "Marketing, Public Relations",
+        "summary_objective": "Internship or Part-time Position in Marketing, Public Relations or related field utilizing strong academic background and excellent communication skills",
+        "included_skills": [
+            "Language Skills: Bilingual (English/Spanish)",
+            "Computer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop"
+        ],
+        "hobbies": [],
+        "contact": {
+            "city": "Bellevue",
+            "email": "imasample2@xxx.com",
+            "linkedin": "",
+            "name": "",
+            "phone": "(402) 291-5432",
+            "state": "",
+            "website": ""
+        },
+        "education": {
+            "coursework": [
+                "Principles of Marketing",
+                "Business Communication",
+                "Internet Marketing",
+                "Consumer Behavior",
+                "Public Relations",
+                "Business Policy & Strategy"
+            ],
+            "degree": "BS in Business Administration with Marketing Emphasis",
+            "gpa": "3.56/4.00",
+            "graduation_year": "June, 20xx",
+            "institution": "Bellevue University",
+            "study": "Marketing"
+        },
+        "work_experience": [
+            {
+                "company": "Bellevue University",
+                "description": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ],
+                "end_date": "",
+                "job_title": "Academic Tutor",
+                "location": "Bellevue, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Lincoln Financial Group",
+                "description": [
+                    "Researched story ideas, wrote articles and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized system to stop payment and replace all checks."
+                ],
+                "end_date": "20xx",
+                "job_title": "Senior Accounts Receivable Clerk",
+                "location": "Omaha, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Bellevue University Student Newspaper",
+                "description": [],
+                "end_date": "",
+                "job_title": "Advertising Coordinator",
+                "location": "Bellevue University",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Brushup Nebraska Paint-A-Thon",
+                "description": [],
+                "end_date": "20xx",
+                "job_title": "Volunteer",
+                "location": "Nebraska",
+                "start_date": "20xx"
+            }
+        ],
+        "projects": [
+            {
+                "description": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ],
+                "title": "Academic Tutor"
+            },
+            {
+                "description": [
+                    "Researched story ideas, wrote articles, and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized a system to stop payment and replace all checks."
+                ],
+                "title": "Senior Accounts Receivable Clerk"
+            },
+            {
+                "description": [],
+                "title": "Advertising Coordinator, The Vue"
+            },
+            {
+                "description": [],
+                "title": "Volunteer, Publicity Committee"
+            }
+        ],
+        "qualifications": [
+            {
+                "description": [
+                    "BS in Business Administration with Marketing Emphasis, Expected Graduation Date: June, 20xx, GPA: 3.56/4.00, Relevant Coursework: Principles of Marketing, Business Communication, Internet Marketing, Consumer Behavior, Public Relations, Business Policy & Strategy"
+                ],
+                "title": ""
+            }
+        ],
+        "licenses": [
+            {
+                "description": [],
+                "issue_date": "June, 20xx",
+                "issue_organization": "Bellevue University, Bellevue, NE",
+                "title": "BS in Business Administration with Marketing Emphasis"
+            }
+        ],
+        "certifications": [
+            {
+                "description": [],
+                "issue_date": "",
+                "issue_organization": "Bellevue University",
+                "title": "BS in Business Administration with Marketing Emphasis"
+            }
+        ],
+        "awards": [
+            {
+                "description": [],
+                "title": "Employee of the Month"
+            },
+            {
+                "description": [],
+                "title": "Certificate of Achievement"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "demonstrated through roles such as Academic Tutor, Advertising Coordinator, and Volunteer on the Publicity Committee",
+                "skill": "Communication skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "shown in the responsibilities of the Senior Accounts Receivable Clerk position, where the individual resolved customer and staff issues and managed daily accounts receivable deposits",
+                "skill": "Problem-solving skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "evident in balancing academic tutoring responsibilities with work as an Accounts Receivable Clerk and Advertising Coordinator",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "gained through relevant coursework in Principles of Marketing, Internet Marketing, and Consumer Behavior, as well as experience in the Advertising Coordinator role",
+                "skill": "Marketing skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "acquired through coursework and practical experience in roles such as Senior Accounts Receivable Clerk and Academic Tutor",
+                "skill": "Business Administration knowledge",
+                "type": "hard skill"
+            },
+            {
+                "example": "proficiency in MS Office (Word, Excel, PowerPoint) and PhotoShop, as listed under Computer Skills in the resume",
+                "skill": "Computer skills",
+                "type": "hard skill"
+            }
+        ]
+    }
+}{
+    "./users/sample2@gmail.com/profile/uploads/97a08f69-2699-4548-8e12-a6e277a58a30.txt": {
+        "resume_content": "4321 South 55 Street\nBellevue, Nebraska 68005\n(402) 291-5432\nimasample2@xxx.com\nOBJECTIVE: Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills\nEDUCATION:\nWORK\nHISTORY:\nCOMMUNITY\nSERVICE:\nBS in Business Administration with Marketing Emphasis\nBellevue University, Bellevue, NE\n\uf0b7 Expected Graduation Date: June, 20xx\n\uf0b7 GPA to date: 3.56/4.00\nRelevant Coursework\nPrinciples of Marketing\nBusiness Communication\nInternet Marketing\nConsumer Behavior\nPublic Relations\nBusiness Policy & Stretegy\nAacademic Tutor (20xx to present)\nBellevue University, Bellevue, NE\n\uf0b7 Assist college students in overcoming deficiencies and\nsuccessfully mastering academic coursework.\nSenior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\uf0b7 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\uf0b7 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\uf0b7 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\uf0b7 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon\nADDED VALUE: Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop\nREFERENCES: Available Upon RequestCHRONOLOGICAL\n",
+        "pursuit_jobs": "Marketing, Public Relations",
+        "summary_objective": "Internship or Part-time Position in Marketing, Public Relations or related field utilizing strong academic background and excellent communication skills",
+        "included_skills": null,
+        "hobbies": null,
+        "contact": {
+            "city": "Bellevue",
+            "email": "imasample2@xxx.com",
+            "linkedin": "",
+            "name": "",
+            "phone": "(402) 291-5432",
+            "state": "Nebraska",
+            "website": ""
+        },
+        "education": {
+            "coursework": [
+                "Principles of Marketing",
+                "Business Communication",
+                "Internet Marketing",
+                "Consumer Behavior",
+                "Public Relations",
+                "Business Policy & Strategy"
+            ],
+            "degree": "BS in Business Administration with Marketing Emphasis",
+            "gpa": "3.56/4.00",
+            "graduation_year": "June, 20xx",
+            "institution": "Bellevue University",
+            "study": "Marketing"
+        },
+        "work_experience": [
+            {
+                "company": "Bellevue University",
+                "description": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ],
+                "end_date": "",
+                "job_title": "Academic Tutor",
+                "location": "Bellevue, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Lincoln Financial Group",
+                "description": [
+                    "Researched story ideas, wrote articles, and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized a system to stop payment and replace all checks."
+                ],
+                "end_date": "20xx",
+                "job_title": "Senior Accounts Receivable Clerk",
+                "location": "Omaha, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Bellevue University Student Newspaper",
+                "description": [
+                    "Volunteer, Publicity Committee for Brushup Nebraska Paint-A-Thon."
+                ],
+                "end_date": "",
+                "job_title": "Advertising Coordinator",
+                "location": "Bellevue, NE",
+                "start_date": "20xx"
+            }
+        ],
+        "projects": null,
+        "qualifications": [
+            {
+                "description": [
+                    "BS in Business Administration with Marketing Emphasis from Bellevue University with an expected graduation date of June, 20xx. GPA to date: 3.56/4.00",
+                    "Relevant Coursework: Principles of Marketing, Business Communication, Internet Marketing, Consumer Behavior, Public Relations, Business Policy & Strategy"
+                ],
+                "title": "Education"
+            },
+            {
+                "description": [
+                    "Experience as an Academic Tutor, assisting college students in mastering academic coursework",
+                    "Worked as a Senior Accounts Receivable Clerk at Lincoln Financial Group managing daily accounts receivable deposits of up to $450,000",
+                    "Served as an Advertising Coordinator at The Vue (Bellevue University Student Newspaper)",
+                    "Volunteered in the Publicity Committee for Brushup Nebraska Paint-A-Thon"
+                ],
+                "title": "Work Experience"
+            },
+            {
+                "description": [
+                    "Language Skills: Bilingual in English and Spanish",
+                    "Computer Skills: Proficient in MS Office (Word, Excel, PowerPoint) and PhotoShop"
+                ],
+                "title": "Skills"
+            }
+        ],
+        "licenses": [
+            {
+                "description": [
+                    "BS in Business Administration with Marketing Emphasis"
+                ],
+                "issue_date": "June, 20xx",
+                "issue_organization": "Bellevue University",
+                "title": "Business Administration with Marketing Emphasis"
+            }
+        ],
+        "certifications": [
+            {
+                "description": [],
+                "issue_date": "June, 20xx",
+                "issue_organization": "Bellevue University",
+                "title": "BS in Business Administration with Marketing Emphasis"
+            }
+        ],
+        "awards": [
+            {
+                "description": [
+                    "Employee of the Month"
+                ],
+                "title": "Senior Accounts Receivable Clerk"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "writing articles, assisting customers, training new staff members, volunteering for the Publicity Committee",
+                "skill": "Communication skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "researching and resolving issues with accounts receivable, recovering lost checks, assisting college students in overcoming deficiencies",
+                "skill": "Problem-solving skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "managing daily accounts receivable deposits, balancing multiple responsibilities as a Senior Accounts Receivable Clerk and Academic Tutor",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "coursework in Principles of Marketing, Internet Marketing, Public Relations, experience as an Advertising Coordinator for the student newspaper",
+                "skill": "Marketing skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "coursework in Business Policy & Strategy, experience as a Senior Accounts Receivable Clerk",
+                "skill": "Business administration skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "proficiency in MS Office (Word, Excel, PowerPoint), PhotoShop",
+                "skill": "Computer skills",
+                "type": "hard skill"
+            }
+        ]
+    }
+}{
+    "./users/sample2@gmail.com/profile/uploads/0bd9b4e9-859d-4540-9a8e-b1a9a445a2aa.txt": {
+        "resume_content": "4321 South 55 Street\nBellevue, Nebraska 68005\n(402) 291-5432\nimasample2@xxx.com\nOBJECTIVE: Internship or Part-time Position in Marketing, Public Relations or related\nfield utilizing strong academic background and excellent communication skills\nEDUCATION:\nWORK\nHISTORY:\nCOMMUNITY\nSERVICE:\nBS in Business Administration with Marketing Emphasis\nBellevue University, Bellevue, NE\n\uf0b7 Expected Graduation Date: June, 20xx\n\uf0b7 GPA to date: 3.56/4.00\nRelevant Coursework\nPrinciples of Marketing\nBusiness Communication\nInternet Marketing\nConsumer Behavior\nPublic Relations\nBusiness Policy & Stretegy\nAacademic Tutor (20xx to present)\nBellevue University, Bellevue, NE\n\uf0b7 Assist college students in overcoming deficiencies and\nsuccessfully mastering academic coursework.\nSenior Accounts Receivable Clerk (20xx-20xx)\nLincoln Financial Group, Omaha, NE\n\uf0b7 Researched story ideas, wrote articles and participated in the\npublication of a weekly in-house newsletter.\n\uf0b7 Assisted customers and staff members in resolving problems and\nbalancing accounts; trained new staff members.\n\uf0b7 Managed and recorded daily accounts receivable deposits of up to\n$450,000.\n\uf0b7 Conducted extensive research to recover lost checks and organized\nsystem to stop payment and replace all checks.\nAdvertising Coordinator, The Vue (20xx to present)\nBellevue University Student Newspaper\nVolunteer, Publicity Committee (20xx, 20xx)\nBrushup Nebraska Paint-A-Thon\nADDED VALUE: Language Skills: Bilingual (English/Spanish)\nComputer Skills: MS Office (Word, Excel, PowerPoint), PhotoShop\nREFERENCES: Available Upon RequestCHRONOLOGICAL\n",
+        "pursuit_jobs": "Marketing, Public Relations",
+        "summary_objective": "Internship or Part-time Position in Marketing, Public Relations or related field utilizing strong academic background and excellent communication skills",
+        "included_skills": null,
+        "hobbies": null,
+        "contact": {
+            "city": "Bellevue",
+            "email": "imasample2@xxx.com",
+            "linkedin": "",
+            "name": "",
+            "phone": "(402) 291-5432",
+            "state": "Nebraska",
+            "website": ""
+        },
+        "education": {
+            "coursework": [
+                "Principles of Marketing",
+                "Business Communication",
+                "Internet Marketing",
+                "Consumer Behavior",
+                "Public Relations",
+                "Business Policy & Strategy"
+            ],
+            "degree": "BS in Business Administration with Marketing Emphasis",
+            "gpa": "3.56/4.00",
+            "graduation_year": "June, 20xx",
+            "institution": "Bellevue University",
+            "study": "Marketing"
+        },
+        "work_experience": [
+            {
+                "company": "Bellevue University",
+                "description": [
+                    "Assist college students in overcoming deficiencies and successfully mastering academic coursework."
+                ],
+                "end_date": "",
+                "job_title": "Academic Tutor",
+                "location": "Bellevue, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Lincoln Financial Group",
+                "description": [
+                    "Researched story ideas, wrote articles, and participated in the publication of a weekly in-house newsletter.",
+                    "Assisted customers and staff members in resolving problems and balancing accounts; trained new staff members.",
+                    "Managed and recorded daily accounts receivable deposits of up to $450,000.",
+                    "Conducted extensive research to recover lost checks and organized a system to stop payment and replace all checks."
+                ],
+                "end_date": "20xx",
+                "job_title": "Senior Accounts Receivable Clerk",
+                "location": "Omaha, NE",
+                "start_date": "20xx"
+            },
+            {
+                "company": "Bellevue University Student Newspaper",
+                "description": [
+                    "Volunteer, Publicity Committee for Brushup Nebraska Paint-A-Thon."
+                ],
+                "end_date": "",
+                "job_title": "Advertising Coordinator",
+                "location": "Bellevue, NE",
+                "start_date": "20xx"
+            }
+        ],
+        "projects": null,
+        "qualifications": [
+            {
+                "description": [
+                    "BS in Business Administration with Marketing Emphasis from Bellevue University with an expected graduation date of June, 20xx. GPA to date: 3.56/4.00",
+                    "Relevant Coursework: Principles of Marketing, Business Communication, Internet Marketing, Consumer Behavior, Public Relations, Business Policy & Strategy"
+                ],
+                "title": "Education"
+            },
+            {
+                "description": [
+                    "Experience as an Academic Tutor, assisting college students in mastering academic coursework",
+                    "Worked as a Senior Accounts Receivable Clerk at Lincoln Financial Group managing daily accounts receivable deposits of up to $450,000",
+                    "Served as an Advertising Coordinator at The Vue (Bellevue University Student Newspaper)",
+                    "Volunteered in the Publicity Committee for Brushup Nebraska Paint-A-Thon"
+                ],
+                "title": "Work Experience"
+            },
+            {
+                "description": [
+                    "Language Skills: Bilingual in English and Spanish",
+                    "Computer Skills: Proficient in MS Office (Word, Excel, PowerPoint) and PhotoShop"
+                ],
+                "title": "Skills"
+            }
+        ],
+        "licenses": [
+            {
+                "description": [
+                    "BS in Business Administration with Marketing Emphasis"
+                ],
+                "issue_date": "June, 20xx",
+                "issue_organization": "Bellevue University",
+                "title": "Business Administration with Marketing Emphasis"
+            }
+        ],
+        "certifications": [
+            {
+                "description": [],
+                "issue_date": "June, 20xx",
+                "issue_organization": "Bellevue University",
+                "title": "BS in Business Administration with Marketing Emphasis"
+            }
+        ],
+        "awards": [
+            {
+                "description": [
+                    "Employee of the Month"
+                ],
+                "title": "Senior Accounts Receivable Clerk"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "writing articles, assisting customers, training new staff members, volunteering for the Publicity Committee",
+                "skill": "Communication skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "researching and resolving issues with accounts receivable, recovering lost checks, assisting college students in overcoming deficiencies",
+                "skill": "Problem-solving skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "managing daily accounts receivable deposits, balancing multiple responsibilities as a Senior Accounts Receivable Clerk and Academic Tutor",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "coursework in Principles of Marketing, Internet Marketing, Public Relations, experience as an Advertising Coordinator for the student newspaper",
+                "skill": "Marketing skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "coursework in Business Policy & Strategy, experience as a Senior Accounts Receivable Clerk",
+                "skill": "Business administration skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "proficiency in MS Office (Word, Excel, PowerPoint), PhotoShop",
+                "skill": "Computer skills",
+                "type": "hard skill"
+            }
+        ]
+    }
 }
