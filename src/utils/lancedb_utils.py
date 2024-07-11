@@ -230,7 +230,7 @@ def save_user_changes(userId, schema):
         schema = convert_pydantic_schema_to_arrow(schema)
         add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
         st.toast("Successfully updated profile")
-        del st.session_state["profile"]
+        # del st.session_state["profile"]
     except Exception as e:
         raise e
     

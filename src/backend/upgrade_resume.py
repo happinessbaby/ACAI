@@ -108,10 +108,10 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         # type_dict= analyze_resume_type(resume_content,)
         # st.session_state.eval_dict.update(type_dict)
         # Generate overall impression
-        section_names = ["summary_objective", "work_experience_section", "skills_section"]
-        for section in section_names:
-            comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
-            st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        # section_names = ["summary_objective", "work_experience_section", "skills_section"]
+        # for section in section_names:
+        #     comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
+        #     st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
         cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
         st.session_state.eval_dict.update({"cohesiveness":cohesiveness})

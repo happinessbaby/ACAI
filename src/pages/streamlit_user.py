@@ -485,24 +485,6 @@ class User():
 
 
 
-    # def form_callback1(self):
-
-    #     st.session_state["init_user1"]=True
-
-                
-    # def form_callback2(self):
-
-    #     summary = create_profile_summary(self.userId)
-    #     print("profile summary",  summary)
-    #     st.session_state["users"][self.userId]["summary"] = summary
-    #      # Save the updated user profiles back to the JSON file
-    #     with open(user_profile_file, 'w') as file:
-    #         json.dump(st.session_state["users"], file, indent=2)
-    #     data = [{"text": summary,"id":self.userId, "job_title":st.session_state.job, "job_url":"", "type":"user"}]
-    #     print(data)
-    #     add_to_lancedb_table(self.userId, data)
-    #     st.session_state["init_user2"]=True
-
     def resume_form_callback(self, ):
         """"""
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
@@ -678,15 +660,6 @@ class User():
             else:
                 st.info("Please share a job description here")
 
-        if input_type=="birthday":
-            st.session_state.birthday = input_value.strftime('%Y-%m-%d')
-            #TODO: get age instead
-        if input_type=="certification":
-            st.session_state.certification = input_value.split(",")
-        if input_type=="study":
-            st.session_state.study = input_value.split(",")
-        if input_type=="job":
-            st.session_state.job=str(input_value.split(","))
         if input_type=="location_input":
             st.session_state.location_input=input_value.split(",")
         elif input_type=="transferable_skills":
@@ -961,41 +934,32 @@ class User():
 
     def display_field_eval_tailor(self, field_name):
 
-        def tailor_callback():
-            if "job_posting_dict" in st.session_state:
-                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
-            else:
-                self.job_posting_popup()
         _, c1, c2 = st.columns([4, 1, 1])
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 with st.popover("Show evaluation"):
                     evaluation = st.session_state[f"evaluated_{field_name}"]
                     st.write(evaluation)
-                    st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+                    st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
             else:
-                evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=evaluate_resume, args=("", st.session_state["profile"], field_name, ), )
+                evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
         with c2:
             if f"tailored_{field_name}" in st.session_state:
                 with st.popover("Show tailoring"):
                     tailoring = st.session_state[f"tailored_{field_name}"]
                     st.write(tailoring)
             else:
-                tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=tailor_callback, args=(field_name, ))
+                tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
           
-    
+
     @st.experimental_dialog("Please provide a job posting")   
-    def job_posting_popup(self):
+    def job_posting_popup(self, field_name):
 
-        def tailor_callback():
-            save_user_changes(self.userId, ResumeUsers)
-            if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
-                st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
-                    st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
-                    st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
-                )
-                st.session_state["tailor_dict"]=tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"])
 
+        if "job_posting_path" in st.session_state or "job_description" in st.session_state:
+            st.session_state["job_posting_disabled"]=False
+        else:
+            st.session_state["job_posting_disabled"]=True
         job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0
@@ -1013,15 +977,35 @@ class User():
                                             )
             if job_description:
                 self.process(job_description, "job_description")
-        st.button("Next", on_click=tailor_callback,)
+        st.button("Next", disabled=st.session_state.job_posting_disabled, on_click=self.tailor_callback, args=(field_name, ),)
 
-    def trigger_evaluation(self, ):
-         
-        # with st.session_state["eval_float_container"]:
-            # with st.expander("General Evaluation", expanded=True):
-            self.display_evaluation()
-            evaluate_resume(resume_dict=st.session_state["profile"], type="general")
-        # float_parent()
+    
+    def tailor_callback(self, field_name):
+        if "job_posting_dict" in st.session_state:
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
+        elif "job_posting_path" in st.session_state or "job_description" in st.session_state:
+                st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+                st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
+                st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+            )
+                self.tailor_callback(field_name)
+        else:
+            self.job_posting_popup(field_name)
+            # st.session_state["tailor_dict"]=tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"])
+
+    def evaluation_callback(self, field_name=None, redo=False):
+        self.display_general_evaluation()
+        if field_name:
+            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
+        else:
+            if redo:
+                del st.session_state["eval_dict"]
+                del st.session_state["finished_eval"]
+                del st.session_state["eval_button"]
+            if "finished_eval" not in st.session_state:
+                evaluate_resume(resume_dict=st.session_state["profile"], type="general")
+            
+
     
     def display_profile(self,):
 
@@ -1035,18 +1019,6 @@ class User():
             st.session_state["profile"]=st.session_state["user_profile_dict"]
         eval_col, profile_col = st.columns([1, 2])
                 
-        # with c3:
-        #     float_container = st.container()
-        #     with float_container:
-        #         st.subheader("Step 2")
-        #         st.write("Have a job posting you want to tailor to?")
-        #         st.markdown(general_button, unsafe_allow_html=True )
-        #         st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-        #         tailor = st.button("Tailor to a job posting ✨", key="resume_tailor_button")
-        #         if tailor:
-        #             self.job_posting_form()
-        #         float_parent()
-    
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -1147,21 +1119,17 @@ class User():
             c1, c2, c3 = st.columns([1, 1, 1])
             with c3:
                 st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
-            # with c2:
-            #     st.button("Save a temporary copy", key="profile_temp_copy_button", type="primary")
-            # with c1:
-                # st.markdown(general_button, unsafe_allow_html=True)
-                # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                if st.button("Upload a new resume", ):
-                    self.delete_profile_popup()
-        # with eval_col:
-        #     float_container= st.container()
-        #     with float_container:
-        #         if "finished_eval" not in st.session_state:
-        #             self.display_evaluation()
-        #             evaluate_resume(resume_dict=st.session_state["profile"], type="general")
-        #         else:
-        #             self.display_evaluation()
+                st.button("Upload a new resume", on_click=self.delete_profile_popup,  )
+        with eval_col:
+            # float_container= st.container()
+            # with float_container:
+                self.evaluation_callback()
+                # float_parent()
+                # if "finished_eval" not in st.session_state:
+                #     self.display_evaluation()
+                #     evaluate_resume(resume_dict=st.session_state["profile"], type="general")
+                # else:
+                #     self.display_evaluation()
         
 
 
@@ -1184,57 +1152,57 @@ class User():
 
     
     @st.experimental_fragment(run_every=3)
-    def display_evaluation(self, ):
+    def display_general_evaluation(self, ):
 
-        eval_dict= self.get_dict("evaluation")
-        # _, c1, c2 = st.columns([1, 2, 2])
-        st.write("**Length**")
-        #TODO: use a gauge chart to display
-        try:
-            length=eval_dict["word_count"]
-            pages=eval_dict["page_number"]
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = length,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Your length"}))
-            st.plotly_chart(fig, 
-                            # use_container_width=True
-                            )
-            # st.write(f"Yours: {length} words & {pages}")
-        except Exception:
-            st.write("Evaluating...")
-        st.write("**Type**")
-        st.button("explore template options")
-        try:
-            ideal_type = eval_dict["ideal_type"]
-            st.write(f"The ideal type for your resume: \n{ideal_type}")
-            # my_type = eval_dict["type"]
-            # st.write(f"Your resume type: \n {my_type}")
-        except Exception:
-            st.write("Evaluating...")
-        st.write("**Comparison**")
-        # st.write("How close does your resume compare to others of the same industry?")
-        try:
-            work_comparison = eval_dict["comparison"]["work_experience_section"]
-            skills_comparison = eval_dict["comparison"]["skills_section"]
-            summary_comparison = eval_dict["comparion"]["summary_objective"]
-            st.write("work: "+ work_comparison)
-            st.write("skills: " + skills_comparison)
-            st.write("summary: " + summary_comparison)
-            # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
-            # st.scatter_chart()
-        except Exception:
-            st.write("Evaluating...")
-        st.write("**Impression**")
-        try:
-            cohesiveness = eval_dict["cohesiveness"]
-            st.write(cohesiveness)
-            st.session_state["finished_eval"] = True
-        except Exception:
-            st.write("Evaluating...")
+            eval_dict= self.get_dict("evaluation")
+            st.write("**Length**")
+            try:
+                length=eval_dict["word_count"]
+                pages=eval_dict["page_number"]
+                fig = go.Figure(go.Indicator(
+                    mode = "gauge+number",
+                    value = length,
+                    domain = {'x': [0, 1], 'y': [0, 1]},
+                    title = {'text': "Your length"}))
+                st.plotly_chart(fig, 
+                                # use_container_width=True
+                                )
+                # st.write(f"Yours: {length} words & {pages}")
+            except Exception:
+                st.write("Evaluating...")
+            st.write("**Type**")
+            # st.button("explore template options", key="explore")
+            try:
+                ideal_type = eval_dict["ideal_type"]
+                st.write(f"The ideal type for your resume: \n{ideal_type}")
+                # my_type = eval_dict["type"]
+                # st.write(f"Your resume type: \n {my_type}")
+            except Exception:
+                st.write("Evaluating...")
+            st.write("**Comparison**")
+            # st.write("How close does your resume compare to others of the same industry?")
+            try:
+                work_comparison = eval_dict["comparison"]["work_experience_section"]
+                skills_comparison = eval_dict["comparison"]["skills_section"]
+                summary_comparison = eval_dict["comparion"]["summary_objective"]
+                st.write("work: "+ work_comparison)
+                st.write("skills: " + skills_comparison)
+                st.write("summary: " + summary_comparison)
+                # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
+                # st.scatter_chart()
+            except Exception:
+                st.write("Evaluating...")
+            st.write("**Impression**")
+            try:
+                cohesiveness = eval_dict["cohesiveness"]
+                st.write(cohesiveness)
+                st.session_state["finished_eval"] = True
+            except Exception:
+                st.write("Evaluating...")
+            again = st.button("evaluate again ✨", key=f"eval_button", on_click=self.evaluation_callback, args=(None, True, ))
 
-        st.button("evaluate again ✨", on_click=self.trigger_evaluation)
+
+
 
 
 
