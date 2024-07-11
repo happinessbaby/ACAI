@@ -302,4 +302,479 @@
         "salary": "",
         "on_site": null
     }
+}{
+    "About this role:\n\nMonitor/Audit Payroll procedures": {
+        "skills": [
+            {
+                "example": "",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Influence",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Leadership",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Interpersonal skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Adaptability",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Teachability",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Perseverance",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Positive outlook",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Payroll procedures and systems monitoring/auditing",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Reporting and detailed analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Financial analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of payroll processing systems",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of payroll tax systems",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of Oracle modules (HR, Time cards, accounting, ledgers)",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of internal areas including HR, Legal, Treasury, and Tax processes",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Investigation and resolution of issues",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Backup duties/functions in Payroll Services",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "About this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services\n\n\n\n\nWho you are:\n\n\u2022 Motivated, high-potential performer, with demonstrated ability to influence and lead\n\n\u2022 Strong communicator with excellent interpersonal skills\n\n\u2022 Able to solve complex problems and successfully manage ambiguity and unexpected change\n\n\u2022 Teachable and embracing of best practices and feedback as a means of continuous improvement\n\n\u2022 Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges\n",
+        "job": "",
+        "about_job": "Monitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.",
+        "company": "",
+        "company_description": "",
+        "qualifications": [
+            "Motivated, high-potential performer, with demonstrated ability to influence and lead",
+            "Strong communicator with excellent interpersonal skills",
+            "Able to solve complex problems and successfully manage ambiguity and unexpected change",
+            "Teachable and embracing of best practices and feedback as a means of continuous improvement",
+            "Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges"
+        ],
+        "responsibilities": [
+            "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner",
+            "Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)",
+            "Project manage complex initiatives and system enhancements/replacements including testing",
+            "Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified",
+            "Resolve and respond to problems or inquiries made from associates regarding payroll services",
+            "Work in close alignment with internal audit to investigate fraud and policy non compliance",
+            "Serve as backup for a variety of duties/functions in Payroll Services"
+        ],
+        "salary": "",
+        "on_site": null
+    }
+}{
+    "Original Job Description\n\nAbout this role:\n\nMonito": {
+        "skills": [
+            {
+                "example": "demonstrated ability to influence and lead, solve complex problems",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "strong communicator with excellent interpersonal skills",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Payroll procedures and systems auditing",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Financial analysis and reporting",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Knowledge of payroll processing systems, payroll tax systems, and Oracle modules",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of HR, Legal, Treasury, and Tax processes",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Investigation of fraud and policy non-compliance",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Back-up for various duties/functions in Payroll Services",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "Original Job Description\n\nAbout this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services\n\n\n\n\nWho you are:\n\n\u2022 Motivated, high-potential performer, with demonstrated ability to influence and lead\n\n\u2022 Strong communicator with excellent interpersonal skills\n\n\u2022 Able to solve complex problems and successfully manage ambiguity and unexpected change\n\n\u2022 Teachable and embracing of best practices and feedback as a means of continuous improvement\n\n\u2022 Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges\n",
+        "job": "",
+        "about_job": "Monitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.",
+        "company": "",
+        "company_description": "",
+        "qualifications": [
+            "Motivated, high-potential performer, with demonstrated ability to influence and lead",
+            "Strong communicator with excellent interpersonal skills",
+            "Able to solve complex problems and successfully manage ambiguity and unexpected change",
+            "Teachable and embracing of best practices and feedback as a means of continuous improvement",
+            "Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges"
+        ],
+        "responsibilities": [
+            "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner",
+            "Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)",
+            "Project manage complex initiatives and system enhancements/replacements including testing",
+            "Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified",
+            "Resolve and respond to problems or inquiries made from associates regarding payroll services",
+            "Work in close alignment with internal audit to investigate fraud and policy non compliance",
+            "Serve as backup for a variety of duties/functions in Payroll Services"
+        ],
+        "salary": "",
+        "on_site": null
+    }
+}{
+    "Original Job Description\n\nAbout this role:\n\nMonito": {
+        "skills": [
+            {
+                "example": "",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Leadership",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Interpersonal skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Payroll procedures and systems monitoring/auditing",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Financial analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Systems understanding (payroll processing systems, payroll tax systems, Oracle modules)",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Internal areas understanding (HR, Legal, Treasury, Tax processes)",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Fraud investigation",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Policy compliance resolution",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Backup duties in Payroll Services",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "Original Job Description\n\nAbout this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services\n\n\n\n\nWho you are:\n\n\u2022 Motivated, high-potential performer, with demonstrated ability to influence and lead\n\n\u2022 Strong communicator with excellent interpersonal skills\n\n\u2022 Able to solve complex problems and successfully manage ambiguity and unexpected change\n\n\u2022 Teachable and embracing of best practices and feedback as a means of continuous improvement\n\n\u2022 Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges\n",
+        "job": "",
+        "about_job": "Monitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.",
+        "company": "",
+        "company_description": "",
+        "qualifications": [
+            "Motivated, high-potential performer, with demonstrated ability to influence and lead",
+            "Strong communicator with excellent interpersonal skills",
+            "Able to solve complex problems and successfully manage ambiguity and unexpected change",
+            "Teachable and embracing of best practices and feedback as a means of continuous improvement",
+            "Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges"
+        ],
+        "responsibilities": [
+            "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner",
+            "Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)",
+            "Project manage complex initiatives and system enhancements/replacements including testing",
+            "Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified",
+            "Resolve and respond to problems or inquiries made from associates regarding payroll services",
+            "Work in close alignment with internal audit to investigate fraud and policy non compliance",
+            "Serve as backup for a variety of duties/functions in Payroll Services"
+        ],
+        "salary": "",
+        "on_site": null
+    }
+}{
+    "Original Job Description\n\nAbout this role:\n\nMonito": {
+        "skills": [
+            {
+                "example": "",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Influence",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Payroll procedures and systems",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Financial analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of payroll processing systems",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of Oracle modules",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Testing",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Knowledge of HR, Legal, Treasury, and Tax processes",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Investigative skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Fraud detection",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "Original Job Description\n\nAbout this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services\n\n\n\n\nWho you are:\n\n\u2022 Motivated, high-potential performer, with demonstrated ability to influence and lead\n\n\u2022 Strong communicator with excellent interpersonal skills\n\n\u2022 Able to solve complex problems and successfully manage ambiguity and unexpected change\n\n\u2022 Teachable and embracing of best practices and feedback as a means of continuous improvement\n\n\u2022 Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges\n",
+        "job": "Payroll Auditor",
+        "about_job": "Monitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.",
+        "company": "",
+        "company_description": "",
+        "qualifications": [
+            "Motivated, high-potential performer, with demonstrated ability to influence and lead",
+            "Strong communicator with excellent interpersonal skills",
+            "Able to solve complex problems and successfully manage ambiguity and unexpected change",
+            "Teachable and embracing of best practices and feedback as a means of continuous improvement",
+            "Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges"
+        ],
+        "responsibilities": [
+            "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner",
+            "Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)",
+            "Project manage complex initiatives and system enhancements/replacements including testing",
+            "Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified",
+            "Resolve and respond to problems or inquiries made from associates regarding payroll services",
+            "Work in close alignment with internal audit to investigate fraud and policy non compliance",
+            "Serve as backup for a variety of duties/functions in Payroll Services"
+        ],
+        "salary": "",
+        "on_site": null
+    }
+}{
+    "Original Job Description\n\nAbout this role:\n\nMonito": {
+        "skills": [
+            {
+                "example": "demonstrated ability to influence and lead, solve complex problems",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "strong communicator with excellent interpersonal skills",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "ability to manage ambiguity and unexpected change, consistently high achiever marked by perseverance",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Knowledge of payroll procedures and systems",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data analysis and reporting skills",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Understanding of payroll processing systems, payroll tax systems, and Oracle modules",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management skills for complex initiatives and system enhancements/replacements",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Familiarity with internal areas including HR, Legal, Treasury, and Tax processes",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Ability to investigate fraud and policy non-compliance",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Proficiency in using multiple complex systems such as Oracle modules (HR, Time cards, accounting and ledgers)",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "Original Job Description\n\nAbout this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services\n\n\n\n\nWho you are:\n\n\u2022 Motivated, high-potential performer, with demonstrated ability to influence and lead\n\n\u2022 Strong communicator with excellent interpersonal skills\n\n\u2022 Able to solve complex problems and successfully manage ambiguity and unexpected change\n\n\u2022 Teachable and embracing of best practices and feedback as a means of continuous improvement\n\n\u2022 Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges\n",
+        "job": "",
+        "about_job": "About this role:\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.",
+        "company": "",
+        "company_description": "",
+        "qualifications": [
+            "Motivated, high-potential performer, with demonstrated ability to influence and lead",
+            "Strong communicator with excellent interpersonal skills",
+            "Able to solve complex problems and successfully manage ambiguity and unexpected change",
+            "Teachable and embracing of best practices and feedback as a means of continuous improvement",
+            "Consistently high achiever marked by perseverance, humility and a positive outlook in the face of challenges"
+        ],
+        "responsibilities": [
+            "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner",
+            "Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)",
+            "Project manage complex initiatives and system enhancements/replacements including testing",
+            "Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified",
+            "Resolve and respond to problems or inquiries made from associates regarding payroll services",
+            "Work in close alignment with internal audit to investigate fraud and policy non compliance",
+            "Serve as backup for a variety of duties/functions in Payroll Services"
+        ],
+        "salary": "",
+        "on_site": null
+    }
 }

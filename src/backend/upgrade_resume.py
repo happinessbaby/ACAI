@@ -242,26 +242,23 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    st.session_state["st.session_state.tailor_dict"] = {}
-    my_objective = resume_dict.get("summary_objective_section", "")
-    my_skills = resume_dict.get("skills_section", "")
-    st.session_state.st.session_state.tailor_dict.update({"original_skills": my_skills})
-    st.session_state.tailor_dict.update({"original_objective": my_objective})
-    resume_skills = resume_dict.get("skills", -1)
-    my_experience = resume_dict.get("work_experience_section", "")
+    # st.session_state["tailor_dict"] = {}
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    tailored_skills_dict = tailor_skills(required_skills, my_skills, resume_skills)
-    st.session_state.tailor_dict.update({"tailored_skills": tailored_skills_dict})
-    tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description+about_job)
-    st.session_state.tailor_dict.update({"tailored_objective": tailored_objective_dict})
-    tailored_experience = tailor_experience(job_requirements, my_experience)
-    st.session_state.tailor_dict.update({"tailored_experience": tailored_experience})
-    return st.session_state.tailor_dict
+    if type=="skillls":
+        tailored_skills_dict = tailor_skills(required_skills, resume_dict["skills"])
+        st.session_state[f"tailored_{type}"]=tailored_skills_dict
+    if type=="summary":
+        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, resume_dict["summary_objective"])
+        st.session_state[f"tailored_{type}"]=tailored_objective_dict
+    if type=="work_experience":
+        tailored_experience = tailor_experience(job_requirements, resume_dict["work_experience"])
+        st.session_state[f"tailored_{type}"]= tailored_experience
+    # return st.session_state.tailor_dict
 
 def concat_skills(skills_list, skills_str=""):
     for s in skills_list:
@@ -271,12 +268,12 @@ def concat_skills(skills_list, skills_str=""):
     return skills_str
 
 
-def tailor_skills(required_skills, my_skills, resume_skills):
+def tailor_skills(required_skills, my_skills,):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
     required_skills_str = concat_skills(required_skills)
-    my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
+    # my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
     # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
     # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
         # Relevancy report for hard skills: {relevant_hard_skills} \
@@ -321,7 +318,7 @@ def tailor_skills(required_skills, my_skills, resume_skills):
                                     #          relevant_hard_skills = relevant_hard_skills, 
                                             # relevant_skills = relevant_skills,
                                             required_skills = required_skills_str,
-                                            my_skills = my_skills_str,
+                                            my_skills = my_skills,
     )
     tailored_skills = llm(message).content
     # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
@@ -329,7 +326,7 @@ def tailor_skills(required_skills, my_skills, resume_skills):
     return tailored_skills_dict
 
 
-def tailor_objective(my_objective,  job_requirements, company_description):
+def tailor_objective(job_requirements, my_objective):
 
     #TODO: THIS needs to to be redone!
     if my_objective!=-1:

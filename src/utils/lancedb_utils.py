@@ -150,7 +150,7 @@ def retrieve_user_profile_dict(userId):
                 #     profile_dict[key]=value
                 # else:                   # Handle None and anomalies
                 #     profile_dict[key] = ''
-        print(f"Retrieved user profile dict from lancedb", profile_dict)
+        print(f"Retrieved user profile dict from lancedb", )
         return profile_dict
     else:
         return None
