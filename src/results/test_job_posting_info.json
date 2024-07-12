@@ -777,4 +777,107 @@
         "salary": "",
         "on_site": null
     }
+}{
+    "About this role:\n\nMonitor/Audit Payroll procedures": {
+        "skills": [
+            {
+                "example": "",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Payroll procedures and systems knowledge",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Data analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Project management",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "Technical skills - Understanding complex systems including payroll processing systems, payroll tax systems, and Oracle modules",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "About this role:\n\nMonitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries. Help review regular payroll input for ongoing accuracy and compliance. Use data and analysis to monitor and improve payroll procedures and systems. Manage projects that improve processes and/or systems.\n\n\n\n\nWhat you'll do:\n\n\u2022 Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\n\u2022 Understanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\n\u2022 Project manage complex initiatives and system enhancements/replacements including testing\n\n\u2022 Understanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\n\u2022 Resolve and respond to problems or inquiries made from associates regarding payroll services\n\n\u2022 Work in close alignment with internal audit to investigate fraud and policy non compliance\n\n\u2022 Serve as backup for a variety of duties/functions in Payroll Services",
+        "job": "",
+        "about_job": "Perform/provide reporting and detailed analyses for detection of compliance/audit issues and other financial analysis to ensure payroll services are operating in an optimal manner\n\nUnderstanding of multiple complex systems including payroll processing systems, payroll tax systems, and Oracle modules (HR, Time cards, accounting and ledgers)\n\nProject manage complex initiatives and system enhancements/replacements including testing\n\nUnderstanding of multiple internal areas including HR, Legal, Treasury and Tax processes, and company initiatives in order to investigate and resolve issues raised or identified\n\nResolve and respond to problems or inquiries made from associates regarding payroll services\n\nWork in close alignment with internal audit to investigate fraud and policy non compliance\n\nServe as backup for a variety of duties/functions in Payroll Services",
+        "company": "",
+        "company_description": "",
+        "qualifications": [],
+        "responsibilities": [
+            "Monitor/Audit Payroll procedures and system for Americas, UK, and other assigned countries",
+            "Help review regular payroll input for ongoing accuracy and compliance",
+            "Use data and analysis to monitor and improve payroll procedures and systems",
+            "Manage projects that improve processes and/or systems"
+        ],
+        "salary": "",
+        "on_site": null
+    }
+}{
+    "JOB SUMMARY:\n\n\n\n\nData Analysts support the develop": {
+        "skills": [
+            {
+                "example": "Data Analysts support the development and optimization of strategic initiatives by generating actionable insights and recommendations from data.",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Data Analysts will be working as part of a team and collaborating with various functional business teams.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Building a community of Data & Analytics professionals with a focus on collaboration.",
+                "skill": "Collaboration",
+                "type": "soft skill"
+            },
+            {
+                "example": "Leveraging internal and external data using data science techniques to solve business problems.",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Data Analyst will be using data science techniques to analyze data and solve business problems.",
+                "skill": "Data science techniques",
+                "type": "hard skill"
+            },
+            {
+                "example": "Using business intelligence tools to mine complex data, identify historic trends, and visualize large datasets.",
+                "skill": "Business intelligence tools",
+                "type": "hard skill"
+            },
+            {
+                "example": "Playing a critical role in data governance, helping to create and maintain data standards and quality.",
+                "skill": "Data governance",
+                "type": "hard skill"
+            }
+        ],
+        "summary": "JOB SUMMARY:\n\n\n\n\nData Analysts support the development and optimization of strategic initiatives by generating actionable insights and recommendations from internal and external data. Data Analysts support business growth by using business intelligence tools to mine complex data, identify historic trends, and visualize large datasets. Data Analysts play a critical role in data governance, helping to create and maintain data standards and quality.\n\n\n\n\nThe Data Analyst will work as part of the skilled and passionate Finance and Accounting organization delivering business solutions that enable the various functional business teams. The position's primary role will be to leverage internal and external data using data science techniques to solve business problems.\n\n\n\n\nAt Textron Aviation, we are building a community of Data & Analytics professionals with an emphasis on collaboration and cross functional support. You will have the opportunity to work closely with your peers throughout the organization toward a vision of data driven strategy.",
+        "job": "",
+        "about_job": "Data Analyst",
+        "company": "Textron Aviation",
+        "company_description": "Textron Aviation is a company that values integrity, collaboration, and community involvement while providing job opportunities and rewards for its employees.",
+        "qualifications": [],
+        "responsibilities": [],
+        "salary": "",
+        "on_site": null
+    }
 }

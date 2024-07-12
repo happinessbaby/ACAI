@@ -142,7 +142,7 @@ def analyze_field_content(field_content, field_type):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
 
-    if field_type=="work experience" or field_type=="projects" or field_type=="professional accomplishment":
+    if field_type=="work experience":
             #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
         star_prompt = f"""
             You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
@@ -160,6 +160,16 @@ def analyze_field_content(field_content, field_type):
         DO NOT USE ANY TOOLS. """
         response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
         return response
+    elif field_type=="projects":
+        """Summary of the project
+            Where the dataset came from
+            The questions you asked or hypotheses you theorized
+            The types of queries you ran (including some of the code, specifically)
+            The tools you used to do your analysis
+            Your findings
+            The limitations of your project
+            Conclusions and/pr recommendations
+            Further questions to examine in the future"""
             
 
 def analyze_via_comparison(field_content, category, sample_tools, tool_names):

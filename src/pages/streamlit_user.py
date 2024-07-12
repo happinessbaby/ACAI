@@ -74,7 +74,7 @@ class User():
 
     ctx = get_script_run_ctx()
 
-    def __init__(self, user_mode=None):
+    def __init__(self, ):
         # NOTE: userId is retrieved from browser cookie
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
@@ -87,8 +87,6 @@ class User():
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
-        # if user_mode:
-        #     st.session_state["user_mode"]=user_mode
         self._init_session_states()
         self._init_display()
 
@@ -164,28 +162,14 @@ class User():
             if  st.session_state["user_profile_dict"]:
                 self.display_profile()
                 if "init_tailoring" in st.session_state:
-                    self.job_posting_popup()
+                    self.display_job_posting_popup()
+                    # delete "init_tailoring" variable to prevent popup from being called again
+                    del st.session_state["init_tailoring"]
             else:
                 print("user profile does not exists yet")
-                self.about_resume()
+                self.initialize_resume()
           
     
-
-    @st.experimental_dialog("Warning")
-    def delete_profile_popup(self):
-        add_vertical_space(2)
-        st.warning("Your current profile will be lost. Are you sure?")
-        add_vertical_space(2)
-        c1, _, c2 = st.columns([1, 1, 1])
-        with c2:
-            if st.button("yes, I'll upload a new profile", type="primary"):
-                delete_user_from_table(lance_users_table, self.userId)
-                st.session_state["user_mode"]="display_profile"
-                st.rerun()
-        with c1:
-            if st.button("go back"):
-                st.session_state["user_mode"]="display_profile"
-                st.rerun()
 
 
     
@@ -321,6 +305,26 @@ class User():
                     st.info("Failed to register user, please try again")
                     st.rerun()
 
+    def save_password(self, username, name, password, email, filename=login_file):
+
+        try:
+            # hashed_password = hash_password(password)
+            # print("hashed password", hashed_password)
+            with open(filename, 'r') as file:
+                credentials = yaml.safe_load(file)
+                print(credentials)
+                # Add the new user's details to the dictionary
+            credentials['credentials']['usernames'][username] = {
+                'email': email,
+                'name': name,
+                'password': password
+            }  
+            with open(filename, 'w') as file:
+                yaml.dump(credentials, file)
+            return True
+        except Exception as e:
+            return False
+
 
                     
 
@@ -340,7 +344,7 @@ class User():
     #         label="What can I know about you?", 
     #         placeholder="Tell me about yourself, for example, what are your best motivations and values? What's important to you in a job?", 
     #         key = "self_descriptionx", 
-    #         on_change=self.field_check
+    #         on_change=self.field_callback
     #         )
     #         st.session_state["value0"]=value0
     #     elif selected==0 and st.session_state.value0!="":
@@ -348,7 +352,7 @@ class User():
     #         label="What can I know about you?", 
     #         value=st.session_state["value0"],
     #         key = "self_descriptionx", 
-    #         on_change=self.field_check
+    #         on_change=self.field_callback
     #         )
     #         st.session_state["value0"]=value0
     #     elif selected==1 and st.session_state.value1=="":
@@ -356,7 +360,7 @@ class User():
     #         label="What are your skills?",
     #         placeholder = "Tell me about your skills and talent? What are you especially good at that you want to bring to a workplace?",
     #         key="skill_setx",
-    #         on_change =self.field_check
+    #         on_change =self.field_callback
     #         )
     #         st.session_state["value1"]=value1
     #     elif selected==1 and st.session_state.value1!="":
@@ -364,7 +368,7 @@ class User():
     #         label="What are your skills?",
     #         value=st.session_state["value1"],
     #         key = "skill_setx",
-    #         on_change=self.field_check
+    #         on_change=self.field_callback
     #         )
     #         st.session_state["value1"]=value1
     #     elif selected==2 and st.session_state.value2=="":
@@ -372,7 +376,7 @@ class User():
     #         label="What can I do for you?",
     #         placeholder = "Tell me about your career goals. Where do you see yourself in 1 year? What about 10 years? What do you want to achieve in life?",
     #         key="career_goalsx",
-    #         on_change=self.field_check,
+    #         on_change=self.field_callback,
     #         )
     #         st.session_state["value2"]=value2
     #     elif selected==2 and st.session_state.value2!="":
@@ -380,7 +384,7 @@ class User():
     #         label="What can I do for you?",
     #         value=st.session_state["value2"],
     #         key = "career_goalsx",
-    #         on_change=self.field_check
+    #         on_change=self.field_callback
     #         )
     #         st.session_state["value2"]=value2
         
@@ -390,7 +394,7 @@ class User():
         #     st.session_state["init_user2"]=True
 
     
-    def about_resume(self):
+    def initialize_resume(self):
 
         _, c, _ = st.columns([1, 1, 1])
         with c:
@@ -404,7 +408,7 @@ class User():
             resume = st.file_uploader(label="Upload your resume",
                             key="user_resume",
                                 accept_multiple_files=False, 
-                                on_change=self.field_check, 
+                                on_change=self.field_callback, 
                                 help="This will become your default resume.")
             add_vertical_space(3)
             _, c1 = st.columns([5, 1])
@@ -423,46 +427,33 @@ class User():
 
 
 
-    def about_bio(self):
-
-        c1, c2 = st.columns(2)
-        with c1:
-            #TODO: check default value for user who wants to change their profile info
-            st.text_input("Full name *", key="namex", 
-                            value= st.session_state["users"][self.userId]["name"] if self.userId in st.session_state["users"] and "name" in st.session_state["users"][self.userId] else "", 
-                            on_change=self.field_check)
-        with c2:
-            st.date_input("Date of Birth *", date.today(), min_value=date(1950, 1, 1), key="birthdayx", on_change=self.field_check)
-        st.text_input("LinkedIn", key="linkedinx", on_change=self.field_check)
-
-
     def about_career(self):
 
         c1, c2 = st.columns([1, 1])
         # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
         with c1:
-            st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_check)
+            st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.field_callback)
         with c2:
-            st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_check)   
+            st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.field_callback)   
         c1, c2=st.columns([1, 1])
         with c1:
-            min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_check)
+            min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.field_callback)
         with c2: 
-            pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.field_check)
+            pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.field_callback)
         job_unsure=st.checkbox("Not sure about the job")
         if job_unsure:
-            st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_check)
-        career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.field_check)
+            st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.field_callback)
+        career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.field_callback)
         if career_switch:
-            st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.field_check)
+            st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.field_callback)
         location = st.checkbox("Location is important to me")
-        # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_check)
+        # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.field_callback)
         if location:
             location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
             if location_input=="I want remote work":
                 st.session_state.location_input = "remote"
             if location_input == "I have a specific place in mind":
-                st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_check)
+                st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.field_callback)
             if location_input == "work near where I currently live":
                 if st.checkbox("Share my location"):
                     loc = get_geolocation()
@@ -470,20 +461,6 @@ class User():
                         address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
                         st.session_state["location_input"] = address
 
-
-    def about_education(self):
-
-        c1, c2 = st.columns([1, 1])
-            # st.text_input("School", key="schoolx")
-        with c2:
-            st.text_input("Year of Graduation (if applicable)", key="grad_yearx", on_change=self.field_check)
-        with c1:
-            degree = st.selectbox("Highest level of education *", index=None, options=("Did not graduate high school", "High school diploma", "Associate's degree", "Bachelor's degree", "Master's degree", "Professional degree"), key="degreex", placeholder = "Select your highest level of education", on_change=self.field_check)
-        if degree=="Associate's degree" or degree=="Bachelor's degree" or degree=="Master's degree" or degree=="Professional degree":
-            st.text_input("Area(s) of study", key="studyx", placeholder="please separate each with a comma", on_change=self.field_check)
-        certification = st.checkbox("Other certifications")
-        if certification:
-            st.text_area("", key="certificationx", placeholder="Please write out the full name of each certification chronologically and separate them with a comma", on_change=self.field_check)
 
 
 
@@ -521,68 +498,17 @@ class User():
             # Retry after a short delay
             return self.get_address(latitude, longitude)
         
-    def field_check(self):
+    def field_callback(self):
 
-        # Hacky way to save input text for stepper bar for batch submission
+
         try:
             st.session_state["self_description"] = st.session_state.self_descriptionx
             st.session_state["users"][self.userId]["self_description"] = st.session_state.self_description
         except AttributeError:
             pass
         try:
-            st.session_state["skill_set"] = st.session_state.skill_setx
-            st.session_state["users"][self.userId]["skill_set"] = st.session_state.skill_set
-        except AttributeError:
-            pass
-        try:
             st.session_state["career_goals"] = st.session_state.career_goalsx
             st.session_state["users"][self.userId]["career_goals"] = st.session_state.career_goals
-        except AttributeError:
-            pass
-        try:
-            st.session_state["name"] = st.session_state.namex
-            st.session_state["users"][self.userId]["name"] = st.session_state.name
-        except AttributeError:
-            pass
-        try:
-            birthday = st.session_state.birthdayx
-            self.process("birthday", birthday)
-            st.session_state["users"][self.userId]["birthday"] = st.session_state.birthday
-        except AttributeError:
-            pass
-        try:
-            linkedin = st.session_state.linkedinx
-            if linkedin:
-                process_linkedin(st.session_state.linkedinx)
-                st.session_state["users"][self.userId]["linkedin"] = st.session_state.linkedin
-        except AttributeError:
-            pass
-        try:
-            st.session_state["grad_year"] = st.session_state.grad_yearx
-            st.session_state["users"][self.userId]["graduation_year"] = st.session_state.grad_year
-        except AttributeError:
-            pass
-        try:
-            st.session_state["degree"] = st.session_state.degreex
-            st.session_state["users"][self.userId]["degree"] = st.session_state.degree
-        except AttributeError:
-            pass
-        try:
-            study = st.session_state.studyx
-            self.process("study", study)
-            st.session_state["users"][self.userId]["study"] = st.session_state.study
-        except AttributeError:
-            pass
-        try:
-            certification = st.session_state.certificationx 
-            self.process("certification", certification)
-            st.session_state["users"][self.userId]["certification"] = st.session_state.certification
-        except AttributeError:
-            pass
-        try:
-            job = st.session_state.jobx
-            self.process("job", job)
-            st.session_state["users"][self.userId]["job"] = st.session_state.job
         except AttributeError:
             pass
         try:
@@ -613,11 +539,6 @@ class User():
         except AttributeError:
             pass
         try:
-            st.session_state["industry"] = st.session_state.industryx
-            st.session_state["users"][self.userId]["industry"] = st.session_state.industry
-        except AttributeError:
-            pass
-        try:
             location_input = st.session_state.location_inputx
             self.process("location_input", location_input)
             st.session_state["users"][self.userId]["location_input"] = st.session_state.location_input
@@ -645,6 +566,9 @@ class User():
 
 
     def process(self, input_value: Any, input_type:str):
+
+        """ Processes and checks user inputs"""
+
         if input_type=="resume":
             result = process_uploads(input_value, st.session_state.user_save_path, "")
             if result is not None:
@@ -683,7 +607,9 @@ class User():
 
 
     @st.experimental_fragment()
-    def update_skills(self, ):
+    def display_skills(self, ):
+
+        """ Displays skills section of the profile"""
 
         def get_display():
             c1, c2=st.columns([1, 1])
@@ -732,6 +658,8 @@ class User():
 
     @st.experimental_fragment()
     def display_field_details(self, field_name, x, field_detail, type):
+
+        """ Displays specific details such as bullet points in each field"""
 
         def get_display():
             
@@ -787,21 +715,22 @@ class User():
             except Exception as e:
                 pass
 
-
         return get_display
 
 
     @st.experimental_fragment()   
     def display_field_content(self, name):
 
-        """"""
+        """ Displays content of each profile/resume field """
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
+
             for idx, value in enumerate(st.session_state["profile"][name]):
                 add_container(idx, value)
             st.button("add", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
+            # adds new empty entry to profile dict
             if name=="certifications" or name=="licenses":
                 st.session_state["profile"][name].append({"description":[],"issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
@@ -812,13 +741,16 @@ class User():
                 st.session_state["profile"][name].append({"description":[],"title":""})
             
         def delete_container(placeholder, idx):
+
+            #deletes field container
             print("deleted", st.session_state["profile"][name][idx])
             del st.session_state["profile"][name][idx]
             placeholder.empty()
 
 
         def add_container(idx, value):
-
+            
+            # adds field container
             placeholder=st.empty()
             with placeholder.container(border=True):
                 c1, x = st.columns([18, 1])
@@ -949,6 +881,8 @@ class User():
 
     def display_field_analysis(self, field_name):
 
+        """ Displays the field-specific analysis UI """
+
         _, c1, c2 = st.columns([4, 1, 1])
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
@@ -971,17 +905,21 @@ class User():
           
 
     @st.experimental_dialog("Please provide a job posting")   
-    def job_posting_popup(self,):
+    def display_job_posting_popup(self,):
 
+        """ Displays a popup for adding a job posting """
+
+        # deletes previously generated job posting dictionary 
         try: 
             del st.session_state["job_posting_dict"]
         except Exception:
             pass
-
+        # disables the next button until user provides a job posting
         if "job_posting_path" in st.session_state or "job_description" in st.session_state:
             st.session_state["job_posting_disabled"]=False
         else:
             st.session_state["job_posting_disabled"]=True
+        st.info("In case when a job link does not work, please copy and paste the complete job posting into the job description")
         job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0
@@ -989,52 +927,47 @@ class User():
         if job_posting=="job posting link":
             job_posting_link = st.text_input(label="Job posting link",
                                             key="posting_link", 
-                                            on_change=self.field_check,
+                                            on_change=self.field_callback,
                                             )
-            # if job_posting_link:
-            #     self.process(job_posting_link, "job_posting")
         elif job_posting=="job description":
             job_description = st.text_area("Job description", 
                                         key="job_descriptionx", 
                                         value=st.session_state.job_description if "job_description" in st.session_state else "",
-                                        on_change=self.field_check
+                                        on_change=self.field_callback
                                             )
-            # if job_description:
-            #     self.process(job_description, "job_description")
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
-            self.tailor_callback()
+            # creates job posting dictionary
+            st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+                        st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
+                        st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+                    )
+        
+            # starts field tailoring if called to tailor a field
+            if "tailoring_field" in st.session_state:
+                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
             st.rerun()
 
     
     def tailor_callback(self, field_name=None):
       
         if "job_posting_dict" in st.session_state and field_name:
+            # starts specific field tailoring
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
         else:
-            if "job_posting_path" in st.session_state or "job_description" in st.session_state:
-                st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
-                        st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
-                        st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
-                    )
-                try:
-                    del st.session_state["init_tailoring"]
-                except Exception:
-                    pass
-                if "tailoring_field" in st.session_state:
-                    tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
-            else:
-                st.session_state["init_tailoring"] = True
-                if field_name:
-                    st.session_state["tailoring_field"]=field_name
+            # initializes tailoring's job posting popup 
+            st.session_state["init_tailoring"] = True
+            if field_name:
+                st.session_state["tailoring_field"]=field_name
 
 
 
     def evaluation_callback(self, field_name=None, ):
 
         if field_name:
+            # starts specific evaluation of a field
             evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
         else:
-            # start evaluating if haven't done so
+            # start general evaluation if haven't done so
             if "eval_dict" not in st.session_state:
                 thread = threading.Thread(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
                 add_script_run_ctx(thread, self.ctx)
@@ -1043,16 +976,14 @@ class User():
     
     def display_profile(self,):
 
-        """Loads from user file and displays profile"""
+        """Displays user profile UI"""
         # st.subheader("Your Profile")
 
         current_page = self.get_current_page()
         progress_bar(current_page["page_name"])
-        # self.updated_dict = {}
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
-        eval_col, profile_col, menu_col = st.columns([1, 3, 1])
-                
+        eval_col, profile_col, menu_col = st.columns([1, 3, 1])      
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -1082,19 +1013,15 @@ class User():
                 with st.expander(label="Education", expanded=True):
                     degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", )!=degree:
-                        # self.updated_dict.update({"degree":st.session_state.profile_degree})
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
                     study = st.session_state["profile"]["education"]["study"]
                     if st.text_input("Area of study", value=study, key="profile_study", )!=study:
-                        # self.updated_dict.update({"degree":st.session_state.profile_study})
                         st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
                     grad_year = st.session_state["profile"]["education"]["graduation_year"]
                     if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", )!=grad_year:
-                        # self.updated_dict.update({"graduation_year":st.session_state.profile_grad_year})
                         st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
                     gpa = st.session_state["profile"]["education"]["gpa"]
                     if st.text_input("GPA", value=gpa, key="profile_gpa", )!=gpa:
-                        # self.updated_dict.update({"gpa":st.session_state.profile_gpa})
                         st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
                     st.markdown("Course works")
                     display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
@@ -1104,7 +1031,6 @@ class User():
                 self.display_field_analysis("summary")
                 summary = st.session_state["profile"]["summary_objective"]
                 if st.text_area("Summary", value=summary, key="profile_summary", label_visibility="hidden")!=summary:
-                    # self.updated_dict.update({"summary_objective_section":st.session_state.profile_summary})
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
             with st.expander(label="Work experience",):
                 self.display_field_analysis("work_experience")
@@ -1112,15 +1038,12 @@ class User():
                 get_display()
             with st.expander(label="Skills",):
                 self.display_field_analysis("skills")
-                included_skills = st.session_state["profile"]["included_skills"]
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
-                self.skills_set= set(included_skills)
+                self.skills_set= set( st.session_state["profile"]["included_skills"])
                 self.generated_skills_set=set()
-                # for skill in included_skills:
-                #     self.skills_set.add(skill["skill"])
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
-                get_display=self.update_skills()
+                get_display=self.display_skills()
                 get_display()
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -1150,13 +1073,6 @@ class User():
             # placeholder = st.empty()
             # st.button("Add Custom Field", on_click=self.add_custom_field, args=(placeholder, ))
             st.divider()
-            # c1, c2, c3 = st.columns([1, 1, 1])
-            # with c2:
-            #     st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
-            #     st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  )
-            #     new_posting = st.button("Upload a new job posting", key="new_posting_button" )
-            #     if new_posting:
-            #         self.job_posting_popup()
 
         with eval_col:
             float_container= st.container()
@@ -1170,34 +1086,16 @@ class User():
             # with c2:
                 st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
                 st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  )
-                new_posting = st.button("Upload a new job posting", key="new_posting_button" )
-                if new_posting:
-                    self.job_posting_popup()
+                st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback)
             float_parent()
 
         
 
-
-    # def get_dict(self, type):
-        
-    #     if type=="evaluation":
-    #         try:
-    #             eval_dict= st.session_state["eval_dict"]
-    #         except Exception:
-    #             eval_dict={}
-    #         finally:
-    #             return eval_dict
-    #     elif type=="tailoring":
-    #         try:
-    #             tailor_dict = st.session_state["tailor_dict"]
-    #         except Exception:
-    #             tailor_dict={}
-    #         finally:
-    #             return tailor_dict
-
     
     @st.experimental_fragment(run_every=3)
     def display_general_evaluation(self, container):
+
+        """ Displays the general evaluation result of the profile/resume"""
 
         # eval_dict= self.get_dict("evaluation")
         try:
@@ -1228,6 +1126,7 @@ class User():
                             text="too long"
                         # Cap the displayed value at 1000, bust keep the actual value for the text annotation
                         display_value = min(length, 1000)
+                        # Create a gauge chart
                         fig = go.Figure(go.Indicator(
                             mode = "gauge",
                             value = display_value,
@@ -1297,7 +1196,7 @@ class User():
                         st.write("diction: "+diction_comparison)
                     except Exception:
                         st.write("Evaluating...")
-                    try:
+                    try: 
                         field_comparison = eval_dict["comparison"]["included resume fields"]
                         st.write("resume field inclusion: "+ field_comparison)
                     except Exception:
@@ -1333,26 +1232,24 @@ class User():
 
 
 
+    @st.experimental_dialog("Warning")
+    def delete_profile_popup(self):
+        add_vertical_space(2)
+        st.warning("Your current profile will be lost. Are you sure?")
+        add_vertical_space(2)
+        c1, _, c2 = st.columns([1, 1, 1])
+        with c2:
+            if st.button("yes, I'll upload a new profile", type="primary"):
+                delete_user_from_table(lance_users_table, self.userId)
+                st.session_state["user_mode"]="display_profile"
+                st.rerun()
+        with c1:
+            if st.button("go back"):
+                st.session_state["user_mode"]="display_profile"
+                st.rerun()
 
-    def save_password(self, username, name, password, email, filename=login_file):
 
-        try:
-            # hashed_password = hash_password(password)
-            # print("hashed password", hashed_password)
-            with open(filename, 'r') as file:
-                credentials = yaml.safe_load(file)
-                print(credentials)
-                # Add the new user's details to the dictionary
-            credentials['credentials']['usernames'][username] = {
-                'email': email,
-                'name': name,
-                'password': password
-            }  
-            with open(filename, 'w') as file:
-                yaml.dump(credentials, file)
-            return True
-        except Exception as e:
-            return False
+
         
     def get_current_page(self, ):
         try:
@@ -1371,12 +1268,7 @@ class User():
 
 
 if __name__ == '__main__':
-    # if "force_user_mode" in st.session_state:
-    #     if st.session_state.force_user_mode == "signout":
-    #         user = User("signout")
-    #     elif st.session_state.force_user_mode == "display_profile":
-    #         user=User("display_profile")
-    # else:
+
         user=User()
     
 
