@@ -107,14 +107,22 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         st.session_state.eval_dict.update({"ideal_type": ideal_type})
         # type_dict= analyze_resume_type(resume_content,)
         # st.session_state.eval_dict.update(type_dict)
-        # Generate overall impression
-        # section_names = ["summary_objective", "work_experience_section", "skills_section"]
+        section_names = ["summary_objective", "work_experience", "skills"]
+        categories=["diction, or word choice", "included resume fields", "back" ]
         # for section in section_names:
-        #     comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
-        #     st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+            # comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
+            # st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
+        sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+        for category in categories:
+            comparison_dict = analyze_via_comparison(resume_dict, category, sample_tools, tool_names)
+            st.session_state.eval_dict["comparison"].update({category:comparison_dict["closeness"]})
+        response = analyze_strength_weakness(resume_content, pursuit_jobs)
+        st.session_state.eval_dict["strength_weakness"] = response
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
-        cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-        st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
+        # Generate overall impression
+        # cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
+        # st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
     # Evaluates specific field  content
     if type=="work_experience":
         work_experience= resume_dict["work_experience"]
@@ -127,7 +135,6 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
     #     evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
     # in_depth_view = ""
     # return evaluation_dict
-
 
 
 
@@ -155,30 +162,49 @@ def analyze_field_content(field_content, field_type):
         return response
             
 
-def analyze_via_comparison(field_content, field_name, jobs):
+def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
     # Note: document comparison benefits from a clear and simple prompt
-    related_samples = search_related_samples(jobs, resume_samples_path)
-    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+    # related_samples = search_related_samples(jobs, resume_samples_path)
+    # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-    Assess the quality of the candidate resume's {field_name} in terms of how closely it resembles other sample resume's {field_name}.
+    Assess the candidate resume in terms of how closely it resembles other sample resume in terms of {category}.
+
+    You should not base your assessment on the content but {category} only. 
     
     All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
     
     The sample resume are for comparative purpose only. You should not analyze them. 
 
-    Please search for only the {field_name} of the sample resume.
-
-    As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+    As your final output, analyze how close the candidate resume's {category} resembles other sample resume's {category} using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
     Please output one of the metrics meter and provide your reasoning. 
 
-    candidate resume's {field_name} content: {field_content} \
+    candidate resume content: {field_content} \
     
     """
+    # query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
+
+    # Assess the candidate resume's {field_name} in terms of how closely it resembles other sample resume's {field_name} in terms of {category}.
+
+    # You should not base your assessment on the content but {category} only. 
+    
+    # All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
+    
+    # The sample resume are for comparative purpose only. You should not analyze them. 
+
+    # Please search for only the {field_name} of the sample resume.
+
+    # As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+
+    # Please output one of the metrics meter and provide your reasoning. 
+
+    # candidate resume's {field_name} content: {field_content} \
+    
+    # """
     # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
    
     #  Your final analysis should be about a paragraph long summarizing the quality of the candidate's resume. 
@@ -188,6 +214,18 @@ def analyze_via_comparison(field_content, field_name, jobs):
     comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
     return comparison_dict
 
+def analyze_strength_weakness(resume_content, jobs):
+    """"""
+    query_strength = f""" Identify the strengths and weaknesses of candidate given their resume and the job the candidate is pursuing. 
+    Output using the following format:s
+        strengths of the candidate: <your reasoning>
+        weaknesses of the candidate: <your reasoning> \n
+    pursuit job(s): {jobs} \
+    resume content: {resume_content} \
+    
+     """
+    response = generate_multifunction_response(query_strength, create_search_tools("google", 1))
+    return response
 
 def analyze_cohesiveness(resume_content, jobs):
 

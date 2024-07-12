@@ -1205,18 +1205,59 @@ class User():
         except Exception:
             eval_dict={}
         if eval_dict:
-            with st.popover("Your evaluation results are in!"):
+            if eval_dict and "cohesiveness" in eval_dict:
+                display_name = "Your evaluation results are in!"
+            else:
+                display_name = "Your profile is being evaluated..."
+            with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
                     try:
                         length=eval_dict["word_count"]
                         pages=eval_dict["page_number"]
+                        if length<300:
+                            text = "too short"
+                        elif length>=300 and length<450:
+                            text="could be longer"
+                        elif length>=450 and length<=600:
+                            text="perfect"
+                        elif length>600 and length<800:
+                            text="could be shorter"
+                        else:
+                            text="too long"
+                        # Cap the displayed value at 1000, bust keep the actual value for the text annotation
+                        display_value = min(length, 1000)
                         fig = go.Figure(go.Indicator(
-                            mode = "gauge+number",
-                            value = length,
+                            mode = "gauge",
+                            value = display_value,
                             domain = {'x': [0, 1], 'y': [0, 1]},
-                            title = {'text': "Your length"}))
+                            title = {'text': "Your resume length"},
+                            gauge = {
+                                    'axis': {'range': [1, 1000]},
+                                    'bar': {'color': "white"},
+                                    'steps': [
+                                        {'range': [1, 300], 'color': "red"},
+                                        {'range': [300, 450], "color":"yellow"},
+                                        {'range': [450, 600], 'color': "green"},
+                                         {'range': [600, 800], "color":"yellow"},
+                                        {'range': [800, 1000], 'color': "red"}
+                                    ],
+                                    'threshold': {
+                                        'line': {'color': "black", 'width': 4},
+                                        'thickness': 0.75,
+                                        'value': display_value
+                                    }
+                                }
+                        ))
+                        # Add annotation for the text
+                        fig.add_annotation(
+                            x=0.5, 
+                            y=0.5, 
+                            text=text, 
+                            showarrow=False,
+                            font=dict(size=24)
+                        )
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
@@ -1225,27 +1266,49 @@ class User():
                         st.write("Evaluating...")
                 with c2:
                     st.write("**Type**")
-                    # st.button("explore template options", key="explore")
+                    add_vertical_space(3)
+                    explore = st.button("Why the right type matters?", type="primary", key="resume_type_button")
+                    if explore:
+                        self.resume_types_explore_popup()
                     try:
                         ideal_type = eval_dict["ideal_type"]
-                        st.write(f"The ideal type for your resume: \n{ideal_type}")
+                        st.write(f"The best type of resume for you is a **{ideal_type}** resume")
+                        add_vertical_space(3)
+                        explore = st.button("Explore template options")
                         # my_type = eval_dict["type"]
                         # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
                         st.write("Evaluating...")
-                    st.write("**Comparison**")
+                c1, c2=st.columns([1, 1])
+                with c1:
+                    st.write("**How similar is your resume compared to others?**")
                     # st.write("How close does your resume compare to others of the same industry?")
                     try:
-                        work_comparison = eval_dict["comparison"]["work_experience_section"]
-                        skills_comparison = eval_dict["comparison"]["skills_section"]
-                        summary_comparison = eval_dict["comparion"]["summary_objective"]
-                        st.write("work: "+ work_comparison)
-                        st.write("skills: " + skills_comparison)
-                        st.write("summary: " + summary_comparison)
+                        diction_comparison = eval_dict["comparison"]["diction, or word choice"]
+                        # field_comparison = eval_dict["comparison"]["included resume fields"]
+                        # work_comparison = eval_dict["comparison"]["work_experience_section"]
+                        # skills_comparison = eval_dict["comparison"]["skills_section"]
+                        # summary_comparison = eval_dict["comparion"]["summary_objective"]
+                        # st.write("work: "+ work_comparison)
+                        # st.write("skills: " + skills_comparison)
+                        # st.write("summary: " + summary_comparison)
                         # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
                         # st.scatter_chart()
+                        st.write("diction: "+diction_comparison)
                     except Exception:
                         st.write("Evaluating...")
+                    try:
+                        field_comparison = eval_dict["comparison"]["included resume fields"]
+                        st.write("resume field inclusion: "+ field_comparison)
+                    except Exception:
+                        st.write("evaluating...")
+                with c2:
+                    st.write("Strength and Weakness")
+                    try:
+                        strength_weakness = eval_dict["strength_weakness"]
+                        st.write(strength_weakness)
+                    except Exception:
+                        st.write("evaluation...")
                 st.write("**Impression**")
                 try:
                     cohesiveness = eval_dict["cohesiveness"]
@@ -1263,7 +1326,9 @@ class User():
                     finally:
                         st.rerun()
 
-
+    @st.experimental_dialog(" ")
+    def resume_types_explore_popup(self, ):
+        st.image("./resources/functional_chronological_resume.png")
 
 
 
