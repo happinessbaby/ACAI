@@ -270,35 +270,36 @@ class Chat():
 
 
 
-        if "resume help" not in st.session_state and "match" not in st.session_state:
-            if "resume_path" in st.session_state:
-                del st.session_state["resume_path"]
-            if "job_description" in st.session_state:
-                del st.session_state["job_description"]
-            if "job_posting_path" in st.session_state:
-                del st.session_state["job_posting_path"]
-        else:
-            _self.process_selection()
-            if "resume help" in st.session_state and st.session_state["resume help"]:
-                st.switch_page("pages/streamlit_dashboard.py")
-            elif "match" in st.session_state and  st.session_state["match"]:
-                match_resume_to_job()
+        # if "resume help" not in st.session_state and "match" not in st.session_state:
+        #     if "resume_path" in st.session_state:
+        #         del st.session_state["resume_path"]
+        #     if "job_description" in st.session_state:
+        #         del st.session_state["job_description"]
+        #     if "job_posting_path" in st.session_state:
+        #         del st.session_state["job_posting_path"]
+        # else:
+        #     _self.process_selection()
+        #     if "resume help" in st.session_state and st.session_state["resume help"]:
+        #         st.switch_page("pages/streamlit_dashboard.py")
+        #     elif "match" in st.session_state and  st.session_state["match"]:
+        #         match_resume_to_job()
 
         with st._main:
-            st.session_state["redirect_page"] =  "streamlit_main.py"
-            user_menu(_self.userId, page="main")
+            st.switch_page("pages/streamlit_user.py")
+            # st.session_state["redirect_page"] =  "streamlit_main.py"
+            # user_menu(_self.userId, page="main")
 
-            st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
-            add_vertical_space(5)
-            _, c1, c2=st.columns([1, 2,  2])
-            st.markdown(tabs, unsafe_allow_html=True)
-            resume, interview = st.tabs(["               Resume                  ", "                       Interview"])
-            with resume:
-                if st.button("Resume Help", key="resume_button",):
-                    _self.resume_form_popup(job_required=False)
-            with interview:
-                if st.button("Mock Interview", key="interview_button"):
-                    st.switch_page("pages/streamlit_interviewbot.py")
+            # st.markdown("<h1 style='text-align: center; color: #3ec0c8;'>Welcome</h1>", unsafe_allow_html=True)
+            # add_vertical_space(5)
+            # _, c1, c2=st.columns([1, 2,  2])
+            # st.markdown(tabs, unsafe_allow_html=True)
+            # resume, interview = st.tabs(["               Resume                  ", "                       Interview"])
+            # with resume:
+            #     if st.button("Resume Help", key="resume_button",):
+            #         _self.resume_form_popup(job_required=False)
+            # with interview:
+            #     if st.button("Mock Interview", key="interview_button"):
+            #         st.switch_page("pages/streamlit_interviewbot.py")
             # with c3:
             #     job_option = st.button("Job Search", key="job_button")
             # if job_option:

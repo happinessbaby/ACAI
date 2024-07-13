@@ -5,6 +5,7 @@ import os
 import extra_streamlit_components as stx
 # Note that you can also import these from streamlit directly
 from st_pages import get_pages, get_script_run_ctx 
+import streamlit_antd_components as sac
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
@@ -56,17 +57,30 @@ def user_menu(userId, page, ):
                 #         st.switch_page("pages/streamlit_user.py")
 
 
-def progress_bar(current_page):
-    #TODO create a custom one
-    progress = stx.stepper_bar(steps=["Step 1: Upgrade your profile", "Step 3: Pick a template", "Step 4: Download your resume"],)
-    # if progress==0:
-    #     if current_page!="streamlit_user":
-    #         st.switch_page("pages/streamlit_user.py")
-    if progress==1:
-        if current_page!="streamlit_reformat":
+def progress_bar(page):
+    #TODO create a custoprogress==1 and m one
+    # progress = stx.stepper_bar(steps=["Step 1: Upgrade your profile", "Step 2: Pick a template", "Step 3: Download your resume"], lock_sequence=False)
+    # if progress==1:
+    #     if "current_page" in st.session_state and st.session_state.current_page!="streamlit_reformat":
+    #         st.switch_page("pages/streamlit_reformat.py")
+    # elif progress==0:
+    #     if page=="profile":
+    #         if "current_page" in st.session_state and st.session_state.current_page!="streamlit_user":
+    #             st.switch_page("pages/streamlit_user.py")
+    step = sac.steps(
+        items=[
+            sac.StepsItem(title="Step 1", subtitle="Update your profile"),
+            sac.StepsItem(title="Step 2", subtitle="Pick a template"), 
+            sac.StepsItem(title="Step 3", subtitle="Download your resume")
+        ], index = page,  color="#FF6347"
+    )
+    if step=="Step 1":
+        if "current_page" in st.session_state and st.session_state.current_page!="profile":
+            # st.session_state["current_page"]="profile"
+            st.switch_page("pages/streamlit_user.py")
+    elif step=="Step 2":
+        if "current_page" in st.session_state and st.session_state.current_page!="template":
+            # st.session_state["current_page"] = "template"
             st.switch_page("pages/streamlit_reformat.py")
-    print("progress", progress)
-    
 
-def site_logo():
-    """"""
+    

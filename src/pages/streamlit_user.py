@@ -39,6 +39,7 @@ import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
+from streamlit_extras.stylable_container import stylable_container
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -76,6 +77,8 @@ class User():
 
     def __init__(self, ):
         # NOTE: userId is retrieved from browser cookie
+        # self.current_page = self.get_current_page()
+        st.session_state["current_page"] = "profile"
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
@@ -291,11 +294,6 @@ class User():
                 password = authenticator.credentials["usernames"][username]["password"]
                 email = authenticator.credentials["usernames"][username]["email"]
                 if self.save_password( username, name, password, email):
-                    # if STORAGE=="LOCAL":
-                    #     user_path = os.path.join(os.environ["USER_PATH"], email)
-                    # elif STORAGE=="CLOUD":
-                    #     user_path = os.path.join(os.environ["USER_PATH"], email)
-                    # mk_dirs([user_path], storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
                     st.session_state["user_mode"]="signedin"
                     st.success("User registered successfully")
                     st.session_state.cm.set_cookie(name, email,)
@@ -979,11 +977,12 @@ class User():
         """Displays user profile UI"""
         # st.subheader("Your Profile")
 
-        current_page = self.get_current_page()
-        progress_bar(current_page["page_name"])
+  
+        progress_bar(0)
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
-        eval_col, profile_col, menu_col = st.columns([1, 3, 1])      
+        eval_col, profile_col, _ = st.columns([1, 3, 1])   
+        _, menu_col, _ = st.columns([3, 1, 3])   
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -1073,21 +1072,40 @@ class User():
             # placeholder = st.empty()
             # st.button("Add Custom Field", on_click=self.add_custom_field, args=(placeholder, ))
             st.divider()
-
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                self.display_general_evaluation(float_container)
-                self.evaluation_callback()
         with menu_col:
-            float_container= st.container()
-            with float_container:
-            # c1, c2, c3 = st.columns([1, 1, 1])
-            # with c2:
-                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
-                st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  )
-                st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback)
-            float_parent()
+            with stylable_container(key="custom_button1",
+                            # border-radius: 20px;
+                                    css_styles=["""
+                        button {
+                            background-color: #4682B4;
+                            color: white;
+                        }""",
+                        # """{
+                        #     border: 1px solid rgba(49, 51, 63, 0.2);
+                        #     border-radius: 0.5rem;
+                        #     padding: calc(1em - 1px)
+                        # }
+                        # """
+                        ],
+                ):
+                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,), use_container_width=True)
+                st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  use_container_width=True)
+                st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
+
+        # with eval_col:
+        #     float_container= st.container()
+        #     with float_container:
+        #         self.display_general_evaluation(float_container)
+        #         self.evaluation_callback()
+        # with menu_col:
+        #     float_container= st.container()
+        #     with float_container:
+        #     # c1, c2, c3 = st.columns([1, 1, 1])
+        #     # with c2:
+        #         st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
+        #         st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  )
+        #         st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback)
+        #     float_parent()
 
         
 
@@ -1251,15 +1269,15 @@ class User():
 
 
         
-    def get_current_page(self, ):
-        try:
-            current_page = pages[ctx.page_script_hash]
-        except KeyError:
-            current_page = [
-                p for p in pages.values() if p["relative_page_hash"] == ctx.page_script_hash
-            ][0]
-        print("Current page:", current_page)
-        return current_page
+    # def get_current_page(self, ):
+    #     try:
+    #         current_page = pages[ctx.page_script_hash]
+    #     except KeyError:
+    #         current_page = [
+    #             p for p in pages.values() if p["relative_page_hash"] == ctx.page_script_hash
+    #         ][0]
+    #     print("Current page:", current_page)
+    #     return current_page
 
         
 

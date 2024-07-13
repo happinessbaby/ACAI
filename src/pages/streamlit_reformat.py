@@ -16,12 +16,13 @@ ctx = get_script_run_ctx()
 class Reformat():
 
     def __init__(self, ):
-        self.current_page = self.get_current_page()
+
+        st.session_state["current_page"] = "template"
         self.display_resume_templates()
 
     def display_resume_templates(self, ):
         
-        progress_bar(self.current_page["page_name"])
+        progress_bar(1)
         paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
         # if "image_paths" not in st.session_state:
         st.session_state["formatted_docx_paths"] = []
@@ -50,18 +51,6 @@ class Reformat():
                 st.session_state["user_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
                 print("user picked template")
 
-
-
-
-    def get_current_page(self, ):
-        try:
-            current_page = pages[ctx.page_script_hash]
-        except KeyError:
-            current_page = [
-                p for p in pages.values() if p["relative_page_hash"] == ctx.page_script_hash
-            ][0]
-        print("Current page:", current_page)
-        return current_page
 
 
 
