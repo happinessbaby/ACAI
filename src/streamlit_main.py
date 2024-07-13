@@ -48,12 +48,12 @@ from time import sleep
 import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict
-from pages.streamlit_utils import user_menu
+from pages.streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
 
 
-st.set_page_config(layout="wide")
+set_streamlit_page_config_once()
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your

@@ -30,6 +30,15 @@ def nav_to(url):
     st.write(nav_script, unsafe_allow_html=True)
 
 
+def set_streamlit_page_config_once():
+    try:
+        st.set_page_config(layout="wide")
+    except st.errors.StreamlitAPIException as e:
+        if "can only be called once per app" in e.__str__():
+            # ignore this error
+            return
+        raise e
+
             
 def user_menu(userId, page, ):
     _, c1 = st.columns([10, 1])
@@ -82,5 +91,8 @@ def progress_bar(page):
         if "current_page" in st.session_state and st.session_state.current_page!="template":
             # st.session_state["current_page"] = "template"
             st.switch_page("pages/streamlit_reformat.py")
+    elif step=="Step 3":
+        if "current_page" in st.session_state and st.session_state.current_page!="download":
+            st.switch_page("pages/streamlit_download.py")
 
     

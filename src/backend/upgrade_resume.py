@@ -117,8 +117,8 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         for category in categories:
             comparison_dict = analyze_via_comparison(resume_dict, category, sample_tools, tool_names)
             st.session_state.eval_dict["comparison"].update({category:comparison_dict["closeness"]})
-        response = analyze_strength_weakness(resume_content, pursuit_jobs)
-        st.session_state.eval_dict["strength_weakness"] = response
+        # response = analyze_strength_weakness(resume_content, pursuit_jobs)
+        # st.session_state.eval_dict["strength_weakness"] = response
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
         # Generate overall impression
         # cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
@@ -224,18 +224,18 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
     comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
     return comparison_dict
 
-def analyze_strength_weakness(resume_content, jobs):
-    """"""
-    query_strength = f""" Identify the strengths and weaknesses of candidate given their resume and the job the candidate is pursuing. 
-    Output using the following format:s
-        strengths of the candidate: <your reasoning>
-        weaknesses of the candidate: <your reasoning> \n
-    pursuit job(s): {jobs} \
-    resume content: {resume_content} \
+# def analyze_strength_weakness(resume_content, jobs):
+#     """"""
+#     query_strength = f""" Identify the strengths and weaknesses of candidate given their resume and the job the candidate is pursuing. 
+#     Output using the following format:s
+#         strengths of the candidate: <your reasoning>
+#         weaknesses of the candidate: <your reasoning> \n
+#     pursuit job(s): {jobs} \
+#     resume content: {resume_content} \
     
-     """
-    response = generate_multifunction_response(query_strength, create_search_tools("google", 1))
-    return response
+#      """
+#     response = generate_multifunction_response(query_strength, create_search_tools("google", 1))
+#     return response
 
 def analyze_cohesiveness(resume_content, jobs):
 

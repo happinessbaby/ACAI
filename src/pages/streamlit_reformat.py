@@ -6,12 +6,16 @@ from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
 from backend.upgrade_resume import tailor_resume
-from pages.streamlit_utils import progress_bar
+from pages.streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
 from st_pages import get_pages, get_script_run_ctx 
+from streamlit_extras.stylable_container import stylable_container
+from streamlit_extras.add_vertical_space import add_vertical_space
+
 
 pages = get_pages("")
 ctx = get_script_run_ctx()
+set_streamlit_page_config_once()
 
 class Reformat():
 
@@ -47,9 +51,24 @@ class Reformat():
             # st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
         with c2:
             st.image(st.session_state["image_paths"][selected_idx])
-            if st.button("Chose this template", key="resume_template_button"):
-                st.session_state["user_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
-                print("user picked template")
+        with c3:
+            float_container=st.container()
+            with float_container:
+                add_vertical_space(10)
+                with stylable_container(
+                    key="custom_template_container",
+                        css_styles=  
+                    """   button {
+                                    background-color: #4682B4;
+                                    color: white;
+                                }"""
+                    ):
+                    if st.button("Chose this template", key="resume_template_button"):
+                        st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
+                        st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
+                        print("user picked template")
+                        st.switch_page("pages/streamlit_download.py")
+            float_parent()
 
 
 

@@ -30,7 +30,7 @@ import webbrowser
 from utils.pydantic_schema import ResumeUsers
 from streamlit_image_select import image_select
 from backend.upgrade_resume import reformat_resume
-from pages.streamlit_utils import nav_to, user_menu, progress_bar
+from pages.streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
 import glob
 from backend.upgrade_resume import tailor_resume, evaluate_resume
@@ -40,6 +40,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
+
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -54,6 +55,7 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder_about_resume=st.empty()
 # initialize float feature/capability
 float_init()
+set_streamlit_page_config_once()
 # store = FeatureStore("./my_feature_repo/")
 
 
@@ -253,7 +255,7 @@ class User():
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
             scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
-            redirect_uri=st.session_state.redirect_page,
+            redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else "http://localhost:8501/streamlit_user",
             )
         if auth_code:
             flow.fetch_token(code=auth_code)
@@ -1092,20 +1094,12 @@ class User():
                 st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  use_container_width=True)
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
 
-        # with eval_col:
-        #     float_container= st.container()
-        #     with float_container:
-        #         self.display_general_evaluation(float_container)
-        #         self.evaluation_callback()
-        # with menu_col:
-        #     float_container= st.container()
-        #     with float_container:
-        #     # c1, c2, c3 = st.columns([1, 1, 1])
-        #     # with c2:
-        #         st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,))
-        #         st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  )
-        #         st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback)
-        #     float_parent()
+        with eval_col:
+            float_container= st.container()
+            with float_container:
+                self.display_general_evaluation(float_container)
+                self.evaluation_callback()
+            float_parent()
 
         
 

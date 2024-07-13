@@ -398,6 +398,11 @@ def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
 def convert_docx_to_img(file_path, output_dir, idx, image_format='png'):
 
+    def extract_idx(filename):
+        basename = os.path.basename(filename)
+        parts = basename.split('-')
+        idx_part = parts[0].split('_')[1]
+        return int(idx_part)
       # Convert DOCX to PDF using LibreOffice
     pdf_path = convert_to_pdf(file_path)
     # Convert PDF to Image using pdftoppm
@@ -406,7 +411,9 @@ def convert_docx_to_img(file_path, output_dir, idx, image_format='png'):
     # Return path to the image
     pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
     matching_files = glob.glob(pattern)
-    return matching_files, pdf_path
+    # Sort the files by extracted idx
+    sorted_files = sorted(matching_files, key=extract_idx)
+    return sorted_files, pdf_path
 
 def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
     context = {key: None for key in field_name}
