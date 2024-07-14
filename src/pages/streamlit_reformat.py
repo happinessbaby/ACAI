@@ -6,7 +6,7 @@ from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
 from backend.upgrade_resume import tailor_resume
-from pages.streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
+from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
@@ -19,7 +19,7 @@ pages = get_pages("")
 class Reformat():
 
     ctx = get_script_run_ctx()
-    set_streamlit_page_config_once()
+    # set_streamlit_page_config_once()
     
     def __init__(self, ):
 

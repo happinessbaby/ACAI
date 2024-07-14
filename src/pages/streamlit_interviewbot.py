@@ -54,7 +54,7 @@ from utils.async_utils import asyncio_run
 import nest_asyncio
 import websocket
 from utils.whisper_stt import whisper_stt
-from pages.streamlit_utils import nav_to
+from streamlit_utils import nav_to
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file

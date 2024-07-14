@@ -48,12 +48,12 @@ from time import sleep
 import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict
-from pages.streamlit_utils import user_menu, set_streamlit_page_config_once
+from streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
 
 
-set_streamlit_page_config_once()
+
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 # Either this or add_indentation() MUST be called on each page in your
@@ -90,16 +90,17 @@ topic = "jobs"
 resume_options = ["evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting"]
 interview_options=["phone interview", "panel interview"]
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
+set_streamlit_page_config_once()
 
 
 
-class Chat():
+class Main():
 
     ctx = get_script_run_ctx()
-    # chatinput = multimodal_chatinput()
 
     
     def __init__(self):
+
 
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
@@ -981,9 +982,7 @@ class Chat():
 #             st.chat_message("ai").write(self.text)
 
 
-
-
 if __name__ == '__main__':
 
-    advisor = Chat()
+    advisor = Main()
 

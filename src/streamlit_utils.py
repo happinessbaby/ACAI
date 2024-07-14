@@ -48,13 +48,13 @@ def user_menu(userId, page, ):
                 st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/streamlit_user.py")
         else:
-            with st.popover(label=f"{userId} 👤",):
+            with st.popover(label=f"👤 {userId}",):
                 # if page!="main":
                 #     if st.button("Home", type="primary"):
                 #         st.switch_page("streamlit_main.py")
                 if page!="profile":
                     if st.button("My profile", type="primary"):
-                        st.session_state["user_mode"]="display_profile"
+                        # st.session_state["user_mode"]="display_profile"
                         st.switch_page("pages/streamlit_user.py")
                 st.divider()
                 if st.button("Log out", type="primary"):

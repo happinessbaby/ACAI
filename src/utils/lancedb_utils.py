@@ -95,6 +95,7 @@ def delete_user_from_table(userId):
     table = retrieve_lancedb_table(lance_users_table)
     table.delete(f"user_id = '{userId}'")
     print('deleted user profile dict')
+    # delete session-specific copy of the profile also
     del st.session_state["profile"]
 
 

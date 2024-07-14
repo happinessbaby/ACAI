@@ -6,7 +6,7 @@ import threading
 import multiprocessing
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import webbrowser
-from pages.streamlit_utils import nav_to
+from streamlit_utils import nav_to
 
 
 st.session_state["tabs"] = []

@@ -3,13 +3,13 @@ from utils.basic_utils import binary_file_downloader_html
 import streamlit_antd_components as sac
 import json
 from utils.cookie_manager import CookieManager
-from pages.streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 class Download():
 
-    set_streamlit_page_config_once()
+    # set_streamlit_page_config_once()
 
     def __init__(self):
         st.session_state["current_page"] = "download"
