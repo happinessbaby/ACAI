@@ -64,30 +64,11 @@ else:
 
 
 
-# def rework_resume(about_job="", resume_file = "", posting_path="", evaluate=False, reformat=False, tailor=False, template_file=""):
-
-#     #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
-
-#     if evaluate:
-#         st.session_state.eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
-#     if reformat:
-#         ideal_type = st.session_state.eval_dict["ideal type"] if st.session_state.eval_dict else research_resume_type()
-#         if ideal_type=="chronological":
-#             reformat_chronological_resume(resume_file, template_file)
-#     if tailor:
-#         tailor_resume(resume_file, posting_path, about_job)
-
-
-def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[str, str]:
+def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
     if type=="general":
         st.session_state["eval_dict"] = {"comparison":{}}
-        # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-        # if job_posting_dict:
-        #     pursuit_jobs=job_posting_dict["job"]
-        # else:
-
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
@@ -109,7 +90,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         # type_dict= analyze_resume_type(resume_content,)
         # st.session_state.eval_dict.update(type_dict)
         section_names = ["summary_objective", "work_experience", "skills"]
-        categories=["diction, or word choice", "included resume fields", "back" ]
+        categories=["diction, or word choice", "included resume fields",  ]
         # for section in section_names:
             # comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
             # st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
@@ -122,8 +103,8 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         # st.session_state.eval_dict["strength_weakness"] = response
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
         # Generate overall impression
-        # cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-        # st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
+        cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
+        st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
     # Evaluates specific field  content
     if type=="work_experience":
         work_experience= resume_dict["work_experience"]
@@ -178,7 +159,7 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
-    # Note: document comparison benefits from a clear and simple prompt
+    # NOTE: document comparison benefits from a clear and simple prompt
     # related_samples = search_related_samples(jobs, resume_samples_path)
     # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 

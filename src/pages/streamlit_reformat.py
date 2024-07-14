@@ -1,6 +1,5 @@
 from backend.upgrade_resume import reformat_resume
 import uuid
-import streamlit as st
 import os
 from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img
 from css.streamlit_css import general_button
@@ -12,14 +11,15 @@ from st_pages import get_pages, get_script_run_ctx
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
+import streamlit as st
 
+set_streamlit_page_config_once()
 
-pages = get_pages("")
+# pages = get_pages("")
 
 class Reformat():
 
     ctx = get_script_run_ctx()
-    # set_streamlit_page_config_once()
     
     def __init__(self, ):
 

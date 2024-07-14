@@ -1,4 +1,3 @@
-import streamlit as st
 import extra_streamlit_components as stx
 from interview_component import my_component
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -41,8 +40,10 @@ import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import requests
-from streamlit_main import Main
+from utils.async_utils import thread_with_trace
+import streamlit as st
 
+set_streamlit_page_config_once()
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -72,8 +73,11 @@ float_init()
 # )
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 # pages = get_pages("")
-set_streamlit_page_config_once()
 
+#initialize evaluation fragment rerun timer 
+#NOTE: fragment parameter seems to need to be set at topmost level
+if "eval_rerun_timer" not in st.session_state:
+    st.session_state["eval_rerun_timer"]=3
 
 class User():
 
@@ -1002,9 +1006,9 @@ class User():
         else:
             # start general evaluation if haven't done so
             if "eval_dict" not in st.session_state:
-                thread = threading.Thread(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
-                add_script_run_ctx(thread, self.ctx)
-                thread.start()   
+                self.eval_thread = thread_with_trace(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
+                add_script_run_ctx(self.eval_thread, self.ctx)
+                self.eval_thread.start()   
          
 
     
@@ -1133,6 +1137,7 @@ class User():
                 ):
                 st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
+                    # cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
         # the general evaluation column
@@ -1147,7 +1152,7 @@ class User():
         
 
     
-    @st.experimental_fragment(run_every=3)
+    @st.experimental_fragment(run_every=st.session_state["eval_rerun_timer"])
     def display_general_evaluation(self, container):
 
         """ Displays the general evaluation result of the profile """
@@ -1158,10 +1163,12 @@ class User():
         except Exception:
             eval_dict={}
         if eval_dict:
-            if eval_dict and "cohesiveness" in eval_dict:
-                display_name = "Your evaluation results are in!"
+            if "finished_eval" in st.session_state:
+                display_name = "Your evaluation results are in! ✨"
+                button_name = "evaluate again ✨"
             else:
-                display_name = "Your profile is being evaluated..."
+                display_name = "Your profile is being evaluated ✨..."
+                button_name="stop evaluation"
             with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
@@ -1215,9 +1222,9 @@ class User():
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
-                        # st.write(f"Yours: {length} words & {pages}")
                     except Exception:
-                        st.write("Evaluating...")
+                        if "finished_eval" not in st.session_state:
+                            st.write("Evaluating...")
                 with c2:
                     # st.write("**Type**")
                     add_vertical_space(3)
@@ -1232,46 +1239,61 @@ class User():
                         # my_type = eval_dict["type"]
                         # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
-                        st.write("Evaluating...")
-    
+                        if "finished_eval" not in st.session_state:
+                            st.write("Evaluating...")
+
                 st.write("**How similar is your resume compared to others?**")
                 # st.write("How close does your resume compare to others of the same industry?")
                 try:
                     diction_comparison = eval_dict["comparison"]["diction, or word choice"]
-                    # field_comparison = eval_dict["comparison"]["included resume fields"]
-                    # work_comparison = eval_dict["comparison"]["work_experience_section"]
-                    # skills_comparison = eval_dict["comparison"]["skills_section"]
-                    # summary_comparison = eval_dict["comparion"]["summary_objective"]
-                    # st.write("work: "+ work_comparison)
-                    # st.write("skills: " + skills_comparison)
-                    # st.write("summary: " + summary_comparison)
-                    # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
                     # st.scatter_chart()
                     st.write("diction: "+diction_comparison)
                 except Exception:
-                    st.write("Evaluating...")
+                    if "finished_eval" not in st.session_state:
+                        st.write("Evaluating...")
                 try: 
                     field_comparison = eval_dict["comparison"]["included resume fields"]
                     st.write("resume field inclusion: "+ field_comparison)
                 except Exception:
-                    st.write("evaluating...")
-    
+                    if "finished_eval" not in st.session_state:
+                        st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
                     cohesiveness = eval_dict["cohesiveness"]
                     st.write(cohesiveness)
+                    # finished evaluataion, stop timer
                     st.session_state["finished_eval"] = True
+                    st.session_state["eval_rerun_timer"]=None
                 except Exception:
-                    st.write("Evaluating...")
-                again = st.button("evaluate again ✨", key=f"eval_button", )
-                if again:
-                    container.empty()
-                    try:
-                        del st.session_state["eval_dict"]
-                    except Exception:
-                        pass
-                    finally:
+                    if "finished_eval" not in st.session_state:
+                        st.write("Evaluating...")
+                if st.button(button_name, key=f"eval_button", ):
+                    if button_name=="evaluate again ✨":
+                        container.empty()
+                        # delete previous evaluation states
+                        try:
+                            del st.session_state["eval_dict"]
+                            del st.session_state["finished_eval"]
+                        except Exception:
+                            pass
+                        finally:
+                            # reset evaluation rerun timer
+                            st.session_state["eval_rerun_timer"]=3
+                            st.rerun()
+                    elif button_name=="stop evaluation":
+                        try:
+                            # kill the evaluation thread 
+                            self.eval_thread.kill()
+                            self.eval_thread.join()
+                        except Exception as e:
+                            print(e)
+                            pass
+                        finally:
+                            # stop timer and finished evaluation
+                            st.session_state["eval_rerun_timer"] = None
+                            st.session_state["finished_eval"] = True
                         st.rerun()
+
 
     @st.experimental_dialog(" ")
     def resume_types_explore_popup(self, ):

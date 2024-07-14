@@ -1,4 +1,3 @@
-import streamlit as st
 from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
 import extra_streamlit_components as stx
@@ -51,8 +50,9 @@ from utils.lancedb_utils import retrieve_user_profile_dict
 from streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
+import streamlit as st
 
-
+set_streamlit_page_config_once()
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -90,7 +90,6 @@ topic = "jobs"
 resume_options = ["evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting"]
 interview_options=["phone interview", "panel interview"]
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
-set_streamlit_page_config_once()
 
 
 
