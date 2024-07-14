@@ -11,7 +11,7 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, query_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info
 from utils.basic_utils import mk_dirs, binary_file_downloader_html, convert_docx_to_img
 from typing import Any, List
@@ -76,9 +76,9 @@ pages = get_pages("")
 class User():
 
     ctx = get_script_run_ctx()
+    set_streamlit_page_config_once()
 
     def __init__(self, ):
-        set_streamlit_page_config_once()
         # NOTE: userId is retrieved from browser cookie
         # self.current_page = self.get_current_page()
         st.session_state["current_page"] = "profile"
@@ -237,7 +237,7 @@ class User():
             with col3:
                 forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
             st.divider()
-            self.google_signin()
+            # self.google_signin()
             print(name, authentication_status, username)
             if authentication_status:
                 # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
@@ -249,6 +249,7 @@ class User():
                 # webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_url)
             elif authentication_status == False:
                 placeholder_error.error('Username/password is incorrect')
+
 
 
     def google_signin(self,):
@@ -290,7 +291,9 @@ class User():
                     include_granted_scopes="true",
                 )
                 # webbrowser.open_new_tab(authorization_url)
-                st.query_params.redirect=authorization_url
+                st.query_params.redirect_uri=authorization_url
+                # st.query_params.state=state
+                st.experimental_set_query_params(redirect_uri=authorization_url, state=state)
                 st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
 
     def google_signout(self):
@@ -439,7 +442,9 @@ class User():
                 # st.markdown(general_button, unsafe_allow_html=True)
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
                 st.button(label="Submit", disabled=st.session_state.resume_disabled, on_click=self.resume_form_callback)
-                st.button(label="I'll do it later", type="primary", on_click=self.display_profile)
+                if st.button(label="I'll do it later", type="primary", ):
+                    self.display_profile()
+
         
 
     def about_future(self):
@@ -1002,7 +1007,7 @@ class User():
         """Displays user profile UI"""
         # st.subheader("Your Profile")
 
-  
+
         progress_bar(0)
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
@@ -1120,15 +1125,16 @@ class User():
                         ],
                 ):
                 st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,), use_container_width=True)
-                st.button("Upload a new resume", key="new_resume_button", on_click=self.delete_profile_popup,  use_container_width=True)
+                if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
+                    self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
 
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                self.display_general_evaluation(float_container)
-                self.evaluation_callback()
-            float_parent()
+        # with eval_col:
+        #     float_container= st.container()
+        #     with float_container:
+        #         self.display_general_evaluation(float_container)
+        #         self.evaluation_callback()
+        #     float_parent()
 
 
         
@@ -1220,36 +1226,29 @@ class User():
                         # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
                         st.write("Evaluating...")
-                c1, c2=st.columns([1, 1])
-                with c1:
-                    st.write("**How similar is your resume compared to others?**")
-                    # st.write("How close does your resume compare to others of the same industry?")
-                    try:
-                        diction_comparison = eval_dict["comparison"]["diction, or word choice"]
-                        # field_comparison = eval_dict["comparison"]["included resume fields"]
-                        # work_comparison = eval_dict["comparison"]["work_experience_section"]
-                        # skills_comparison = eval_dict["comparison"]["skills_section"]
-                        # summary_comparison = eval_dict["comparion"]["summary_objective"]
-                        # st.write("work: "+ work_comparison)
-                        # st.write("skills: " + skills_comparison)
-                        # st.write("summary: " + summary_comparison)
-                        # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
-                        # st.scatter_chart()
-                        st.write("diction: "+diction_comparison)
-                    except Exception:
-                        st.write("Evaluating...")
-                    try: 
-                        field_comparison = eval_dict["comparison"]["included resume fields"]
-                        st.write("resume field inclusion: "+ field_comparison)
-                    except Exception:
-                        st.write("evaluating...")
-                with c2:
-                    st.write("Strength and Weakness")
-                    try:
-                        strength_weakness = eval_dict["strength_weakness"]
-                        st.write(strength_weakness)
-                    except Exception:
-                        st.write("evaluation...")
+    
+                st.write("**How similar is your resume compared to others?**")
+                # st.write("How close does your resume compare to others of the same industry?")
+                try:
+                    diction_comparison = eval_dict["comparison"]["diction, or word choice"]
+                    # field_comparison = eval_dict["comparison"]["included resume fields"]
+                    # work_comparison = eval_dict["comparison"]["work_experience_section"]
+                    # skills_comparison = eval_dict["comparison"]["skills_section"]
+                    # summary_comparison = eval_dict["comparion"]["summary_objective"]
+                    # st.write("work: "+ work_comparison)
+                    # st.write("skills: " + skills_comparison)
+                    # st.write("summary: " + summary_comparison)
+                    # {"work_experience":work_comparison, "skills":skills_comparison, "summary":summary_comparison}
+                    # st.scatter_chart()
+                    st.write("diction: "+diction_comparison)
+                except Exception:
+                    st.write("Evaluating...")
+                try: 
+                    field_comparison = eval_dict["comparison"]["included resume fields"]
+                    st.write("resume field inclusion: "+ field_comparison)
+                except Exception:
+                    st.write("evaluating...")
+    
                 st.write("**Impression**")
                 try:
                     cohesiveness = eval_dict["cohesiveness"]
@@ -1286,6 +1285,7 @@ class User():
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         save_user_changes(self.userId, ResumeUsers)
+        st.rerun()
 
 
     @st.experimental_dialog("Warning")
@@ -1295,13 +1295,8 @@ class User():
         add_vertical_space(2)
         c1, _, c2 = st.columns([1, 1, 1])
         with c2:
-            if st.button("yes, I'll upload a new profile", type="primary"):
-                delete_user_from_table(lance_users_table, self.userId)
-                st.session_state["user_mode"]="display_profile"
-                st.rerun()
-        with c1:
-            if st.button("go back"):
-                st.session_state["user_mode"]="display_profile"
+            if st.button("yes, I'll upload a new one", type="primary", ):
+                delete_user_from_table(self.userId)
                 st.rerun()
 
 

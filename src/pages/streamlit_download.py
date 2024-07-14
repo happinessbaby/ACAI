@@ -9,9 +9,9 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 
 class Download():
 
+    set_streamlit_page_config_once()
 
     def __init__(self):
-        set_streamlit_page_config_once()
         st.session_state["current_page"] = "download"
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()

@@ -23,20 +23,20 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 #FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
 # class BasicInfo(LanceModel):
 
-class Schema(LanceModel):
-    text: str = func.SourceField() 
-    vector: Vector(func.ndims()) = func.VectorField()
-    id: str 
-    job_title: str
-    job_url: str
-    # job_industry: str
-    # job_level: str 
-    # education: str 
-    type: str 
+# class Schema(LanceModel):
+#     text: str = func.SourceField() 
+#     vector: Vector(func.ndims()) = func.VectorField()
+#     id: str 
+#     job_title: str
+#     job_url: str
+#     # job_industry: str
+#     # job_level: str 
+#     # education: str 
+#     type: str 
 
-    @property
-    def url(self):
-        return self.job_url
+#     @property
+#     def url(self):
+#         return self.job_url
 
 
 def register_model(model_name):
@@ -79,30 +79,25 @@ def retrieve_lancedb_table(table_name):
         return None
     return table
 
-def query_lancedb_table(query, table_name, top_k=1):
-    try:
-        table = retrieve_lancedb_table(table_name)
-        results = (
-            table.search(query)
-            .limit(top_k)
-            .to_pydantic(Schema)
-        )
-    except Exception as e:
-        raise e
-    return results
+# def query_lancedb_table(query, table_name, top_k=1):
+#     try:
+#         table = retrieve_lancedb_table(table_name)
+#         results = (
+#             table.search(query)
+#             .limit(top_k)
+#             .to_pydantic(Schema)
+#         )
+#     except Exception as e:
+#         raise e
+#     return results
 
-def delete_user_from_table(table_name, userId):
-    table = retrieve_lancedb_table(table_name)
+def delete_user_from_table(userId):
+    table = retrieve_lancedb_table(lance_users_table)
     table.delete(f"user_id = '{userId}'")
+    print('deleted user profile dict')
+    del st.session_state["profile"]
 
-# def clean_field(data, field_name):
 
-#     clean_field = []
-#     for item in data[field_name]:
-#         for dict_item in item:  # Remove the array wrapper
-#             clean_field.append(dict_item)
-#     # print("clean field", clean_field)
-#     return clean_field
 def flatten(data):
     if isinstance(data, (list, np.ndarray)):
         for item in data:
@@ -129,7 +124,8 @@ def retrieve_user_profile_dict(userId):
     users_table = retrieve_lancedb_table(lance_users_table)
     if users_table:
         profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if not profile_dict["user_id"]:
+        if profile_dict["user_id"]=="":
+            print("user profile dict not does exist")
             return None
         for key in profile_dict:
             if isinstance(profile_dict[key], list):
@@ -226,17 +222,18 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
 
 def save_user_changes(userId, schema):
 
+    # try:
+    #     delete_user_from_table(lance_users_table, userId)
+    # except Exception:
+    #     pass
+    # finally:
+    # convert profile to resume content
+    st.session_state["profile"]["resume_content"] = json.dumps(st.session_state["profile"])
     try:
-        delete_user_from_table(lance_users_table, userId)
-    except Exception:
-        pass
-    finally:
-        st.session_state["profile"]["resume_content"] = json.dumps(st.session_state["profile"])
-        try:
-            schema = convert_pydantic_schema_to_arrow(schema)
-            add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
-            st.toast("Successfully updated profile")
-            # del st.session_state["profile"]
-        except Exception as e:
-            raise e
+        schema = convert_pydantic_schema_to_arrow(schema)
+        add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
+        st.toast("Successfully updated profile")
+        # del st.session_state["profile"]
+    except Exception as e:
+        raise e
     

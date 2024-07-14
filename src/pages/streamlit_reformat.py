@@ -19,10 +19,10 @@ pages = get_pages("")
 class Reformat():
 
     ctx = get_script_run_ctx()
+    set_streamlit_page_config_once()
     
     def __init__(self, ):
 
-        set_streamlit_page_config_once()
         st.session_state["current_page"] = "template"
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
