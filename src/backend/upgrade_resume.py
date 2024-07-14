@@ -87,14 +87,15 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
         # if job_posting_dict:
         #     pursuit_jobs=job_posting_dict["job"]
         # else:
-        pursuit_jobs=resume_dict["pursuit_jobs"]
-        resume_content = resume_dict["resume_content"]
+
         resume_file = resume_dict["resume_path"]
+        resume_content = resume_dict["resume_content"]
+        pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(resume_file)
         st.session_state.eval_dict.update({"word_count": word_count})
         pattern = r'pages:(\d+)'
-        # Search for the pattern in the text
+        # Search for the pattern in the text (I added page number when writing the file to txt)
         match = re.search(pattern, resume_content)
         # If a match is found, extract and return the number
         if match:
@@ -135,6 +136,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general") -> Dict[s
     #     evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
     # in_depth_view = ""
     # return evaluation_dict
+
 
 
 

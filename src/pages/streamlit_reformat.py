@@ -11,22 +11,35 @@ from streamlit_float import *
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
+from utils.cookie_manager import CookieManager
 
 
 pages = get_pages("")
-ctx = get_script_run_ctx()
-set_streamlit_page_config_once()
 
 class Reformat():
 
+    ctx = get_script_run_ctx()
+    
     def __init__(self, ):
 
+        set_streamlit_page_config_once()
         st.session_state["current_page"] = "template"
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
+        if not self.userId:
+            st.switch_page("pages/streamlit_user.py")
+        self._init_display()
+
+    def _init_display(self, ):
+
+        user_menu(self.userId, page="template")
+        progress_bar(1)
         self.display_resume_templates()
+
 
     def display_resume_templates(self, ):
         
-        progress_bar(1)
         paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
         # if "image_paths" not in st.session_state:
         st.session_state["formatted_docx_paths"] = []
@@ -54,7 +67,7 @@ class Reformat():
         with c3:
             float_container=st.container()
             with float_container:
-                add_vertical_space(10)
+                add_vertical_space(30)
                 with stylable_container(
                     key="custom_template_container",
                         css_styles=  

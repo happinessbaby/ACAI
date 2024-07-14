@@ -12,8 +12,8 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 
 
 
-pages = get_pages("")
-ctx = get_script_run_ctx()
+# pages = get_pages("")
+# ctx = get_script_run_ctx()
 
 
 
@@ -48,10 +48,10 @@ def user_menu(userId, page, ):
                 st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/streamlit_user.py")
         else:
-            with st.popover(label="👤",):
-                if page!="main":
-                    if st.button("Home", type="primary"):
-                        st.switch_page("streamlit_main.py")
+            with st.popover(label=f"{userId} 👤",):
+                # if page!="main":
+                #     if st.button("Home", type="primary"):
+                #         st.switch_page("streamlit_main.py")
                 if page!="profile":
                     if st.button("My profile", type="primary"):
                         st.session_state["user_mode"]="display_profile"
@@ -67,7 +67,7 @@ def user_menu(userId, page, ):
 
 
 def progress_bar(page):
-    #TODO create a custoprogress==1 and m one
+
     # progress = stx.stepper_bar(steps=["Step 1: Upgrade your profile", "Step 2: Pick a template", "Step 3: Download your resume"], lock_sequence=False)
     # if progress==1:
     #     if "current_page" in st.session_state and st.session_state.current_page!="streamlit_reformat":
@@ -81,7 +81,7 @@ def progress_bar(page):
             sac.StepsItem(title="Step 1", subtitle="Update your profile"),
             sac.StepsItem(title="Step 2", subtitle="Pick a template"), 
             sac.StepsItem(title="Step 3", subtitle="Download your resume")
-        ], index = page,  color="#FF6347"
+        ], index = page,  color="#FF6347", variant="navigation",
     )
     if step=="Step 1":
         if "current_page" in st.session_state and st.session_state.current_page!="profile":

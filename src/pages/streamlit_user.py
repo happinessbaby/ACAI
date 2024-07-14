@@ -40,6 +40,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
+import requests
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -55,7 +56,6 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder_about_resume=st.empty()
 # initialize float feature/capability
 float_init()
-set_streamlit_page_config_once()
 # store = FeatureStore("./my_feature_repo/")
 
 
@@ -71,13 +71,14 @@ set_streamlit_page_config_once()
 # )
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 pages = get_pages("")
-ctx = get_script_run_ctx()
+
 
 class User():
 
     ctx = get_script_run_ctx()
 
     def __init__(self, ):
+        set_streamlit_page_config_once()
         # NOTE: userId is retrieved from browser cookie
         # self.current_page = self.get_current_page()
         st.session_state["current_page"] = "profile"
@@ -182,8 +183,10 @@ class User():
     def sign_out(self, ):
 
         print('signing out')
+        self.google_signout()
         st.session_state.cm.delete_cookie()
         st.session_state["user_mode"]="signedout"
+        time.sleep(5)
         if "redirect_page" in st.session_state:
             st.switch_page(st.session_state.redirect_page)
         else:
@@ -237,9 +240,9 @@ class User():
             self.google_signin()
             print(name, authentication_status, username)
             if authentication_status:
-                email = st.session_state.authenticator.credentials["usernames"][username]["email"]
+                # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
                 print("setting cookie")
-                st.session_state.cm.set_cookie(name, email, )
+                st.session_state.cm.set_cookie(name, username, )
                 st.session_state["user_mode"]="signedin"
                 time.sleep(5)
                 st.rerun()
@@ -258,22 +261,26 @@ class User():
             redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else "http://localhost:8501/streamlit_user",
             )
         if auth_code:
-            flow.fetch_token(code=auth_code)
-            credentials = flow.credentials
-            st.write("Login Done")
-            user_info_service = build(
-                serviceName="oauth2",
-                version="v2",
-                credentials=credentials,
-            )
-            user_info = user_info_service.userinfo().get().execute()
-            assert user_info.get("email"), "Email not found in infos"
-            # st.session_state["google_auth_code"] = auth_code
-            # st.session_state["user_info"] = user_info
-            st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("email"),)
-            st.session_state["user_mode"]="signedin"
-            time.sleep(5)
-            st.rerun()
+            try:
+                flow.fetch_token(code=auth_code)
+                credentials = flow.credentials
+                st.write("Login Done")
+                user_info_service = build(
+                    serviceName="oauth2",
+                    version="v2",
+                    credentials=credentials,
+                )
+                user_info = user_info_service.userinfo().get().execute()
+                assert user_info.get("email"), "Email not found in infos"
+                # st.session_state["google_auth_code"] = auth_code
+                # st.session_state["user_info"] = user_info
+                st.session_state["credentials"] = credentials
+                st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
+                st.session_state["user_mode"]="signedin"
+                time.sleep(5)
+                st.rerun()
+            except Exception as e:
+                raise e
         else:
             st.markdown(google_button, unsafe_allow_html=True)
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
@@ -282,7 +289,23 @@ class User():
                     access_type="offline",
                     include_granted_scopes="true",
                 )
-                webbrowser.open_new_tab(authorization_url)
+                # webbrowser.open_new_tab(authorization_url)
+                st.query_params.redirect=authorization_url
+                st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
+
+    def google_signout(self):
+        if "credentials" in st.session_state:
+            credentials = st.session_state["credentials"]
+            revoke_token_url = "https://accounts.google.com/o/oauth2/revoke?token=" + credentials.token
+            response = requests.get(revoke_token_url)
+            if response.status_code == 200:
+                print("Successfully signed out")
+                # Clear session state
+                del st.session_state["credentials"]
+            else:
+                print("Failed to revoke token")
+        else:
+            print("No user is signed in")
 
     def sign_up(self,):
 
@@ -298,7 +321,7 @@ class User():
                 if self.save_password( username, name, password, email):
                     st.session_state["user_mode"]="signedin"
                     st.success("User registered successfully")
-                    st.session_state.cm.set_cookie(name, email,)
+                    st.session_state.cm.set_cookie(name, username,)
                     time.sleep(5)
                     st.rerun()
                 else:
@@ -415,10 +438,9 @@ class User():
             with c1:
                 # st.markdown(general_button, unsafe_allow_html=True)
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                if st.button(label="Submit", disabled=st.session_state.resume_disabled):
-                    self.resume_form_callback()
-                if st.button(label="I'll do it later", type="primary",):
-                    self.display_profile()
+                st.button(label="Submit", disabled=st.session_state.resume_disabled, on_click=self.resume_form_callback)
+                st.button(label="I'll do it later", type="primary", on_click=self.display_profile)
+        
 
     def about_future(self):
 
@@ -473,7 +495,7 @@ class User():
         schema = convert_pydantic_schema_to_arrow(ResumeUsers)
         add_to_lancedb_table(lance_users_table, [resume_dict], schema)
         print("Successfully aded user to lancedb table")
-        st.rerun()
+        # st.rerun()
 
 
 
@@ -971,7 +993,8 @@ class User():
             if "eval_dict" not in st.session_state:
                 thread = threading.Thread(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
                 add_script_run_ctx(thread, self.ctx)
-                thread.start()            
+                thread.start()   
+         
 
     
     def display_profile(self,):
@@ -983,13 +1006,19 @@ class User():
         progress_bar(0)
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
+            # If user has not uploaded a resume, create an empty profile
+            if not st.session_state["profile"]:
+                self.create_empty_profile() 
         eval_col, profile_col, _ = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", expanded=True ):
-                    name = st.session_state["profile"]["contact"]["name"]
+                    try:
+                        name = st.session_state["profile"]["contact"]["name"]
+                    except Exception:
+                        name=""
                     if st.text_input("Name", value=name, key="profile_name",)!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
                     email = st.session_state["profile"]["contact"]["email"]
@@ -1100,6 +1129,7 @@ class User():
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
             float_parent()
+
 
         
 
@@ -1242,6 +1272,20 @@ class User():
         st.image("./resources/functional_chronological_resume.png")
 
 
+    def create_empty_profile(self):
+        """"""
+
+        filename = str(uuid.uuid4())
+        end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
+        #creates an empty file
+        with open(end_path, "w") as f:
+            pass
+        st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
+                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "website":"", }, 
+                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
+                   "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
+        save_user_changes(self.userId, ResumeUsers)
 
 
     @st.experimental_dialog("Warning")

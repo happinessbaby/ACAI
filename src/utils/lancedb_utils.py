@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pyarrow as pa
 from typing import List, Dict, Optional, get_args, get_origin, Set
+import json
 
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
@@ -227,10 +228,15 @@ def save_user_changes(userId, schema):
 
     try:
         delete_user_from_table(lance_users_table, userId)
-        schema = convert_pydantic_schema_to_arrow(schema)
-        add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
-        st.toast("Successfully updated profile")
-        # del st.session_state["profile"]
-    except Exception as e:
-        raise e
+    except Exception:
+        pass
+    finally:
+        st.session_state["profile"]["resume_content"] = json.dumps(st.session_state["profile"])
+        try:
+            schema = convert_pydantic_schema_to_arrow(schema)
+            add_to_lancedb_table(lance_users_table, [st.session_state["profile"]], schema=schema, mode="overwrite" )
+            st.toast("Successfully updated profile")
+            # del st.session_state["profile"]
+        except Exception as e:
+            raise e
     
