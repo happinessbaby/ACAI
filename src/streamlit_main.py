@@ -107,12 +107,10 @@ class Main():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin" 
-            # if "user_profile_dict" not in st.session_state:
-            # if "user_profile_dict" not in st.session_state: 
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
+        st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         self._init_session_states()
         # self._create_chatbot()
         self._init_display()

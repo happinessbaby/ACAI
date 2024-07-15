@@ -41,6 +41,7 @@ from st_pages import get_pages, get_script_run_ctx
 from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace
+import streamlit_antd_components as sac
 import streamlit as st
 
 set_streamlit_page_config_once()
@@ -93,11 +94,10 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            # if "user_profile_dict" not in st.session_state: 
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
+        st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         self._init_session_states()
         self._init_display()
 
@@ -1227,15 +1227,17 @@ class User():
                             st.write("Evaluating...")
                 with c2:
                     # st.write("**Type**")
-                    add_vertical_space(3)
-                    explore = st.button("Why the right type matters?", type="primary", key="resume_type_button")
-                    if explore:
-                        self.resume_types_explore_popup()
                     try:
+                        add_vertical_space(3)
                         ideal_type = eval_dict["ideal_type"]
                         st.write(f"The best type of resume for you is a **{ideal_type}** resume")
-                        add_vertical_space(3)
-                        explore = st.button("Explore template options")
+                        if not st.session_state["eval_rerun_timer"]:
+                            add_vertical_space(1)
+                            if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
+                                self.resume_type_popup()
+                            add_vertical_space(1)
+                            if st.button("Explore template options", key="resume_template_explore_button"):
+                                self.explore_template_popup()
                         # my_type = eval_dict["type"]
                         # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
@@ -1262,8 +1264,10 @@ class User():
                     cohesiveness = eval_dict["cohesiveness"]
                     st.write(cohesiveness)
                     # finished evaluataion, stop timer
-                    st.session_state["finished_eval"] = True
-                    st.session_state["eval_rerun_timer"]=None
+                    if "finished_eval" not in st.session_state:
+                        st.session_state["finished_eval"] = True
+                        st.session_state["eval_rerun_timer"]=None
+                        st.rerun()
                 except Exception:
                     if "finished_eval" not in st.session_state:
                         st.write("Evaluating...")
@@ -1296,8 +1300,22 @@ class User():
 
 
     @st.experimental_dialog(" ")
-    def resume_types_explore_popup(self, ):
+    def resume_type_popup(self, ):
         st.image("./resources/functional_chronological_resume.png")
+    
+    @st.experimental_dialog(" ", width="large")
+    def explore_template_popup(self, ):
+        """"""
+        type = sac.tabs([
+            sac.TabsItem(label='functional',),
+            sac.TabsItem(label='chronological',),
+            sac.TabsItem(label='mixed', ),
+        ], align='center', variant="outline")
+
+        if type=="functional":
+            st.image(["./resources/functional/functional0.png", "./resources/functional/functional1.png", "./resources/functional/functional2.png"])
+        elif type=="chronological":
+            st.image(["./resources/chronological/chronological0.png", "./resources/chronological/chronological1.png", "./resources/chronological/chronological2.png"])
 
 
     def create_empty_profile(self):
@@ -1330,6 +1348,12 @@ class User():
         with c2:
             if st.button("yes, I'll upload a new one", type="primary", ):
                 delete_user_from_table(self.userId)
+                 # delete session-specific copy of the profile and evaluation
+                try:
+                    del st.session_state["profile"]
+                    del st.session_state["eval_dict"]
+                except Exception:
+                    pass
                 st.rerun()
 
 

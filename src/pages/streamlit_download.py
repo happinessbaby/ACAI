@@ -41,15 +41,16 @@ class Download():
                 with c1:
                     with stylable_container(
                         key="custom_download_container",
-                        css_styles="""{
+                            css_styles="""{
                                     border: 3px solid rgba(49, 51, 63, 0.2);
                                     border-radius: 0.5rem;
                                     padding: calc(1em - 1px)
-                                }s
-
+                                }
                         """
                     ):
-                        st.markdown(binary_file_downloader_html(st.session_state["selected_docx_resume"], "Download as DOCX"), unsafe_allow_html=True)
+                        with open(st.session_state["selected_docx_resume"], "rb") as f:
+                            st.download_button("Download as DOCX", f, st.session_state["selected_docx_resume"])
+                        # st.markdown(binary_file_downloader_html(st.session_state["selected_docx_resume"], "Download as DOCX"), unsafe_allow_html=True)
                 with c2:
                     with stylable_container(
                         key="custom_download_container",
@@ -57,11 +58,12 @@ class Download():
                                     border: 3px solid rgba(49, 51, 63, 0.2);
                                     border-radius: 0.5rem;
                                     padding: calc(1em - 1px)
-                                }s
-
+                                }
                         """
                     ):
-                        st.markdown(binary_file_downloader_html(st.session_state["selected_pdf_resume"], "Download as PDF"), unsafe_allow_html=True)
+                        # st.markdown(binary_file_downloader_html(st.session_state["selected_pdf_resume"], "Download as PDF"), unsafe_allow_html=True)
+                        with open(st.session_state["selected_pdf_resume"], "rb") as f:
+                            st.download_button("Download as PDF", f, st.session_state["selected_pdf_resume"],)
             else:
                 sac.result(label='Please go back and select a template', )
 

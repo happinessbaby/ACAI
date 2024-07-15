@@ -14427,4 +14427,123 @@
             }
         ]
     }
+}{
+    "./users/sample3/profile/uploads/b181d72f-349d-40f0-8d5c-dd812efedca4.txt": {
+        "resume_content": "3456 Westview Road\nBellevue, Nebraska 68005\n(402) 291-5678\nimasample3@xxx.com\nSUMMARY OF QUALIFICATIONS\nExperienced business professional with a solid academic background and a demonstrated\ncommitment to providing high quality customer service; described as a \"take charge\" person with\nexceptional communication and human relations skills; proficient in the use of MS Office (Word,\nExcel, PowerPoint) with basic knowledge of PeopleSoft.\nEDUCATION\nBellevue University, Bellevue, NE (June 20xx)\nBachelor of Science in Management of Human Resources\n\uf0b7 GPA in major: 3.84/4.00\nGraduated with distinction\nPROFESSIONAL EXPERIENCE\nWest Telemarketing, Omaha, NE (2023 to Present)\nCustomer Service Supervisor (2022 to present)\n\uf0b7 Supervise operations and staff in a 20-person inbound telemarketing unit, including\nhiring, training and evaluating employees, preparing and administering annual\nbudgets, developing business plans, etc.\n\uf0b7 Assess level of customer satisfaction and resolve sensitive and complex issues raised\nby customers; provide additional training and take other action as required to\nmaintain a high level of customer satisfaction.\nCustomer Service Representative (2021-2022)\n\uf0b7 Handled incoming calls from customers and potential customers, provided\ninformation and received orders using CRT to input data.\n\uf0b7 Interviewed customers and recommended other available products to meet their\nneeds; received several Incentive Awards for sales efforts.\n\uf0b7 Provided orientation and training to new staff members.\nPROFESSIONAL AFFILIATIONS AND ACTIVITIES\nMember, Society for Human Resources Management (SHRM) (20xx to 20xx)\nBellevue University Student Chapter\n\uf0b7 Chair, Program Development Committee (20xx)\nPresident, American Business Women's Association, Gold Star Chapter (20xx)\n",
+        "pursuit_jobs": null,
+        "summary_objective": "Experienced business professional with a solid academic background and a demonstrated commitment to providing high quality customer service; described as a 'take charge' person with exceptional communication and human relations skills; proficient in the use of MS Office (Word, Excel, PowerPoint) with basic knowledge of PeopleSoft.",
+        "included_skills": [],
+        "hobbies": [],
+        "contact": {
+            "city": "",
+            "email": "",
+            "linkedin": "",
+            "name": "",
+            "phone": "",
+            "state": "",
+            "website": ""
+        },
+        "education": {
+            "coursework": [],
+            "degree": "Bachelor of Science in Management of Human Resources",
+            "gpa": "3.84/4.00",
+            "graduation_year": "20xx",
+            "institution": "Bellevue University",
+            "study": "Management of Human Resources"
+        },
+        "work_experience": [
+            {
+                "company": "West Telemarketing",
+                "description": [
+                    "Supervise operations and staff in a 20-person inbound telemarketing unit, including hiring, training and evaluating employees, preparing and administering annual budgets, developing business plans, etc.",
+                    "Assess level of customer satisfaction and resolve sensitive and complex issues raised by customers; provide additional training and take other action as required to maintain a high level of customer satisfaction."
+                ],
+                "end_date": "",
+                "job_title": "Customer Service Supervisor",
+                "location": "remote",
+                "start_date": "2023"
+            },
+            {
+                "company": "West Telemarketing",
+                "description": [
+                    "Handled incoming calls from customers and potential customers, provided information and received orders using CRT to input data.",
+                    "Interviewed customers and recommended other available products to meet their needs; received several Incentive Awards for sales efforts.",
+                    "Provided orientation and training to new staff members."
+                ],
+                "end_date": "2022",
+                "job_title": "Customer Service Representative",
+                "location": "remote",
+                "start_date": "2021"
+            }
+        ],
+        "projects": null,
+        "qualifications": [
+            {
+                "description": [
+                    "Experienced business professional with solid academic background",
+                    "Demonstrated commitment to providing high quality customer service",
+                    "Described as a 'take charge' person with exceptional communication and human relations skills",
+                    "Proficient in the use of MS Office (Word, Excel, PowerPoint)",
+                    "Basic knowledge of PeopleSoft"
+                ],
+                "title": ""
+            }
+        ],
+        "licenses": [
+            {
+                "description": [],
+                "issue_date": "June 20xx",
+                "issue_organization": "Bellevue University, Bellevue, NE",
+                "title": "Bachelor of Science in Management of Human Resources"
+            }
+        ],
+        "certifications": [
+            {
+                "description": [],
+                "issue_date": "2022",
+                "issue_organization": "Customer Service Institute of America",
+                "title": "Certified Customer Service Professional"
+            }
+        ],
+        "awards": [
+            {
+                "description": [
+                    "Graduated with distinction"
+                ],
+                "title": "Bachelor of Science in Management of Human Resources"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "Handling incoming calls, providing information, and resolving customer issues.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Customer Service Supervisor and President of the American Business Women's Association chapter.",
+                "skill": "Leadership",
+                "type": "soft skill"
+            },
+            {
+                "example": "Resolving sensitive and complex customer issues and developing business plans.",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Managing operations and staff in a telemarketing unit, preparing budgets, and conducting training sessions.",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Preparing budgets, developing business plans, and conducting training sessions.",
+                "skill": "Proficiency in MS Office (Word, Excel, PowerPoint)",
+                "type": "hard skill"
+            },
+            {
+                "example": "Used for data management or reporting.",
+                "skill": "Basic knowledge of PeopleSoft",
+                "type": "hard skill"
+            }
+        ]
+    }
 }

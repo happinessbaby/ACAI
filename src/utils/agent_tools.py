@@ -244,6 +244,7 @@ def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[
         docs = split_doc_file_size(file, splitter_type="tiktoken")
         tool_description = f"This is a {sample_type} sample. Use it to compare with other {sample_type} samples"
         ensemble_retriever = create_ensemble_retriever(docs)
+        compression_retriever= create_compression_retriever(ensemble_retriever, )
         tool_name = f"{sample_type}_{random.choice(string.ascii_letters)}"
         # tool = create_retriever_tools(ensemble_retriever, tool_name, tool_description)
         tool = create_vs_retriever_tools(ensemble_retriever, tool_name, tool_description)

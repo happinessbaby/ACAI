@@ -159,9 +159,8 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
-    # NOTE: document comparison benefits from a clear and simple prompt
-    # related_samples = search_related_samples(jobs, resume_samples_path)
-    # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+    # NOTE: document comparison benefits from a clear and simple prompt. 
+
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
     Assess the candidate resume in terms of how closely it resembles other sample resume in terms of {category}.
@@ -176,7 +175,7 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
     Please output one of the metrics meter and provide your reasoning. 
 
-    candidate resume content: {field_content} \
+    Here's the candidate resume content: {field_content} \
     
     """
     # query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
@@ -222,6 +221,8 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
 def analyze_cohesiveness(resume_content, jobs):
 
+
+    #NOTE: this prompt uses self-reflective thinking by answering questions
     query_cohesiveness= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
 
     Assess the cohesiveness of the resume with respect to the jobs in the jobs list.
@@ -233,6 +234,7 @@ def analyze_cohesiveness(resume_content, jobs):
     2. Does the candidate have the work experience for the jobs they are seeking? \
 
     3. Does the summary or objective section of the resume reflect the jobs they are seeking? \
+    
 
     candidate's resume: {resume_content} \
     
