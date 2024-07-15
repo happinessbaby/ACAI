@@ -1247,15 +1247,22 @@ class User():
                 st.write("**How similar is your resume compared to others?**")
                 # st.write("How close does your resume compare to others of the same industry?")
                 try:
-                    diction_comparison = eval_dict["comparison"]["diction, or word choice"]
-                    # st.scatter_chart()
-                    st.write("diction: "+diction_comparison)
-                except Exception:
-                    if "finished_eval" not in st.session_state:
-                        st.write("Evaluating...")
-                try: 
-                    field_comparison = eval_dict["comparison"]["included resume fields"]
-                    st.write("resume field inclusion: "+ field_comparison)
+                    categories=["diction", "professionalism" ]
+                    section_names = ["objective", "work experience", "skills"]
+                    diction_comparison = [
+                    eval_dict["comparison"][section][category]
+                    for section in section_names
+                    for category in categories
+                    ]
+                    print(categories)
+                                    # st.scatter_chart()
+                #     st.write("diction: "+diction_comparison)
+                # except Exception:
+                #     if "finished_eval" not in st.session_state:
+                #         st.write("Evaluating...")
+                # try: 
+                #     field_comparison = eval_dict["comparison"]["included resume fields"]
+                #     st.write("resume field inclusion: "+ field_comparison)
                 except Exception:
                     if "finished_eval" not in st.session_state:
                         st.write("Evaluating...")

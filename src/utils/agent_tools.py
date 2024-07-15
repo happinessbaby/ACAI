@@ -39,6 +39,7 @@ from langchain.callbacks.manager import (
     AsyncCallbackManagerForToolRun,
     CallbackManagerForToolRun,
 )
+from langchain.chains import RetrievalQA
 import boto3
 import re
 
@@ -218,7 +219,7 @@ def create_vs_retriever_tools(retriever: Any, tool_name: str, tool_description: 
     return tool
 
 
-def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
+def create_sample_tools(related_samples: List[str], sample_type: str, llm=ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")) -> Union[List[Tool], List[str]]:
 
     """ Creates a set of tools from files along with the tool names for querying multiple documents. 
         
@@ -237,18 +238,16 @@ def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[
         a list of agent tools and a list of tool names
           
     """
-
     tools = []
     tool_names = []
     for file in related_samples:
-        docs = split_doc_file_size(file, splitter_type="tiktoken")
-        tool_description = f"This is a {sample_type} sample. Use it to compare with other {sample_type} samples"
+        docs = split_doc_file_size(file, use_bytes_threshold=False, splitter_type="tiktoken", chunk_size=100)
+        tool_description = f"This is a {sample_type} sample. Use it to compare with candidate {sample_type}"
+        tool_name = f"{sample_type}_{random.choice(string.ascii_letters)}"
         ensemble_retriever = create_ensemble_retriever(docs)
         compression_retriever= create_compression_retriever(ensemble_retriever, )
-        tool_name = f"{sample_type}_{random.choice(string.ascii_letters)}"
-        # tool = create_retriever_tools(ensemble_retriever, tool_name, tool_description)
-        tool = create_vs_retriever_tools(ensemble_retriever, tool_name, tool_description)
         tool_names.append(tool_name)
+        tool = create_vs_retriever_tools(compression_retriever, tool_name, tool_description)
         tools.extend(tool)
     print(f"Successfully created {sample_type} tools")
     return tools, tool_names

@@ -124,29 +124,32 @@ def retrieve_user_profile_dict(userId):
     if users_table:
         profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
         if profile_dict["user_id"]=="":
-            print("user profile dict not does exist")
+            print("user profile dict does not exist")
             return None
         for key in profile_dict:
             if isinstance(profile_dict[key], list):
-                value=profile_dict[key][0]
-                if isinstance(value, str):  # Handle strings
-                    profile_dict[key]=value
-                elif isinstance(value, (np.ndarray, list)):  # Handle arrays
-                    # print(value)
-                    cleaned_data= clean_field(profile_dict, key)
-                    profile_dict[key] = convert_arrays_to_lists(cleaned_data)
-                    # print("list pydantic arrays", profile_dict[key])
-                elif isinstance(value, dict):
-                    for k in value:
-                        if isinstance(value[k], (np.ndarray, list)):
-                            cleaned_data = clean_field(value, k)
-                            value[k] = convert_arrays_to_lists(cleaned_data)
-                    profile_dict[key]=value
-                # else:
-                #     profile_dict[key]=value
-                # else:                   # Handle None and anomalies
-                #     profile_dict[key] = ''
-        print(f"Retrieved user profile dict from lancedb", )
+                try:
+                    value=profile_dict[key][0]
+                    if isinstance(value, str):  # Handle strings
+                        profile_dict[key]=value
+                    elif isinstance(value, (np.ndarray, list)):  # Handle arrays
+                        # print(value)
+                        cleaned_data= clean_field(profile_dict, key)
+                        profile_dict[key] = convert_arrays_to_lists(cleaned_data)
+                        # print("list pydantic arrays", profile_dict[key])
+                    elif isinstance(value, dict):
+                        for k in value:
+                            if isinstance(value[k], (np.ndarray, list)):
+                                cleaned_data = clean_field(value, k)
+                                value[k] = convert_arrays_to_lists(cleaned_data)
+                        profile_dict[key]=value
+                    # else:
+                    #     profile_dict[key]=value
+                    else:                   # Handle None and anomalies
+                        profile_dict[key] = ''
+                except IndexError:
+                    pass
+        print(f"Retrieved user profile dict from lancedb", profile_dict)
         return profile_dict
     else:
         return None

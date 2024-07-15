@@ -68,7 +68,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict
 
     print("start evaluating...")
     if type=="general":
-        st.session_state["eval_dict"] = {"comparison":{}}
+        st.session_state["eval_dict"] = {"comparison":{"objective":{},"work experience":{}, "skills":{}}}
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
@@ -89,16 +89,16 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict
         st.session_state.eval_dict.update({"ideal_type": ideal_type})
         # type_dict= analyze_resume_type(resume_content,)
         # st.session_state.eval_dict.update(type_dict)
-        section_names = ["summary_objective", "work_experience", "skills"]
-        categories=["diction, or word choice", "included resume fields",  ]
-        # for section in section_names:
-            # comparison_dict = analyze_via_comparison(resume_dict[section], section, pursuit_jobs)
-            # st.session_state.eval_dict["comparison"].update({section:comparison_dict["closeness"]})
+        categories=["diction", "professionalism" ]
+        section_names = ["objective", "work experience", "skills"]
+        field_names = ["summary_objective", "work_experience", "included_skills"]
+        field_map = dict(zip(field_names, section_names))
         related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
         sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-        for category in categories:
-            comparison_dict = analyze_via_comparison(resume_dict, category, sample_tools, tool_names)
-            st.session_state.eval_dict["comparison"].update({category:comparison_dict["closeness"]})
+        for field_name, section_name in field_map.items():
+            for category in categories:
+                comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name, category, sample_tools, tool_names)
+                st.session_state.eval_dict["comparison"][section_name].update({category:comparison_dict["closeness"]})
         # response = analyze_strength_weakness(resume_content, pursuit_jobs)
         # st.session_state.eval_dict["strength_weakness"] = response
         # st.session_state.eval_dict.update({"comparison": comparison_dict})
@@ -155,7 +155,7 @@ def analyze_field_content(field_content, field_type):
             Further questions to examine in the future"""
             
 
-def analyze_via_comparison(field_content, category, sample_tools, tool_names):
+def analyze_via_comparison(field_content, field_name, category, sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
@@ -163,46 +163,25 @@ def analyze_via_comparison(field_content, category, sample_tools, tool_names):
 
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-    Assess the candidate resume in terms of how closely it resembles other sample resume in terms of {category}.
-
-    You should not base your assessment on the content but {category} only. 
+    Compare the candidate resume's {field_name} to other sample resume's {field_name}.
     
     All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
     
     The sample resume are for comparative purpose only. You should not analyze them. 
 
-    As your final output, analyze how close the candidate resume's {category} resembles other sample resume's {category} using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+    Please search for only the {field_name} of the sample resume.
+
+    Analyze how close the candidate resume field resembles other sample resume in terms of {category}. Analyze in terms of {category} only! 
+
+    Please use the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
     Please output one of the metrics meter and provide your reasoning. 
 
-    Here's the candidate resume content: {field_content} \
+    candidate resume's {field_name} content: {field_content} \
     
     """
-    # query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
-
-    # Assess the candidate resume's {field_name} in terms of how closely it resembles other sample resume's {field_name} in terms of {category}.
-
-    # You should not base your assessment on the content but {category} only. 
-    
-    # All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
-    
-    # The sample resume are for comparative purpose only. You should not analyze them. 
-
-    # Please search for only the {field_name} of the sample resume.
-
-    # As your final output, analyze how close the candidate resume resembles other sample resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
-
-    # Please output one of the metrics meter and provide your reasoning. 
-
-    # candidate resume's {field_name} content: {field_content} \
-    
-    # """
-    # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
    
-    #  Your final analysis should be about a paragraph long summarizing the quality of the candidate's resume. 
-    
-    # Write as if you are giving the candidate a critical feedback along wiht some suggestions.
-    comparison_resp = generate_multifunction_response(query_comparison, sample_tools)
+    comparison_resp = generate_multifunction_response(query_comparison, sample_tools, early_stopping=False)
     comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
     return comparison_dict
 
@@ -240,7 +219,7 @@ def analyze_cohesiveness(resume_content, jobs):
     
     jobs the candidate is seeking: {jobs} \
 
-    Your final analysis should be about a paragraph long summarizing the cohesiveness of the candidate's resume. 
+    Your final analysis should be about 50-100 words long summarizing the cohesiveness of the candidate's resume. 
     
     Write as if you are giving the candidate a critical feedback along with some suggestions. """
 

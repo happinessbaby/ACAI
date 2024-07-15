@@ -598,10 +598,10 @@ if __name__=="__main__":
     #    "https://jobs.lever.co/missiongraduates/596a25c8-5998-469b-9cb8-53b2afd1ceab",
     #     save_path =f"./my_material/data_analyst3.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
-    # convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist_yp.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist.txt")
+    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/bad-resume_0.pdf","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/bad-resume_0.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
     # count_pages("./my_material/resume2023v2.pdf")
-    convert_docx_to_img("./backend/resume_templates/functional/functional0.docx")
+    # convert_docx_to_img("./backend/resume_templates/functional/functional0.docx")
 
 
 
