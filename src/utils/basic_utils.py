@@ -45,6 +45,7 @@ import base64
 import boto3
 import aspose.words as aw
 import glob
+from jinja2 import Template
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -519,7 +520,27 @@ def process_json(json_str: str) -> str:
 
     return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
+def read_text_boxes(file_path):
+    doc = Document(file_path)
+    text_boxes = []
+    for shape in doc.inline_shapes:
+        if shape.type == 1:  # 1 is the type for text boxes
+            print("text box text")
+            text_box_text = []
+            for paragraph in shape._inline.graphic.graphicData.textBody.p:
+                text_box_text.append(paragraph.text)
+            text_boxes.append('\n'.join(text_box_text))
+    return text_boxes
 
+def render_template(template_str, context):
+    template = Template(template_str)
+    return template.render(context)
+
+def save_rendered_content(rendered_contents, output_file_path):
+    doc = Document()
+    for content in rendered_contents:
+        doc.add_paragraph(content)
+    doc.save(output_file_path)
 
 class memoized(object):
 

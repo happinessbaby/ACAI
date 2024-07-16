@@ -7,7 +7,7 @@ from langchain.prompts import ChatPromptTemplate
 # from langchain_experimental.smart_llm import SmartLLMChain
 # from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
 # from utils.openai_api import get_completion
-from utils.basic_utils import read_txt, memoized, process_json, count_length
+from utils.basic_utils import read_txt, memoized, process_json, count_length, read_text_boxes, render_template, save_rendered_content
 from utils.common_utils import (search_related_samples, research_relevancy_in_resume, extract_similar_jobs, calculate_graduation_years)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
@@ -468,17 +468,24 @@ def reformat_resume(template_path, info_dict, end_path):
     }
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
     other_context = {
+        "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),
         "SUMMARY": func("summary_objective", "SUMMARY"),
         "SKILLS": func("included_skills", "YOUR SKILLS"),
         "PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),
         "CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),
-        "SKILLS": func("included_skills", "YOUR SKILLS")
+        "SKILLS": func("included_skills", "YOUR SKILLS"),
+        "HOBBIES": func("hobbies", "YOUR HOBBIES")
     }
     context={}
     context.update(personal_context)
     context.update(education_context)
     context.update(other_context)
     context.update({"WORK_EXPERIENCE": info_dict["work_experience"]})
+    # text_box_contents = read_text_boxes(template_path)
+    #  # Render each text box template with the context
+    # rendered_contents = [render_template(content, context) for content in text_box_contents]
+    # # Save the rendered content into a new .docx file
+    # save_rendered_content(rendered_contents, end_path)
     doc_template.render(context)
     if STORAGE=="LOCAL":
         local_save_path=end_path
@@ -486,6 +493,8 @@ def reformat_resume(template_path, info_dict, end_path):
     if STORAGE=="S3":
         s3.upload_file(local_save_path, bucket_name, end_path)
     return local_save_path
+
+
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
 

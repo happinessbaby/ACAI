@@ -43,6 +43,8 @@ import requests
 from utils.async_utils import thread_with_trace
 import streamlit_antd_components as sac
 import streamlit as st
+import plotly.express as px
+import pandas as pd
 
 set_streamlit_page_config_once()
 
@@ -1018,22 +1020,32 @@ class User():
 
 
         progress_bar(0)
+
+        eval_col, profile_col, _ = st.columns([1, 3, 1])   
+        _, menu_col, _ = st.columns([3, 1, 3])   
+        with eval_col:
+            float_container= st.container()
+            with float_container:
+                if "profile" not in st.session_state:
+                    if st.button("Generate a general assessment ✨", key="general_eval_button"):
+                        self.display_general_evaluation(float_container)
+                        self.evaluation_callback()
+                else:
+                    self.display_general_evaluation(float_container)
+                    self.evaluation_callback()
+            float_parent()
+
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
             # If user has not uploaded a resume, create an empty profile
             if not st.session_state["profile"]:
                 self.create_empty_profile() 
-        eval_col, profile_col, _ = st.columns([1, 3, 1])   
-        _, menu_col, _ = st.columns([3, 1, 3])   
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", expanded=True ):
-                    try:
-                        name = st.session_state["profile"]["contact"]["name"]
-                    except Exception:
-                        name=""
+                    name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name",)!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
                     email = st.session_state["profile"]["contact"]["email"]
@@ -1074,8 +1086,11 @@ class User():
                     # #TODO list courseworks
             with st.expander(label="Summary/Objective",):
                 self.display_field_analysis("summary")
+                pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
+                if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
+                    st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
                 summary = st.session_state["profile"]["summary_objective"]
-                if st.text_area("Summary", value=summary, key="profile_summary", label_visibility="hidden")!=summary:
+                if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
             with st.expander(label="Work experience",):
                 self.display_field_analysis("work_experience")
@@ -1141,12 +1156,14 @@ class User():
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
         # the general evaluation column
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                self.display_general_evaluation(float_container)
-                self.evaluation_callback()
-            float_parent()
+        # with eval_col:
+        #     float_container= st.container()
+        #     with float_container:
+                
+        #         if st.button("Generate a general assessment ✨", key="general_eval_button"):
+        #             self.display_general_evaluation(float_container)
+        #             self.evaluation_callback()
+        #     float_parent()
 
 
         
@@ -1248,21 +1265,33 @@ class User():
                 # st.write("How close does your resume compare to others of the same industry?")
                 try:
                     categories=["diction", "professionalism" ]
-                    section_names = ["objective", "work experience", "skills"]
-                    diction_comparison = [
-                    eval_dict["comparison"][section][category]
-                    for section in section_names
-                    for category in categories
-                    ]
-                    print(categories)
+                    section_names = ["objective", "work experience", "skills"]       
+                    data = {
+                        "section_names": [],
+                        "categories": [],
+                        "values": []
+                    }
+                    for section in section_names:
+                        for category in categories:
+                            data["section_names"].append(section)
+                            data["categories"].append(category)
+                            value = eval_dict["comparison"][section][category]
+                            if value=="not close at all":
+                                pt = 0
+                            elif value=="some similarity":
+                                pt = 1
+                            elif value=="very similar":
+                                pt = 2
+                            elif value=="identical":
+                                pt = 3
+                            data["values"].append(pt)
                                     # st.scatter_chart()
-                #     st.write("diction: "+diction_comparison)
-                # except Exception:
-                #     if "finished_eval" not in st.session_state:
-                #         st.write("Evaluating...")
-                # try: 
-                #     field_comparison = eval_dict["comparison"]["included resume fields"]
-                #     st.write("resume field inclusion: "+ field_comparison)
+                    df = pd.DataFrame(data)
+                    print(df.head())
+                    # Create scatter plot
+                    fig = px.scatter(df, y="categories", x="section_names", size="values", color="values", )
+                    st.plotly_chart(fig)
+                    # st.scatter_chart(df)
                 except Exception:
                     if "finished_eval" not in st.session_state:
                         st.write("Evaluating...")
@@ -1294,6 +1323,7 @@ class User():
                     elif button_name=="stop evaluation":
                         try:
                             # kill the evaluation thread 
+                            #TODO, currently not working
                             self.eval_thread.kill()
                             self.eval_thread.join()
                         except Exception as e:

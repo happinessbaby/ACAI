@@ -14,7 +14,7 @@ from utils.cookie_manager import CookieManager
 import streamlit as st
 
 set_streamlit_page_config_once()
-
+float_init()
 # pages = get_pages("")
 
 class Reformat():
@@ -40,7 +40,7 @@ class Reformat():
 
     def display_resume_templates(self, ):
         
-        paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
+        paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/functional/functional2.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
         # if "image_paths" not in st.session_state:
         st.session_state["formatted_docx_paths"] = []
         st.session_state["formatted_pdf_paths"] = []
