@@ -8,6 +8,7 @@ import numpy as np
 import pyarrow as pa
 from typing import List, Dict, Optional, get_args, get_origin, Set
 import json
+from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
 
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
@@ -119,12 +120,12 @@ def convert_arrays_to_lists(data):
     else:
         return data
 
+
 def retrieve_user_profile_dict(userId):
     users_table = retrieve_lancedb_table(lance_users_table)
     if users_table:
         profile_dict=users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if profile_dict["user_id"]=="":
-            print("user profile dict does not exist")
+        if not profile_dict["user_id"]:
             return None
         for key in profile_dict:
             if isinstance(profile_dict[key], list):

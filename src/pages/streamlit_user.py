@@ -11,7 +11,7 @@ from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
-from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info
+from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
 from utils.basic_utils import mk_dirs, binary_file_downloader_html, convert_docx_to_img
 from typing import Any, List
 from pathlib import Path
@@ -96,10 +96,10 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
+            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
-        st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         self._init_session_states()
         self._init_display()
 
@@ -168,18 +168,22 @@ class User():
             if "redirect_page" in st.session_state:
                 st.switch_page(st.session_state.redirect_page)
             else:
-                if  st.session_state["user_profile_dict"]:
-                 # if user has initialized their profile
-                    self.display_profile()
-                    #if user calls to tailor fields
-                    if "init_tailoring" in st.session_state:
-                        self.job_posting_popup()
-                        # delete "init_tailoring" variable to prevent popup from being called again
-                        del st.session_state["init_tailoring"]
-                else:
-                   # if user has not initialized their profile
-                    print("user profile does not exists yet")
-                    self.initialize_resume()
+                try:
+                    if  st.session_state["user_profile_dict"]:
+                    # if user has initialized their profile
+                        self.display_profile()
+                        #if user calls to tailor fields
+                        if "init_tailoring" in st.session_state:
+                            self.job_posting_popup()
+                            # delete "init_tailoring" variable to prevent popup from being called again
+                            del st.session_state["init_tailoring"]
+                    else:
+                    # if user has not initialized their profile
+                        print("user profile does not exists yet")
+                        self.initialize_resume()
+                except KeyError:
+                    # NOTE; sometimes retrieval of the user_profile_dict is slower than getting to here, rerun will solve the problem
+                    st.rerun()
         elif st.session_state.user_mode=="signout":
             self.sign_out()
 
@@ -840,18 +844,7 @@ class User():
 
         def callback(idx):
        
-            # try:
-            #     title = st.session_state[f"award_title_{idx}"]
-            #     if title:
-            #         st.session_state["profile"]["awards"][idx]["title"]=title
-            # except Exception:
-            #     pass
-            # try:
-            #     descr = st.session_state[f"award_descr_{idx}"]
-            #     if descr:
-            #         st.session_state["profile"]["awards"][idx]["description"]=descr
-            # except Exception:
-            #     pass
+
             try:
                 title = st.session_state[f"{name}_title_{idx}"]
                 if title:
@@ -993,7 +986,7 @@ class User():
             # starts specific field tailoring
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
         else:
-            # initializes tailoring's job posting popup 
+            # initialize a job posting popup 
             st.session_state["init_tailoring"] = True
             if field_name:
                 st.session_state["tailoring_field"]=field_name
@@ -1018,28 +1011,30 @@ class User():
 
         """Displays interactive user profile UI"""
 
-
+        # display the progress bar
         progress_bar(0)
-
-        eval_col, profile_col, _ = st.columns([1, 3, 1])   
-        _, menu_col, _ = st.columns([3, 1, 3])   
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                if "profile" not in st.session_state:
-                    if st.button("Generate a general assessment ✨", key="general_eval_button"):
-                        self.display_general_evaluation(float_container)
-                        self.evaluation_callback()
-                else:
-                    self.display_general_evaluation(float_container)
-                    self.evaluation_callback()
-            float_parent()
-
+        # initialize a temporary copy of the user profile 
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
             # If user has not uploaded a resume, create an empty profile
             if not st.session_state["profile"]:
                 self.create_empty_profile() 
+                st.rerun()
+        eval_col, profile_col, _ = st.columns([1, 3, 1])   
+        _, menu_col, _ = st.columns([3, 1, 3])   
+        with eval_col:
+            float_container= st.container()
+            with float_container:
+                # during first preview of the profile, display a button for general evaluation
+                # otherwise, unless page refresh, general evaluation will be in a popover
+                if "init_eval" not in st.session_state:
+                    if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
+                        st.session_state["init_eval"]=True
+                        st.rerun()
+                else:
+                    self.display_general_evaluation(float_container)
+                    self.evaluation_callback()
+            float_parent()
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
@@ -1090,6 +1085,8 @@ class User():
                 if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
                 summary = st.session_state["profile"]["summary_objective"]
+                st.write(readability_checker(summary))
+                # st.write(grammar_checker(summary))
                 if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
             with st.expander(label="Work experience",):
@@ -1152,18 +1149,10 @@ class User():
                 ):
                 st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
-                    # cannot be in callback because streamlit dialogs are not supported in callbacks
+                    # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
-        # the general evaluation column
-        # with eval_col:
-        #     float_container= st.container()
-        #     with float_container:
-                
-        #         if st.button("Generate a general assessment ✨", key="general_eval_button"):
-        #             self.display_general_evaluation(float_container)
-        #             self.evaluation_callback()
-        #     float_parent()
+
 
 
         
@@ -1323,7 +1312,6 @@ class User():
                     elif button_name=="stop evaluation":
                         try:
                             # kill the evaluation thread 
-                            #TODO, currently not working
                             self.eval_thread.kill()
                             self.eval_thread.join()
                         except Exception as e:
@@ -1370,13 +1358,13 @@ class User():
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         save_user_changes(self.userId, ResumeUsers)
-        st.rerun()
+       
 
 
     @st.experimental_dialog("Warning")
     def delete_profile_popup(self):
 
-        """ Opens a popup that warns user before re-uploading their resume """
+        """ Opens a popup that warns user before uploading a new resume """
 
         add_vertical_space(2)
         st.warning("Your current profile will be lost. Are you sure?")

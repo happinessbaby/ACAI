@@ -81,6 +81,8 @@ from unstructured.partition.html import partition_html
 from dateutil import parser
 from utils.pydantic_schema import BasicResumeFields, SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1
 from utils.lancedb_utils import create_lancedb_table, retrieve_lancedb_table, add_to_lancedb_table
+import textstat as ts
+import language_tool_python
 
 
 # from feast import FeatureStore
@@ -673,33 +675,33 @@ def calculate_graduation_years(graduation_year:str) -> int:
     return years
 
 #NOTE: are transferable skills equal to soft skilll? if so, this is unnecessary
-def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
+# def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
 
-    """ Researches transferable skills that are not overlapped in the skills dictionary between a resume and a job posting. 
+#     """ Researches transferable skills that are not overlapped in the skills dictionary between a resume and a job posting. 
 
-    This provides a deeper dive into the experience, project sections of the resume for cases where there's little to no overlapping in skills.  """
+#     This provides a deeper dive into the experience, project sections of the resume for cases where there's little to no overlapping in skills.  """
 
-    query = f""" You are an expert resume advisor that helps a candidate match to a job. 
+#     query = f""" You are an expert resume advisor that helps a candidate match to a job. 
     
-     You are given a job description along with some of the candidate's resume content.
+#      You are given a job description along with some of the candidate's resume content.
      
-     Your task is to come up with a list of tranferable skills that the candidate can include from the job description.
+#      Your task is to come up with a list of tranferable skills that the candidate can include from the job description.
      
-    job description: {job_description} \n
+#     job description: {job_description} \n
 
-    resume content: {resume_content} \n
+#     resume content: {resume_content} \n
         
-    If the candidate already has a particular skill listed in the job description, then it is not a transferable skill. 
+#     If the candidate already has a particular skill listed in the job description, then it is not a transferable skill. 
     
-    A transferable skill is an ability or expertise which may be carried from one industry or role to another industry or role.
+#     A transferable skill is an ability or expertise which may be carried from one industry or role to another industry or role.
     
-    Please be honest with your answer and provide your reasoning.   
+#     Please be honest with your answer and provide your reasoning.   
     
-    Do not use any tools! """
+#     Do not use any tools! """
 
-    response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
-    print(f"Successfully generated transferable skills: {response}")
-    return response
+#     response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
+#     print(f"Successfully generated transferable skills: {response}")
+#     return response
     
 
 
@@ -719,23 +721,23 @@ def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
     return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_titles"], query_dict={"job_list":job_list, "desired_titles":desired_titles})
 
 
-def research_relevancy_in_resume(resume_content, job_description, job_description_type, relationship, n_ideas=2, llm=ChatOpenAI()):
+# def research_relevancy_in_resume(resume_content, job_description, job_description_type, relationship, n_ideas=2, llm=ChatOpenAI()):
 
-    query_relevancy = f""" You are an expert resume advisor that analyzes some section of the resume with relationship to some fields in a job description.
+#     query_relevancy = f""" You are an expert resume advisor that analyzes some section of the resume with relationship to some fields in a job description.
     
-     You are given the {job_description_type} section of a job description along with some of the candidate's resume content. 
+#      You are given the {job_description_type} section of a job description along with some of the candidate's resume content. 
      
-    Generate a list of things in the resume that are {relationship} to the {job_description_type} required in the job description.
+#     Generate a list of things in the resume that are {relationship} to the {job_description_type} required in the job description.
      
-    job description {job_description_type}: {job_description} \n
+#     job description {job_description_type}: {job_description} \n
 
-    resume content: {resume_content} \n
+#     resume content: {resume_content} \n
 
-    Your list output should only include things in the resume content that are {relationship} to the job description. """
+#     Your list output should only include things in the resume content that are {relationship} to the job description. """
 
-    relevancy=create_smartllm_chain(query_relevancy, n_ideas=n_ideas)
-    print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
-    return relevancy
+#     relevancy=create_smartllm_chain(query_relevancy, n_ideas=n_ideas)
+#     print(f"Successfully generated relevant content for {job_description_type}: {relevancy}")
+#     return relevancy
 
 
 
@@ -901,105 +903,8 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
 def match_resume_to_job(resume_dict, job_dict):
     """"""
 
-# def create_sample_tools(related_samples: List[str], sample_type: str,) -> Union[List[Tool], List[str]]:
-
-#     """ Creates a set of tools from files along with the tool names for querying multiple documents. 
-        
-#         Note: Document comparison benefits from specifying tool names in prompt. 
-     
-#       The files are split into Langchain Document, which are turned into ensemble retrievers then made into retriever tools. 
-
-#       Args:
-
-#         related_samples (list[str]): list of sample file paths
-
-#         sample_type (str): "resume" or "cover letter"
-    
-#     Returns:
-
-#         a list of agent tools and a list of tool names
-          
-#     """
-
-#     tools = []
-#     tool_names = []
-#     for file in related_samples:
-#         docs = split_doc_file_size(file, splitter_type="tiktoken")
-#         tool_description = f"This is a {sample_type} sample. Use it to compare with other {sample_type} samples"
-#         ensemble_retriever = create_ensemble_retriever(docs)
-#         tool_name = f"{sample_type}_{random.choice(string.ascii_letters)}"
-#         tool = create_retriever_tools(ensemble_retriever, tool_name, tool_description)
-#         tool_names.append(tool_name)
-#         tools.extend(tool)
-#     print(f"Successfully created {sample_type} tools")
-#     return tools, tool_names
 
 
-
-
-
-# one of the most important functions
-# def get_generated_responses(resume_path="",about_job="", posting_path="", program_path="", generate_specifics=False) -> Dict[str, str]: 
-
-#     # Get personal information from resume
-#     generated_responses={}
-#     # pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
-#     # job_posting_info_dict={"job postings": {}}
-
-#     # if (Path(posting_path).is_file()):
-#     #     posting = read_txt(posting_path)
-#     #     prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
-#     #         {text} \n
-#     #         Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
-#     #     """
-#     #     job_specification = create_summary_chain(posting_path, prompt_template, chunk_size=4000)
-#     #     job_posting_info_dict["job postings"].update({"job posting summary": job_specification})
-#     # elif about_job:
-#     #     posting = about_job
-#     #     prompt = f"""Summarize the following job description/job posting in 100 words or less:
-#     #             {posting}"""
-#     #     job_specification = get_completion(prompt)
-#     #     job_posting_info_dict.update({"job posting summary": job_specification})
-#     # if posting:
-#     #     job_posting_info = extract_posting_keywords(posting)
-#     #     job_posting_info_dict.update(job_posting_info)
-#     #     pursuit_info_dict1 = extract_pursuit_information(posting)
-#     #     for key, value in pursuit_info_dict.items():
-#     #         if value == -1:
-#     #             pursuit_info_dict[key]=pursuit_info_dict1[key]
-
-#     # if (Path(program_path).is_file()):
-#     #     posting = read_txt(program_path)
-#     #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
-#     #         {text} \n
-#     #         Focus on the uniqueness, classes, requirements involved. Do not include information irrelevant to this specific program.
-#     #     """
-#     #     program_specification = create_summary_chain(program_path, prompt_template, chunk_size=4000)
-#     #     generated_responses.update({"program specification": program_specification})
-#     #     pursuit_info_dict2 = extract_pursuit_information(posting)
-#     #     for key, value in pursuit_info_dict.items():
-#     #         if value == -1:
-#     #             pursuit_info_dict[key]=pursuit_info_dict2[key]        
-
-#     if resume_path!="":
-#         resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-#         personal_info_dict = extract_personal_information(resume_content)
-#         generated_responses.update(personal_info_dict)
-#         field_content = extract_resume_fields3(resume_content)
-#         generated_responses.update(field_content)
-#         if pursuit_info_dict["job"] == -1:
-#             pursuit_info_dict["job"] = extract_pursuit_information(resume_content).get("job", "")
-#         work_experience = calculate_work_experience_level(resume_content, pursuit_info_dict["job"])
-#         education_info_dict = extract_education_information(resume_content)
-#         generated_responses.update(education_info_dict)
-#         generated_responses.update({"work experience level": work_experience})
-
-#     # generated_responses.update(pursuit_info_dict)
-#     # generated_responses.update(job_posting_info_dict)
-#     # if generate_specifics:
-#     #     generated_responses = research_job_specific_info(generated_responses)
-
-#     return generated_responses
 
 def create_resume_info(resume_path="", preexisting_info_dict={},):
 
@@ -1528,9 +1433,37 @@ def create_profile_summary(userId: str) -> str:
     return resp
 
 
+
+def readability_checker(w):
+    stats = dict(
+            flesch_reading_ease=ts.flesch_reading_ease(w),
+            flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
+            automated_readability_index=ts.automated_readability_index(w),
+            smog_index=ts.smog_index(w),
+            coleman_liau_index=ts.coleman_liau_index(w),
+            dale_chall_readability_score=ts.dale_chall_readability_score(w),
+            linsear_write_formula=ts.linsear_write_formula(w),
+            gunning_fog=ts.gunning_fog(w),
+            word_count=ts.lexicon_count(w),
+            difficult_words=ts.difficult_words(w),
+            text_standard=ts.text_standard(w),
+            sentence_count=ts.sentence_count(w),
+            syllable_count=ts.syllable_count(w),
+            reading_time=ts.reading_time(w)
+    )
+    return stats
     
         
-
+def grammar_checker(text):
+    tool = language_tool_python.LanguageTool('en-US', config={'maxSpellingSuggestions': 1})
+    check = tool.check(text)
+    result = []
+    for i in check:
+        result.append(i)
+        result.append(f'Error in text => {text[i.offset : i.offset + i.errorLength]}')
+        result.append(f'Can be replaced with =>  {i.replacements}')
+        result.append('--------------------------------------')
+    return result
 
 
 
