@@ -41,12 +41,30 @@ import nltk
 from nltk.tokenize import word_tokenize
 import PyPDF2
 import subprocess
+import base64
+import boto3
+import aspose.words as aw
+import glob
+from jinja2 import Template
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
+
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
 
 def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None) -> bool:
 
@@ -199,7 +217,7 @@ def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
     if storage=="LOCAL":
         for path in paths:
             try: 
-                os.mkdir(path)
+                os.makedirs(path, exist_ok=True)
                 print("Successfully made directories")
             except FileExistsError:
                 pass
@@ -360,16 +378,52 @@ def save_website_as_html(url, filename):
         print(f"An error occurred: {str(e)}")
 
 
+def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
+    """ Creates the download link for AI generated file. 
+    
+    Args: 
+    
+        file: file path
+        
+    Returns:
 
-# def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
-#     context = {key: None for key in field_name}
-#     for field in field_name:
-#         if field_content[field] != -1:
-#             context[field] = field_content[field]
-#     doc.render(context)
-#     doc.save(res_path)
-#     print(f"Succesfully written {field_name} to {res_path}.")
+        a link tag that includes the href to the file location   
+
+    """
+
+    data = read_file(file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    bin_str = base64.b64encode(data).decode() 
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}" class="general-button">{text}</a>'
+    return href
+
+def convert_docx_to_img(file_path, output_dir, idx, image_format='png'):
+
+    def extract_idx(filename):
+        basename = os.path.basename(filename)
+        parts = basename.split('-')
+        idx_part = parts[0].split('_')[1]
+        return int(idx_part)
+      # Convert DOCX to PDF using LibreOffice
+    pdf_path = convert_to_pdf(file_path)
+    # Convert PDF to Image using pdftoppm
+    image_output_path = os.path.join(output_dir, f'image_{idx}')
+    subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
+    # Return path to the image
+    pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
+    matching_files = glob.glob(pattern)
+    # Sort the files by extracted idx
+    sorted_files = sorted(matching_files, key=extract_idx)
+    return sorted_files, pdf_path
+
+def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
+    context = {key: None for key in field_name}
+    for field in field_name:
+        if field_content[field] != -1:
+            context[field] = field_content[field]
+    doc.render(context)
+    doc.save(res_path)
+    print(f"Succesfully written {field_name} to {res_path}.")
 
 # source code: https://github.com/trancethehuman/entities-extraction-web-scraper/blob/main/scrape.py
 async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
@@ -466,7 +520,27 @@ def process_json(json_str: str) -> str:
 
     return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
+def read_text_boxes(file_path):
+    doc = Document(file_path)
+    text_boxes = []
+    for shape in doc.inline_shapes:
+        if shape.type == 1:  # 1 is the type for text boxes
+            print("text box text")
+            text_box_text = []
+            for paragraph in shape._inline.graphic.graphicData.textBody.p:
+                text_box_text.append(paragraph.text)
+            text_boxes.append('\n'.join(text_box_text))
+    return text_boxes
 
+def render_template(template_str, context):
+    template = Template(template_str)
+    return template.render(context)
+
+def save_rendered_content(rendered_contents, output_file_path):
+    doc = Document()
+    for content in rendered_contents:
+        doc.add_paragraph(content)
+    doc.save(output_file_path)
 
 class memoized(object):
 
@@ -545,10 +619,10 @@ if __name__=="__main__":
     #    "https://jobs.lever.co/missiongraduates/596a25c8-5998-469b-9cb8-53b2afd1ceab",
     #     save_path =f"./my_material/data_analyst3.txt")
         # save_path = f"./web_data/{str(uuid.uuid4())}.txt")
-    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist_yp.docx","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/data_strategist.txt")
+    convert_to_txt("/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/bad-resume_0.pdf","/home/tebblespc/GPT-Projects/ACAI/ACAI/src/my_material/bad-resume_0.txt")
     # convert_doc_to_txt("./test_cover_letter.docx", "docx", "./test.txt")
     # count_pages("./my_material/resume2023v2.pdf")
-
+    # convert_docx_to_img("./backend/resume_templates/functional/functional0.docx")
 
 
 

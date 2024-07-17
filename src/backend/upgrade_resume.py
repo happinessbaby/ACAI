@@ -1,36 +1,35 @@
 import os
 import openai
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
 from langchain.prompts import ChatPromptTemplate
 # from langchain.output_parsers import CommaSeparatedListOutputParser
 # from langchain.prompts import PromptTemplate
 # from langchain_experimental.smart_llm import SmartLLMChain
 # from langchain.agents import AgentType, Tool, initialize_agent, create_json_agent
 # from utils.openai_api import get_completion
-from utils.basic_utils import read_txt, memoized, process_json, count_length
-from utils.common_utils import (search_related_samples, research_relevancy_in_resume, extract_similar_jobs, calculate_graduation_years)
+from utils.basic_utils import read_txt, memoized, process_json, count_length, read_text_boxes, render_template, save_rendered_content
+from utils.common_utils import (search_related_samples,  extract_similar_jobs, calculate_graduation_years)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from pathlib import Path
 import json
+from typing import Dict, List, Optional, Union
 # from json import JSONDecodeError
 # from multiprocessing import Process, Queue, Value
 # from langchain.tools.json.tool import JsonSpec
-# from typing import Dict, List, Optional, Union
 # from langchain.document_loaders import BSHTMLLoader
 # from langchain.tools import tool
 # from langchain.chains import LLMChain
 # import docx
 # import uuid
-# from docxtpl import DocxTemplate	
-# from docx import Document
-# from docx.shared import Inches
+from docxtpl import DocxTemplate	
+from docx import Document
+from docx.shared import Inches
 import boto3
 import re
 from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
 from dotenv import load_dotenv, find_dotenv
+import streamlit as st
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -48,12 +47,11 @@ delimiter1 = "````"
 delimiter2 = "////"
 delimiter3 = "<<<<"
 delimiter4 = "****"
-eval_dict = {"in_depth": {}, "comparison":{}}
-tailor_dict = {}
+
 
 
 if STORAGE=="S3":
-    bucket_name = os.envrion["BUCKET_NAME"]
+    bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
@@ -66,56 +64,52 @@ else:
 
 
 
-# def rework_resume(about_job="", resume_file = "", posting_path="", evaluate=False, reformat=False, tailor=False, template_file=""):
-
-#     #NOTE: STEP 1: EVALUATE, STEP 2: REFORMAT, STEP 3: TAILOR
-
-#     if evaluate:
-#         eval_dict = evaluate_resume(about_job=about_job, resume_file=resume_file, posting_path=posting_path)
-#     if reformat:
-#         ideal_type = eval_dict["ideal type"] if eval_dict else research_resume_type()
-#         if ideal_type=="chronological":
-#             reformat_chronological_resume(resume_file, template_file)
-#     if tailor:
-#         tailor_resume(resume_file, posting_path, about_job)
-
-
-def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> Dict[str, str]:
+def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    if job_posting_dict:
-        pursuit_jobs=job_posting_dict["job"]
-    else:
-        pursuit_jobs=", ".join(resume_dict["pursuit_jobs"])
-    # Evaluate resume length
-    word_count = count_length(resume_file)
-    eval_dict.update({"word_count": word_count})
-    pattern = r'pages:(\d+)'
-    # Search for the pattern in the text
-    match = re.search(pattern, resume_content)
-    # If a match is found, extract and return the number
-    if match:
-        page_num = match.group(1)
-    else:
-        page_num = ""
-    eval_dict.update({"page_number": page_num})
-    # Research and analyze resume type
-    ideal_type = research_resume_type(resume_dict=resume_dict, job_posting_dict=job_posting_dict, )
-    eval_dict.update({"ideal_type": ideal_type})
-    type_dict= analyze_resume_type(resume_content,)
-    eval_dict.update(type_dict)
-    # Generate overall impression
-    section_names = {"objective_summary_section", "work_experience_section"}
-    for section in section_names:
-        comparison_dict = analyze_via_comparison(resume_dict[section], section,  pursuit_jobs)
-        eval_dict["comparison"].update({section:comparison_dict["closeness"]})
-        # eval_dict.update({"comparison": comparison_dict})
-    cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-    eval_dict.update({"cohesiveness":cohesiveness})
-    # # Evaluates specific field  content
-    evaluated_work= analyze_field_content(resume_dict["work_experience_section"], "work experience")
-    eval_dict["in_depth"].update({"work experience":evaluated_work})
+    if type=="general":
+        st.session_state["eval_dict"] = {"comparison":{"objective":{},"work experience":{}, "skills":{}}}
+        resume_file = resume_dict["resume_path"]
+        resume_content = resume_dict["resume_content"]
+        pursuit_jobs=resume_dict["pursuit_jobs"]
+        # Evaluate resume length
+        word_count = count_length(resume_file)
+        st.session_state.eval_dict.update({"word_count": word_count})
+        pattern = r'pages:(\d+)'
+        # Search for the pattern in the text (I added page number when writing the file to txt)
+        match = re.search(pattern, resume_content)
+        # If a match is found, extract and return the number
+        if match:
+            page_num = match.group(1)
+        else:
+            page_num = ""
+        st.session_state.eval_dict.update({"page_number": page_num})
+        # Research and analyze resume type
+        ideal_type = research_resume_type(resume_dict=resume_dict, )
+        st.session_state.eval_dict.update({"ideal_type": ideal_type})
+        # type_dict= analyze_resume_type(resume_content,)
+        # st.session_state.eval_dict.update(type_dict)
+        categories=["diction", "professionalism" ]
+        section_names = ["objective", "work experience", "skills"]
+        field_names = ["summary_objective", "work_experience", "included_skills"]
+        field_map = dict(zip(field_names, section_names))
+        related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
+        sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+        for field_name, section_name in field_map.items():
+            for category in categories:
+                comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name, category, sample_tools, tool_names)
+                st.session_state.eval_dict["comparison"][section_name].update({category:comparison_dict["closeness"]})
+        # response = analyze_strength_weakness(resume_content, pursuit_jobs)
+        # st.session_state.eval_dict["strength_weakness"] = response
+        # st.session_state.eval_dict.update({"comparison": comparison_dict})
+        # Generate overall impression
+        cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
+        st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
+    # Evaluates specific field  content
+    if type=="work_experience":
+        work_experience= resume_dict["work_experience"]
+        evaluated_work= analyze_field_content(work_experience, "work experience")
+        st.session_state["evaluated_work_experience"]=evaluated_work
 
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
@@ -126,11 +120,12 @@ def evaluate_resume(resume_file = "", resume_dict={}, job_posting_dict={}, ) -> 
 
 
 
+
 def analyze_field_content(field_content, field_type):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
 
-    if field_type=="work experience" or field_type=="projects" or field_type=="professional accomplishment":
+    if field_type=="work experience":
             #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
         star_prompt = f"""
             You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
@@ -148,42 +143,65 @@ def analyze_field_content(field_content, field_type):
         DO NOT USE ANY TOOLS. """
         response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
         return response
+    elif field_type=="projects":
+        """Summary of the project
+            Where the dataset came from
+            The questions you asked or hypotheses you theorized
+            The types of queries you ran (including some of the code, specifically)
+            The tools you used to do your analysis
+            Your findings
+            The limitations of your project
+            Conclusions and/pr recommendations
+            Further questions to examine in the future"""
             
 
-def analyze_via_comparison(field_content, field_type,  jobs):
+def analyze_via_comparison(field_content, field_name, category, sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
-    # Note: document comparison benefits from a clear and simple prompt
-    related_samples = search_related_samples(jobs, resume_samples_path)
-    sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+    # NOTE: document comparison benefits from a clear and simple prompt. 
+
     query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
 
-    Assess the quality of the candidate resume's field content in terms of how closely it resembles other sample resume's field content.
+    Compare the candidate resume's {field_name} to other sample resume's {field_name}.
     
-    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. Research only the {field_type} of these resume.
+    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
     
     The sample resume are for comparative purpose only. You should not analyze them. 
 
-    As your final output, analyze how close the candidate resume's {field_type} resembles other sample {field_type} resume using the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+    Please search for only the {field_name} of the sample resume.
+
+    Analyze how close the candidate resume field resembles other sample resume in terms of {category}. Analyze in terms of {category} only! 
+
+    Please use the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
 
     Please output one of the metrics meter and provide your reasoning. 
 
-    candidate resume field content: {field_content} \
+    candidate resume's {field_name} content: {field_content} \
     
     """
-    # Remember, the candidate does not know you are comparing their resume to other people's resume and you shouldn't let them know either. 
    
-    #  Your final analysis should be about a paragraph long summarizing the quality of the candidate's resume. 
-    
-    # Write as if you are giving the candidate a critical feedback along wiht some suggestions.
-    comparison_resp = generate_multifunction_response(query_comparison, sample_tools)
+    comparison_resp = generate_multifunction_response(query_comparison, sample_tools, early_stopping=False)
     comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
     return comparison_dict
 
+# def analyze_strength_weakness(resume_content, jobs):
+#     """"""
+#     query_strength = f""" Identify the strengths and weaknesses of candidate given their resume and the job the candidate is pursuing. 
+#     Output using the following format:s
+#         strengths of the candidate: <your reasoning>
+#         weaknesses of the candidate: <your reasoning> \n
+#     pursuit job(s): {jobs} \
+#     resume content: {resume_content} \
+    
+#      """
+#     response = generate_multifunction_response(query_strength, create_search_tools("google", 1))
+#     return response
 
 def analyze_cohesiveness(resume_content, jobs):
 
+
+    #NOTE: this prompt uses self-reflective thinking by answering questions
     query_cohesiveness= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
 
     Assess the cohesiveness of the resume with respect to the jobs in the jobs list.
@@ -195,12 +213,13 @@ def analyze_cohesiveness(resume_content, jobs):
     2. Does the candidate have the work experience for the jobs they are seeking? \
 
     3. Does the summary or objective section of the resume reflect the jobs they are seeking? \
+    
 
     candidate's resume: {resume_content} \
     
     jobs the candidate is seeking: {jobs} \
 
-    Your final analysis should be about a paragraph long summarizing the cohesiveness of the candidate's resume. 
+    Your final analysis should be about 50-100 words long summarizing the cohesiveness of the candidate's resume. 
     
     Write as if you are giving the candidate a critical feedback along with some suggestions. """
 
@@ -229,31 +248,29 @@ def analyze_resume_type(resume_content, ):
     type_dict = create_pydantic_parser(response, ResumeType)
     return type_dict
 
-def tailor_resume(resume_dict={}, job_posting_dict={}):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
 
     # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    my_objective = resume_dict.get("summary_objective_section", "")
-    my_skills = resume_dict.get("skills_section", "")
-    tailor_dict.update({"original_skills": my_skills})
-    tailor_dict.update({"original_objective": my_objective})
-    resume_skills = resume_dict.get("skills", -1)
-    my_experience = resume_dict.get("work_experience_section", "")
+    # st.session_state["tailor_dict"] = {}
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    tailored_skills_dict = tailor_skills(required_skills, my_skills, resume_skills)
-    tailor_dict.update({"tailored_skills": tailored_skills_dict})
-    tailored_objective_dict = tailor_objective(my_objective,  job_requirements, company_description+about_job)
-    tailor_dict.update({"tailored_objective": tailored_objective_dict})
-    tailored_experience = tailor_experience(job_requirements, my_experience)
-    tailor_dict.update({"tailored_experience": tailored_experience})
-    return tailor_dict
+    if type=="skillls":
+        tailored_skills_dict = tailor_skills(required_skills, resume_dict["skills"])
+        st.session_state[f"tailored_{type}"]=tailored_skills_dict
+    if type=="summary":
+        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, resume_dict["summary_objective"])
+        st.session_state[f"tailored_{type}"]=tailored_objective_dict
+    if type=="work_experience":
+        tailored_experience = tailor_experience(job_requirements, resume_dict["work_experience"])
+        st.session_state[f"tailored_{type}"]= tailored_experience
+    # return st.session_state.tailor_dict
 
 def concat_skills(skills_list, skills_str=""):
     for s in skills_list:
@@ -263,12 +280,12 @@ def concat_skills(skills_list, skills_str=""):
     return skills_str
 
 
-def tailor_skills(required_skills, my_skills, resume_skills):
+def tailor_skills(required_skills, my_skills,):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
     required_skills_str = concat_skills(required_skills)
-    my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
+    # my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
     # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
     # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
         # Relevancy report for hard skills: {relevant_hard_skills} \
@@ -313,7 +330,7 @@ def tailor_skills(required_skills, my_skills, resume_skills):
                                     #          relevant_hard_skills = relevant_hard_skills, 
                                             # relevant_skills = relevant_skills,
                                             required_skills = required_skills_str,
-                                            my_skills = my_skills_str,
+                                            my_skills = my_skills,
     )
     tailored_skills = llm(message).content
     # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
@@ -321,7 +338,7 @@ def tailor_skills(required_skills, my_skills, resume_skills):
     return tailored_skills_dict
 
 
-def tailor_objective(my_objective,  job_requirements, company_description):
+def tailor_objective(job_requirements, my_objective):
 
     #TODO: THIS needs to to be redone!
     if my_objective!=-1:
@@ -423,6 +440,59 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     #     resume_type = "chronological"
     #     print("RESUME TYPE: CHRONOLOGICAL")
     return resume_type
+
+
+def reformat_resume(template_path, info_dict, end_path):
+
+    """"Reformats user profile information with a resume template"""
+
+
+    print("reformatting resume")
+    doc_template = DocxTemplate(template_path)
+    func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
+    personal_context = {
+        "NAME": func("name", "YOUR NAME"),
+        "CITY": func("city", "YOUR CITY"),
+        "STATE": func("state", "YOUR STATE"),
+        "PHONE": func("phone", "YOUR PHONE"),
+        "EMAIL": func("email", "YOUR EMAIL"),
+        "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
+        "WEBSITE": func("website", "WEBSITE"),
+    }
+    func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
+    education_context = {
+        "INSTITUTION": func("institution", "YOUR INSTITUTION"),
+        "DEGREE": func("degree", "YOUR DEGREE"),
+        "STUDY": func("study", "YOUR AREA OF STUDY"),
+        "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
+    }
+    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    other_context = {
+        "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),
+        "SUMMARY": func("summary_objective", "SUMMARY"),
+        "SKILLS": func("included_skills", "YOUR SKILLS"),
+        "PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),
+        "CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),
+        "SKILLS": func("included_skills", "YOUR SKILLS"),
+        "HOBBIES": func("hobbies", "YOUR HOBBIES")
+    }
+    context={}
+    context.update(personal_context)
+    context.update(education_context)
+    context.update(other_context)
+    context.update({"WORK_EXPERIENCE": info_dict["work_experience"]})
+    # text_box_contents = read_text_boxes(template_path)
+    #  # Render each text box template with the context
+    # rendered_contents = [render_template(content, context) for content in text_box_contents]
+    # # Save the rendered content into a new .docx file
+    # save_rendered_content(rendered_contents, end_path)
+    doc_template.render(context)
+    if STORAGE=="LOCAL":
+        local_save_path=end_path
+    doc_template.save(local_save_path) 
+    if STORAGE=="S3":
+        s3.upload_file(local_save_path, bucket_name, end_path)
+    return local_save_path
 
 
 

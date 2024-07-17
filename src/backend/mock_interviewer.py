@@ -30,6 +30,7 @@ import langchain
 import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
+from utils.aws_manager import get_aws_session
 from utils.basic_utils import convert_to_txt, read_txt
 from utils.openai_api import get_completion
 from langchain.schema import OutputParserException
@@ -41,7 +42,6 @@ from langchain_community.chat_message_histories import DynamoDBChatMessageHistor
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.schema import messages_from_dict, messages_to_dict
-from utils.aws_manager import session
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from operator import itemgetter
 
@@ -70,7 +70,7 @@ class InterviewController():
     # initialize new memory (shared betweeen interviewer and grader_agent)
 
 
-    def __init__(self, userId, sessionId, about_interview, interview_industry, generated_dict, learning_material, message_history=None):
+    def __init__(self, userId, sessionId, generated_dict, message_history=None):
         self.userId = userId
         self.sessionId=sessionId
         # self.llm = ChatOpenAI(streaming=True,  callbacks=[StreamingStdOutCallbackHandler()], temperature=0)
@@ -78,15 +78,12 @@ class InterviewController():
         # set_llm_cache(InMemoryCache())
         # embeddings = OpenAIEmbeddings()
         if self.userId:
-            chat_memory = DynamoDBChatMessageHistory(self.userId, self.sessionId, boto3_session=session)
+            chat_memory = DynamoDBChatMessageHistory(self.userId, self.sessionId, boto3_session=get_aws_session())
             self.interview_memory = AgentTokenBufferMemory(chat_memory=chat_memory, memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
         else:
             # self.interview_memory = AgentTokenBufferMemory(memory_key=memory_key, llm=self.llm, input_key="input", max_token_limit=memory_max_token)
             self.interview_memory = ChatMessageHistory(session_id=self.sessionId)
-        self.about_interview = about_interview
-        self.interview_industry = interview_industry
         self.generated_dict = generated_dict
-        self.learning_material=learning_material
         self.interviewer_assessment=''
         self.interviewer_question=''
         self._initialize_log()
@@ -140,11 +137,12 @@ class InterviewController():
         )
         self.interview_tools = general_tool
         # NOTE:Interviewer uses QA generation tool to generate user specific interview questions
+        self.learning_material=self.generated_dict.get("learning_material", "")
         if self.learning_material:
             self.interview_tools+=[generateQATool()]
-        if self.interview_industry:
-            #TODO: combine user uploaded material with industry speicifc interview_data
-            pass
+        # if self.interview_industry:
+        #     #TODO: combine user uploaded material with industry speicifc interview_data
+        #     pass
         print("Successfully added search interview material tool")
 
         template = f"""
@@ -534,16 +532,14 @@ class InterviewController():
 
 
     
-    def craft_questions(self):
+    def generate_questions(self):
         if self.generated_dict:
-            job_description = self.generated_dict.get("job description", "")
-            company_description = self.generated_dict.get("company description", "")
-            job_specification=self.generated_dict.get("job specification", "")
+            job_description = self.generated_dict.get("summary", "")
+            company_description = self.generated_dict.get("company_description", "")
             questions = "\n\nQUESTIONS TO ASK THE INTERVIEWER: \n"
             questions += get_completion(f"""Based on the following job description, job specification, company description, whichever is available, 
                                    generate 5-10 strategic questions an applicant could ask the hiring manager at the end of the interview.
                                    job description: {job_description} \
-                                    job specification: {job_specification} \
                                     company description: {company_description} \
                                    """)
         else:
@@ -583,7 +579,9 @@ class InterviewController():
     
     def generate_greeting(self, host):
 
-        name = self.generated_dict.get("name", "")
+        contact = self.generated_dict.get("contact", "")
+        if contact:
+            name = contact["name"]
         job = self.generated_dict.get("job", "")
         company=self.generated_dict.get("company", "")
         self.greeting = get_completion(f"""Your name is {host} and you are a job interviewer. Generate a greeting to an interviewee who's coming for a job interview, given the following information, if available:
@@ -595,6 +593,8 @@ class InterviewController():
                                     """)
         print(f"Successfully generated greeting: {self.greeting}")
         return self.greeting
+    
+
 
 
 

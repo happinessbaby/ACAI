@@ -88,7 +88,7 @@ aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 redis_password=os.getenv('REDIS_PASSWORD')
 redis_url = f"redis://:{redis_password}@localhost:6379"
 redis_client = redis.Redis.from_url(redis_url)
-threshold_bytes=15000
+
 
 
 
@@ -136,11 +136,11 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
             length_function = len,
             chunk_overlap=chunk_overlap,
             separators=[" ", ",", "\n"])
-    yield from text_splitter.split_documents(documents)
-    # docs = text_splitter.split_documents(documents)
-    # return docs
+    # yield from text_splitter.split_documents(documents)
+    docs = text_splitter.split_documents(documents)
+    return docs
 
-def split_doc_file_size(path: str, file_type="file", threshold_bytes=threshold_bytes, storage="LOCAL", splitter_type = "tiktoken", chunk_size=2000,  bucket_name=None, s3=None, ) -> List[Document]:
+def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, threshold_bytes=1500, storage="LOCAL", splitter_type = "tiktoken", chunk_size=200,  bucket_name=None, s3=None,) -> List[Document]:
 
     """ Splits files into LangChain Document according to file size. If less than threshold bytes, file is not split. Otherwise, calls "split_doc" function to split the file. 
     
@@ -179,7 +179,7 @@ def split_doc_file_size(path: str, file_type="file", threshold_bytes=threshold_b
     docs: List[Document] = []
     # if file is small, don't split
     # 1 byte ~= 1 character, and 1 token ~= 4 characters, so 1 byte ~= 0.25 tokens. Max length is about 4000 tokens for gpt3.5, so if file is less than 15000 bytes, don't need to split. 
-    if bytes<threshold_bytes:
+    if use_bytes_threshold and  bytes<threshold_bytes:
         docs.extend([Document(
             page_content = read_txt(path, storage=storage, bucket_name=bucket_name, s3=s3)
         )])
@@ -616,9 +616,10 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
             ]
         )
     runnable = prompt | llm.with_structured_output(schema=schema)
-    response = runnable.invoke({"content": content}).dict()
-    print(response)
-    return response
+    response = runnable.invoke({"content": content})
+    response_dict = response.dict()
+    print(response_dict)
+    return response_dict
 
 def create_comma_separated_list_parser(input_variables, base_template, query_dict):
 
@@ -672,6 +673,8 @@ def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
     response = chain.run({})
     print(response)
     return response
+
+# Assuming you have an instance of BaseOpenAI or OpenAIChat called `llm_instance`
 
 def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0613", cache=False)) -> str:
 

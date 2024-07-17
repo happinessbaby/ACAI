@@ -4,7 +4,7 @@ import os
 import json
 from json import JSONDecodeError
 from backend.job_recommender import Recommender
-from utils.cookie_manager import get_cookie, decode_jwt
+from utils.cookie_manager import CookieManager
 
 STORAGE = os.environ['STORAGE']
 bucket_name = os.environ["BUCKET_NAME"]
@@ -24,15 +24,14 @@ class Job():
 
     def __init__(self):
         # NOTE: userId is retrieved from browser cookie
-        self.cookie = get_cookie("userInfo")
-        print("Cookie", self.cookie)
-        if self.cookie:
-            self.userId = str(decode_jwt(self.cookie, "test").get('username'))
-        else:
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        self.userId = st.session_state.cm.retrieve_userId()
             # Ask user to sign in
+        if not self.userId:
             print("User needs to sign in first before job search")
+            st.session_state.redirect_page="http://localhost:8501/streamlit_jobs"
             st.switch_page("pages/streamlit_user.py")
-            #TODO: redirect back to this page
         self._init_session_states()
         self._init_job_recommender()
 
@@ -41,23 +40,38 @@ class Job():
     @st.cache_data()
     def _init_session_states(_self, ):
             # Open users profile file
-        with open(user_profile_file, 'r') as file:
-            try:
-                users = json.load(file)
-            except JSONDecodeError:
-                users = {}  
-                users[_self.userId]={}
-        st.session_state["users"] = users
+        try:
+            st.session_state["users"]
+        except Exception:
+            with open(user_profile_file, 'r') as file:
+                try:
+                    users = json.load(file)
+                except JSONDecodeError:
+                    raise
+                    # users = {}  
+                    # users[_self.userId]={}
+            st.session_state["users"] = users
+            st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
+        try:
+            st.session_state["user_profile"]=st.session_state["users_dict"][_self.userId]
+        except Exception:
+            st.session_state.redirect_page="http://localhost:8501/streamlit_jobs"
+            st.switch_page("pages/streamlit_user.py")
+      
+
+    
 
     def _init_job_recommender(self):
-         if "base_recommender" not in st.session_state:
+
+
+        if "base_recommender" not in st.session_state:
             st.session_state["base_recommender"]= Recommender()
             self.recommend_job()
 
     def recommend_job(self):
 
         try:
-            query = st.session_state["users"][self.userId]["summary"]
+            query = st.session_state["user_profile"]
             matched_urls = st.session_state.base_recommender.match_job(query)
             for url in matched_urls:
                 st.markdown(url)

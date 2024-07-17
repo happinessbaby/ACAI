@@ -1,7 +1,6 @@
-openai==0.27.10
-Flask==2.3.2
+openai
 PyMuPDF==1.22.3
-langchain==0.0.314
+langchain
 docarray==0.32.1
 pandoc==2.3
 pypandoc==1.11
@@ -14,14 +13,14 @@ streamlit-extras==0.2.7
 unstructured==0.8.1
 redis==4.5.5
 faiss-cpu==1.7.4
-tiktoken==0.3.3
+tiktoken
 rank_bm25==0.2.2
 html2text==2020.1.16
 python-pptx==0.6.21
 doctran
 tenacity==8.2.3
-sounddevice==0.4.6
-soundfile==0.12.1
+# sounddevice==0.4.6
+# soundfile==0.12.1
 # elevenlabs==0.2.26
 pip-tools==7.3.0
 streamlit-modal==0.1.0
@@ -69,10 +68,14 @@ unstructured_client
 jq
 python-linkedin
 schedule
-langchainhub
 langchain_openai
 st_btn_select
 odfpy
 python-dateutil
 docx2pdf
 PyPDF2
+stqdm
+plotly==5.22.0
+streamlit-antd-components
+textstat
+language_tool_python

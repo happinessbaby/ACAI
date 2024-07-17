@@ -18,20 +18,18 @@ def get_aws_session():
                     region_name=region_name
                 )
 
-session = get_aws_session()
-
 def get_client(type):
     
     if type=="s3":
-        return session.client('s3')
+        return get_aws_session().client('s3')
     elif type=="lambda":
-        return session.client('lambda')
+        return get_aws_session().client('lambda')
     elif type=="dynamodb":
-        return session.client('dynamodb', region_name) 
+        return get_aws_session().client('dynamodb', region_name) 
 
 
 def request_aws4auth(service="aoss", region='us-east-2'):
-    credentials=session.get_credentials()
+    credentials=get_aws_session().get_credentials()
     auth = AWS4Auth(credentials.access_key, credentials.secret_key, 
                 region, service, session_token=credentials.token)
     print(auth)
