@@ -1085,10 +1085,11 @@ class User():
                 if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
                 summary = st.session_state["profile"]["summary_objective"]
-                st.write(readability_checker(summary))
                 # st.write(grammar_checker(summary))
                 if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
+                if st.button("readability checker"):
+                    st.write(readability_checker(summary))
             with st.expander(label="Work experience",):
                 self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
@@ -1201,6 +1202,7 @@ class User():
                             domain = {'x': [0, 1], 'y': [0, 1]},
                             title = {'text': "Your resume length"},
                             gauge = {
+                                    'shape':"bullet",
                                     'axis': {'range': [1, 1000]},
                                     'bar': {'color': "white"},
                                     'steps': [
@@ -1395,6 +1397,60 @@ class User():
     #     return current_page
 
         
+    def display_readability_indicator(self, value):
+        min_value = 0
+        max_value = 100
+        steps = [20, 40, 60, 80]
+        indicator_color = "red"
+        line_color = "black"
+
+        # Create the figure
+        fig = go.Figure()
+
+        # Add the horizontal line
+        fig.add_trace(go.Scatter(
+            x=[min_value, max_value],
+            y=[0, 0],
+            mode='lines',
+            line=dict(color=line_color, width=2)
+        ))
+
+        # Add the indicators
+        for step in steps:
+            fig.add_trace(go.Scatter(
+                x=[step, step],
+                y=[-0.1, 0.1],
+                mode='lines',
+                line=dict(color=line_color, width=2)
+            ))
+
+        # Add the dot for the value
+        fig.add_trace(go.Scatter(
+            x=[value],
+            y=[0],
+            mode='markers',
+            marker=dict(color=indicator_color, size=10)
+        ))
+
+        # Update layout to remove axis
+        fig.update_layout(
+            xaxis=dict(
+                range=[min_value, max_value],
+                showgrid=False,
+                zeroline=False,
+                showline=False,
+                showticklabels=False
+            ),
+            yaxis=dict(
+                showgrid=False,
+                zeroline=False,
+                showline=False,
+                showticklabels=False
+            ),
+            margin=dict(l=0, r=0, t=0, b=0)
+        )
+        return fig
+
 
 
 
