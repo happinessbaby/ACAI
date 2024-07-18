@@ -1085,11 +1085,10 @@ class User():
                 if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
                 summary = st.session_state["profile"]["summary_objective"]
-                # st.write(grammar_checker(summary))
                 if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
-                if st.button("readability checker"):
-                    st.write(readability_checker(summary))
+                # if st.button("readability checker"):
+                #     st.write(readability_checker(summary))
             with st.expander(label="Work experience",):
                 self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")

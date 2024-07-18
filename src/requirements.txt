@@ -53,7 +53,7 @@ httpx-oauth
 streamlit-authenticator
 extra-streamlit-components
 localstoragePy
-hydralit-components
+# hydralit-components
 streamlit-datalist
 opensearch-py
 requests-aws4auth
@@ -61,15 +61,15 @@ lancedb
 pywinctl
 streamlit-audiorec
 streamlit-mic-recorder
-streamlit-bokeh-events
+# streamlit-bokeh-events
 apify-client
-streamlit_js_eval
+# streamlit_js_eval
 unstructured_client
 jq
 python-linkedin
 schedule
 langchain_openai
-st_btn_select
+# st_btn_select
 odfpy
 python-dateutil
 docx2pdf
