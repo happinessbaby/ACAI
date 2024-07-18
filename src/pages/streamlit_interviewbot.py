@@ -48,7 +48,7 @@ import json
 import base64
 import threading
 # from six.moves import queues
-from google.cloud import speech
+# from google.cloud import speech
 from utils.socket_server import SocketServer, Transcoder
 from utils.async_utils import asyncio_run
 import nest_asyncio

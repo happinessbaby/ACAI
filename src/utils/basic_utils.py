@@ -1,8 +1,8 @@
 # import requests
 import os
-import fitz
+# import fitz
 from pathlib import Path
-import pypandoc
+# import pypandoc
 import uuid
 import markdown
 import csv
@@ -26,24 +26,24 @@ import errno
 import os
 import signal
 import functools
-import codecs
+# import codecs
 import json
 import decimal
 import requests
 from docx import Document
-from odf import text, teletype
-from odf.opendocument import load
+# from odf import text, teletype
+# from odf.opendocument import load
 from io import BytesIO
-import docx2pdf
+# import docx2pdf
 from pathlib import Path
-from PyPDF2 import PdfReader  
+# from PyPDF2 import PdfReader  
 import nltk
 from nltk.tokenize import word_tokenize
 import PyPDF2
 import subprocess
 import base64
 import boto3
-import aspose.words as aw
+# import aspose.words as aw
 import glob
 from jinja2 import Template
     

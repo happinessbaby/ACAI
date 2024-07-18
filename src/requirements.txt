@@ -5,8 +5,6 @@ docarray==0.32.1
 pandoc==2.3
 pypandoc==1.11
 wikipedia==1.4.0
-google-search-results==2.4.2
-google-api-python-client==2.88.0
 streamlit
 streamlit-chat==0.1.1
 streamlit-extras==0.2.7
@@ -27,6 +25,7 @@ streamlit-modal==0.1.0
 st-pages==0.4.4
 docxtpl==0.16.7
 langchain_experimental==0.0.29
+langchain_community
 playwright==1.38.0
 SQLAlchemy==2.0.22
 spacy==3.5.4
@@ -40,6 +39,7 @@ python-pptx==0.6.21
 python-xlib==0.33
 pydantic==1.10.9
 # feast==0.31.1
+bs4
 beautifulsoup4==4.12.2
 loguru==0.7.0
 pynput==1.7.6
@@ -72,6 +72,8 @@ langchain_openai
 # st_btn_select
 odfpy
 python-dateutil
+
+#below are checked to be included
 docx2pdf
 PyPDF2
 stqdm
@@ -79,3 +81,21 @@ plotly==5.22.0
 streamlit-antd-components
 textstat
 language_tool_python
+pyarrow
+jwt
+boto3
+nest_asyncio
+websockets
+google-search-results==2.4.2
+google-api-python-client==2.88.0
+google-auth-httplib2 
+google-auth-oauthlib 
+google-cloud-speech
+google-auth
+pydantic
+sagemaker
+requests-aws4auth 
+nltk
+Jinja2   
+selenium
+pyairtable

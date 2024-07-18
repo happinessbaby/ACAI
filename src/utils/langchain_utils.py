@@ -12,7 +12,7 @@ from langchain.utilities.google_search import GoogleSearchAPIWrapper
 # from langchain.vectorstores.elastic_vector_search import ElasticKnnSearch
 # from langchain.embeddings import ElasticsearchEmbeddings
 # from elasticsearch import Elasticsearch
-from ssl import create_default_context
+# from ssl import create_default_context
 from langchain.prompts import BaseChatPromptTemplate
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, initialize_agent, Tool
 from langchain.schema import AgentAction, AgentFinish, HumanMessage
@@ -30,13 +30,11 @@ from langchain.chains import ReduceDocumentsChain, MapReduceDocumentsChain
 from langchain.vectorstores.redis import Redis
 from langchain_community.embeddings import OpenAIEmbeddings
 import redis
-import langchain
 from langchain.cache import RedisCache
 from langchain.cache import RedisSemanticCache
 import json
 from typing import List, Union, Any, Optional, Dict
 import re
-import docx
 from langchain.tools import tool
 from langchain.agents.agent_types import AgentType
 from pydantic import BaseModel, Field
@@ -65,8 +63,6 @@ from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
 from langchain.schema.messages import BaseMessage
 from langchain.tools.base import ToolException
 from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, FAISS, DocArrayInMemorySearch, LanceDB
-from feast import FeatureStore
-import elasticsearch
 from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
@@ -74,8 +70,7 @@ from langchain.schema import Document
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.output_parsers import CommaSeparatedListOutputParser
-import asyncio
-import errno
+
 
 
 
