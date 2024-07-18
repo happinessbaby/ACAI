@@ -7,7 +7,7 @@ services:
     build: ./src
     ports:
       - "8501:8501"
-    command: streamlit run streamlit_main.py --server.port=8501 --server.address=0.0.0.0s
+    command: streamlit run streamlit_main.py --server.port=8501 --server.address=0.0.0.0
     volumes:
       - ./src:/app
 
