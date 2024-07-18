@@ -23,8 +23,7 @@ import json
 # from st_clickable_images import clickable_images
 # from st_click_detector import click_detector
 # from streamlit_extras.switch_page_button import switch_page
-from streamlit_modal import Modal
-import base64
+# from streamlit_modal import Modal
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from langchain.callbacks.base import BaseCallbackHandler
@@ -43,7 +42,6 @@ from streamlit_image_select import image_select
 from utils.aws_manager import get_aws_session,  get_client
 from json.decoder import JSONDecodeError
 from stqdm import stqdm
-from time import sleep
 import threading
 import queue
 from utils.lancedb_utils import retrieve_user_profile_dict

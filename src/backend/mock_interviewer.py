@@ -11,10 +11,8 @@ from langchain_openai import ChatOpenAI
 import os
 from pathlib import Path
 from typing import Any, Union
-from langchain.llms import OpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
 from langchain.chains import LLMChain
-from langchain.embeddings import OpenAIEmbeddings
-from utils.common_utils import  check_content
 from utils.langchain_utils import retrieve_vectorstore, CustomOutputParser, CustomPromptTemplate, merge_faiss_vectorstore
 # from langchain.prompts import BaseChatPromptTemplate
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
@@ -26,8 +24,6 @@ from langchain.agents.openai_functions_agent.agent_token_buffer_memory import Ag
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from langchain.schema.messages import SystemMessage
 from langchain.prompts import MessagesPlaceholder, PromptTemplate, ChatPromptTemplate
-import langchain
-import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
 from utils.aws_manager import get_aws_session

@@ -189,4 +189,4 @@ src/main_session/
 *.tmp
 src/users/
 *.json
-src/resources/
+

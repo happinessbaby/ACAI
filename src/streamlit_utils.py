@@ -8,10 +8,6 @@ from st_pages import get_pages, get_script_run_ctx
 import streamlit_antd_components as sac
 
 
-lance_users_table = os.environ["LANCE_USERS_TABLE"]
-
-
-
 # pages = get_pages("")
 # ctx = get_script_run_ctx()
 
