@@ -1,6 +1,5 @@
 # import requests
 import os
-# import fitz
 from pathlib import Path
 # import pypandoc
 import uuid

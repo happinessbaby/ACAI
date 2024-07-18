@@ -99,3 +99,4 @@ nltk
 Jinja2   
 selenium
 pyairtable
+linkedin_api

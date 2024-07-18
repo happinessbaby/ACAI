@@ -4,24 +4,19 @@ from langchain.agents import AgentType
 from utils.basic_utils import read_txt, convert_to_txt, process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
-from langchain.llms import OpenAI
-# from langchain.chat_models import ChatOpenAI 
-from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAI, OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.tools import tool, BaseTool
 from langchain.output_parsers import PydanticOutputParser
 from langchain.tools.file_management.move import MoveFileTool
 from pydantic import BaseModel, Field, validator
 from langchain.chains import LLMMathChain
-from langchain.chains import (create_extraction_chain,
-                              create_extraction_chain_pydantic)
 import os
 import openai
 from dotenv import load_dotenv, find_dotenv
 import json
 import random, string
 from json import JSONDecodeError
-import base64
 from langchain.agents.react.base import DocstoreExplorer
 from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3DirectoryLoader
 from langchain.docstore.wikipedia import Wikipedia
@@ -32,7 +27,6 @@ from utils.langchain_utils import create_ensemble_retriever
 from typing import List, Union, Any, Optional, Dict, Type
 from langchain.tools.base import ToolException
 from langchain.tools.retriever import create_retriever_tool
-from langchain.embeddings import OpenAIEmbeddings
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain.chains import QAGenerationChain
 from langchain.callbacks.manager import (

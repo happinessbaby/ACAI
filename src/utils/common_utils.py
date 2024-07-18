@@ -5,83 +5,46 @@ from langchain.prompts import ChatPromptTemplate,  StringPromptTemplate
 from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
 from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
-from langchain.document_loaders import CSVLoader, TextLoader
-from langchain.vectorstores import DocArrayInMemorySearch
-from langchain.agents import AgentType
-from langchain.chains import RetrievalQA,  LLMChain
 from pathlib import Path
 from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
 from langchain.prompts import PromptTemplate
-from langchain.output_parsers import CommaSeparatedListOutputParser
-from langchain.chains.summarize import load_summarize_chain
-from langchain.chains.mapreduce import MapReduceChain
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import ReduceDocumentsChain, MapReduceDocumentsChain
 from langchain.llms import OpenAI
 from langchain.vectorstores import FAISS
-from langchain.retrievers import BM25Retriever, EnsembleRetriever
-from langchain.tools.convert_to_openai import  format_tool_to_openai_function
-from langchain.schema import HumanMessage
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.retrievers.web_research import WebResearchRetriever
-from langchain.chains import RetrievalQAWithSourcesChain, StuffDocumentsChain
-from langchain_experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
-from langchain_experimental.smart_llm import SmartLLMChain
-from langchain.docstore import InMemoryDocstore
-from langchain.retrievers.multi_query import MultiQueryRetriever
-# from langchain.document_transformers import (
-#     LongContextReorder,
-#      DoctranPropertyExtractor,
-# )
+from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
+# from langchain_experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
 from langchain_community.document_transformers import DoctranPropertyExtractor
-from langchain.memory import SimpleMemory
-from langchain.chains import SequentialChain
 from langchain.prompts import PromptTemplate
 from typing import Any, List, Union, Dict, Optional
-from langchain.docstore.document import Document
-from langchain.tools import tool
-from langchain.output_parsers import PydanticOutputParser
-from langchain.tools.file_management.move import MoveFileTool
-from pydantic import BaseModel, Field, validator
-from langchain.document_loaders import UnstructuredWordDocumentLoader
-from langchain.chains import LLMMathChain
-from langchain.agents import create_json_agent, AgentExecutor
-from langchain.chains import LLMChain
-from langchain.requests import TextRequestsWrapper
-from langchain.tools.json.tool import JsonSpec
-from langchain.schema.output_parser import OutputParserException
 import os
-import sys
-import re
-import string
 import random
 import json
 from json import JSONDecodeError
 import faiss
-import asyncio
 import uuid
 import random
-import base64
 import datetime
 from datetime import date
 import boto3
 from unstructured_client import UnstructuredClient
-from unstructured_client.models import shared
-from unstructured_client.models.errors import SDKError
+# from unstructured_client.models import shared
+# from unstructured_client.models.errors import SDKError
 from langchain_community.document_loaders import JSONLoader
 # from linkedin import linkedin, server
 from linkedin_api import Linkedin
 from time import sleep 
 from selenium import webdriver 
-from unstructured.partition.html import partition_html
+# from unstructured.partition.html import partition_html
 from dateutil import parser
 from utils.pydantic_schema import BasicResumeFields, SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1
-from utils.lancedb_utils import create_lancedb_table, retrieve_lancedb_table, add_to_lancedb_table
 import textstat as ts
 import language_tool_python
+from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMChain
+
 
 
 # from feast import FeatureStore
@@ -434,60 +397,6 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
 #     response = create_pydantic_parser(resume_content, ResumeFields)
 #     return response
 
-
-# def extract_pursuit_job(resume_content) -> List[str]:
-
-#     """ Extracts the possible job titles the candidate is pursuing based on resume"""
-
-#     prompt = """ Extract the possible jobs that the candidate is applying based on his/her resume content. Usually this can be found in the summary or objective section of the resume.
-    
-#     If there's not objective or summary, try looking into the work experience section. 
-
-#     resume content: {resume_content}"""
-#     # response = generate_multifunction_response(query=prompt, tools=create_search_tools("google", 1))
-#     # return response
-#     response = create_comma_separated_list_parser(["resume_content"], prompt, query_dict={"resume_content": resume_content})
-#     return response
-
-
-
-
-# def extract_positive_qualities(content: str, llm=ChatOpenAI(model="gpt-3.5-turbo", temperature=0.0)) -> str:
-
-#     """ Find positive qualities of the applicant in the provided content, such as resume, cover letter, etc. """
-
-#     query = f""" Your task is to extract the positive qualities of a job applicant given the provided document. 
-    
-#             document: {content}
-
-#             Do not focus on hard skills or actual achievements. Rather, focus on soft skills, personality traits, special needs that the applicant may have.
-
-#             """
-#     response = get_completion(query)
-#     print(f"Successfully extracted positive qualities: {response}")
-#     return response
-
-
-# def extract_posting_info(posting_content:str, llm = ChatOpenAI()) -> Dict[str, str]:
-
-#     """ Extract the key job information from job posting. 
-    
-#         Args:
-         
-#             posting_content(str)
-
-#         Keyword Args:
-
-#             llm: default is OpenAI()
-
-#         Returns:
-
-#            a dictionary of job information, including job, company, qualifications, duties in the job posting
-        
-#     """
-
-#     response = create_pydantic_parser(posting_content, Keywords)
-#     return response
 
 
 
@@ -1094,50 +1003,6 @@ def process_links(links, save_path, sessionId, ):
     #     for key, value in pursuit_info_dict.items():
     #         if value == -1:
     #             pursuit_info_dict[key]=pursuit_info_dict2[key]   
-
-# def research_job_specific_info(generated_responses: Dict[str, str]) -> Dict[str, str]:
-
-#     """ These are generated job specific, case speciifc information for downstream purposes. """
-     
-#     job = generated_responses["job"]
-#     company = generated_responses["company"]
-#     institution = generated_responses["institution"]
-#     program = generated_responses["program"]
-
-#     if job!=-1 and generated_responses.get("job keywords", "")=="":
-#         job_keywords = get_web_resources(f"Research some ATS-friendly keywords and key phrases for {job}.")
-#         generated_responses.update({"job keywords": job_keywords})
-
-#     if job!=-1 and generated_responses.get("job specification", "")=="":
-#         job_query  = f"""Research what a {job} does and output a detailed description of the common skills, responsibilities, education, experience needed. 
-#                         In 100 words or less, summarize your research result. """
-#         job_description = get_web_resources(job_query)  
-#         generated_responses.update({"job specification": job_description})
-
-#     if company!=-1:
-#         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
-#                             In 50 words or less, summarize your research result.                 
-#                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
-#         company_description = get_web_resources(company_query)
-#         generated_responses.update({"company description": company_description})
-
-#     if institution!=-1:
-#         institution_query = f""" Research {institution}'s culture, mission, and values.   
-#                         In 50 words or less, summarize your research result.                     
-#                         Look up the exact name of the institution. If it doesn't exist or the search result does not return an institution output -1."""
-#         institution_description = get_web_resources(institution_query)
-#         generated_responses.update({"institution description": institution_description})
-
-#     if program!=-1 and  generated_responses.get("program specification", "")=="":
-#         program_query = f"""Research the degree program in the institution provided below. 
-#         Find out what {program} at the institution {institution} involves, and what's special about the program, and why it's worth pursuing.    
-#         In 100 words or less, summarize your research result.  
-#         If institution is -1, research the general program itself.
-#         """
-#         program_description = get_web_resources(program_query)   
-#         generated_responses.update({"program description": program_description})
-
-#     return generated_responses 
 
     
     
