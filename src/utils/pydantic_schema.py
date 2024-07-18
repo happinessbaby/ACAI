@@ -50,8 +50,8 @@ class Contact(BaseModel):
     state: Optional[str] = Field(
         default="", description="state of the candidate on the resume"
         )
-    website: Optional[str]=Field(
-        default="", description="other website address on the resume"
+    websites: Optional[List[str]]=Field(
+        default=[], description="other website addresses besides linkedin on the resume"
         )
         
 class Education(BaseModel):
@@ -250,8 +250,11 @@ class Keywords(BaseModel):
 
 class Comparison(BaseModel):
     closeness: Optional[str] = Field(
-        default="", description = """closeness concluded in the content, 
-        should be one of the following only: ["not close at all", "some similarity", "very similar", "identitical"]"""
+        default="", description = """closeness classified for the content, 
+        should be one of the following metrics only: ["not close at all", "some similarity", "very similar", "identitical"]"""
+    )
+    reasoning: Optional[str] = Field(
+        default="", description = "the reason provided for the classification"
     )
 
 class ResumeType(BaseModel):
