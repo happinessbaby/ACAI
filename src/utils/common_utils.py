@@ -72,7 +72,6 @@ from unstructured_client import UnstructuredClient
 from unstructured_client.models import shared
 from unstructured_client.models.errors import SDKError
 from langchain_community.document_loaders import JSONLoader
-from pprint import pprint
 # from linkedin import linkedin, server
 from linkedin_api import Linkedin
 from time import sleep 
