@@ -5,6 +5,7 @@ from utils.cookie_manager import CookieManager
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
+from streamlit_extras.buy_me_a_coffee import button
 import streamlit as st
 
 set_streamlit_page_config_once()
@@ -30,6 +31,7 @@ class Download():
         add_vertical_space(5)
         if "feedback" not in st.session_state:       
             self.leave_feedback()
+        button(username="Tebbles", floating=False, width=221)
        
 
     def display_downloads(self, ):

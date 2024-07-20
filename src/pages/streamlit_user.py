@@ -175,16 +175,17 @@ class User():
                         # display the main profile
                         self.display_profile()
                 except KeyError as e:
-                    
+                    print(e)
                     # NOTE; sometimes retrieval of the user_profile_dict is slow so "if st.session_state["user_profile_dict"]" will raise an error
                     # rerun will allow time for "user_profile_dict" to get populated
-                    if e.args[0] == "user_profile_dict":
-                        # Handle the specific case where "user_profile_dict" is not present
-                        print("user_profile_dict not found, rerunning...")
-                        st.rerun()
-                    else:
-                        # Re-raise the KeyError for any other missing key
-                        raise
+                    st.rerun()
+                    # if e.args[0] == "user_profile_dict":
+                    #     # Handle the specific case where "user_profile_dict" is not present
+                    #     print("user_profile_dict not found, rerunning...")
+                    #     st.rerun()
+                    # else:
+                    #     # Re-raise the KeyError for any other missing key
+                    #     raise
         elif st.session_state.user_mode=="signout":
             self.sign_out()
 
@@ -652,7 +653,7 @@ class User():
             if type=="bullet_points":
                 c1, c2, y = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a bullet point", use_container_width=True)
+                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add another to list", use_container_width=True)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -1107,6 +1108,7 @@ class User():
         # eval_dict= self.get_dict("evaluation")
         try:
             eval_dict= st.session_state["eval_dict"]
+            print(st.session_state["eval_dict"])
         except Exception:
             eval_dict={}
         if eval_dict:
@@ -1119,7 +1121,7 @@ class User():
             with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
-                    # st.write("**Length**")
+                    st.write("**Length**")
                     try:
                         length=eval_dict["word_count"]
                         pages=eval_dict["page_number"]
@@ -1128,7 +1130,7 @@ class User():
                         elif length>=300 and length<450:
                             text="could be longer"
                         elif length>=450 and length<=600:
-                            text="perfect"
+                            text="good length"
                         elif length>600 and length<800:
                             text="could be shorter"
                         else:
@@ -1140,7 +1142,7 @@ class User():
                             mode = "gauge",
                             value = display_value,
                             domain = {'x': [0, 1], 'y': [0, 1]},
-                            title = {'text': "Your resume length"},
+                            title = {'text': "Your resume is:"},
                             gauge = {
                                     # 'shape':"bullet",
                                     'axis': {'range': [1, 1000]},
@@ -1148,7 +1150,7 @@ class User():
                                     'steps': [
                                         {'range': [1, 300], 'color': "red"},
                                         {'range': [300, 450], "color":"yellow"},
-                                        {'range': [450, 600], 'color': "green"},
+                                        {'range': [450, 600], 'color': "lightgreen"},
                                          {'range': [600, 800], "color":"yellow"},
                                         {'range': [800, 1000], 'color': "red"}
                                     ],
@@ -1174,11 +1176,17 @@ class User():
                         if "finished_eval" not in st.session_state:
                             st.write("Evaluating...")
                 with c2:
-                    # st.write("**Type**")
+                    st.write("**Formatting**")
                     try:
                         add_vertical_space(3)
                         ideal_type = eval_dict["ideal_type"]
-                        st.write(f"The best type of resume for you is a **{ideal_type}** resume")
+                        resume_type=eval_dict["resume_type"]
+                        if ideal_type==resume_type:
+                            st.subheader(":green[Good]")
+                            st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
+                        else:
+                            st.subheader(":red[Mismatch]")
+                            st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
                             add_vertical_space(1)
                             if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
@@ -1191,45 +1199,25 @@ class User():
                     except Exception:
                         if "finished_eval" not in st.session_state:
                             st.write("Evaluating...")
-
-                st.write("**How similar is your resume compared to others?**")
-                # st.write("How close does your resume compare to others of the same industry?")
+                st.write("**Language**")
                 try:
-                    categories=["diction", "professionalism" ]
-                    section_names = ["objective", "work experience", "skills"]       
-                    data = {
-                        "section_names": [],
-                        "categories": [],
-                        "values": []
-                    }
-                    for section in section_names:
-                        for category in categories:
-                            data["section_names"].append(section)
-                            data["categories"].append(category)
-                            value = eval_dict["comparison"][section][category]
-                            if value=="not close at all":
-                                pt = 0
-                            elif value=="some similarity":
-                                pt = 1
-                            elif value=="very similar":
-                                pt = 2
-                            elif value=="identical":
-                                pt = 3
-                            data["values"].append(pt)
-                                    # st.scatter_chart()
-                    df = pd.DataFrame(data)
-                    print(df.head())
-                    # Create scatter plot
-                    fig = px.scatter(df, y="categories", x="section_names", size="values", color="values", )
+                    fig = self.display_language_radar(eval_dict["language"])
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
                 except Exception:
                     if "finished_eval" not in st.session_state:
                         st.write("Evaluating...")
+                st.write("**How does your resume compared to other resume?**")
+                try:
+                    fig = self.display_comparison_chart(eval_dict["comparison"])
+                    st.plotly_chart(fig)
+                except Exception:
+                    if "finished_eval" not in st.session_state:
+                        st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
-                    cohesiveness = eval_dict["cohesiveness"]
-                    st.write(cohesiveness)
+                    impression = eval_dict["impression"]
+                    st.write(impression)
                     # finished evaluataion, stop timer
                     if "finished_eval" not in st.session_state:
                         st.session_state["finished_eval"] = True
@@ -1319,6 +1307,7 @@ class User():
                 try:
                     del st.session_state["profile"]
                     del st.session_state["eval_dict"]
+                    del st.session_state["init_eval"]
                 except Exception:
                     pass
                 st.rerun()
@@ -1335,8 +1324,109 @@ class User():
     #         ][0]
     #     print("Current page:", current_page)
     #     return current_page
+    def display_comparison_chart(self, data):
+        # Mapping from similarity categories to numeric values
+        similarity_mapping = {
+            'no similarity': 0,
+            'some similarity': 1,
+            'very similar': 2,
+             'no data': -1  # Map empty strings to -1,
+        }
+        size_mapping = {
+            'no similarity': 10,
+            'some similarity': 20,
+            'very similar': 30,
+            'no data': 5  # Size for empty strings
+        }
+        # Extract fields and similarity values
+        fields = []
+        values = []
+        hover_texts = []
+        sizes = []
+        for item in data:
+            for field, similarity in item.items():
+                fields.append(field)
+                values.append(similarity_mapping[similarity["closeness"] if similarity["closeness"] else 'no data'])
+                sizes.append(size_mapping[similarity["closeness"] if similarity["closeness"] else "no data"])
+                hover_texts.append(similarity["reason"] if similarity["reason"] else " ")
 
+        # Create scatter plot
+        # fig = px.scatter(
+        #     x=fields,
+        #     y=values,
+        #     # color=values,
+        #     # color_continuous_scale='Viridis',
+        #     mode='markers',
+        #     marker=dict(
+        #         size=sizes
+        #     ),
+        #     labels={'x': 'Resume Field', 'y': 'Similarity Level'},
+        #     # title='Resume Similarity Scatter Plot',
+        #     # hover_data={'x': fields, 'y': [list(similarity_mapping.keys())[list(similarity_mapping.values()).index(val)] for val in values]}
+        # )
+        # Create scatter plot
+        fig = go.Figure(data=go.Scatter(
+            x=fields,
+            y=values,
+            mode='markers',
+            marker=dict(
+                size=sizes
+            ),
+            text=hover_texts,  # Add custom hover text
+            hoverinfo='text'  # Display only the custom hover text
+        ))
+        # Add custom hover text
+        fig.update_traces(
+            hovertext=hover_texts,
+            hoverinfo='text'  # Display only the custom hover text
+        )
+        fig.update_yaxes(
+            tickmode='array',
+            tickvals=[-1, 0, 1, 2],
+            ticktext=['No data', 'No similarity', 'Some similarity', 'Very similar'],
+            range=[0, 2]
+        )
+        return fig
         
+    def display_language_radar(self, data_list):
+        # Sample data
+        # Mapping from categories to numeric values
+        category_mapping = {"no data": 0, 'bad': 1, 'good': 2, 'great': 3}
+        metrics = []
+        values = []
+        hover_texts=[]
+        for item in data_list:
+            for metric, details in item.items():
+                metrics.append(metric)
+                values.append(category_mapping[details['rating'] if details['rating'] else 'no data'])
+                hover_texts.append(details["reason"] if details['reason'] else " ")
+
+        # Add the first value at the end to close the radar chart circle
+        values.append(values[0])
+        metrics.append(metrics[0])
+        print("ratings", values)
+        fig = go.Figure(data=go.Scatterpolar(
+            r=values,
+            theta=metrics,
+            fill='toself', 
+            hovertext=hover_texts,  # Add custom hover text
+            hoverinfo='text'  # Display only the hover text
+        ))
+        # Define axis labels
+        axis_labels = {1: 'Bad', 2: 'Good', 3: 'Great'}
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 3],  # Set the range for the radial axis
+                    tickvals=list(axis_labels.keys()),  # Specify the ticks
+                    ticktext=[axis_labels[val] for val in axis_labels.keys()]  # Set the labels
+                )
+            ),
+        )
+        return fig
+
+
     def display_readability_indicator(self, value):
         min_value = 0
         max_value = 100

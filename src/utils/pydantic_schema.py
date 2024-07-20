@@ -250,16 +250,24 @@ class Keywords(BaseModel):
 
 class Comparison(BaseModel):
     closeness: Optional[str] = Field(
-        default="", description = """closeness classified for the content, 
-        should be one of the following metrics only: ["not close at all", "some similarity", "very similar", "identitical"]"""
+        default="", description = """closeness classified in the text, 
+        should be one of the following metrics only: ["no similarity", "some similarity", "very similar"]"""
     )
-    reasoning: Optional[str] = Field(
-        default="", description = "the reason provided for the classification"
+    reason: Optional[str] = Field(
+        default="", description = "the reason provided for the classification in the text"
+    )
+
+class Language(BaseModel):
+    rating: Optional[str] = Field(
+        default="", description="""rating identified in the text, should be one of the following metrics: ["bad", "good", "great"]"""
+    )
+    reason: Optional[str] = Field(
+        default="", description = "the reason provided for the rating in the text"
     )
 
 class ResumeType(BaseModel):
     type: Optional[str] = Field(
-        default="", description="type of resume, should be either functional or chronological "
+        default="", description="type of resume, should be functional, chronological, or mixed "
     )
 
 class TailoredSkills(BaseModel):
