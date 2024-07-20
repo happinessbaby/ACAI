@@ -14,7 +14,7 @@ from docxtpl import DocxTemplate
 # from docx.shared import Inches
 import boto3
 import re
-from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements
+from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements, Language
 from dotenv import load_dotenv, find_dotenv
 import streamlit as st
 
@@ -55,7 +55,7 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict
 
     print("start evaluating...")
     if type=="general":
-        st.session_state["eval_dict"] = {"comparison":{"objective":{},"work experience":{}, "skills":{}}}
+        st.session_state["eval_dict"] = {"impression": "", "language":[], "comparison":[]}
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
@@ -74,24 +74,26 @@ def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict
         # Research and analyze resume type
         ideal_type = research_resume_type(resume_dict=resume_dict, )
         st.session_state.eval_dict.update({"ideal_type": ideal_type})
-        # type_dict= analyze_resume_type(resume_content,)
+        resume_type= analyze_resume_type(resume_content,)
+        st.session_state.eval_dict.update({"resume_type": resume_type})
         # st.session_state.eval_dict.update(type_dict)
-        categories=["diction", "professionalism" ]
-        section_names = ["objective", "work experience", "skills"]
+        categories=["syntax", "diction", "tone", "coherence"]
+        for category in categories:
+            category_dict = analyze_language(resume_content, category)
+            st.session_state.eval_dict["language"].append({category:category_dict})
+        section_names = ["objective", "work experience", "skillsets"]
         field_names = ["summary_objective", "work_experience", "included_skills"]
         field_map = dict(zip(field_names, section_names))
         related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
         sample_tools, tool_names = create_sample_tools(related_samples, "resume")
         for field_name, section_name in field_map.items():
-            for category in categories:
-                comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name, category, sample_tools, tool_names)
-                st.session_state.eval_dict["comparison"][section_name].update({category:comparison_dict["closeness"]})
-        # response = analyze_strength_weakness(resume_content, pursuit_jobs)
-        # st.session_state.eval_dict["strength_weakness"] = response
-        # st.session_state.eval_dict.update({"comparison": comparison_dict})
+            # for category in categories:
+            comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
+            st.session_state.eval_dict["comparison"].append({section_name:comparison_dict})
+
         # Generate overall impression
-        cohesiveness = analyze_cohesiveness(resume_content, pursuit_jobs)
-        st.session_state.eval_dict.update({"cohesiveness":cohesiveness})
+        impression = generate_impression(resume_content, pursuit_jobs)
+        st.session_state.eval_dict["impression"]= impression
     # Evaluates specific field  content
     if type=="work_experience":
         work_experience= resume_dict["work_experience"]
@@ -142,27 +144,27 @@ def analyze_field_content(field_content, field_type):
             Further questions to examine in the future"""
             
 
-def analyze_via_comparison(field_content, field_name, category, sample_tools, tool_names):
+def analyze_via_comparison(field_content, field_name,  sample_tools, tool_names):
 
     """Analyzes overall resume by comparing to other samples"""
 
     # NOTE: document comparison benefits from a clear and simple prompt. 
 
-    query_comparison = f""" You are a professional resume advisor. Please do the following steps. 
-
+    query_comparison = f"""
+    
     Compare the candidate resume's {field_name} to other sample resume's {field_name}.
     
-    All the sample resume can be accesssed via using your tools. Their names are: {tool_names}. 
+    All the sample resume can be accesssed using your tools. Their names are: {tool_names}. 
     
     The sample resume are for comparative purpose only. You should not analyze them. 
-
+s
     Please search for only the {field_name} of the sample resume.
 
-    Analyze how close the candidate resume field resembles other sample resume in terms of {category}. Analyze in terms of {category} only! 
+    Analyze how close the candidate resume field resembles other sample resume. 
 
-    Please use the following metrics: ["not close at all", "some similarity", "very similar", "identitical"]
+    Please use the following metrics: ["no similarity", "some similarity", "very similar"]
 
-    Please output one of the metrics meter and provide your reasoning. 
+    Please output one of the metrics meter and provide your reasoning. Your reasoning should be about one sentence long, and do not identify any sample resume in your reasoning.
 
     candidate resume's {field_name} content: {field_content} \
     
@@ -172,26 +174,21 @@ def analyze_via_comparison(field_content, field_name, category, sample_tools, to
     comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
     return comparison_dict
 
-# def analyze_strength_weakness(resume_content, jobs):
-#     """"""
-#     query_strength = f""" Identify the strengths and weaknesses of candidate given their resume and the job the candidate is pursuing. 
-#     Output using the following format:s
-#         strengths of the candidate: <your reasoning>
-#         weaknesses of the candidate: <your reasoning> \n
-#     pursuit job(s): {jobs} \
-#     resume content: {resume_content} \
-    
-#      """
-#     response = generate_multifunction_response(query_strength, create_search_tools("google", 1))
-#     return response
+def analyze_language(resume_content, category):
+    """"""
+    query_language=f"""Assess the {category} of the resume based on how a resume's {category} should be. Output the following metrics: ["bad", "good", "great"] and provide your reasoning. Your reasoning should be about a sentence long.
+    resume: {resume_content}
+    """
+    language_resp = generate_multifunction_response(query_language, create_search_tools("google", 1))
+    language_dict = create_pydantic_parser(language_resp, Language)
+    return language_dict
 
-def analyze_cohesiveness(resume_content, jobs):
+
+def generate_impression(resume_content, jobs):
 
 
     #NOTE: this prompt uses self-reflective thinking by answering questions
-    query_cohesiveness= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
-
-    Assess the cohesiveness of the resume with respect to the jobs in the jobs list.
+    query_impression= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
     
     Reflect how well as a whole the resume reflects the jobs. Some of the questions you should answer include:
 
@@ -206,12 +203,10 @@ def analyze_cohesiveness(resume_content, jobs):
     
     jobs the candidate is seeking: {jobs} \
 
-    Your final analysis should be about 50-100 words long summarizing the cohesiveness of the candidate's resume. 
-    
-    Write as if you are giving the candidate a critical feedback along with some suggestions. """
+    Your final analysis should be about 50-100 words long summarizing your impression of the candidate's resume. """
 
-    cohesiveness_resp = generate_multifunction_response(query_cohesiveness, create_search_tools("google", 1))
-    return cohesiveness_resp
+    impression_resp = generate_multifunction_response(query_impression, create_search_tools("google", 1))
+    return impression_resp
 
 
 def analyze_resume_type(resume_content, ):
@@ -230,10 +225,12 @@ def analyze_resume_type(resume_content, ):
     It's a good choice if you're a recent graduate with little work experience, changing careers, or have a gap in your work history
       A functional resume should emphasize skills, projects, and accomplishments, where work experience should be after these sections.
 
+      Note a resume can be mix of chronological and functional type.
+
     """
     response=create_smartllm_chain(query_type, n_ideas=1)
     type_dict = create_pydantic_parser(response, ResumeType)
-    return type_dict
+    return type_dict["type"]
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
 

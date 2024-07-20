@@ -1,5 +1,4 @@
 import extra_streamlit_components as stx
-from interview_component import my_component
 from streamlit_extras.add_vertical_space import add_vertical_space
 import yaml
 from yaml.loader import SafeLoader
@@ -12,7 +11,7 @@ import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
-from utils.basic_utils import mk_dirs, binary_file_downloader_html, convert_docx_to_img
+from utils.basic_utils import mk_dirs
 from typing import Any, List
 from pathlib import Path
 import re
@@ -27,8 +26,6 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
 from utils.pydantic_schema import ResumeUsers
-from streamlit_image_select import image_select
-from backend.upgrade_resume import reformat_resume
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
 import glob
@@ -169,21 +166,26 @@ class User():
                 st.switch_page(st.session_state.redirect_page)
             else:
                 try:
-                    if  st.session_state["user_profile_dict"]:
-                    # if user has initialized their profile
-                        self.display_profile()
-                        #if user calls to tailor fields
-                        if "init_tailoring" in st.session_state:
-                            self.job_posting_popup()
-                            # delete "init_tailoring" variable to prevent popup from being called again
-                            del st.session_state["init_tailoring"]
-                    else:
-                    # if user has not initialized their profile
+                    if not st.session_state["user_profile_dict"]:
                         print("user profile does not exists yet")
+                        # ask user for their resumes
                         self.initialize_resume()
-                except KeyError:
-                    # NOTE; sometimes retrieval of the user_profile_dict is slower than getting to here, rerun will solve the problem
+                    else:
+                        progress_bar(0)
+                        # display the main profile
+                        self.display_profile()
+                except KeyError as e:
+                    print(e)
+                    # NOTE; sometimes retrieval of the user_profile_dict is slow so "if st.session_state["user_profile_dict"]" will raise an error
+                    # rerun will allow time for "user_profile_dict" to get populated
                     st.rerun()
+                    # if e.args[0] == "user_profile_dict":
+                    #     # Handle the specific case where "user_profile_dict" is not present
+                    #     print("user_profile_dict not found, rerunning...")
+                    #     st.rerun()
+                    # else:
+                    #     # Re-raise the KeyError for any other missing key
+                    #     raise
         elif st.session_state.user_mode=="signout":
             self.sign_out()
 
@@ -368,70 +370,6 @@ class User():
                     
 
 
-
-    # def about_user2(self):
-
-    #     # with st.form(key="about_me2", clear_on_submit=False):
-    #     if st.session_state.get("self_description", False):
-    #     # and st.session_state.get("current_situation", False) and st.session_state.get("career_goals", False) :
-    #         st.session_state.disabled=False
-    #     else:
-    #         st.session_state.disabled=True
-    #     selected = stx.stepper_bar(steps=["Self Description", "Job Search", "Career Goals"])
-    #     if selected==0 and st.session_state.value0=="":
-    #         value0 = st.text_area(
-    #         label="What can I know about you?", 
-    #         placeholder="Tell me about yourself, for example, what are your best motivations and values? What's important to you in a job?", 
-    #         key = "self_descriptionx", 
-    #         on_change=self.form_callback
-    #         )
-    #         st.session_state["value0"]=value0
-    #     elif selected==0 and st.session_state.value0!="":
-    #         value0=st.text_area(
-    #         label="What can I know about you?", 
-    #         value=st.session_state["value0"],
-    #         key = "self_descriptionx", 
-    #         on_change=self.form_callback
-    #         )
-    #         st.session_state["value0"]=value0
-    #     elif selected==1 and st.session_state.value1=="":
-    #         value1=st.text_area(
-    #         label="What are your skills?",
-    #         placeholder = "Tell me about your skills and talent? What are you especially good at that you want to bring to a workplace?",
-    #         key="skill_setx",
-    #         on_change =self.form_callback
-    #         )
-    #         st.session_state["value1"]=value1
-    #     elif selected==1 and st.session_state.value1!="":
-    #         value1=st.text_area(
-    #         label="What are your skills?",
-    #         value=st.session_state["value1"],
-    #         key = "skill_setx",
-    #         on_change=self.form_callback
-    #         )
-    #         st.session_state["value1"]=value1
-    #     elif selected==2 and st.session_state.value2=="":
-    #         value2=st.text_area(
-    #         label="What can I do for you?",
-    #         placeholder = "Tell me about your career goals. Where do you see yourself in 1 year? What about 10 years? What do you want to achieve in life?",
-    #         key="career_goalsx",
-    #         on_change=self.form_callback,
-    #         )
-    #         st.session_state["value2"]=value2
-    #     elif selected==2 and st.session_state.value2!="":
-    #         value2=st.text_area(
-    #         label="What can I do for you?",
-    #         value=st.session_state["value2"],
-    #         key = "career_goalsx",
-    #         on_change=self.form_callback
-    #         )
-    #         st.session_state["value2"]=value2
-        
-    #     submitted = st.button("Submit", on_click=self.form_callback2, disabled=st.session_state.disabled)
-    #     skip = st.button(label="skip", help="You can come back to this later, but remember, the more information you provide, the better your job search results", type="primary", on_click=self.form_callback2)
-        # if submitted:
-        #     st.session_state["init_user2"]=True
-
     
     def initialize_resume(self):
 
@@ -458,7 +396,7 @@ class User():
                 if st.button(label="I'll do it later", type="primary", ):
                     # the following takes to "create_empty_profile", which has a rerun, so cannot be in callback
                     self.display_profile()
-
+                 
         
 
     def about_future(self):
@@ -715,7 +653,7 @@ class User():
             if type=="bullet_points":
                 c1, c2, y = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a bullet point description", use_container_width=True)
+                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add another to list", use_container_width=True)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -941,11 +879,6 @@ class User():
 
         """ Opens a popup for adding a job posting """
 
-        # deletes previously generated job posting dictionary 
-        try: 
-            del st.session_state["job_posting_dict"]
-        except Exception:
-            pass
         # disables the next button until user provides a job posting
         if "job_posting_path" in st.session_state or "job_description" in st.session_state:
             st.session_state["job_posting_disabled"]=False
@@ -968,15 +901,21 @@ class User():
                                         on_change=self.form_callback
                                             )
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
-            # creates job posting dictionary
+            # deletes previously generated job posting dictionary 
+            try: 
+                del st.session_state["job_posting_dict"]
+            except Exception:
+                pass
+            # creates a new job posting dictionary
             st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
                         st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
                         st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
                     )
-        
             # starts field tailoring if called to tailor a field
             if "tailoring_field" in st.session_state:
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
+            # delete "init_tailoring" variable to prevent popup from being called again
+            del st.session_state["init_tailoring"]
             st.rerun()
 
     
@@ -1011,8 +950,7 @@ class User():
 
         """Displays interactive user profile UI"""
 
-        # display the progress bar
-        progress_bar(0)
+    
         # initialize a temporary copy of the user profile 
         if "profile" not in st.session_state:
             st.session_state["profile"]=st.session_state["user_profile_dict"]
@@ -1020,6 +958,9 @@ class User():
             if not st.session_state["profile"]:
                 self.create_empty_profile() 
                 st.rerun()
+        # if user calls to tailor fields
+        if "init_tailoring" in st.session_state:
+            self.job_posting_popup()
         eval_col, profile_col, _ = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with eval_col:
@@ -1058,9 +999,10 @@ class User():
                     linkedin = st.session_state["profile"]["contact"]["linkedin"]
                     if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", )!=linkedin:
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
-                    website = st.session_state["profile"]["contact"]["website"]
-                    if st.text_input("Personal website", value=website, key="profile_website", )!=website:
-                        st.session_state["profile"]["contact"]["website"]=st.session_state.profile_website
+                    website = st.session_state["profile"]["contact"]["websites"]
+                    st.markdown("Personal websites")
+                    display_detail=self.display_field_details("contact", -1, "websites", "bullet_points")
+                    display_detail()
             with c2:
                 with st.expander(label="Education", expanded=True):
                     degree = st.session_state["profile"]["education"]["degree"]
@@ -1166,6 +1108,7 @@ class User():
         # eval_dict= self.get_dict("evaluation")
         try:
             eval_dict= st.session_state["eval_dict"]
+            print(st.session_state["eval_dict"])
         except Exception:
             eval_dict={}
         if eval_dict:
@@ -1178,7 +1121,7 @@ class User():
             with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
-                    # st.write("**Length**")
+                    st.write("**Length**")
                     try:
                         length=eval_dict["word_count"]
                         pages=eval_dict["page_number"]
@@ -1187,7 +1130,7 @@ class User():
                         elif length>=300 and length<450:
                             text="could be longer"
                         elif length>=450 and length<=600:
-                            text="perfect"
+                            text="good length"
                         elif length>600 and length<800:
                             text="could be shorter"
                         else:
@@ -1199,21 +1142,21 @@ class User():
                             mode = "gauge",
                             value = display_value,
                             domain = {'x': [0, 1], 'y': [0, 1]},
-                            title = {'text': "Your resume length"},
+                            title = {'text': "Your resume is:"},
                             gauge = {
-                                    'shape':"bullet",
+                                    # 'shape':"bullet",
                                     'axis': {'range': [1, 1000]},
-                                    'bar': {'color': "white"},
+                                    'bar': {'color': "white", "thickness":0.1},
                                     'steps': [
                                         {'range': [1, 300], 'color': "red"},
                                         {'range': [300, 450], "color":"yellow"},
-                                        {'range': [450, 600], 'color': "green"},
+                                        {'range': [450, 600], 'color': "lightgreen"},
                                          {'range': [600, 800], "color":"yellow"},
                                         {'range': [800, 1000], 'color': "red"}
                                     ],
                                     'threshold': {
-                                        'line': {'color': "black", 'width': 4},
-                                        'thickness': 0.75,
+                                        'line': {'color': "black", 'width': 1},
+                                        'thickness': 0.2,
                                         'value': display_value
                                     }
                                 }
@@ -1233,62 +1176,48 @@ class User():
                         if "finished_eval" not in st.session_state:
                             st.write("Evaluating...")
                 with c2:
-                    # st.write("**Type**")
+                    st.write("**Formatting**")
                     try:
                         add_vertical_space(3)
                         ideal_type = eval_dict["ideal_type"]
-                        st.write(f"The best type of resume for you is a **{ideal_type}** resume")
+                        resume_type=eval_dict["resume_type"]
+                        if ideal_type==resume_type:
+                            st.subheader(":green[Good]")
+                            st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
+                        else:
+                            st.subheader(":red[Mismatch]")
+                            st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
                             add_vertical_space(1)
                             if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
                                 self.resume_type_popup()
-                            add_vertical_space(1)
-                            if st.button("Explore template options", key="resume_template_explore_button"):
-                                self.explore_template_popup()
+                            # add_vertical_space(1)
+                            # if st.button("Explore template options", key="resume_template_explore_button"):
+                            #     self.explore_template_popup()
                         # my_type = eval_dict["type"]
                         # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
                         if "finished_eval" not in st.session_state:
                             st.write("Evaluating...")
-
-                st.write("**How similar is your resume compared to others?**")
-                # st.write("How close does your resume compare to others of the same industry?")
+                st.write("**Language**")
                 try:
-                    categories=["diction", "professionalism" ]
-                    section_names = ["objective", "work experience", "skills"]       
-                    data = {
-                        "section_names": [],
-                        "categories": [],
-                        "values": []
-                    }
-                    for section in section_names:
-                        for category in categories:
-                            data["section_names"].append(section)
-                            data["categories"].append(category)
-                            value = eval_dict["comparison"][section][category]
-                            if value=="not close at all":
-                                pt = 0
-                            elif value=="some similarity":
-                                pt = 1
-                            elif value=="very similar":
-                                pt = 2
-                            elif value=="identical":
-                                pt = 3
-                            data["values"].append(pt)
-                                    # st.scatter_chart()
-                    df = pd.DataFrame(data)
-                    print(df.head())
-                    # Create scatter plot
-                    fig = px.scatter(df, y="categories", x="section_names", size="values", color="values", )
+                    fig = self.display_language_radar(eval_dict["language"])
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
                 except Exception:
                     if "finished_eval" not in st.session_state:
                         st.write("Evaluating...")
+                st.write("**How does your resume compared to other resume?**")
+                try:
+                    fig = self.display_comparison_chart(eval_dict["comparison"])
+                    st.plotly_chart(fig)
+                except Exception:
+                    if "finished_eval" not in st.session_state:
+                        st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
-                    cohesiveness = eval_dict["cohesiveness"]
-                    st.write(cohesiveness)
+                    impression = eval_dict["impression"]
+                    st.write(impression)
                     # finished evaluataion, stop timer
                     if "finished_eval" not in st.session_state:
                         st.session_state["finished_eval"] = True
@@ -1354,7 +1283,7 @@ class User():
         with open(end_path, "w") as f:
             pass
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "website":"", }, 
+                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
@@ -1378,6 +1307,7 @@ class User():
                 try:
                     del st.session_state["profile"]
                     del st.session_state["eval_dict"]
+                    del st.session_state["init_eval"]
                 except Exception:
                     pass
                 st.rerun()
@@ -1394,8 +1324,109 @@ class User():
     #         ][0]
     #     print("Current page:", current_page)
     #     return current_page
+    def display_comparison_chart(self, data):
+        # Mapping from similarity categories to numeric values
+        similarity_mapping = {
+            'no similarity': 0,
+            'some similarity': 1,
+            'very similar': 2,
+             'no data': -1  # Map empty strings to -1,
+        }
+        size_mapping = {
+            'no similarity': 10,
+            'some similarity': 20,
+            'very similar': 30,
+            'no data': 5  # Size for empty strings
+        }
+        # Extract fields and similarity values
+        fields = []
+        values = []
+        hover_texts = []
+        sizes = []
+        for item in data:
+            for field, similarity in item.items():
+                fields.append(field)
+                values.append(similarity_mapping[similarity["closeness"] if similarity["closeness"] else 'no data'])
+                sizes.append(size_mapping[similarity["closeness"] if similarity["closeness"] else "no data"])
+                hover_texts.append(similarity["reason"] if similarity["reason"] else " ")
 
+        # Create scatter plot
+        # fig = px.scatter(
+        #     x=fields,
+        #     y=values,
+        #     # color=values,
+        #     # color_continuous_scale='Viridis',
+        #     mode='markers',
+        #     marker=dict(
+        #         size=sizes
+        #     ),
+        #     labels={'x': 'Resume Field', 'y': 'Similarity Level'},
+        #     # title='Resume Similarity Scatter Plot',
+        #     # hover_data={'x': fields, 'y': [list(similarity_mapping.keys())[list(similarity_mapping.values()).index(val)] for val in values]}
+        # )
+        # Create scatter plot
+        fig = go.Figure(data=go.Scatter(
+            x=fields,
+            y=values,
+            mode='markers',
+            marker=dict(
+                size=sizes
+            ),
+            text=hover_texts,  # Add custom hover text
+            hoverinfo='text'  # Display only the custom hover text
+        ))
+        # Add custom hover text
+        fig.update_traces(
+            hovertext=hover_texts,
+            hoverinfo='text'  # Display only the custom hover text
+        )
+        fig.update_yaxes(
+            tickmode='array',
+            tickvals=[-1, 0, 1, 2],
+            ticktext=['No data', 'No similarity', 'Some similarity', 'Very similar'],
+            range=[0, 2]
+        )
+        return fig
         
+    def display_language_radar(self, data_list):
+        # Sample data
+        # Mapping from categories to numeric values
+        category_mapping = {"no data": 0, 'bad': 1, 'good': 2, 'great': 3}
+        metrics = []
+        values = []
+        hover_texts=[]
+        for item in data_list:
+            for metric, details in item.items():
+                metrics.append(metric)
+                values.append(category_mapping[details['rating'] if details['rating'] else 'no data'])
+                hover_texts.append(details["reason"] if details['reason'] else " ")
+
+        # Add the first value at the end to close the radar chart circle
+        values.append(values[0])
+        metrics.append(metrics[0])
+        print("ratings", values)
+        fig = go.Figure(data=go.Scatterpolar(
+            r=values,
+            theta=metrics,
+            fill='toself', 
+            hovertext=hover_texts,  # Add custom hover text
+            hoverinfo='text'  # Display only the hover text
+        ))
+        # Define axis labels
+        axis_labels = {1: 'Bad', 2: 'Good', 3: 'Great'}
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 3],  # Set the range for the radial axis
+                    tickvals=list(axis_labels.keys()),  # Specify the ticks
+                    ticktext=[axis_labels[val] for val in axis_labels.keys()]  # Set the labels
+                )
+            ),
+        )
+        return fig
+
+
     def display_readability_indicator(self, value):
         min_value = 0
         max_value = 100

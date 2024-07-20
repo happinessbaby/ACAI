@@ -150,7 +150,7 @@ def retrieve_user_profile_dict(userId):
                         profile_dict[key] = ''
                 except IndexError:
                     pass
-        print(f"Retrieved user profile dict from lancedb", profile_dict)
+        print(f"Retrieved user profile dict from lancedb")
         return profile_dict
     else:
         return None

@@ -880,4 +880,50 @@
         "salary": "",
         "on_site": null
     }
+}{
+    "What we\u2019re building and why we\u2019re building it. \n\nT": {
+        "skills": [
+            {
+                "example": "The ability to take on challenging problems and design & develop solutions with little to no assistance.",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Effective communication, including the ability to translate and explain technical issues to non-technical team members.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            }
+        ],
+        "summary": "What we\u2019re building and why we\u2019re building it. \n\nThere\u2019s a reason Fetch is ranked top 10 in Shopping in the App Store. Every day, millions of people earn Fetch Points buying brands they love. From the grocery aisle to the drive-through, Fetch makes saving money fun. We\u2019re more than just a build-first tech unicorn. We\u2019re a revolutionary shopping platform where brands and consumers come together for a loyalty-driving, points-exploding, money-saving party.\n\nJoin a fast-growing, founder-led technology company that\u2019s still only in its early innings. Ranked one of America\u2019s Best Startup Employers by Forbes two years in a row, Fetch is building a people-first culture rooted in trust and accountability. How do we do it? By empowering employees to think big, challenge ideas, and find new ways to bring the fun to Fetch. So what are you waiting for? Apply to join our rocketship today!\n\nFetch is an equal employment opportunity employer.\n\nThe Role:\n\nFetch\u2019s next step in evolving the shopping experience will require a Backend Engineer. You will build highly performant backend services to integrate seamlessly with our data stores, message queues, mobile and web platforms, and other systems. You\u2019ll be working on a small, multi-functional team that may include other engineers, a designer, product manager, data scientist and other roles. Success in this role requires the ability to take on challenging problems and design & develop an amazing solution with little to no assistance.\n\nScope of Responsibilities:\nA deep understanding of functional and object-oriented programming\nAbility to plan and implement complex data models\nAbility to optimize poorly performing code, data queries, and network requests\nUnderstanding of the complexity and failure domains of micro-services and distributed architectures\nAbility to troubleshoot large scale production systems and explain both short and long-term solutions with trade-offs\nEffective communication, including the ability to translate and explain technical issues to non-technical team members\nThe ideal candidate:\nHigh-level languages (Go)\nRelational and eventually consistent databases (MongoDB, Postgres, MySQL)\nIn-memory data stores and caches (Redis, Memcache)\nVersion control system (Git)\nTest writing and quality assurance\nService-oriented architecture\nFull-stack development (Kotlin, Javascript, React, Swift)\nMessages queue and event streaming (Kafka, Kinesis, Redis Streams)\nContinuous development\nUndergraduate or graduate degree in computer science, engineering or ",
+        "job": "",
+        "about_job": "Fetch\u2019s next step in evolving the shopping experience will require a Backend Engineer.",
+        "company": "Fetch",
+        "company_description": "Ranked one of America\u2019s Best Startup Employers by Forbes two years in a row, Fetch is building a people-first culture rooted in trust and accountability. By empowering employees to think big, challenge ideas, and find new ways to bring the fun to Fetch.",
+        "qualifications": [
+            "High-level languages (Go)",
+            "Relational and eventually consistent databases (MongoDB, Postgres, MySQL)",
+            "In-memory data stores and caches (Redis, Memcache)",
+            "Version control system (Git)",
+            "Test writing and quality assurance",
+            "Service-oriented architecture",
+            "Full-stack development (Kotlin, Javascript, React, Swift)",
+            "Messages queue and event streaming (Kafka, Kinesis, Redis Streams)",
+            "Continuous development"
+        ],
+        "responsibilities": [
+            "A deep understanding of functional and object-oriented programming",
+            "Ability to plan and implement complex data models",
+            "Ability to optimize poorly performing code, data queries, and network requests",
+            "Understanding of the complexity and failure domains of micro-services and distributed architectures",
+            "Ability to troubleshoot large scale production systems and explain both short and long-term solutions with trade-offs",
+            "Effective communication, including the ability to translate and explain technical issues to non-technical team members"
+        ],
+        "salary": "",
+        "on_site": null
+    }
 }
