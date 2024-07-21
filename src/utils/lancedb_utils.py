@@ -8,7 +8,7 @@ import numpy as np
 import pyarrow as pa
 from typing import List, Dict, Optional, get_args, get_origin, Set
 import json
-from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
+
 
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()

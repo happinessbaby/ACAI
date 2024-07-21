@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from typing import Any, List, Union, Dict, Optional, Set
-import lancedb
-from lancedb.pydantic import LanceModel, Vector
-from utils.lancedb_utils import func
+
 
 
  #NOTE: ALL NESTED PYDANTIC FIELDS ARE IN ALPHABETIC ORDER FOR THE SCHEMA VALIDATION
