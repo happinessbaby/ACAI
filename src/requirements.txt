@@ -100,3 +100,4 @@ Jinja2
 selenium
 pyairtable
 linkedin_api
+streamlit-image-select
