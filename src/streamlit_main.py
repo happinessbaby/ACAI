@@ -213,7 +213,7 @@ class Main():
                 # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
                 os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
                 ]
-        mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        mk_dirs(paths,)
 
    
     def _init_display(_self):

@@ -15245,4 +15245,135 @@
             }
         ]
     }
+}{
+    "/users/sample3/profile/uploads/2024-07-21-21-04/a0bfd1fc-f928-4690-aa30-4099fe049b67.txt": {}
+}{
+    "/users/sample3/profile/uploads/2024-07-21-21-07/f817c509-4d2d-4805-806a-6bae24bf2d3f.txt": {}
+}{
+    "/users/sample3/profile/uploads/2024-07-21-21-09/4ce05296-9c49-4ae8-a82c-6767192326cb.txt": {
+        "resume_content": "3456 Westview Road Bellevue, Nebraska 68005 (402) 291-5678 imasample3@xxx.com SUMMARY OF QUALIFICATIONS Experienced business professional with a solid academic background and a demonstrated commitment to providing high quality customer service; described as a \"take charge\" person with exceptional communication and human relations skills; proficient in the use of MS Office (Word, Excel, PowerPoint) with basic knowledge of PeopleSoft. EDUCATION Bellevue University, Bellevue, NE (June 20xx) Bachelor of Science in Management of Human Resources \uf0b7 GPA in major: 3.84/4.00 Graduated with distinction PROFESSIONAL EXPERIENCE West Telemarketing, Omaha, NE (2023 to Present) Customer Service Supervisor (2022 to present) \uf0b7 Supervise operations and staff in a 20-person inbound telemarketing unit, including hiring, training and evaluating employees, preparing and administering annual budgets, developing business plans, etc. \uf0b7 Assess level of customer satisfaction and resolve sensitive and complex issues raised by customers; provide additional training and take other action as required to maintain a high level of customer satisfaction. Customer Service Representative (2021-2022) \uf0b7 Handled incoming calls from customers and potential customers, provided information and received orders using CRT to input data. \uf0b7 Interviewed customers and recommended other available products to meet their needs; received several Incentive Awards for sales efforts.\n\nProvided orientation and training to new staff members. PROFESSIONAL AFFILIATIONS AND ACTIVITIES Member, Society for Human Resources Management (SHRM) (20xx to 20xx) Bellevue University Student Chapter \uf0b7 Chair, Program Development Committee (20xx) President, American Business Women's Association, Gold Star Chapter (20xx)",
+        "pursuit_jobs": "",
+        "summary_objective": "Experienced business professional with a solid academic background and a demonstrated commitment to providing high quality customer service; described as a 'take charge' person with exceptional communication and human relations skills; proficient in the use of MS Office (Word, Excel, PowerPoint) with basic knowledge of PeopleSoft.",
+        "included_skills": [],
+        "hobbies": [],
+        "contact": {
+            "city": "",
+            "email": "",
+            "linkedin": "",
+            "name": "",
+            "phone": "",
+            "state": "",
+            "websites": []
+        },
+        "education": {
+            "coursework": [],
+            "degree": "Bachelor of Science in Management of Human Resources",
+            "gpa": "3.84/4.00",
+            "graduation_year": "20xx",
+            "institution": "Bellevue University",
+            "study": "Management of Human Resources"
+        },
+        "work_experience": [
+            {
+                "company": "West Telemarketing",
+                "description": [
+                    "Supervised operations and staff in a 20-person inbound telemarketing unit, including hiring, training, and evaluating employees, preparing and administering annual budgets, developing business plans, etc.",
+                    "Assessed level of customer satisfaction and resolved sensitive and complex issues raised by customers; provided additional training and took other action as required to maintain a high level of customer satisfaction."
+                ],
+                "end_date": "",
+                "job_title": "Customer Service Supervisor",
+                "location": "Omaha, NE",
+                "start_date": "2022"
+            },
+            {
+                "company": "West Telemarketing",
+                "description": [
+                    "Handled incoming calls from customers and potential customers, provided information and received orders using CRT to input data.",
+                    "Interviewed customers and recommended other available products to meet their needs; received several Incentive Awards for sales efforts.",
+                    "Provided orientation and training to new staff members."
+                ],
+                "end_date": "2022",
+                "job_title": "Customer Service Representative",
+                "location": "Omaha, NE",
+                "start_date": "2021"
+            }
+        ],
+        "projects": null,
+        "qualifications": [
+            {
+                "description": [
+                    "Experienced business professional with a solid academic background and a demonstrated commitment to providing high quality customer service",
+                    "Described as a 'take charge' person with exceptional communication and human relations skills",
+                    "Proficient in the use of MS Office (Word, Excel, PowerPoint) with basic knowledge of PeopleSoft"
+                ],
+                "title": ""
+            }
+        ],
+        "licenses": [
+            {
+                "description": [
+                    "Experienced business professional with a solid academic background and a demonstrated commitment to providing high quality customer service; described as a 'take charge' person with exceptional communication and human relations skills; proficient in the use of MS Office (Word, Excel, PowerPoint) with basic knowledge of PeopleSoft."
+                ],
+                "issue_date": "",
+                "issue_organization": "",
+                "title": ""
+            }
+        ],
+        "certifications": [
+            {
+                "description": [
+                    "Bachelor of Science in Management of Human Resources"
+                ],
+                "issue_date": "June 20xx",
+                "issue_organization": "Bellevue University",
+                "title": "Management of Human Resources"
+            }
+        ],
+        "awards": [
+            {
+                "description": [
+                    "Graduated with distinction"
+                ],
+                "title": "Bachelor of Science in Management of Human Resources"
+            },
+            {
+                "description": [
+                    "Received several Incentive Awards for sales efforts"
+                ],
+                "title": "Customer Service Representative"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Leadership",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "",
+                "skill": "MS Office",
+                "type": "hard skill"
+            },
+            {
+                "example": "",
+                "skill": "PeopleSoft",
+                "type": "hard skill"
+            }
+        ]
+    }
 }

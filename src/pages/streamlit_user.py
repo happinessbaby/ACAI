@@ -124,14 +124,14 @@ class User():
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if _self.userId is not None:
             if STORAGE=="CLOUD":
-                st.session_state["s3_client"] = get_client('s3')
-                st.session_state["bucket_name"] = bucket_name
-                st.session_state["storage"] = "CLOUD"
+                # st.session_state["s3_client"] = get_client('s3')
+                # st.session_state["bucket_name"] = bucket_name
+                # st.session_state["storage"] = "CLOUD"
                 st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
             elif STORAGE=="LOCAL":
-                st.session_state["s3_client"] = None
-                st.session_state["bucket_name"] = None
-                st.session_state["storage"] = "LOCAL"
+                # st.session_state["s3_client"] = None
+                # st.session_state["bucket_name"] = None
+                # st.session_state["storage"] = "LOCAL"
                 st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
             # Get the current time
             now = datetime.now()
@@ -140,7 +140,7 @@ class User():
             st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
             st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
             paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
-            mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+            mk_dirs(paths,)
 
 
 
@@ -551,7 +551,7 @@ class User():
         """ Processes and checks user inputs and uploads"""
 
         if input_type=="resume":
-            result = process_uploads(input_value, st.session_state.user_save_path, "")
+            result = process_uploads(input_value, st.session_state.users_upload_path, )
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="resume":
@@ -940,7 +940,7 @@ class User():
         else:
             # start general evaluation if haven't done so
             if "eval_dict" not in st.session_state:
-                self.eval_thread = thread_with_trace(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
+                self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
          

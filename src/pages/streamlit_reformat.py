@@ -1,7 +1,7 @@
 from backend.upgrade_resume import reformat_resume
 import uuid
 import os
-from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img
+from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files_from_s3
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
 from backend.upgrade_resume import tailor_resume
@@ -11,10 +11,25 @@ from st_pages import get_pages, get_script_run_ctx
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
+import boto3
+from multiprocessing import Pool
 import streamlit as st
 
 set_streamlit_page_config_once()
 float_init()
+template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
+STORAGE = os.environ["STORAGE"]
+# if STORAGE=="S3":
+#     bucket_name = os.environ["BUCKET_NAME"]
+#     s3_save_path = os.environ["S3_CHAT_PATH"]
+#     session = boto3.Session(         
+#                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+#                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+#                 )
+#     s3 = session.client('s3')
+# else:
+#     bucket_name=None
+#     s3=None
 # pages = get_pages("")
 
 class Reformat():
@@ -40,21 +55,17 @@ class Reformat():
 
     def display_resume_templates(self, ):
         
-        paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/functional/functional2.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-        # if "image_paths" not in st.session_state:
-        st.session_state["formatted_docx_paths"] = []
-        st.session_state["formatted_pdf_paths"] = []
-        st.session_state["image_paths"] = []
-        for idx, path in enumerate(paths):
-            filename = str(uuid.uuid4())
-            output_dir = st.session_state["users_download_path"]
-            docx_path = os.path.join(output_dir, filename+".docx")
-            reformat_resume(path, st.session_state["profile"], docx_path)
-            st.session_state["formatted_docx_paths"].append(docx_path)
-            img_paths, pdf_path = convert_docx_to_img(docx_path, output_dir, idx)
-            st.session_state["formatted_pdf_paths"].append(pdf_path)
-            st.session_state["image_paths"].append(img_paths)
-            
+        if STORAGE=="LOCAL":
+            template_paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/functional/functional2.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
+        else:
+            template_paths = list_files_from_s3(ext=".docx", prefix=os.environ["S3_RESUME_TEMPLATE_PATH"])
+            print(template_paths)
+        with Pool() as pool:
+            st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+        with Pool() as pool:
+            result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+        st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+            # print(img_paths, pdf_path)
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
             previews = [paths[0] for paths in st.session_state["image_paths"]]

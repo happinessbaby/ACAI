@@ -30,6 +30,7 @@ import json
 import decimal
 import requests
 from docx import Document
+import tempfile
 # from odf import text, teletype
 # from odf.opendocument import load
 from io import BytesIO
@@ -45,6 +46,11 @@ import boto3
 # import aspose.words as aw
 import glob
 from jinja2 import Template
+from botocore.exceptions import ClientError
+import pypandoc
+import shutil
+from pdf2image import convert_from_bytes
+from utils.aws_manager import get_client
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -53,36 +59,32 @@ aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 
 STORAGE = os.environ["STORAGE"]
-if STORAGE=="S3":
+if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
-    session = boto3.Session(         
-                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-                )
-    s3 = session.client('s3')
+    s3 = get_client('s3')
 else:
     bucket_name=None
     s3=None
 
-def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None) -> bool:
+def convert_to_txt(file, output_path,) -> bool:
 
     """ Converts file to TXT file and move it to destination location. """
     try:
         file_ext = Path(file).suffix
-        if storage=="LOCAL":
+        if STORAGE=="LOCAL":
             if (file_ext)=='.txt' and file!=output_path:
                 os.rename(file, output_path)
             elif (file_ext=='.pdf'): 
                 convert_pdf_to_txt(file, output_path)
             elif (file_ext=='.docx' or file_ext==".odt"):
-                pdf_path = convert_to_pdf(file)
+                pdf_path = convert_doc_to_pdf(file)
                 convert_pdf_to_txt(pdf_path, output_path)
             elif (file_ext==".log"):
                 convert_log_to_txt(file, output_path)
             elif (file_ext==".pptx"):
                 convert_pptx_to_txt(file, output_path)
-        elif storage=="CLOUD":
+        elif STORAGE=="CLOUD":
             loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
             text = loader.load()[0].page_content
             s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
@@ -92,14 +94,35 @@ def convert_to_txt(file, output_path, storage="LOCAL", bucket_name=None, s3=None
         print(e)
         return False
 
-def convert_to_pdf(input_path):
-    output_path = input_path.replace('.docx', '.pdf').replace('.odt', '.pdf')
+def convert_doc_to_pdf(input_path, ext=".docx"):
+    #retrieve docx from s3
+    pdf_output_path = input_path.replace(ext, '.pdf')
     try:
         subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
+        print('converted docx to pdf', pdf_output_path)
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
         return None
-    return output_path
+    return pdf_output_path
+
+def convert_pdf_to_img(pdf_path, image_format="png"):
+    #
+    image_output_path = pdf_path.replace('.pdf', '_images')
+    os.makedirs(image_output_path, exist_ok=True)
+    # image_output_path = os.path.join(image_output_dir, f'image_{idx}')
+    if STORAGE=="CLOUD":
+        image_tmp_dir = tempfile.mkdtemp()
+        image_output_path = os.path.join(image_tmp_dir, f'_images')
+    try:
+        # Convert PDF to images using pdftoppm
+        subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
+        print("converted pdf to image: ", image_output_path)
+    except Exception as e:
+        print(e)
+        return None
+
+    return image_output_path 
+
 
 def convert_log_to_txt(file, output_path):
     with open(file, "r") as f:
@@ -165,74 +188,82 @@ def convert_pdf_to_txt(pdf_file, output_path):
 #         for line in text_content:
 #             f.write(line + '\n')
 
-def convert_txt_to_doc(txt_file, output_path, storage="LOCAL", s3=None, bucket_name=None):
+def convert_txt_to_doc(txt_file, output_path,):
     doc = Document()
     with open(txt_file, 'r', encoding='utf-8') as f:
         for line in f:
             doc.add_paragraph(line.strip())
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         doc.save(output_path)
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
          # Save DOCX to memory
         docx_bytes = BytesIO()
         doc.save(docx_bytes)
         # Upload DOCX to S3
         s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
 
-def read_txt(file: str, storage="LOCAL", bucket_name=None, s3=None) -> str:
+def read_txt(file: str, ) -> str:
 
     """ Reads TXT file into string. """
 
     try:
-        if storage=="LOCAL":
+        if STORAGE=="LOCAL":
             with open(file, 'r', errors='ignore') as f:
                 text = f.read()
                 return text
-        elif storage=="CLOUD":
+        elif STORAGE=="CLOUD":
             data = s3.get_object(Bucket=bucket_name, Key=file)
             contents = data['Body'].read()
             text = contents.decode("utf-8")
             return text
     except Exception as e:
-        return ""
+        raise e
     
-def delete_file(file, storage="LOCAL", bucket_name=None, s3=None) -> bool:
+def delete_file(file, ) -> bool:
     
     """ Deletes file. """
     
     try:
-        if storage=="LOCAL":
+        if STORAGE=="LOCAL":
             os.remove(file)
-        elif storage=="CLOUD":
+        elif STORAGE=="CLOUD":
             s3.delete_object(Bucket=bucket_name, Key=file)
         return True
     except Exception as e:
         return False
     
-def mk_dirs(paths: List[str], storage="LOCAL", bucket_name=None, s3=None):
+def mk_dirs(paths: List[str],):
 
-    """ Creates directories given a list of paths"""
+    """ Creates directories recursively given a list of paths"""
 
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         for path in paths:
             try: 
                 os.makedirs(path, exist_ok=True)
                 print("Successfully made directories")
             except FileExistsError:
                 pass
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         for path in paths:
-            try:
-                s3.put_object(Bucket=bucket_name,Body='', Key=path)
-            except Exception as e:
-                raise e
-            
+            parts = path.split('/')
+            current_path = ''   
+            for part in parts:
+                if part:  # to avoid empty strings resulting from leading/trailing slashes
+                    current_path = f"{current_path}{part}/"
+                    try:
+                        s3.put_object(Bucket=bucket_name, Body='', Key=current_path)
+                    except ClientError as e:
+                        error_code = e.response['Error']['Code']
+                        if error_code != 'BucketAlreadyOwnedByYou':
+                            print(f"Error creating {current_path}: {e}")
+               
 
-def write_file(file_content:Any, end_path: str, mode="wb", storage="LOCAL", bucket_name=None, s3=None,):
+
+def write_file(file_content:Any, end_path: str, mode="wb",):
 
     """ Writes content to file. """
 
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         try:
             with open(end_path, mode) as f:
                 f.write(file_content)
@@ -240,22 +271,24 @@ def write_file(file_content:Any, end_path: str, mode="wb", storage="LOCAL", buck
         except Exception as e:
             print(e)
             return False
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         try:
             s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
-        except Exception:
+            return True
+        except Exception as e:
+            print(e)
             return False
 
 
-def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=None):
+def read_file(file_path:str, mode="rb", ):
     
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         try:
             with open(file_path, mode) as f:
                 data = f.read()
         except Exception as e:
             raise e
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         try:
             object = s3.get_object(Bucket=bucket_name, Key=file_path)
             data = object['Body'].read()
@@ -263,11 +296,11 @@ def read_file(file_path:str, mode="rb", storage="LOCAL", bucket_name=None, s3=No
             raise e
     return data
 
-def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, s3=None,):
+def move_file(source_file:str, dest_dir:str, ):
 
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         os.rename(source_file, dest_dir)
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         s3.copy_object(
             Bucket=bucket_name,
             Key=dest_dir,
@@ -277,11 +310,10 @@ def move_file(source_file:str, dest_dir:str, storage="LOCAL", bucket_name=None, 
 def count_length(filename, ):
 
     try:
-        with open(filename, 'r', encoding='utf-8') as file:
-            content = file.read()
-            words = word_tokenize(content)
-            word_count = len(words)
-            return word_count
+        content = read_file(filename, )
+        words = word_tokenize(content)
+        word_count = len(words)
+        return word_count
     except FileNotFoundError:
         print(f"The file {filename} does not exist.")
         return 0
@@ -340,7 +372,7 @@ def retrieve_web_content(link, save_path="test.txt"):
     #     return False
     
 # this one is better than the above function 
-def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s3=None):
+def html_to_text(urls:List[str], save_path, ):
 
     """Writes a list of urls' content to txt file. """
     
@@ -351,12 +383,12 @@ def html_to_text(urls:List[str], save_path, storage="LOCAL", bucket_name=None, s
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
         print(content)
-        if storage=="LOCAL":            
+        if STORAGE=="LOCAL":            
             with open(save_path, 'w') as file:
                 file.write(content)
                 file.close()
                 print('Content retrieved and written to file.')
-        elif storage=="S3":
+        elif STORAGE=="S3":
             s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
         return True
     except Exception as e:
@@ -391,29 +423,52 @@ def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
     """
 
-    data = read_file(file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    data = read_file(file,)
     bin_str = base64.b64encode(data).decode() 
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}" class="general-button">{text}</a>'
     return href
 
-def convert_docx_to_img(file_path, output_dir, idx, image_format='png'):
+def convert_docx_to_img(docx_file_path, image_format='png'):
 
     def extract_idx(filename):
         basename = os.path.basename(filename)
         parts = basename.split('-')
         idx_part = parts[0].split('_')[1]
         return int(idx_part)
-      # Convert DOCX to PDF using LibreOffice
-    pdf_path = convert_to_pdf(file_path)
-    # Convert PDF to Image using pdftoppm
-    image_output_path = os.path.join(output_dir, f'image_{idx}')
-    subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
+    
+    # Convert DOCX to PDF using LibreOffice
+    pdf_path = convert_doc_to_pdf(docx_file_path)
+    if pdf_path:
+        # Convert PDF to Image using pdftoppm
+        image_paths=convert_pdf_to_img(pdf_path, image_format)
+    else:
+        image_paths = None
+
     # Return path to the image
-    pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
-    matching_files = glob.glob(pattern)
-    # Sort the files by extracted idx
-    sorted_files = sorted(matching_files, key=extract_idx)
-    return sorted_files, pdf_path
+    # pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
+    # matching_files = glob.glob(pattern)
+    # # Sort the files by extracted idx
+    # image_paths = sorted(matching_files, key=extract_idx)
+
+    return image_paths, pdf_path
+
+
+def list_files_from_s3( ext="", prefix=''):
+    
+    # Initialize a list to store the file keys
+    files = []
+    # Use paginator to handle large number of files
+    paginator = s3.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        if 'Contents' in page:
+            for obj in page['Contents']:
+                key = obj['Key']
+                if ext:
+                    if key.endswith(ext):
+                        files.append(key)
+                else:
+                    files.append(key)
+    return files
 
 def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
     context = {key: None for key in field_name}
