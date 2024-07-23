@@ -1,7 +1,7 @@
 from backend.upgrade_resume import reformat_resume
 import uuid
 import os
-from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files_from_s3
+from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files, get_first_file_in_each_directory
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
 from backend.upgrade_resume import tailor_resume
@@ -17,19 +17,12 @@ import streamlit as st
 
 set_streamlit_page_config_once()
 float_init()
-template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
 STORAGE = os.environ["STORAGE"]
-# if STORAGE=="S3":
-#     bucket_name = os.environ["BUCKET_NAME"]
-#     s3_save_path = os.environ["S3_CHAT_PATH"]
-#     session = boto3.Session(         
-#                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-#                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-#                 )
-#     s3 = session.client('s3')
-# else:
-#     bucket_name=None
-#     s3=None
+if STORAGE=="CLOUD":
+    template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
+elif STORAGE=="LOCAL":
+    template_path = os.environ["RESUME_TEMPLATE_PATH"]
+
 # pages = get_pages("")
 
 class Reformat():
@@ -55,20 +48,18 @@ class Reformat():
 
     def display_resume_templates(self, ):
         
-        if STORAGE=="LOCAL":
-            template_paths = ["./backend/resume_templates/functional/functional0.docx","./backend/resume_templates/functional/functional1.docx","./backend/resume_templates/functional/functional2.docx","./backend/resume_templates/chronological/chronological0.docx", "./backend/resume_templates/chronological/chronological1.docx"]
-        else:
-            template_paths = list_files_from_s3(ext=".docx", prefix=os.environ["S3_RESUME_TEMPLATE_PATH"])
-            print(template_paths)
+        print(template_path)
+        template_paths = list_files(template_path, ext=".docx")
+        print(template_paths)
         with Pool() as pool:
             st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
         with Pool() as pool:
             result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
         st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-            # print(img_paths, pdf_path)
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
-            previews = [paths[0] for paths in st.session_state["image_paths"]]
+            previews = [images[0] for images in st.session_state["image_paths"] if images is not None]
+            print(previews)
             selected_idx=image_select("Select a template", images=previews, return_value="index")
             st.markdown(general_button, unsafe_allow_html=True)    
             # st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
@@ -87,7 +78,7 @@ class Reformat():
                                     color: white;
                                 }"""
                     ):
-                    if st.button("Chose this template", key="resume_template_button"):
+                    if st.button("Choose this template", key="resume_template_button"):
                         st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
                         st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
                         print("user picked template")

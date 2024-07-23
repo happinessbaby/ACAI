@@ -102,10 +102,10 @@ class Main():
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
-        if self.userId:
-            if "user_mode" not in st.session_state:
-                st.session_state["user_mode"]="signedin" 
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+        # if self.userId:
+        #     if "user_mode" not in st.session_state:
+        #         st.session_state["user_mode"]="signedin" 
+        #     st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")

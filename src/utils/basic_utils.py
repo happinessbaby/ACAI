@@ -112,16 +112,18 @@ def convert_pdf_to_img(pdf_path, image_format="png"):
     # image_output_path = os.path.join(image_output_dir, f'image_{idx}')
     if STORAGE=="CLOUD":
         image_tmp_dir = tempfile.mkdtemp()
-        image_output_path = os.path.join(image_tmp_dir, f'_images')
+        image_output_path = os.path.join(image_tmp_dir, 'image')
     try:
         # Convert PDF to images using pdftoppm
-        subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path])
-        print("converted pdf to image: ", image_output_path)
+        subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path], check=True)
+        # Collect the generated image paths
+        image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
+        print("converted pdf to image: ", image_paths)
     except Exception as e:
         print(e)
         return None
 
-    return image_output_path 
+    return image_paths
 
 
 def convert_log_to_txt(file, output_path):
@@ -453,22 +455,46 @@ def convert_docx_to_img(docx_file_path, image_format='png'):
     return image_paths, pdf_path
 
 
-def list_files_from_s3( ext="", prefix=''):
+def list_files(root_dir, ext=""):
     
     # Initialize a list to store the file keys
     files = []
     # Use paginator to handle large number of files
-    paginator = s3.get_paginator('list_objects_v2')
-    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
-        if 'Contents' in page:
-            for obj in page['Contents']:
-                key = obj['Key']
-                if ext:
-                    if key.endswith(ext):
+    if STORAGE=="CLOUD":
+        paginator = s3.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=bucket_name, Prefix=root_dir):
+            if 'Contents' in page:
+                for obj in page['Contents']:
+                    key = obj['Key']
+                    if ext:
+                        if key.endswith(ext):
+                            files.append(key)
+                    else:
                         files.append(key)
+    elif STORAGE=="LOCAL":
+        for dirpath, dirnames, filenames in os.walk(root_dir):
+            for filename in filenames:
+                if ext:
+                    if filename.endswith(ext):
+                        files.append(os.path.join(dirpath, filename))
                 else:
-                    files.append(key)
+                    files.append(os.path.join(dirpath, filename))
+
     return files
+
+def get_first_file_in_each_directory(directories):
+    first_files = []
+    for directory in directories:
+        # Use glob to find files in the directory
+        if directory:
+            files = glob.glob(os.path.join(directory, '*'))
+            # Filter out directories, keep only files
+            files = [f for f in files if os.path.isfile(f)]
+            if files:
+                # Sort the files to get a consistent first file (glob doesn't guarantee order)
+                files.sort()
+                first_files.append(files[0])
+    return first_files
 
 def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[str, str], res_path) -> None:
     context = {key: None for key in field_name}

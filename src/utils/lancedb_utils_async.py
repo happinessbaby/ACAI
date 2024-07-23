@@ -14,18 +14,28 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 
 
+
+
 model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 STORAGE = os.environ["STORAGE"]
 if STORAGE=="LOCAL":
     db_path=os.environ["LANCEDB_PATH"]
+    storage_options={}
 elif STORAGE == "CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     db_path = f"s3://{bucket_name}/"+ os.environ["S3_LANCEDB_PATH"]
     print("db path", db_path)
-
-db = lancedb.connect(db_path)
+      #NOTE: only async api is supported for storage options 
+     #see: https://lancedb.github.io/lancedb/guides/storage/#object-stores
+    storage_options={
+            "aws_access_key_id": os.environ["AWS_SERVER_PUBLIC_KEY"],
+            "aws_secret_access_key": os.environ["AWS_SERVER_SECRET_KEY"],
+            #   "aws_session_token": get_session_token(),
+            "region": os.environ["REGION_NAME"],
+        }
+    
 
 
 
@@ -56,41 +66,47 @@ def register_model(model_name):
     model = registry.get(model_name).create()
     return model
 
-def create_lancedb_table(table_name, schema , mode="overwrite"):
+async def create_lancedb_table(table_name, schema , mode="overwrite"):
 
-    return db.create_table(
-    table_name,
-    schema=schema,
-    mode=mode,
-    exist_ok=True, 
-    # storage_options=storage_options
+    with await lancedb.connect_async(db_path, storage_options=storage_options) as db:
+        return await db.create_table(
+        table_name,
+        schema=schema,
+        mode=mode,
+        exist_ok=True, 
+        # storage_options=storage_options
     )
-
-
-def add_to_lancedb_table(table_name, data, schema, mode="append"):
     
-    try:
-        table = db.open_table(table_name)
-    except Exception as e:
-        print(e)
-        table = create_lancedb_table(table_name, schema)
-    table.add(data, mode=mode)
 
-def create_lancedb_index(table_name, distance_type):
+async def add_to_lancedb_table(table_name, data, schema, mode="append"):
+    
+    with await lancedb.connect_async(db_path, storage_options=storage_options) as db:
+        try:
+            table=await db.open_table(table_name)
+            await table.add(data, mode=mode)
+        except Exception as e:
+            print(e)
+            table = await create_lancedb_table(table_name, schema)
+            await table.add(data, mode=mode)
+
+async def create_lancedb_index(table_name, distance_type):
 
     """ https://lancedb.github.io/lancedb/ann_indexes/#creating-an-ivf_pq-index"""
-    table=db.open_table(table_name)
-    table.create_index(metric=distance_type)
+    with await lancedb.connect_async(db_path, storage_options=storage_options) as db:
+        table=await db.open_table(table_name)
+        await table.create_index(metric=distance_type)
 
-def retrieve_lancedb_table(table_name):
+async def retrieve_lancedb_table(table_name):
 
-    try:
-        table= db.open_table(table_name)
-        print(f"table {table_name} exists")
-    except Exception as e:
-        print(f"table {table_name} does not exists", e)
-        return None
-    return table
+    with await lancedb.connect_async(db_path, storage_options=storage_options) as db:
+        print(db_path)
+        try:
+            table=await db.open_table(table_name)
+            print(f"table {table_name} exists")
+        except Exception as e:
+            print(f"table {table_name} does not exists", e)
+            return None
+        return table
 
 # def query_lancedb_table(query, table_name, top_k=1):
 #     try:
@@ -104,10 +120,10 @@ def retrieve_lancedb_table(table_name):
 #         raise e
 #     return results
 
-def delete_user_from_table(userId):
+async def delete_user_from_table(userId):
 
-    table = retrieve_lancedb_table(lance_users_table)
-    table.delete(f"user_id = '{userId}'")
+    table = await retrieve_lancedb_table(lance_users_table)
+    await table.delete(f"user_id = '{userId}'")
     print('deleted user profile dict')
    
 
@@ -134,11 +150,11 @@ def convert_arrays_to_lists(data):
         return data
 
 
-def retrieve_user_profile_dict(userId):
+async def retrieve_user_profile_dict(userId):
 
-    users_table = retrieve_lancedb_table(lance_users_table)
+    users_table = await retrieve_lancedb_table(lance_users_table)
     if users_table:
-        profile_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        profile_dict=await users_table.vector_search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
         if not profile_dict["user_id"]:
             return None
         for key in profile_dict:
@@ -241,7 +257,7 @@ def save_user_changes(profile, schema):
     profile["resume_content"] = json.dumps(profile)
     try:
         schema = convert_pydantic_schema_to_arrow(schema)
-        add_to_lancedb_table(lance_users_table, [profile], schema=schema, mode="overwrite" )
+        asyncio_run(add_to_lancedb_table(lance_users_table, [profile], schema=schema, mode="overwrite" ))
         print("Successfully saved profile")
     except Exception as e:
         raise e
