@@ -189,6 +189,8 @@ src/main_session/
 *.tmp
 src/users/
 *.json
-./backend/resume_templates/
-./backend/cover_letter_templates/
+src/backend/resume_templates/
+src/backend/cover_letter_templates/
+src/backend/cover_letter_samples/
+src/backend/resume_samples/
 
