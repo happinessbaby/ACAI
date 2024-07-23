@@ -193,4 +193,5 @@ src/backend/resume_templates/
 src/backend/cover_letter_templates/
 src/backend/cover_letter_samples/
 src/backend/resume_samples/
+src/interview_component
 
