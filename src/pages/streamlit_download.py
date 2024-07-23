@@ -8,8 +8,8 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.buy_me_a_coffee import button
 import boto3
 import os
-import streamlit as st
 import s3fs
+import streamlit as st
 
 set_streamlit_page_config_once()
 
