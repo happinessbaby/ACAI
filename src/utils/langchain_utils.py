@@ -64,6 +64,7 @@ from langchain.schema import Document
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.output_parsers import CommaSeparatedListOutputParser
+from utils.aws_manager import get_client
 
 
 
@@ -79,9 +80,17 @@ redis_url = f"redis://:{redis_password}@localhost:6379"
 redis_client = redis.Redis.from_url(redis_url)
 
 
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="CLOUD":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    s3 = get_client('s3')
+else:
+    bucket_name=None
+    s3=None
 
 
-def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_name=None, splitter_type = "recursive", chunk_size=200, chunk_overlap=10) -> List[Document]:
+def split_doc(path='./web_data/', path_type='dir', splitter_type = "recursive", chunk_size=200, chunk_overlap=10) -> List[Document]:
 
     """ Splits file or files in directory into different sized chunks with different text splitters.
     
@@ -104,12 +113,12 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
         a list of LangChain Document
     
     """
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         if (path_type=="file"):
             loader = TextLoader(path)
         elif (path_type=="dir"):
             loader = DirectoryLoader(path, glob="*.txt", recursive=True)
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         if (path_type=="file"):
             loader = S3FileLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
         elif (path_type=="dir"):
@@ -129,7 +138,7 @@ def split_doc(path='./web_data/', path_type='dir', storage = "LOCAL", bucket_nam
     docs = text_splitter.split_documents(documents)
     return docs
 
-def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, threshold_bytes=1500, storage="LOCAL", splitter_type = "tiktoken", chunk_size=200,  bucket_name=None, s3=None,) -> List[Document]:
+def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, threshold_bytes=1500,  splitter_type = "tiktoken", chunk_size=200, ) -> List[Document]:
 
     """ Splits files into LangChain Document according to file size. If less than threshold bytes, file is not split. Otherwise, calls "split_doc" function to split the file. 
     
@@ -159,9 +168,9 @@ def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, t
         
     """
     
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         bytes = os.path.getsize(path)
-    elif storage=="CLOUD":
+    elif STORAGE=="CLOUD":
         response = s3.head_object(Bucket=bucket_name, Key=path)
         bytes = response['ContentLength']
     print(f"File size is {bytes} bytes")
@@ -170,10 +179,10 @@ def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, t
     # 1 byte ~= 1 character, and 1 token ~= 4 characters, so 1 byte ~= 0.25 tokens. Max length is about 4000 tokens for gpt3.5, so if file is less than 15000 bytes, don't need to split. 
     if use_bytes_threshold and  bytes<threshold_bytes:
         docs.extend([Document(
-            page_content = read_txt(path, storage=storage, bucket_name=bucket_name, s3=s3)
+            page_content = read_txt(path,)
         )])
     else:
-        docs.extend(split_doc(path, "file", storage=storage, bucket_name=bucket_name, chunk_size=chunk_size, splitter_type=splitter_type))
+        docs.extend(split_doc(path, "file", chunk_size=chunk_size, splitter_type=splitter_type))
     return docs
 
 
@@ -328,7 +337,7 @@ def create_compression_retriever(retriever: Any, compressor_type="redundant_filt
     return compression_retriever
 
 
-def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI(), storage="LOCAL", bucket_name=None, s3=None) -> str:
+def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", chunk_size=2000,  llm=OpenAI(),) -> str:
 
     """ See summarization chain: https://python.langchain.com/docs/use_cases/summarization
     
@@ -358,7 +367,7 @@ def create_summary_chain(path: str, prompt_template: str, chain_type = "stuff", 
         a summary of the give file
     
     """
-    docs = split_doc_file_size(path, chunk_size=chunk_size, storage=storage, bucket_name=bucket_name, s3=s3)
+    docs = split_doc_file_size(path, chunk_size=chunk_size,)
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
     chain = load_summarize_chain(llm, chain_type="stuff", prompt=PROMPT)
     response = chain.run(docs)
@@ -711,7 +720,7 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
 
 
 
-def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file", storage="LOCAL", bucket_name=None, s3=None, awsauth=None, embeddings = OpenAIEmbeddings()) -> Any:
+def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",awsauth=None, embeddings = OpenAIEmbeddings()) -> Any:
 
     """ Main function used to create any types of vector stores.
     Redis: https://python.langchain.com/docs/integrations/vectorstores/redis
@@ -746,7 +755,7 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
 
     try: 
         if (file!=""):
-            docs = split_doc_file_size(file, storage=storage, bucket_name=bucket_name, s3=s3, splitter_type="tiktoken")
+            docs = split_doc_file_size(file, splitter_type="tiktoken")
         if (vs_type=="faiss"):
             db=FAISS.from_documents(docs, embeddings)
             db.save_local(index_name)
@@ -870,7 +879,7 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
             return None
 
 
-def update_vectorstore(end_path: str, vs_path:str, index_name: str, record_name=None, storage="LOCAL", bucket_name=None, s3=None) -> None:
+def update_vectorstore(end_path: str, vs_path:str, index_name: str, record_name=None, ) -> None:
 
     """ Creates and updates vector store for AI agent to be used as RAG. 
     
@@ -893,11 +902,11 @@ def update_vectorstore(end_path: str, vs_path:str, index_name: str, record_name=
         s3: BOTO3's S3 client instance
         
     """
-    if storage=="LOCAL":
+    if STORAGE=="LOCAL":
         vs = merge_faiss_vectorstore(index_name, end_path)
         vs.save_local(vs_path) 
-    elif storage=="CLOUD":
-        docs = split_doc_file_size(end_path, "file", storage=storage, bucket_name=bucket_name, s3=s3)
+    elif STORAGE=="CLOUD":
+        docs = split_doc_file_size(end_path, "file", )
         vectorstore = retrieve_vectorstore("elasticsearch", index_name=index_name)
         record_manager=create_record_manager(record_name)
         if vectorstore is None:

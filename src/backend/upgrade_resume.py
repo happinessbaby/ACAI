@@ -16,6 +16,9 @@ import boto3
 import re
 from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements, Language
 from dotenv import load_dotenv, find_dotenv
+from io import BytesIO
+from utils.aws_manager import get_client
+import tempfile
 import streamlit as st
 
 
@@ -37,21 +40,17 @@ delimiter4 = "****"
 
 
 
-if STORAGE=="S3":
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
-    session = boto3.Session(         
-                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-                )
-    s3 = session.client('s3')
+    s3 = get_client('s3')
 else:
     bucket_name=None
     s3=None
 
 
-
-def evaluate_resume(resume_file = "", resume_dict={},  type="general", ) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
     if type=="general":
@@ -426,12 +425,20 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     return resume_type
 
 
-def reformat_resume(template_path, info_dict, end_path):
+def reformat_resume(template_path, ):
 
     """"Reformats user profile information with a resume template"""
 
 
     print("reformatting resume")
+    info_dict = st.session_state["profile"]
+    filename = os.path.basename(template_path)
+    output_dir = st.session_state["users_download_path"]
+    end_path = os.path.join(output_dir, filename)
+    if STORAGE=="CLOUD":
+        # Download the file content from S3 into memory
+        s3_object = s3.get_object(Bucket=bucket_name, Key=template_path)
+        template_path = BytesIO(s3_object['Body'].read())
     doc_template = DocxTemplate(template_path)
     func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
     personal_context = {
@@ -441,7 +448,7 @@ def reformat_resume(template_path, info_dict, end_path):
         "PHONE": func("phone", "YOUR PHONE"),
         "EMAIL": func("email", "YOUR EMAIL"),
         "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
-        "WEBSITE": func("website", "WEBSITE"),
+        "WEBSITE": func("websites", "WEBSITE"),
     }
     func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
     education_context = {
@@ -472,11 +479,23 @@ def reformat_resume(template_path, info_dict, end_path):
     # save_rendered_content(rendered_contents, end_path)
     doc_template.render(context)
     if STORAGE=="LOCAL":
-        local_save_path=end_path
-    doc_template.save(local_save_path) 
-    if STORAGE=="S3":
-        s3.upload_file(local_save_path, bucket_name, end_path)
-    return local_save_path
+        doc_template.save(end_path) 
+    elif STORAGE=="CLOUD":
+          # Save the rendered template to a BytesIO object
+        output_stream = BytesIO()
+        doc_template.save(output_stream)
+        output_stream.seek(0)    
+        # # Upload the BytesIO object to S3
+        # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
+        # Write to a temporary file
+        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+            temp_file.write(output_stream.getvalue())
+            temp_file.seek(0)  # Reset stream position to the beginning if needed
+            end_path = temp_file.name
+            print(f"Temporary file created at: {end_path}")
+    return end_path
+    
+
 
 
 

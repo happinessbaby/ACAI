@@ -101,3 +101,4 @@ selenium
 pyairtable
 linkedin_api
 streamlit-image-select
+pdf2image

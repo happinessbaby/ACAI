@@ -41,6 +41,7 @@ from utils.async_utils import thread_with_trace
 import streamlit_antd_components as sac
 import streamlit as st
 import plotly.express as px
+from utils.async_utils import asyncio_run
 import pandas as pd
 
 set_streamlit_page_config_once()
@@ -93,7 +94,7 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+            st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -124,14 +125,14 @@ class User():
         # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if _self.userId is not None:
             if STORAGE=="CLOUD":
-                st.session_state["s3_client"] = get_client('s3')
-                st.session_state["bucket_name"] = bucket_name
-                st.session_state["storage"] = "CLOUD"
+                # st.session_state["s3_client"] = get_client('s3')
+                # st.session_state["bucket_name"] = bucket_name
+                # st.session_state["storage"] = "CLOUD"
                 st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
             elif STORAGE=="LOCAL":
-                st.session_state["s3_client"] = None
-                st.session_state["bucket_name"] = None
-                st.session_state["storage"] = "LOCAL"
+                # st.session_state["s3_client"] = None
+                # st.session_state["bucket_name"] = None
+                # st.session_state["storage"] = "LOCAL"
                 st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
             # Get the current time
             now = datetime.now()
@@ -140,7 +141,7 @@ class User():
             st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
             st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
             paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
-            mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+            mk_dirs(paths,)
 
 
 
@@ -394,6 +395,9 @@ class User():
                 # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
                 st.button(label="Submit", disabled=st.session_state.resume_disabled, on_click=self.initialize_resume_callback)
                 if st.button(label="I'll do it later", type="primary", ):
+                    # delete any old resume saved in session state
+                    if "user_resume_path" in st.session_state:
+                        del st.session_state["user_resume_path"]
                     # the following takes to "create_empty_profile", which has a rerun, so cannot be in callback
                     self.display_profile()
                  
@@ -453,7 +457,7 @@ class User():
         #NOTE: the data added has to be a LIST!
         schema = convert_pydantic_schema_to_arrow(ResumeUsers)
         add_to_lancedb_table(lance_users_table, [resume_dict], schema)
-        print("Successfully aded user to lancedb table")
+        print("Successfully added user to lancedb table")
     
 
 
@@ -551,7 +555,7 @@ class User():
         """ Processes and checks user inputs and uploads"""
 
         if input_type=="resume":
-            result = process_uploads(input_value, st.session_state.user_save_path, "")
+            result = process_uploads(input_value, st.session_state.users_upload_path, )
             if result is not None:
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="resume":
@@ -940,7 +944,7 @@ class User():
         else:
             # start general evaluation if haven't done so
             if "eval_dict" not in st.session_state:
-                self.eval_thread = thread_with_trace(target=evaluate_resume, args=("", st.session_state["profile"], "general", ))
+                self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
          
@@ -1089,7 +1093,7 @@ class User():
                         # """
                         ],
                 ):
-                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(self.userId, ResumeUsers,), use_container_width=True)
+                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers,), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
@@ -1287,7 +1291,7 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(self.userId, ResumeUsers)
+        save_user_changes(st.session_state.profile, ResumeUsers)
        
 
 

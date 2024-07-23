@@ -102,10 +102,10 @@ class Main():
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
-        if self.userId:
-            if "user_mode" not in st.session_state:
-                st.session_state["user_mode"]="signedin" 
-            st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+        # if self.userId:
+        #     if "user_mode" not in st.session_state:
+        #         st.session_state["user_mode"]="signedin" 
+        #     st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")
@@ -213,7 +213,7 @@ class Main():
                 # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
                 os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
                 ]
-        mk_dirs(paths, storage=st.session_state.storage, bucket_name=st.session_state.bucket_name, s3=st.session_state.s3_client)
+        mk_dirs(paths,)
 
    
     def _init_display(_self):

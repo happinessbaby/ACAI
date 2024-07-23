@@ -65,18 +65,18 @@ delimiter4 = '////'
 # feast_repo_path = "/home/tebblespc/Auto-GPT/autogpt/auto_gpt_workspace/my_feature_repo/feature_repo/"
 # store = FeatureStore(repo_path = feast_repo_path)
 
-STORAGE = os.environ["STORAGE"]
-if STORAGE=="S3":
-    bucket_name = os.environ["BUCKET_NAME"]
-    s3_save_path = os.environ["S3_CHAT_PATH"]
-    session = boto3.Session(         
-                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-                )
-    s3 = session.client('s3')
-else:
-    bucket_name=None
-    s3=None
+# STORAGE = os.environ["STORAGE"]
+# if STORAGE=="S3":
+#     bucket_name = os.environ["BUCKET_NAME"]
+#     s3_save_path = os.environ["S3_CHAT_PATH"]
+#     session = boto3.Session(         
+#                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+#                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+#                 )
+#     s3 = session.client('s3')
+# else:
+#     bucket_name=None
+#     s3=None
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 resume_info_file = os.environ["RESUME_INFO_FILE"]
 job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
@@ -818,55 +818,54 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
 
     resume_info_dict={resume_path: preexisting_info_dict}
     # resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
-    if (Path(resume_path).is_file()):
-        resume_content = read_txt(resume_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-        # Extract resume fields
-        resume_info_dict[resume_path].update({"resume_content":resume_content})
-        # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
-        special_field_content = create_pydantic_parser(resume_content, SpecialResumeFields)
-        # special_field_group1 = create_pydantic_parser(resume_content, SpecialFieldGroup1)
-        # resume_info_dict[resume_path].update(special_field_group1)
-        # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
-        resume_info_dict[resume_path].update({"pursuit_jobs":special_field_content["pursuit_jobs"]})
-        resume_info_dict[resume_path].update({"summary_objective": special_field_content["summary_objective_section"]})
-        resume_info_dict[resume_path].update({"included_skills":special_field_content["included_skills"]})
-        resume_info_dict[resume_path].update({"hobbies":special_field_content["hobbies_section"]})
-        # resume_info_dict[resume_path].update(field_details)
-        # work_experience = field_details["work_experience"]
-        # if work_experience:
-        #     for i in range(len(work_experience)):
-        #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
-        #         work_experience[i].update({"years_of_experience": years_experience})
-        #     resume_info_dict[resume_path].update({"work_experience": work_experience})
-        contact = create_pydantic_parser(resume_content, Contact)
-        resume_info_dict[resume_path].update({"contact":contact})
-        education = create_pydantic_parser(resume_content, Education)
-        resume_info_dict[resume_path].update({"education":education})
-        experience = create_pydantic_parser(resume_content, Jobs)
-        resume_info_dict[resume_path].update(experience)
-        # if special_field_content["skills_section"]:
-        #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
-        #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
-        # else:
-        #     resume_info_dict[resume_path].update({"included_skills": None})
-        if special_field_content["projects_section"]:
-            projects = create_pydantic_parser(special_field_content["projects_section"], Projects)
-            resume_info_dict[resume_path].update(projects)
-        else:
-            resume_info_dict[resume_path].update({"projects": None})
-        if special_field_content["qualifications_section"]:
-            qualifications = create_pydantic_parser(special_field_content["qualifications_section"], Qualifications)
-            resume_info_dict[resume_path].update(qualifications)
-        else:
-            resume_info_dict[resume_path].update({"qualifications": None})
-        licenses = create_pydantic_parser(resume_content, Licenses)
-        resume_info_dict[resume_path].update(licenses)
-        certifications = create_pydantic_parser(resume_content, Certifications)
-        resume_info_dict[resume_path].update(certifications)
-        awards = create_pydantic_parser(resume_content, Awards)
-        resume_info_dict[resume_path].update(awards)
-        suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
-        resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
+    resume_content = read_txt(resume_path,)
+    # Extract resume fields
+    resume_info_dict[resume_path].update({"resume_content":resume_content})
+    # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
+    special_field_content = create_pydantic_parser(resume_content, SpecialResumeFields)
+    # special_field_group1 = create_pydantic_parser(resume_content, SpecialFieldGroup1)
+    # resume_info_dict[resume_path].update(special_field_group1)
+    # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
+    resume_info_dict[resume_path].update({"pursuit_jobs":special_field_content["pursuit_jobs"]})
+    resume_info_dict[resume_path].update({"summary_objective": special_field_content["summary_objective_section"]})
+    resume_info_dict[resume_path].update({"included_skills":special_field_content["included_skills"]})
+    resume_info_dict[resume_path].update({"hobbies":special_field_content["hobbies_section"]})
+    # resume_info_dict[resume_path].update(field_details)
+    # work_experience = field_details["work_experience"]
+    # if work_experience:
+    #     for i in range(len(work_experience)):
+    #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
+    #         work_experience[i].update({"years_of_experience": years_experience})
+    #     resume_info_dict[resume_path].update({"work_experience": work_experience})
+    contact = create_pydantic_parser(resume_content, Contact)
+    resume_info_dict[resume_path].update({"contact":contact})
+    education = create_pydantic_parser(resume_content, Education)
+    resume_info_dict[resume_path].update({"education":education})
+    experience = create_pydantic_parser(resume_content, Jobs)
+    resume_info_dict[resume_path].update(experience)
+    # if special_field_content["skills_section"]:
+    #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
+    #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
+    # else:
+    #     resume_info_dict[resume_path].update({"included_skills": None})
+    if special_field_content["projects_section"]:
+        projects = create_pydantic_parser(special_field_content["projects_section"], Projects)
+        resume_info_dict[resume_path].update(projects)
+    else:
+        resume_info_dict[resume_path].update({"projects": None})
+    if special_field_content["qualifications_section"]:
+        qualifications = create_pydantic_parser(special_field_content["qualifications_section"], Qualifications)
+        resume_info_dict[resume_path].update(qualifications)
+    else:
+        resume_info_dict[resume_path].update({"qualifications": None})
+    licenses = create_pydantic_parser(resume_content, Licenses)
+    resume_info_dict[resume_path].update(licenses)
+    certifications = create_pydantic_parser(resume_content, Certifications)
+    resume_info_dict[resume_path].update(certifications)
+    awards = create_pydantic_parser(resume_content, Awards)
+    resume_info_dict[resume_path].update(awards)
+    suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
+    resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
 
     with open(resume_info_file, 'a') as json_file:
         json.dump(resume_info_dict, json_file, indent=4)
@@ -966,17 +965,17 @@ def process_inputs(user_input, match_topic=""):
     return user_input
     
 
-def process_uploads(uploads, save_path, sessionId, ):
+def process_uploads(uploads, save_path,):
 
     for uploaded_file in uploads:
         print('processing uploads')
         file_ext = Path(uploaded_file.name).suffix
         filename = str(uuid.uuid4())
-        tmp_save_path = os.path.join(save_path, sessionId, "uploads", filename+file_ext)
-        end_path =  os.path.join(save_path, sessionId, "uploads", filename+'.txt')
-        if write_file(uploaded_file.getvalue(), tmp_save_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
-            if convert_to_txt(tmp_save_path, end_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
-                content_safe, content_type, content_topics = check_content(end_path,  storage=STORAGE, bucket_name=bucket_name, s3=s3)
+        tmp_save_path = os.path.join(save_path, filename+file_ext)
+        end_path =  os.path.join(save_path, filename+'.txt')
+        if write_file(uploaded_file.getvalue(), tmp_save_path,):
+            if convert_to_txt(tmp_save_path, end_path,):
+                content_safe, content_type, content_topics = check_content(end_path, )
                 return (content_safe, content_type, content_topics, end_path)
             else:
                 return None
@@ -987,8 +986,8 @@ def process_uploads(uploads, save_path, sessionId, ):
 def process_links(links, save_path, sessionId, ):
 
     end_path = os.path.join(save_path, sessionId, "uploads", str(uuid.uuid4())+".txt")
-    if html_to_text(links, save_path=end_path, storage=STORAGE, bucket_name=bucket_name, s3=s3):
-        content_safe, content_type, content_topics = check_content(end_path,  storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    if html_to_text(links, save_path=end_path, ):
+        content_safe, content_type, content_topics = check_content(end_path, )
         return  (content_safe, content_type, content_topics, end_path)
     else:
         return None
@@ -1104,7 +1103,7 @@ def evaluate_content(content: str, content_type: str) -> bool:
         return False
 
 
-def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) -> Union[bool, str, set] :
+def check_content(file_path: str,) -> Union[bool, str, set] :
 
     """Extracts file properties using Doctran: https://python.langchain.com/docs/integrations/document_transformers/doctran_extract_properties (doesn't work anymore after langchain update)
     Current version using OpenAI meta tagger: https://python.langchain.com/docs/integrations/document_transformers/openai_metadata_tagger
@@ -1119,7 +1118,7 @@ def check_content(file_path: str, storage="LOCAL", bucket_name=None, s3=None) ->
     
     """
 
-    docs = split_doc_file_size(file_path, storage=storage, bucket_name=bucket_name, s3=s3)
+    docs = split_doc_file_size(file_path,)
     # if file is too large, will randomly select n chunks to check
     docs_len = len(docs)
     print(f"File splitted into {docs_len} documents")

@@ -6,10 +6,25 @@ from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.buy_me_a_coffee import button
+import boto3
+import os
 import streamlit as st
+import s3fs
 
 set_streamlit_page_config_once()
 
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
 
 class Download():
 
@@ -50,9 +65,15 @@ class Download():
                                 }
                         """
                     ):
-                        with open(st.session_state["selected_docx_resume"], "rb") as f:
-                            st.download_button("Download as DOCX", f, st.session_state["selected_docx_resume"])
-                        # st.markdown(binary_file_downloader_html(st.session_state["selected_docx_resume"], "Download as DOCX"), unsafe_allow_html=True)
+                        if STORAGE=="LOCAL":
+                            with open(st.session_state["selected_docx_resume"], "rb") as f:
+                                st.download_button("Download as DOCX", f, st.session_state["selected_docx_resume"])
+                            # st.markdown(binary_file_downloader_html(st.session_state["selected_docx_resume"], "Download as DOCX"), unsafe_allow_html=True)
+                        elif STORAGE=="CLOUD":
+                            s3 = s3fs.S3FileSystem(anon=True)
+                            docx_file = os.path.join(bucket_name,st.session_state["selected_docx_resume"])
+                            with s3.open(docx_file, 'rb') as f:
+                                st.download_button("Download as DOCX", f, docx_file)
                 with c2:
                     with stylable_container(
                         key="custom_download_container",
@@ -63,9 +84,16 @@ class Download():
                                 }
                         """
                     ):
-                        # st.markdown(binary_file_downloader_html(st.session_state["selected_pdf_resume"], "Download as PDF"), unsafe_allow_html=True)
-                        with open(st.session_state["selected_pdf_resume"], "rb") as f:
-                            st.download_button("Download as PDF", f, st.session_state["selected_pdf_resume"],)
+                        if STORAGE=="LOCAL":
+                            # st.markdown(binary_file_downloader_html(st.session_state["selected_pdf_resume"], "Download as PDF"), unsafe_allow_html=True)
+                            with open(st.session_state["selected_pdf_resume"], "rb") as f:
+                                st.download_button("Download as PDF", f, st.session_state["selected_pdf_resume"],)
+                        elif STORAGE=="CLOUD":
+                            s3 = s3fs.S3FileSystem(anon=True)
+                            pdf_file = os.path.join(bucket_name,st.session_state["selected_pdf_resume"])
+                            with s3.open('my-bucket/my-file.txt', 'rb') as f:
+                                st.download_button("Download as PDF", f, pdf_file)
+
             else:
                 sac.result(label='Please go back and select a template', )
 
