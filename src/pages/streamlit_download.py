@@ -30,6 +30,7 @@ class Download():
 
 
     def __init__(self):
+        
         st.session_state["current_page"] = "download"
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
@@ -39,6 +40,7 @@ class Download():
         self._init_display()
 
     def _init_display(self, ):
+
         user_menu(self.userId, page="download")
         progress_bar(2)
         add_vertical_space(10)

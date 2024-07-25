@@ -9,18 +9,14 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import create_lancedb_table, add_to_lancedb_table, retrieve_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
 from utils.basic_utils import mk_dirs
 from typing import Any, List
-from pathlib import Path
-import re
 import uuid
 from streamlit_js_eval import get_geolocation
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-import json
-from json.decoder import JSONDecodeError
 from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -28,7 +24,6 @@ import webbrowser
 from utils.pydantic_schema import ResumeUsers
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
-import glob
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 from streamlit_float import *
 import threading
@@ -40,9 +35,7 @@ import requests
 from utils.async_utils import thread_with_trace
 import streamlit_antd_components as sac
 import streamlit as st
-import plotly.express as px
-from utils.async_utils import asyncio_run
-import pandas as pd
+
 
 set_streamlit_page_config_once()
 
@@ -104,7 +97,7 @@ class User():
     # @st.cache_data()
     def _init_session_states(_self, ):
 
-        # st.session_state["profile_page"]="http://localhost:8501/streamlit_user"
+
         # Open users login file
         with open(login_file) as file:
             st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -120,19 +113,10 @@ class User():
         #         st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
         #     except JSONDecodeError:
         #         raise 
-    
-        # st.session_state["sagemaker_client"]=_self.aws_session.client('sagemaker-featurestore-runtime')
-        # st.session_state["lancedb_conn"]= lancedb.connect(db_path)
         if _self.userId is not None:
             if STORAGE=="CLOUD":
-                # st.session_state["s3_client"] = get_client('s3')
-                # st.session_state["bucket_name"] = bucket_name
-                # st.session_state["storage"] = "CLOUD"
                 st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
             elif STORAGE=="LOCAL":
-                # st.session_state["s3_client"] = None
-                # st.session_state["bucket_name"] = None
-                # st.session_state["storage"] = "LOCAL"
                 st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
             # Get the current time
             now = datetime.now()
@@ -162,7 +146,6 @@ class User():
             self.sign_in()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
-            # st.session_state["user_mode"]="display_profile"
             if "redirect_page" in st.session_state:
                 st.switch_page(st.session_state.redirect_page)
             else:
@@ -215,9 +198,8 @@ class User():
         _, c1, _ = st.columns([1, 1, 1])
         with c1:
             st.header("Welcome back")
-            name, authentication_status, username = st.session_state.authenticator.login('', 'main')
+            name, authentication_status, username = st.session_state.authenticator.login()
             placeholder_error = st.empty()
-
             st.markdown(
                 """
                 <style>
@@ -245,7 +227,6 @@ class User():
             )
             col1, col2, col3 = st.columns([5, 1, 1])
             with col2:
-                # sign_up = st.button(label="sign up", key="signup", on_click=self.sign_up, args=[authenticator], type="primary")
                 sign_up = st.button(label="sign up", key="signup",  type="primary")
                 if sign_up:
                     st.session_state["user_mode"]="signup"
@@ -350,8 +331,6 @@ class User():
     def save_password(self, username, name, password, email, filename=login_file):
 
         try:
-            # hashed_password = hash_password(password)
-            # print("hashed password", hashed_password)
             with open(filename, 'r') as file:
                 credentials = yaml.safe_load(file)
                 print(credentials)
@@ -584,10 +563,10 @@ class User():
             else:
                 st.info("Please share a job description here")
 
-        if input_type=="location_input":
-            st.session_state.location_input=input_value.split(",")
-        elif input_type=="transferable_skills":
-            st.session_state.transferable_skills=input_value.split(",")
+        # if input_type=="location_input":
+        #     st.session_state.location_input=input_value.split(",")
+        # elif input_type=="transferable_skills":
+        #     st.session_state.transferable_skills=input_value.split(",")
 
 
 
@@ -747,7 +726,6 @@ class User():
                     title = value["title"]
                     # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
-                    # st.text_input("Description", value=title, key=f"award_descr_{idx}", on_change=callback, args=(idx, ))
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="certifications" or name=="licenses":
@@ -758,7 +736,6 @@ class User():
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ))
-                    # st.text_area("Description", value=description, key=f"{name}_descr_{idx}", on_change=callback, args=(idx,) )
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="work_experience":
@@ -777,9 +754,6 @@ class User():
                         st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,) )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,) )
-                    # for x, descr in enumerate(descriptions):
-                    #     # st.text_input("-", value=descr, key=f"experience_descr_{idx}_{x}", on_change=callback, )
-                    #     # st.write("-" + descr)
                     get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
                     get_display()
                 
@@ -1112,7 +1086,6 @@ class User():
         # eval_dict= self.get_dict("evaluation")
         try:
             eval_dict= st.session_state["eval_dict"]
-            print(st.session_state["eval_dict"])
         except Exception:
             eval_dict={}
         if eval_dict:
@@ -1129,50 +1102,7 @@ class User():
                     try:
                         length=eval_dict["word_count"]
                         pages=eval_dict["page_number"]
-                        if length<300:
-                            text = "too short"
-                        elif length>=300 and length<450:
-                            text="could be longer"
-                        elif length>=450 and length<=600:
-                            text="good length"
-                        elif length>600 and length<800:
-                            text="could be shorter"
-                        else:
-                            text="too long"
-                        # Cap the displayed value at 1000, bust keep the actual value for the text annotation
-                        display_value = min(length, 1000)
-                        # Create a gauge chart
-                        fig = go.Figure(go.Indicator(
-                            mode = "gauge",
-                            value = display_value,
-                            domain = {'x': [0, 1], 'y': [0, 1]},
-                            title = {'text': "Your resume is:"},
-                            gauge = {
-                                    # 'shape':"bullet",
-                                    'axis': {'range': [1, 1000]},
-                                    'bar': {'color': "white", "thickness":0.1},
-                                    'steps': [
-                                        {'range': [1, 300], 'color': "red"},
-                                        {'range': [300, 450], "color":"yellow"},
-                                        {'range': [450, 600], 'color': "lightgreen"},
-                                         {'range': [600, 800], "color":"yellow"},
-                                        {'range': [800, 1000], 'color': "red"}
-                                    ],
-                                    'threshold': {
-                                        'line': {'color': "black", 'width': 1},
-                                        'thickness': 0.2,
-                                        'value': display_value
-                                    }
-                                }
-                        ))
-                        # Add annotation for the text
-                        fig.add_annotation(
-                            x=0.5, 
-                            y=0.5, 
-                            text=text, 
-                            showarrow=False,
-                            font=dict(size=24)
-                        )
+                        fig = self.display_length_chart(length)
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
@@ -1198,8 +1128,6 @@ class User():
                             # add_vertical_space(1)
                             # if st.button("Explore template options", key="resume_template_explore_button"):
                             #     self.explore_template_popup()
-                        # my_type = eval_dict["type"]
-                        # st.write(f"Your resume type: \n {my_type}")
                     except Exception:
                         if "finished_eval" not in st.session_state:
                             st.write("Evaluating...")
@@ -1328,6 +1256,55 @@ class User():
     #         ][0]
     #     print("Current page:", current_page)
     #     return current_page
+                
+    def display_length_chart(self, length):
+        if length<300:
+            text = "too short"
+        elif length>=300 and length<450:
+            text="could be longer"
+        elif length>=450 and length<=600:
+            text="good length"
+        elif length>600 and length<800:
+            text="could be shorter"
+        else:
+            text="too long"
+        # Cap the displayed value at 1000, bust keep the actual value for the text annotation
+        display_value = min(length, 1000)
+        # Create a gauge chart
+        fig = go.Figure(go.Indicator(
+            mode = "gauge",
+            value = display_value,
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            title = {'text': "Your resume is:"},
+            gauge = {
+                    # 'shape':"bullet",
+                    'axis': {'range': [1, 1000]},
+                    'bar': {'color': "white", "thickness":0.1},
+                    'steps': [
+                        {'range': [1, 300], 'color': "red"},
+                        {'range': [300, 450], "color":"yellow"},
+                        {'range': [450, 600], 'color': "lightgreen"},
+                            {'range': [600, 800], "color":"yellow"},
+                        {'range': [800, 1000], 'color': "red"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "black", 'width': 1},
+                        'thickness': 0.2,
+                        'value': display_value
+                    }
+                }
+        ))
+        # Add annotation for the text
+        fig.add_annotation(
+            x=0.5, 
+            y=0.5, 
+            text=text, 
+            showarrow=False,
+            font=dict(size=24)
+        )
+        return fig
+
+
     def display_comparison_chart(self, data):
         # Mapping from similarity categories to numeric values
         similarity_mapping = {

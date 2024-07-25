@@ -1,17 +1,15 @@
 from backend.upgrade_resume import reformat_resume
 import uuid
 import os
-from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files, get_first_file_in_each_directory
+from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
-from backend.upgrade_resume import tailor_resume
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
-import boto3
 from multiprocessing import Pool
 import streamlit as st
 
@@ -48,9 +46,8 @@ class Reformat():
 
     def display_resume_templates(self, ):
         
-        print(template_path)
+    
         template_paths = list_files(template_path, ext=".docx")
-        print(template_paths)
         with Pool() as pool:
             st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
         with Pool() as pool:
@@ -81,7 +78,6 @@ class Reformat():
                     if st.button("Choose this template", key="resume_template_button"):
                         st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
                         st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
-                        print("user picked template")
                         st.switch_page("pages/streamlit_download.py")
             float_parent()
 
