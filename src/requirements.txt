@@ -7,7 +7,6 @@ pypandoc==1.11
 wikipedia==1.4.0
 streamlit
 streamlit-chat==0.1.1
-streamlit-extras==0.2.7
 unstructured==0.8.1
 redis==4.5.5
 faiss-cpu==1.7.4
@@ -63,7 +62,6 @@ streamlit-audiorec
 streamlit-mic-recorder
 # streamlit-bokeh-events
 apify-client
-# streamlit_js_eval
 unstructured_client
 jq
 python-linkedin
@@ -82,7 +80,6 @@ streamlit-antd-components
 textstat
 language_tool_python
 pyarrow
-jwt
 boto3
 nest_asyncio
 websockets
@@ -104,3 +101,6 @@ streamlit-image-select
 pdf2image
 pyjwt
 s3fs
+streamlit_float
+streamlit_js_eval
+streamlit-extras

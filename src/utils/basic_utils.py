@@ -282,7 +282,7 @@ def write_file(file_content:Any, end_path: str, mode="wb",):
             return False
 
 
-def read_file(file_path:str, mode="rb", ):
+def read_file(file_path:str, mode="r", ):
     
     if STORAGE=="LOCAL":
         try:
@@ -293,9 +293,11 @@ def read_file(file_path:str, mode="rb", ):
     elif STORAGE=="CLOUD":
         try:
             object = s3.get_object(Bucket=bucket_name, Key=file_path)
-            data = object['Body'].read()
+            # Read the data and decode it to a string
+            data = object['Body'].read().decode('utf-8')
         except Exception as e:
             raise e
+    print(data)
     return data
 
 def move_file(source_file:str, dest_dir:str, ):
@@ -363,15 +365,7 @@ def retrieve_web_content(link, save_path="test.txt"):
 
     content = soup.get_text()
     print(content)
-    # if content:
-    #     with open(save_path, 'w') as file:
-    #         file.write(content)
-    #         file.close()
-    #         print('Content retrieved and written to file.')
-    #         return True
-    # else:
-    #     print('Failed to retrieve content from the URL.')
-    #     return False
+
     
 # this one is better than the above function 
 def html_to_text(urls:List[str], save_path, ):
@@ -425,7 +419,7 @@ def binary_file_downloader_html(file: str, text:str="Download link") -> str:
 
     """
 
-    data = read_file(file,)
+    data = read_file(file,mode="rb")
     bin_str = base64.b64encode(data).decode() 
     href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(file)}" class="general-button">{text}</a>'
     return href

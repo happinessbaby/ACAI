@@ -54,7 +54,7 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
     if type=="general":
-        st.session_state["eval_dict"] = {"impression": "", "language":[], "comparison":[]}
+        st.session_state["eval_dict"] = {"language":[], "comparison":[]}
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
