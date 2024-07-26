@@ -78,17 +78,21 @@ class User():
     ctx = get_script_run_ctx()
 
     def __init__(self, ):
-        # NOTE: userId is retrieved from browser cookie
-        # self.current_page = self.get_current_page()
+
+
+        # set current page for progress bar
         st.session_state["current_page"] = "profile"
+        # NOTE: userId is retrieved from browser cookie
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
+            print("AAAAAAAAAAAAAAAAA")
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
         else:
+            print('BBBBBBBBBBBBBBBBBB')
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
         self._init_session_states()
@@ -99,9 +103,10 @@ class User():
 
 
         # Open users login file
-        with open(login_file) as file:
-            st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
-        st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
+        if "authenticator" not in st.session_state:
+            with open(login_file) as file:
+                st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
+            st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
         # Open users profile file
         # with open(user_profile_file, 'r') as file:
         #     try:
@@ -114,18 +119,19 @@ class User():
         #     except JSONDecodeError:
         #         raise 
         if _self.userId is not None:
-            if STORAGE=="CLOUD":
-                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
-            elif STORAGE=="LOCAL":
-                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
-            # Get the current time
-            now = datetime.now()
-            # Format the time as "year-month-day-hour-second"
-            formatted_time = now.strftime("%Y-%m-%d-%H-%M")
-            st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
-            st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
-            paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
-            mk_dirs(paths,)
+            if "user_save_path" not in st.session_state:
+                if STORAGE=="CLOUD":
+                    st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
+                elif STORAGE=="LOCAL":
+                    st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
+                # Get the current time
+                now = datetime.now()
+                # Format the time as "year-month-day-hour-second"
+                formatted_time = now.strftime("%Y-%m-%d-%H-%M")
+                st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
+                st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
+                paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
+                mk_dirs(paths,)
 
 
 
@@ -136,8 +142,8 @@ class User():
 
         """ Initalizes user page according to user's sign in status"""
         st.markdown(primary_button, unsafe_allow_html=True )
-        if st.session_state.user_mode!="signedout":
-            user_menu(self.userId, page="profile")
+        # if st.session_state.user_mode!="signedout":
+        user_menu(self.userId, page="profile")
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -182,7 +188,10 @@ class User():
     def sign_out(self, ):
 
         print('signing out')
-        self.google_signout()
+        #NOTE: can't get authenticator logout to delete cookies so manually does it with the cookie manager wrapper class
+        # still needs the logout code since the authenticator needs to be cleared
+        st.session_state.authenticator.logout(location="unrendered")
+        # self.google_signout()
         st.session_state.cm.delete_cookie()
         st.session_state["user_mode"]="signedout"
         time.sleep(5)
@@ -235,16 +244,16 @@ class User():
                 forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
             st.divider()
             # self.google_signin()
-            print(name, authentication_status, username)
+            # print(name, authentication_status, username)
             if authentication_status:
                 # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
-                print("setting cookie")
-                st.session_state.cm.set_cookie(name, username, )
+                # print("setting cookie")
+                # st.session_state.cm.set_cookie(name, username, )
+                # st.session_state.cm.set_cookie(name, username, )
                 st.session_state["user_mode"]="signedin"
                 time.sleep(5)
                 st.rerun()
-                # webbrowser.open(st.session_state.redirect_page if "redirect_page" in st.session_state else st.session_state.redirect_url)
-            elif authentication_status == False:
+            elif authentication_status==False:
                 placeholder_error.error('Username/password is incorrect')
 
 
@@ -273,7 +282,7 @@ class User():
                 # st.session_state["google_auth_code"] = auth_code
                 # st.session_state["user_info"] = user_info
                 st.session_state["credentials"] = credentials
-                st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
+                # st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
                 st.session_state["user_mode"]="signedin"
                 time.sleep(5)
                 st.rerun()
@@ -312,39 +321,44 @@ class User():
         print("inside signing up")
         _, c, _ = st.columns([1, 1, 1])
         with c:
-            authenticator = st.session_state.authenticator
-            username= authenticator.register_user("Create an account", "main", preauthorization=False)
-            if username:
-                name = authenticator.credentials["usernames"][username]["name"]
-                password = authenticator.credentials["usernames"][username]["password"]
-                email = authenticator.credentials["usernames"][username]["email"]
-                if self.save_password( username, name, password, email):
-                    st.session_state["user_mode"]="signedin"
+            try:
+                authenticator = st.session_state.authenticator
+                email, username, name= authenticator.register_user(pre_authorization=False)
+                if email:
+                    # name = authenticator.credentials["usernames"][username]["name"]
+                    # password = authenticator.credentials["usernames"][username]["password"]
+                    # email = authenticator.credentials["usernames"][username]["email"]
+                    with open(login_file, 'w') as file:
+                        yaml.dump(st.session_state.config, file, default_flow_style=False)
+                    # if self.save_password( username, name, password, email):
+                    st.session_state["user_mode"]="signedout"
                     st.success("User registered successfully")
-                    st.session_state.cm.set_cookie(name, username,)
                     time.sleep(5)
                     st.rerun()
-                else:
-                    st.info("Failed to register user, please try again")
-                    st.rerun()
+                    # else:
+                    #     st.info("Failed to register user, please try again")
+                    #     st.rerun()
+            except Exception as e:
+                st.info(e)
 
-    def save_password(self, username, name, password, email, filename=login_file):
 
-        try:
-            with open(filename, 'r') as file:
-                credentials = yaml.safe_load(file)
-                print(credentials)
-                # Add the new user's details to the dictionary
-            credentials['credentials']['usernames'][username] = {
-                'email': email,
-                'name': name,
-                'password': password
-            }  
-            with open(filename, 'w') as file:
-                yaml.dump(credentials, file)
-            return True
-        except Exception as e:
-            return False
+    # def save_password(self, username, name, password, email, filename=login_file):
+
+    #     try:
+    #         with open(filename, 'r') as file:
+    #             credentials = yaml.safe_load(file)
+    #             print(credentials)
+    #             # Add the new user's details to the dictionary
+    #         credentials['credentials']['usernames'][username] = {
+    #             'email': email,
+    #             'name': name,
+    #             'password': password
+    #         }  
+    #         with open(filename, 'w') as file:
+    #             yaml.dump(credentials, file)
+    #         return True
+    #     except Exception as e:
+    #         return False
 
 
                     

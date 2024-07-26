@@ -16258,4 +16258,129 @@
             }
         ]
     }
+}{
+    "./users/sample4/profile/uploads/2024-07-26-13-50/0d648197-763a-4ba2-bd38-0749f3cb1d5d.txt": {
+        "resume_content": "987 Northridge Drive\nOmaha, Nebraska 68123\n(402) 543-1234\nimasample4@xxx.com\nOBJECTIVE: Position in market research or financial analysis where strong technical skills,\nmathematical/statistical background and problem solving abilities can be applied towards\nthe successful achievement of business goals and objectives\nPROFESSIONAL PROFILE\n\uf0b7\n\uf0b7\nExceptionally well organized, resourceful and highly motivated with the ability to handle\nmultiple projects and produce timely, high quality work.\nStrong analytical and human relations skills; especially effective in helping customers\nand associates resolve issues and concerns.\nPROFESSIONAL SKILLS AND EXPERIENCE\nAnalysis and Problem Solving\n\uf0b7 Researched and developed a survey instrument, subsequently used to obtain information\nfrom customers regarding their satisfaction with products purchased.\n\uf0b7 Compiled and analyzed statistical data to identify potential target markets for future sales\nand marketing efforts.\n\uf0b7 Completed independent research project on the use of mathematical/statistical models as\ntools for solving various business problems.\n\uf0b7 Conducted quality control inspections, analyzed results and developed action plans to\naddress areas of concern.\nCommunications and Customer Relations\n\uf0b7 Received Customer Service Satisfaction Award for high quality of services provided to\nboth vendors and customers.\n\uf0b7 Handled customer inquiries and sales; effectively represented company to vendors and\nprospective customers, resulting in a 15% increase in sales in just six months.\n\uf0b7 Provided orientation, training and guidance to new employees.\nEDUCATION\nBachelor of Science, Bellevue University, Bellevue, NE (June, 2022)\nMajor: Computer Information Systems in Business\nMinor: Mathematics\nGraduated summa cum laude\nGPA: 3.98/4.00\nTECHNICAL SKILLS\n\uf0b7\n\uf0b7\nJava, PERL, ASP, PHP Scripting, Relational Databases, SQL\nInferential Statistics, Data Analysis, Calculus & Mathematical Analysis, SPSS\nWORK EXPERIENCE\nIntern-Market Research, Mutual of Omaha, Omaha, NE (Fall Semester, 20xx)\nSales Associate & Machinist Assistant, Precision Tool, Omaha, NE (20xx to present)FUNCTIONAL (MILITARY )\n",
+        "pursuit_jobs": "",
+        "summary_objective": "Position in market research or financial analysis where strong technical skills, mathematical/statistical background and problem solving abilities can be applied towards the successful achievement of business goals and objectives",
+        "included_skills": [],
+        "hobbies": [],
+        "contact": {
+            "city": "",
+            "email": "",
+            "linkedin": "",
+            "name": "",
+            "phone": "",
+            "state": "",
+            "websites": []
+        },
+        "education": {
+            "coursework": [
+                "Java",
+                "PERL",
+                "ASP",
+                "PHP Scripting",
+                "Relational Databases",
+                "SQL",
+                "Inferential Statistics",
+                "Data Analysis",
+                "Calculus & Mathematical Analysis",
+                "SPSS"
+            ],
+            "degree": "Bachelor of Science",
+            "gpa": "3.98/4.00",
+            "graduation_year": "2022",
+            "institution": "Bellevue University",
+            "study": "Computer Information Systems in Business"
+        },
+        "work_experience": [
+            {
+                "company": "Mutual of Omaha",
+                "description": [],
+                "end_date": "",
+                "job_title": "Intern-Market Research",
+                "location": "Omaha, NE",
+                "start_date": "Fall Semester, 20xx"
+            },
+            {
+                "company": "Precision Tool",
+                "description": [],
+                "end_date": "present",
+                "job_title": "Sales Associate & Machinist Assistant",
+                "location": "Omaha, NE",
+                "start_date": "20xx"
+            }
+        ],
+        "projects": null,
+        "qualifications": null,
+        "licenses": [
+            {
+                "description": [],
+                "issue_date": "2021",
+                "issue_organization": "State of Nebraska",
+                "title": "Occupational License"
+            }
+        ],
+        "certifications": [
+            {
+                "description": [],
+                "issue_date": "Unknown",
+                "issue_organization": "Unknown",
+                "title": "Customer Service Satisfaction Award"
+            }
+        ],
+        "awards": [
+            {
+                "description": [],
+                "title": "Customer Service Satisfaction Award"
+            }
+        ],
+        "suggested_skills": [
+            {
+                "example": "Demonstrated strong problem-solving abilities through handling multiple projects, conducting quality control inspections, and developing effective action plans to address areas of concern.",
+                "skill": "Problem-solving",
+                "type": "soft skill"
+            },
+            {
+                "example": "Received a Customer Service Satisfaction Award for providing high-quality service to both vendors and customers, effectively represented the company in customer interactions, resulting in a 15% increase in sales.",
+                "skill": "Communication",
+                "type": "soft skill"
+            },
+            {
+                "example": "Successfully produced timely, high-quality work, showcasing effective time management skills in balancing multiple tasks and meeting deadlines.",
+                "skill": "Time management",
+                "type": "soft skill"
+            },
+            {
+                "example": "Utilized analytical skills in researching and developing survey instruments, analyzing statistical data for target market identification, and using mathematical/statistical models to solve business problems.",
+                "skill": "Analytical skills",
+                "type": "soft skill"
+            },
+            {
+                "example": "Demonstrated strong customer relations skills through handling inquiries and sales, providing guidance to new employees, and receiving recognition for service quality.",
+                "skill": "Customer relations",
+                "type": "soft skill"
+            },
+            {
+                "example": "Proficient in Java, PERL, ASP, and PHP Scripting with hands-on experience in developing applications and scripts.",
+                "skill": "Technical skills in programming languages",
+                "type": "hard skill"
+            },
+            {
+                "example": "Experienced in working with relational databases and proficient in SQL for data management and querying.",
+                "skill": "Technical skills in databases and SQL",
+                "type": "hard skill"
+            },
+            {
+                "example": "Skilled in inferential statistics, data analysis using SPSS, and applying statistical methods to derive insights.",
+                "skill": "Technical skills in statistics and analysis",
+                "type": "hard skill"
+            },
+            {
+                "example": "Strong foundation in calculus, mathematical analysis, and their practical application in business decision-making processes.",
+                "skill": "Mathematical background",
+                "type": "hard skill"
+            }
+        ]
+    }
 }

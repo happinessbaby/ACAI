@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, date
 cookie_name = os.environ["COOKIE_NAME"]
 cookie_key=os.environ["COOKIE_KEY"]
 
+# NOTE: wrapper class for extra_extreamlit_component's CookieManager
 class CookieManager():
 
     def __init__(self,):
@@ -15,13 +16,13 @@ class CookieManager():
         self.cookie=None
         self.userId=None
         self.cookie_manager = self.get_cookie_manager()
+        # self.cookies=self.cookie_manager.cookies
 
     # @st.cache_resource(experimental_allow_widgets=True)
     def get_cookie_manager(_self, ):
 
         return stx.CookieManager(key="init_cookie_manager")
 
-    # cookie_manager = get_cookie_manager()
 
     def encode_jwt(self, name, username, key, exp_date=1) -> str:
         """
@@ -57,11 +58,13 @@ class CookieManager():
             return self.cookie_manager.get(cookie=name)
         return self.cookie
 
-    def set_cookie(self, name, username, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600)):
+    # def set_cookie(self, name, username, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600)):
 
-        cookie_value = self.encode_jwt(name, username, cookie_key)
-        self.cookie_manager.set(cookie_name, cookie_value, key=key, path=path, expires_at=expire_at)
-        self.cookie = self.get_cookie(cookie_name)
+    #     # cookie_value = self.encode_jwt(name, username, cookie_key)
+    #     # self.cookie_manager.set(cookie_name, cookie_value, key=key, path=path, expires_at=expire_at)
+    #     #NOTE: streamlit-authenticator sets the cookie already, this is just saving a class copy
+    #     self.cookie = self.get_cookie(cookie_name)
+    #     print(self.cookie)
 
 
     def get_all_cookies(self, x=0):
@@ -70,10 +73,10 @@ class CookieManager():
 
     def delete_cookie(self, key="deleteCookie"):
         
-        if not self.cookie:
-            self.cookie_manager.delete(self.get_cookie(cookie_name), key)
-        else:
-            self.cookie_manager.delete(self.cookie, key)
+        if cookie_name in self.cookies:
+            self.cookie_manager.delete(cookie_name, key)
+        self.userId = None
+        self.cookie=None
         
 
     def retrieve_userId(self, max_retries=3, delay=1):
@@ -81,14 +84,14 @@ class CookieManager():
         if not self.userId:
             for attempt in range(max_retries):
                 if not self.cookie:
-                    cookies = self.get_all_cookies(x=attempt)
-                    if cookie_name in cookies:
-                        self.userId = str(self.decode_jwt(self.get_cookie(cookie_name), cookie_key).get('username'))
-                        print("userId:", self.userId)
+                    self.cookies = self.get_all_cookies(x=attempt)
+                    if cookie_name in self.cookies:
+                        self.cookie = self.get_cookie(cookie_name)
                     else:
                         print(f"Attempt {attempt + 1}: user not logged in, retrying in {delay} seconds...")
                         time.sleep(delay)
-                else:
+            if self.cookie:
                     self.userId = str(self.decode_jwt(self.cookie, cookie_key).get('username'))
+                    print("userId:", self.userId)
         return self.userId
         

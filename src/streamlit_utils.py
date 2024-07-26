@@ -8,6 +8,7 @@ from st_pages import get_pages, get_script_run_ctx
 import streamlit_antd_components as sac
 
 
+
 # pages = get_pages("")
 # ctx = get_script_run_ctx()
 
@@ -41,7 +42,7 @@ def user_menu(userId, page, ):
     with c1:
         if not userId:
             if st.button("Log in", key="profile_button", type="primary"):
-                st.session_state["user_mode"] = "signedout"
+                # st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/streamlit_user.py")
         else:
             with st.popover(label=f"👤 {userId}",):
@@ -50,7 +51,6 @@ def user_menu(userId, page, ):
                 #         st.switch_page("streamlit_main.py")
                 if page!="profile":
                     if st.button("My profile", type="primary"):
-                        # st.session_state["user_mode"]="display_profile"
                         st.switch_page("pages/streamlit_user.py")
                 st.divider()
                 if st.button("Log out", type="primary"):
@@ -64,14 +64,6 @@ def user_menu(userId, page, ):
 
 def progress_bar(page):
 
-    # progress = stx.stepper_bar(steps=["Step 1: Upgrade your profile", "Step 2: Pick a template", "Step 3: Download your resume"], lock_sequence=False)
-    # if progress==1:
-    #     if "current_page" in st.session_state and st.session_state.current_page!="streamlit_reformat":
-    #         st.switch_page("pages/streamlit_reformat.py")
-    # elif progress==0:
-    #     if page=="profile":
-    #         if "current_page" in st.session_state and st.session_state.current_page!="streamlit_user":
-    #             st.switch_page("pages/streamlit_user.py")
     step = sac.steps(
         items=[
             sac.StepsItem(title="Step 1", subtitle="Update your profile"),
