@@ -58,14 +58,12 @@ class CookieManager():
             return self.cookie_manager.get(cookie=name)
         return self.cookie
 
-    # def set_cookie(self, name, username, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600)):
+    def set_cookie(self, name, username, key="setCookie", path="/", expire_at=datetime.now()+timedelta(seconds=3600)):
 
-    #     # cookie_value = self.encode_jwt(name, username, cookie_key)
-    #     # self.cookie_manager.set(cookie_name, cookie_value, key=key, path=path, expires_at=expire_at)
-    #     #NOTE: streamlit-authenticator sets the cookie already, this is just saving a class copy
-    #     self.cookie = self.get_cookie(cookie_name)
-    #     print(self.cookie)
-
+        #NOTE: streamlit-authenticator sets the cookie already, this is for google signin only
+        cookie_value = self.encode_jwt(name, username, cookie_key)
+        self.cookie_manager.set(cookie_name, cookie_value, key=key, path=path, expires_at=expire_at)
+        self.cookie = self.get_cookie(cookie_name)
 
     def get_all_cookies(self, x=0):
 
@@ -73,6 +71,8 @@ class CookieManager():
 
     def delete_cookie(self, key="deleteCookie"):
         
+        if not self.cookies:
+            self.cookies = self.get_all_cookies(x="x")
         if cookie_name in self.cookies:
             self.cookie_manager.delete(cookie_name, key)
         self.userId = None

@@ -87,12 +87,10 @@ class User():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if self.userId:
-            print("AAAAAAAAAAAAAAAAA")
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
         else:
-            print('BBBBBBBBBBBBBBBBBB')
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
         self._init_session_states()
@@ -142,8 +140,8 @@ class User():
 
         """ Initalizes user page according to user's sign in status"""
         st.markdown(primary_button, unsafe_allow_html=True )
-        # if st.session_state.user_mode!="signedout":
-        user_menu(self.userId, page="profile")
+        if st.session_state.user_mode!="signedout":
+            user_menu(self.userId, page="profile")
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -161,6 +159,7 @@ class User():
                         # ask user for their resumes
                         self.initialize_resume()
                     else:
+                        #display the progress bar
                         progress_bar(0)
                         # display the main profile
                         self.display_profile()
@@ -188,10 +187,10 @@ class User():
     def sign_out(self, ):
 
         print('signing out')
-        #NOTE: can't get authenticator logout to delete cookies so manually does it with the cookie manager wrapper class
+        #NOTE: can't get authenticator logout to delete cookies so manually doing it with the cookie manager wrapper class
         # still needs the logout code since the authenticator needs to be cleared
         st.session_state.authenticator.logout(location="unrendered")
-        # self.google_signout()
+        self.google_signout()
         st.session_state.cm.delete_cookie()
         st.session_state["user_mode"]="signedout"
         time.sleep(5)
@@ -206,56 +205,86 @@ class User():
 
         _, c1, _ = st.columns([1, 1, 1])
         with c1:
-            st.header("Welcome back")
-            name, authentication_status, username = st.session_state.authenticator.login()
-            placeholder_error = st.empty()
-            st.markdown(
-                """
-                <style>
-                button[kind="primary"] {
-                    background: none!important;
-                    border: none;
-                    padding: 0!important;
-                    color: black !important;
-                    text-decoration: none;
-                    cursor: pointer;
-                    border: none !important;
-                }
-                button[kind="primary"]:hover {
-                    text-decoration: none;
-                    color: blue !important;
-                }
-                button[kind="primary"]:focus {
-                    outline: none !important;
-                    box-shadow: none !important;
-                    color: blue !important;
-                }
-                </style>
-                """,
-                unsafe_allow_html=True,
-            )
-            col1, col2, col3 = st.columns([5, 1, 1])
-            with col2:
-                sign_up = st.button(label="sign up", key="signup",  type="primary")
-                if sign_up:
-                    st.session_state["user_mode"]="signup"
+            with st.container(border=True):
+                # st.header("Welcome back")
+                st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome back</h1>", unsafe_allow_html=True)
+                self.google_signin()
+                # add_vertical_space(1)
+                # sac.divider(label='or',  align='center', color='gray')
+                st.divider()
+                name, authentication_status, username = st.session_state.authenticator.login()
+                placeholder_error = st.empty()
+                st.markdown(
+                    """
+                    <style>
+                    button[kind="primary"] {
+                        background: none!important;
+                        border: none;
+                        padding: 0!important;
+                        color: black !important;
+                        text-decoration: none;
+                        cursor: pointer;
+                        border: none !important;
+                    }
+                    button[kind="primary"]:hover {
+                        text-decoration: none;
+                        color: blue !important;
+                    }
+                    button[kind="primary"]:focus {
+                        outline: none !important;
+                        box-shadow: none !important;
+                        color: blue !important;
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
+                with signup_col:
+                    add_vertical_space(2)
+                    sign_up = st.button(label="**sign up**", key="signup",  type="primary")
+                    if sign_up:
+                        st.session_state["user_mode"]="signup"
+                        st.rerun()
+                with forgot_password_col:
+                    forgot_password = st.button(label="forgot my password", key="forgot_password", type="primary") 
+                with forgot_username_col:
+                    forgot_username = st.button(label="forgot my username", key="forgot_username", type="primary")
+                if forgot_password:
+                    self.forgot_password_username_popup(type="password")
+                if forgot_username:
+                    self.forgot_password_username_popup(type="username")
+                # print(name, authentication_status, username)
+                if authentication_status:
+                    # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
+                    st.session_state["user_mode"]="signedin"
+                    time.sleep(5)
                     st.rerun()
-            with col3:
-                forgot_password = st.button(label="forgot my username/password", key="forgot", type="primary") 
-            st.divider()
-            # self.google_signin()
-            # print(name, authentication_status, username)
-            if authentication_status:
-                # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
-                # print("setting cookie")
-                # st.session_state.cm.set_cookie(name, username, )
-                # st.session_state.cm.set_cookie(name, username, )
-                st.session_state["user_mode"]="signedin"
-                time.sleep(5)
-                st.rerun()
-            elif authentication_status==False:
-                placeholder_error.error('Username/password is incorrect')
+                elif authentication_status==False:
+                    placeholder_error.error('Username/password is incorrect')
 
+    @st.experimental_dialog(title=" ")
+    def forgot_password_username_popup(self, type):
+        add_vertical_space(1)
+        if type=="password":
+            try:
+                username, email, random_passowrd = st.session_state.authenticator.forgot_password(fields={"Form name": "", "Username":"Please provide the username associated with your account"})
+                if username:
+                    st.write('Please check your email on steps to reset your password')
+                elif username==False:
+                    st.error("Username not found")
+            except Exception as e:
+                st.error("something went wrong, please try again.")
+        elif type=="username":
+            try:
+                username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
+                if username:
+                    st.success('Please check your email for your username')
+                    # The developer should securely transfer the username to the user.
+                elif username== False:
+                    st.error('Email not found')
+            except Exception as e:
+                st.error("something went wrong, please try again.")
 
 
     def google_signin(self,):
@@ -271,7 +300,6 @@ class User():
             try:
                 flow.fetch_token(code=auth_code)
                 credentials = flow.credentials
-                st.write("Login Done")
                 user_info_service = build(
                     serviceName="oauth2",
                     version="v2",
@@ -282,12 +310,12 @@ class User():
                 # st.session_state["google_auth_code"] = auth_code
                 # st.session_state["user_info"] = user_info
                 st.session_state["credentials"] = credentials
-                # st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
+                st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
                 st.session_state["user_mode"]="signedin"
                 time.sleep(5)
                 st.rerun()
             except Exception as e:
-                raise e
+                pass
         else:
             st.markdown(google_button, unsafe_allow_html=True)
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
@@ -298,8 +326,8 @@ class User():
                 )
                 # webbrowser.open_new_tab(authorization_url)
                 st.query_params.redirect_uri=authorization_url
-                # st.query_params.state=state
-                st.experimental_set_query_params(redirect_uri=authorization_url, state=state)
+                st.query_params.state=state
+                # st.experimental_set_query_params(redirect_uri=authorization_url, state=state)
                 st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
 
     def google_signout(self):
@@ -1068,10 +1096,10 @@ class User():
         with menu_col:
             with stylable_container(key="custom_button1",
                             # border-radius: 20px;
-                                    css_styles=["""
-                        button {
-                            background-color: #4682B4;
+                            # background-color: #4682B4;
+                        css_styles=["""button {
                             color: white;
+                            background-color: #FF6347;
                         }""",
                         # """{
                         #     border: 1px solid rgba(49, 51, 63, 0.2);
