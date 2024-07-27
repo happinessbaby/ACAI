@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_linkedin, create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
-from utils.basic_utils import mk_dirs
+from utils.basic_utils import mk_dirs, send_recovery_email
 from typing import Any, List
 import uuid
 from streamlit_js_eval import get_geolocation
@@ -242,7 +242,7 @@ class User():
                 signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
                 with signup_col:
                     add_vertical_space(2)
-                    sign_up = st.button(label="**sign up**", key="signup",  type="primary")
+                    sign_up = st.button(label="**Sign up**", key="signup",  type="primary")
                     if sign_up:
                         st.session_state["user_mode"]="signup"
                         st.rerun()
@@ -251,9 +251,9 @@ class User():
                 with forgot_username_col:
                     forgot_username = st.button(label="forgot my username", key="forgot_username", type="primary")
                 if forgot_password:
-                    self.forgot_password_username_popup(type="password")
+                    self.recover_password_username_popup(type="password")
                 if forgot_username:
-                    self.forgot_password_username_popup(type="username")
+                    self.recover_password_username_popup(type="username")
                 # print(name, authentication_status, username)
                 if authentication_status:
                     # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
@@ -264,13 +264,15 @@ class User():
                     placeholder_error.error('Username/password is incorrect')
 
     @st.experimental_dialog(title=" ")
-    def forgot_password_username_popup(self, type):
+    def recover_password_username_popup(self, type):
         add_vertical_space(1)
         if type=="password":
             try:
                 username, email, random_passowrd = st.session_state.authenticator.forgot_password(fields={"Form name": "", "Username":"Please provide the username associated with your account"})
                 if username:
                     st.write('Please check your email on steps to reset your password')
+                    if send_recovery_email(email, password=random_passowrd):
+                        st.success('Please check your email to reset your password')
                 elif username==False:
                     st.error("Username not found")
             except Exception as e:
@@ -279,11 +281,13 @@ class User():
             try:
                 username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
                 if username:
-                    st.success('Please check your email for your username')
                     # The developer should securely transfer the username to the user.
+                    if send_recovery_email(email, username=username):
+                        st.success('Please check your email for your username')
                 elif username== False:
                     st.error('Email not found')
             except Exception as e:
+                print(e)
                 st.error("something went wrong, please try again.")
 
 
