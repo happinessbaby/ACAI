@@ -140,7 +140,12 @@ class User():
 
         """ Initalizes user page according to user's sign in status"""
         st.markdown(primary_button, unsafe_allow_html=True )
-        if st.session_state.user_mode!="signedout":
+        token = st.query_params.get("token")
+        username = st.query_params.get("username")
+        if token and username:
+            st.session_state["user_mode"]="reset"
+            self.reset_password(token, username)
+        if st.session_state.user_mode!="signedout" and st.session_state.user_mode!="reset":
             user_menu(self.userId, page="profile")
         if st.session_state.user_mode=="signup":
             print("signing up")
@@ -177,6 +182,8 @@ class User():
                     #     raise
         elif st.session_state.user_mode=="signout":
             self.sign_out()
+        # elif st.session_state.user_mode=="reset_password":
+        #     self.reset_password()
 
           
     
@@ -247,13 +254,11 @@ class User():
                         st.session_state["user_mode"]="signup"
                         st.rerun()
                 with forgot_password_col:
-                    forgot_password = st.button(label="forgot my password", key="forgot_password", type="primary") 
+                    if st.button(label="forgot my password", key="forgot_password", type="primary"):
+                        self.recover_password_username_popup(type="password")
                 with forgot_username_col:
-                    forgot_username = st.button(label="forgot my username", key="forgot_username", type="primary")
-                if forgot_password:
-                    self.recover_password_username_popup(type="password")
-                if forgot_username:
-                    self.recover_password_username_popup(type="username")
+                    if st.button(label="forgot my username", key="forgot_username", type="primary"):
+                        self.recover_password_username_popup(type="username")
                 # print(name, authentication_status, username)
                 if authentication_status:
                     # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
@@ -266,29 +271,33 @@ class User():
     @st.experimental_dialog(title=" ")
     def recover_password_username_popup(self, type):
         add_vertical_space(1)
-        if type=="password":
-            try:
-                username, email, random_passowrd = st.session_state.authenticator.forgot_password(fields={"Form name": "", "Username":"Please provide the username associated with your account"})
-                if username:
-                    st.write('Please check your email on steps to reset your password')
-                    if send_recovery_email(email, password=random_passowrd):
-                        st.success('Please check your email to reset your password')
-                elif username==False:
-                    st.error("Username not found")
-            except Exception as e:
-                st.error("something went wrong, please try again.")
-        elif type=="username":
-            try:
-                username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
-                if username:
-                    # The developer should securely transfer the username to the user.
-                    if send_recovery_email(email, username=username):
-                        st.success('Please check your email for your username')
-                elif username== False:
-                    st.error('Email not found')
-            except Exception as e:
-                print(e)
-                st.error("something went wrong, please try again.")
+        # if type=="password":
+        #     try:
+        #         username, email, random_passowrd = st.session_state.authenticator.forgot_password(fields={"Form name": "", "Username":"Please provide the username associated with your account"})
+        #         if username:
+        #             st.write('Please check your email on steps to reset your password')
+        #             if send_recovery_email(email, type, username=username, password=random_passowrd):
+        #                 st.success('Please check your email to reset your password')
+        #         elif username==False:
+        #             st.error("Username not found")
+        #     except Exception as e:
+        #         st.error("something went wrong, please try again.")
+        # elif type=="username":
+        try:
+            username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
+            if username:
+                # if type=="password":
+                    if send_recovery_email(email, type, username=username, ):
+                        st.success('Please check your email')
+                # elif type=="username":
+                #     # The developer should securely transfer the username to the user.
+                #     if send_recovery_email(email, type, username=username):
+                #         st.success('Please check your email for your username')
+            elif username== False:
+                st.error('Email not found')
+        except Exception as e:
+            print(e)
+            st.error("something went wrong, please try again.")
 
 
     def google_signin(self,):
@@ -357,9 +366,6 @@ class User():
                 authenticator = st.session_state.authenticator
                 email, username, name= authenticator.register_user(pre_authorization=False)
                 if email:
-                    # name = authenticator.credentials["usernames"][username]["name"]
-                    # password = authenticator.credentials["usernames"][username]["password"]
-                    # email = authenticator.credentials["usernames"][username]["email"]
                     with open(login_file, 'w') as file:
                         yaml.dump(st.session_state.config, file, default_flow_style=False)
                     # if self.save_password( username, name, password, email):
@@ -367,33 +373,58 @@ class User():
                     st.success("User registered successfully")
                     time.sleep(5)
                     st.rerun()
-                    # else:
-                    #     st.info("Failed to register user, please try again")
-                    #     st.rerun()
             except Exception as e:
                 st.info(e)
 
+    def reset_password(self, token, username):
+    
+        _, c, _ = st.columns([1, 1, 1])
+        with c:
+            if self.verify_token(token):
+                with st.form(key="password_reset_form"):
+                # Display the password reset form
+                    new_password = st.text_input("New Password", type="password", )
+                    confirm_password = st.text_input("Confirm Password", type="password")               
+                    if st.form_submit_button("Reset Password"):
+                        if new_password == confirm_password:
+                            # Update the user's password in the database
+                            self.save_password(new_password, username)
+                            st.success("Password has been reset successfully!")
+                            time.sleep(5)
+                            st.session_state["user_mode"]="signedout"
+                            nav_to("http://localhost:8501/streamlit_user")                              
+                        else:
+                            st.error("Passwords do not match.")
+            else:
+                st.error("Invalid or expired token.")
+ 
+                
 
-    # def save_password(self, username, name, password, email, filename=login_file):
+    def save_password(self, password, username, filename=login_file):
 
-    #     try:
-    #         with open(filename, 'r') as file:
-    #             credentials = yaml.safe_load(file)
-    #             print(credentials)
-    #             # Add the new user's details to the dictionary
-    #         credentials['credentials']['usernames'][username] = {
-    #             'email': email,
-    #             'name': name,
-    #             'password': password
-    #         }  
-    #         with open(filename, 'w') as file:
-    #             yaml.dump(credentials, file)
-    #         return True
-    #     except Exception as e:
-    #         return False
+        try:
+            with open(filename, 'r') as file:
+                credentials = yaml.safe_load(file)
+                print(credentials)
+                # Add the new user's details to the dictionary
+            # credentials['credentials']['usernames'][username] = {
+            #     'email': email,
+            #     'name': name,
+            #     'password': password
+            # }  
+            credentials['credentials']['usernames'][username]['password']=password
+            with open(filename, 'w') as file:
+                yaml.dump(credentials, file)
+            print("successfully saved password")
+            # return True
+        except Exception as e:
+            raise e
 
 
-                    
+    def verify_token(self, token):
+        # Token verification logic
+        # Check if token exists in the database and is not expired
+        return True       
 
 
     

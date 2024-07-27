@@ -535,7 +535,7 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     return results 
 
 
-def send_recovery_email(to_email, subject="Password and username recovery", password=None, username=None, ):
+def send_recovery_email(to_email, type, subject="Password and username recovery", password=None, username=None, ):
 
     # Create the base text message.
     msg = EmailMessage()
@@ -547,58 +547,20 @@ def send_recovery_email(to_email, subject="Password and username recovery", pass
                 Address("Penelope Pussycat", "yueqipeng2021", "gmail.com"),
                 Address("Fabrette Pussycat", to_email[0], to_email[1])
                  )
-    if username:
+    if type=="username":
         msg.set_content(f"""\
             Your Username is:
                         {username}
 
         """)
-    elif password:
+    elif type=="password":
+        token = str(uuid.uuid4())
+        link = f"""http://localhost:8501/streamlit_user?token={token}&username={username}"""
         msg.set_content(f"""\
             Please use the temporary link follow the link to reset your passsword:
-                        {password}
+                        {link}
 
         """)
-
-
-        # [1] http://www.yummly.com/recipe/Roasted-Asparagus-Epicurious-203718
-
-        # --Pepé
-        # Add the html version.  This converts the message into a multipart/alternative
-        # container, with the original text message as the first part and the new html
-        # message as the second part.
-        # asparagus_cid = make_msgid()
-        # msg.add_alternative("""\
-        # <html>
-        # <head></head>
-        # <body>
-        #     <p>Salut!</p>
-        #     <p>Cela ressemble à un excellent
-        #         <a href="http://www.yummly.com/recipe/Roasted-Asparagus-Epicurious-203718">
-        #             recipie
-        #         </a> déjeuner.
-        #     </p>
-        # </body>
-        # </html>
-        # """.format(asparagus_cid=asparagus_cid[1:-1]), subtype='html')
-        # <img src="cid:{asparagus_cid}" />
-    # note that we needed to peel the <> off the msgid for use in the html.
-
-    # Now add the related image to the html part.
-    # with open("roasted-asparagus.jpg", 'rb') as img:
-    #     msg.get_payload()[1].add_related(img.read(), 'image', 'jpeg',
-    #                                     cid=asparagus_cid)
-
-    # Make a local copy of what we are going to send.
-    # with open('outgoing.msg', 'wb') as f:
-    #     f.write(bytes(msg))
-
-    # Send the message via local SMTP server.
-    # try:
-    #     with smtplib.SMTP('localhost') as s:
-    #         s.send_message(msg)
-    # except Exception as e:
-    #     raise(e)
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
     smtp_username =  os.environ["SMTP_USERNAME"]
