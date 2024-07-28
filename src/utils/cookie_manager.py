@@ -5,6 +5,11 @@ import os
 import time
 from datetime import datetime, timedelta, date
 
+
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
+
+
 cookie_name = os.environ["COOKIE_NAME"]
 cookie_key=os.environ["COOKIE_KEY"]
 
