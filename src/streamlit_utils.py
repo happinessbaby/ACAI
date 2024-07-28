@@ -42,7 +42,7 @@ def user_menu(userId, page, ):
     with c1:
         if not userId:
             if st.button("Log in", key="profile_button", type="primary"):
-                # st.session_state["user_mode"] = "signedout"
+                st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/streamlit_user.py")
         else:
             with st.popover(label=f"👤 {userId}",):
