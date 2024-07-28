@@ -46,7 +46,7 @@ STORAGE = os.environ['STORAGE']
 if STORAGE=="CLOUD":
     login_file = os.environ["S3_LOGIN_FILE_PATH"]
     db_path=os.environ["S3_LANCEDB_PATH"]
-    client_secret_json = os.environ["CLIENT_SECRET_JSON"]
+    client_secret_json = os.environ["CLOUD_CLIENT_SECRET_JSON"]
     base_uri = os.environ["PRODUCTION_BASE_URI"]
 elif STORAGE=="LOCAL":
     login_file = os.environ["LOGIN_FILE_PATH"]
@@ -273,7 +273,7 @@ class User():
                 elif authentication_status==False:
                     placeholder_error.error('Username/password is incorrect')
 
-    @st.experimental_dialog(title=" ")
+    @st.dialog(title=" ")
     def recover_password_username_popup(self, type):
         add_vertical_space(1)
         # if type=="password":
@@ -652,7 +652,7 @@ class User():
 
 
 
-    @st.experimental_fragment()
+    @st.fragment()
     def display_skills(self, ):
 
         """ Interactive display of skills section of the profile"""
@@ -702,7 +702,7 @@ class User():
         return get_display
 
 
-    @st.experimental_fragment()
+    @st.fragment()
     def display_field_details(self, field_name, x, field_detail, type):
 
         """ Interactive display of specific details such as bullet points in each field"""
@@ -764,7 +764,7 @@ class User():
         return get_display
 
 
-    @st.experimental_fragment()   
+    @st.fragment()   
     def display_field_content(self, name):
 
         """Interactive display of content of each profile/resume field """
@@ -934,7 +934,7 @@ class User():
      
           
 
-    @st.experimental_dialog("Please provide a job posting")   
+    @st.dialog("Please provide a job posting")   
     def job_posting_popup(self,):
 
         """ Opens a popup for adding a job posting """
@@ -1160,7 +1160,7 @@ class User():
         
 
     
-    @st.experimental_fragment(run_every=st.session_state["eval_rerun_timer"])
+    @st.fragment(run_every=st.session_state["eval_rerun_timer"])
     def display_general_evaluation(self, container):
 
         """ Displays the general evaluation result of the profile """
@@ -1268,11 +1268,11 @@ class User():
                         st.rerun()
 
 
-    @st.experimental_dialog(" ")
+    @st.dialog(" ")
     def resume_type_popup(self, ):
         st.image("./resources/functional_chronological_resume.png")
     
-    @st.experimental_dialog(" ", width="large")
+    @st.dialog(" ", width="large")
     def explore_template_popup(self, ):
         """"""
         type = sac.tabs([
@@ -1305,7 +1305,7 @@ class User():
        
 
 
-    @st.experimental_dialog("Warning")
+    @st.dialog("Warning")
     def delete_profile_popup(self):
 
         """ Opens a popup that warns user before uploading a new resume """

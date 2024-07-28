@@ -175,7 +175,7 @@ class Interview():
             #     on_release=_self.on_release)
             #     st.session_state["listener"] = new_listener
  
-    @st.experimental_dialog("Tell me about your interview!", width="large")
+    @st.dialog("Tell me about your interview!", width="large")
     def interview_form_popup(self):
         """"""
 

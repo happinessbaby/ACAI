@@ -14,7 +14,7 @@ import streamlit_antd_components as sac
 
 
 
-@st.experimental_dialog(" ", )
+@st.dialog(" ", )
 def loading(text, container=st.empty(), interval=5):  
     with container.container():
         with st.spinner(text):

@@ -398,7 +398,7 @@ class Main():
 
 
 
-    @st.experimental_dialog(" ", )
+    @st.dialog(" ", )
     def resume_form_popup(self, resume_required=True, job_required = False, ):
         
         """ Form popup for resume help"""
@@ -492,7 +492,7 @@ class Main():
     #             del st.session_state["job_required"]
 
 
-    # @st.experimental_fragment
+    # @st.fragment
     def process_selection(self, ):
 
         # Generate resume and job posting dictionaries
