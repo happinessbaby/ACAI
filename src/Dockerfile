@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the application code into the container
 COPY requirements.txt requirements.txt
 
+
 # Install Python dependencies
 RUN pip3 install -r requirements.txt
 
