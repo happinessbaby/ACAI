@@ -57,7 +57,7 @@ from email.headerregistry import Address
 from email.utils import make_msgid
     
 from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv()) # read local .env file
+_ = load_dotenv(find_dotenv()) # read local .env 
 nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
@@ -65,11 +65,12 @@ aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 STORAGE = os.environ["STORAGE"]
 if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
-    s3_save_path = os.environ["S3_CHAT_PATH"]
     s3 = get_client('s3')
+    base_uri = os.environ["PRODUCTION_BASE_URI"]
 else:
     bucket_name=None
     s3=None
+    base_uri = os.environ["BASE_URI"]
 
 def convert_to_txt(file, output_path,) -> bool:
 
@@ -555,7 +556,7 @@ def send_recovery_email(to_email, type, subject="Password and username recovery"
         """)
     elif type=="password":
         token = str(uuid.uuid4())
-        link = f"""http://localhost:8501/streamlit_user?token={token}&username={username}"""
+        link = base_uri+f"""streamlit_user?token={token}&username={username}"""
         msg.set_content(f"""\
             Please use the temporary link follow the link to reset your passsword:
                         {link}

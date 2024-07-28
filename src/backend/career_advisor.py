@@ -53,7 +53,6 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]
 save_path = os.environ["CHAT_PATH"]
 faiss_web_data_path = os.environ["FAISS_WEB_DATA_PATH"]
-endpoint_url = os.environ["ENDPOINT_URL"]
 message_key = {
 "PK": os.environ["PK"],
 "SK": os.environ["SK"],
