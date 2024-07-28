@@ -46,7 +46,7 @@ STORAGE = os.environ['STORAGE']
 if STORAGE=="CLOUD":
     login_file = os.environ["S3_LOGIN_FILE_PATH"]
     db_path=os.environ["S3_LANCEDB_PATH"]
-    client_secret_json = os.environ["S_CLIENT_SECRET_JSON"]
+    client_secret_json = os.environ["CLIENT_SECRET_JSON"]
     base_uri = os.environ["PRODUCTION_BASE_URI"]
 elif STORAGE=="LOCAL":
     login_file = os.environ["LOGIN_FILE_PATH"]
