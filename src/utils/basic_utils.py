@@ -51,6 +51,10 @@ import pypandoc
 import shutil
 from pdf2image import convert_from_bytes
 from utils.aws_manager import get_client
+import smtplib
+from email.message import EmailMessage
+from email.headerregistry import Address
+from email.utils import make_msgid
     
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -529,6 +533,48 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
         await browser.close()
     # return page_source
     return results 
+
+
+def send_recovery_email(to_email, type, subject="Password and username recovery", password=None, username=None, ):
+
+    # Create the base text message.
+    msg = EmailMessage()
+    to_email = to_email.split("@")
+    # print(to_email)
+    msg['Subject'] = subject
+    msg['From'] = Address("ACAI", "yueqipeng2021", "gmail.com")
+    msg['To'] = (
+                Address("Penelope Pussycat", "yueqipeng2021", "gmail.com"),
+                Address("Fabrette Pussycat", to_email[0], to_email[1])
+                 )
+    if type=="username":
+        msg.set_content(f"""\
+            Your Username is:
+                        {username}
+
+        """)
+    elif type=="password":
+        token = str(uuid.uuid4())
+        link = f"""http://localhost:8501/streamlit_user?token={token}&username={username}"""
+        msg.set_content(f"""\
+            Please use the temporary link follow the link to reset your passsword:
+                        {link}
+
+        """)
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = 587
+    smtp_username =  os.environ["SMTP_USERNAME"]
+    smtp_password = os.environ["SMTP_PASSWORD"]
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Upgrade to secure connection
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+        print("Email sent successfully!")
+        return True
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
 
 def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]) -> BeautifulSoup:
     """

@@ -71,7 +71,7 @@ class Reformat():
                     key="custom_template_container",
                         css_styles=  
                     """   button {
-                                    background-color: #4682B4;
+                                    background-color: #FF6347;
                                     color: white;
                                 }"""
                     ):
