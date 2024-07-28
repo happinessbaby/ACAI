@@ -43,13 +43,18 @@ from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 STORAGE = os.environ['STORAGE']
-bucket_name = os.environ["BUCKET_NAME"]
-login_file = os.environ["LOGIN_FILE_PATH"]
-db_path=os.environ["LANCEDB_PATH"]
+if STORAGE=="CLOUD":
+    login_file = os.environ["S3_LOGIN_FILE_PATH"]
+    db_path=os.environ["S3_LANCEDB_PATH"]
+    client_secret_json = os.environ["S_CLIENT_SECRET_JSON"]
+    base_uri = os.environ["PRODUCTION_BASE_URI"]
+elif STORAGE=="LOCAL":
+    login_file = os.environ["LOGIN_FILE_PATH"]
+    db_path=os.environ["LANCEDB_PATH"]
+    client_secret_json = os.environ["CLIENT_SECRET_JSON"]
+    base_uri = os.environ["BASE_URI"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
-client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
-placeholder_about_resume=st.empty()
 # initialize float feature/capability
 float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -307,7 +312,7 @@ class User():
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
             scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
-            redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else "http://localhost:8501/streamlit_user",
+            redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else base_uri+"/streamlit_user",
             )
         if auth_code:
             try:
@@ -392,7 +397,7 @@ class User():
                             st.success("Password has been reset successfully!")
                             time.sleep(5)
                             st.session_state["user_mode"]="signedout"
-                            nav_to("http://localhost:8501/streamlit_user")                              
+                            nav_to(base_uri+"/streamlit_user")                              
                         else:
                             st.error("Passwords do not match.")
             else:

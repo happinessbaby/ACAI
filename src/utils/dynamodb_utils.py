@@ -8,7 +8,6 @@ from boto3.dynamodb.conditions import Key, Attr
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
-endpoint_url = os.environ["ENDPOINT_URL"]
 
 
 def init_table(session, tableId):
