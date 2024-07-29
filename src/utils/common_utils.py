@@ -869,7 +869,7 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
 
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
-    # return resume_info_dict[resume_path]
+    return resume_info_dict[resume_path]
 
 
 def create_job_posting_info(posting_path="", about_job="", ):
