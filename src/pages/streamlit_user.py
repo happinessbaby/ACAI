@@ -200,10 +200,14 @@ class User():
 
         print('signing out')
         #NOTE: can't get authenticator logout to delete cookies so manually doing it with the cookie manager wrapper class
-        # still needs the logout code since the authenticator needs to be cleared
-        st.session_state.authenticator.logout(location="unrendered")
-        self.google_signout()
+        # also needs to manually delete cookies for google login case
         st.session_state.cm.delete_cookie()
+        try:
+            # still needs the logout code since the authenticators need to be cleared
+            st.session_state.authenticator.logout(location="unrendered")
+            self.google_signout()
+        except Exception:
+            pass
         st.session_state["user_mode"]="signedout"
         time.sleep(5)
         if "redirect_page" in st.session_state:
