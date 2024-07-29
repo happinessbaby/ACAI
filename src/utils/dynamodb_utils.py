@@ -2,38 +2,32 @@ import boto3
 import os
 from typing import List, Union
 from boto3.dynamodb.conditions import Key, Attr
-
+from utils.aws_manager import get_client, get_resource
 
 
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
+client = get_client("dynamodb")
 
-def init_table(session, tableId):
+def init_dynamodb_table(tableId, args_dict=None):
 
-    client = session.client('dynamodb', 'us-east-2') 
     existing_tables = client.list_tables()['TableNames']
     if tableId not in existing_tables:
-        return create_table(client, tableId)
+        return create_dynamodb_table(tableId, args_dict)
+    else:
+        dynamodb = get_resource("dynamodb")
+        return dynamodb.Table(tableId)
 
-def create_table(client, tableId):
+def create_dynamodb_table(tableId, args_dict=None):
+
     table = client.create_table(
         TableName=tableId,
-        KeySchema=[
-            {
-                'AttributeName': 'userId',
-                'KeyType': 'HASH'  #Partition_key
-            },
-        ],
-        AttributeDefinitions=[
-            {
-                'AttributeName': 'userId',
-                'AttributeType': 'S'
-            },
-
-        ],
-        BillingMode="PAY_PER_REQUEST",
+        KeySchema=args_dict["KeySchema"],
+        AttributeDefinitions = args_dict["AttributeDefinitions"],
+        ProvisionedThroughput=args_dict["ProvisionedThroughput"],
+        # BillingMode="PAY_PER_REQUEST",
     )
     print("CREATED DYNAMODB TABLE")
     return table
@@ -113,21 +107,21 @@ def save_current_conversation(table, userId, human, ai):
         )
         print("ADDING NEW USER TO TABLE")
 
-def save_user_info(table, userId, key, value):
+# def save_user_info(table, userId, key, value):
 
-    """ Saves user's career goals and self description to table """
+#     """ Saves user's career goals and self description to table """
 
-    user = table.get_item(
-        Key={'userId': userId},
-    )
-    if 'Item' in user:
-        table.put_item(
-            Item= {
-                "about user": {
-                key: value,
-                }
-            }
-        )
+#     user = table.get_item(
+#         Key={'userId': userId},
+#     )
+#     if 'Item' in user:
+#         table.put_item(
+#             Item= {
+#                 "about user": {
+#                 key: value,
+#                 }
+#             }
+#         )
 
 def check_attribute_exists(table, key, attribute):
 

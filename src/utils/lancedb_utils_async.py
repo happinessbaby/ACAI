@@ -36,7 +36,10 @@ elif STORAGE == "CLOUD":
             "region": os.environ["REGION_NAME"],
         }
     
-
+async def connect():
+    return await lancedb.connect_async(
+    f"s3+ddb://{db_path}?ddbTableName=my-dynamodb-table",
+)
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]

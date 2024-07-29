@@ -38,6 +38,10 @@ def get_client(type):
         return get_aws_session().client('dynamodb', region_name) 
     elif type=="sts":
         return get_aws_session().client('sts')
+    
+def get_resource(type):
+    if type=="dynamodb":
+        return get_aws_session().resource(type, region_name)
 
 
 def request_aws4auth(service="aoss", region='us-east-2'):
