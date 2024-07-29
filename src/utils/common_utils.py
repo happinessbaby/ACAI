@@ -867,9 +867,9 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
     suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
     resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
 
-    with open(resume_info_file, 'a') as json_file:
-        json.dump(resume_info_dict, json_file, indent=4)
-    return resume_info_dict[resume_path]
+    # with open(resume_info_file, 'a') as json_file:
+    #     json.dump(resume_info_dict, json_file, indent=4)
+    # return resume_info_dict[resume_path]
 
 
 def create_job_posting_info(posting_path="", about_job="", ):
