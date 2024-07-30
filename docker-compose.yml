@@ -13,12 +13,12 @@ services:
     volumes:
       - ./src:/app
 
-  nginx:
-    container_name: nginx
-    restart: always
-    build: ./nginx
-    ports:
-      - "80:80"     # Exposes Nginx on port 80 (HTTP)
-      - "443:443"   # Exposes Nginx on port 443 (HTTPS)
-    depends_on:
-      - app
+  # nginx:
+  #   container_name: nginx
+  #   restart: always
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"     # Exposes Nginx on port 80 (HTTP)
+  #     - "443:443"   # Exposes Nginx on port 443 (HTTPS)
+  #   depends_on:
+  #     - app
