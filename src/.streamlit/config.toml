@@ -1,7 +1,7 @@
 [server]
 enableXsrfProtection = false
 enableCORS = false
-serverAddress = "acareerai.com"
+baseUrlPath=app
 
 [client]
 showSidebarNavigation = false
