@@ -8,12 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the application code into the container
-COPY requirements.txt requirements.txt
+# Copy requirements.txt into the container
+COPY requirements.txt ./
 
-
-# Install Python dependencies
-RUN pip3 install -r requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the necessary port
 EXPOSE 8501
