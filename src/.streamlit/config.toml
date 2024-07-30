@@ -3,6 +3,9 @@ enableXsrfProtection = false
 enableCORS = false
 baseUrlPath="app"
 
+[browser]
+serverAddress="acareerai.com"
+
 [client]
 showSidebarNavigation = false
 
