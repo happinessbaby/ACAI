@@ -1,6 +1,7 @@
 [server]
 enableXsrfProtection = false
 enableCORS = false
+serverAddress = "acareerai.com"
 
 [client]
 showSidebarNavigation = false
