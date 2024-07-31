@@ -21,8 +21,10 @@ model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 STORAGE = os.environ["STORAGE"]
+region = os.evnrion["REGION_NAME"]
 if STORAGE=="LOCAL":
     db_path=os.environ["LANCEDB_PATH"]
+    db = lancedb.connect(db_path,)
 elif STORAGE == "CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     lancedb_path=os.environ["S3_LANCEDB_PATH"]
@@ -42,8 +44,7 @@ elif STORAGE == "CLOUD":
     ]
     args_dict["ProvisionedThroughput"]={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1}
     table = init_dynamodb_table("my-dynamodb-table", args_dict)
-
-db = lancedb.connect(db_path)
+    db = lancedb.connect(db_path, region=region)
 
 
 
