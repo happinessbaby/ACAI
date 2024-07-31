@@ -11,6 +11,7 @@ from utils.async_utils import asyncio_run
 from dotenv import load_dotenv, find_dotenv
 from utils.aws_manager import get_session_token
 from utils.dynamodb_utils import init_dynamodb_table
+import lance
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -24,11 +25,11 @@ if STORAGE=="LOCAL":
     db_path=os.environ["LANCEDB_PATH"]
 elif STORAGE == "CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
-    # db_path = f"s3://{bucket_name}/"+ os.environ["S3_LANCEDB_PATH"]
+    lancedb_path=os.environ["S3_LANCEDB_PATH"]
+    db_path = f"s3://{bucket_name}{lancedb_path}"
     # """By default, S3 does not support concurrent writes. Having two or more processes writing to the same table at the same time can lead to data corruption. This is because S3, unlike other object stores, does not have any atomic put or copy operation.
     # To enable concurrent writes, you can configure LanceDB to use a DynamoDB table as a commit store. This table will be used to coordinate writes between different processes."""
-    lancedb_path=os.environ["S3_LANCEDB_PATH"]
-    db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
+    # db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
     print("db path", db_path)
     args_dict={}
     args_dict["KeySchema"] = [
@@ -67,7 +68,14 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 #     def url(self):
 #         return self.job_url
 
-
+def add_lancedb_dataset():
+    ds = lance.dataset(
+        f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table""",
+        storage_options={
+            "access_key_id": os.environ["AWS_SERVER_PUBLIC_KEY"],
+            "secret_access_key": os.environ["AWS_SERVER_SECRET_KEY"],
+        }
+    )
 def register_model(model_name):
     registry = EmbeddingFunctionRegistry.get_instance()
     model = registry.get(model_name).create()
