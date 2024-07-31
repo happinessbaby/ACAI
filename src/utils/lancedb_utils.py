@@ -21,7 +21,7 @@ model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 STORAGE = os.environ["STORAGE"]
-region = os.evnrion["REGION_NAME"]
+region = os.environ["REGION_NAME"]
 if STORAGE=="LOCAL":
     db_path=os.environ["LANCEDB_PATH"]
     db = lancedb.connect(db_path,)
