@@ -536,7 +536,7 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     return results 
 
 
-def send_recovery_email(to_email, type, subject="Password and username recovery", password=None, username=None, ):
+def send_recovery_email(to_email, type, subject="Password/Username recovery", password=None, username=None, ):
 
     # Create the base text message.
     msg = EmailMessage()
@@ -545,8 +545,8 @@ def send_recovery_email(to_email, type, subject="Password and username recovery"
     msg['Subject'] = subject
     msg['From'] = Address("ACAI", "yueqipeng2021", "gmail.com")
     msg['To'] = (
-                Address("Penelope Pussycat", "yueqipeng2021", "gmail.com"),
-                Address("Fabrette Pussycat", to_email[0], to_email[1])
+                Address(username, "yueqipeng2021", "gmail.com"),
+                Address(username, to_email[0], to_email[1])
                  )
     if type=="username":
         msg.set_content(f"""\
@@ -556,12 +556,23 @@ def send_recovery_email(to_email, type, subject="Password and username recovery"
         """)
     elif type=="password":
         token = str(uuid.uuid4())
-        link = base_uri+f"""user?token={token}&username={username}"""
+        link = base_uri+f"""/user?token={token}&username={username}"""
         msg.set_content(f"""\
-            Please use the temporary link follow the link to reset your passsword:
+            Please follow the link to reset your passsword:
                         {link}
 
         """)
+
+    msg.add_alternative(f"""\
+        <!DOCTYPE html>
+        <html>
+            <body>
+                <p>Please follow the link to reset your password:</p>
+                <p><a href="{link}">Reset your password</a></p>
+            </body>
+        </html>
+        """, subtype='html')
+
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
     smtp_username =  os.environ["SMTP_USERNAME"]

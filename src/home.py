@@ -185,35 +185,35 @@ class Main():
         # if 'questionInput' not in st.session_state:
         #     st.session_state["questionInput"] = None  
         # st.session_state["resume_placeholder"] = st.empty()
-        if STORAGE == "LOCAL":
-            st.session_state["storage"]="LOCAL"
-            st.session_state["bucket_name"]=None
-            st.session_state["s3_client"]= None
-            # if "save_path" not in st.session_state:
-            if _self.userId is not None:
-                st.session_state["save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "main")
-            else:
-                st.session_state["save_path"] =os.environ["MAIN_PATH"]
-            st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
-        elif STORAGE=="CLOUD":
-            st.session_state["storage"]="CLOUD"
-            st.session_state["bucket_name"]=bucket_name
-            st.session_state["s3_client"]= get_client('s3') 
-            # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
-            # if "save_path" not in st.session_state:
-            if _self.userId is not None:
-                st.session_state["save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "main")
-            else:
-                st.session_state["save_path"] =os.environ["S3_MAIN_PATH"]
-            # if "temp_path" not in st.session_state:
-            st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
-        paths = [st.session_state.save_path,
-                os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
-                os.path.join(st.session_state.save_path, st.session_state.sessionId),
-                # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
-                os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
-                ]
-        mk_dirs(paths,)
+        # if STORAGE == "LOCAL":
+        #     st.session_state["storage"]="LOCAL"
+        #     st.session_state["bucket_name"]=None
+        #     st.session_state["s3_client"]= None
+        #     # if "save_path" not in st.session_state:
+        #     if _self.userId is not None:
+        #         st.session_state["save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "main")
+        #     else:
+        #         st.session_state["save_path"] =os.environ["MAIN_PATH"]
+        #     st.session_state["temp_path"]  = os.environ["TEMP_PATH"]
+        # elif STORAGE=="CLOUD":
+        #     st.session_state["storage"]="CLOUD"
+        #     st.session_state["bucket_name"]=bucket_name
+        #     st.session_state["s3_client"]= get_client('s3') 
+        #     # st.session_state["awsauth"] = request_aws4auth(_self.aws_session)
+        #     # if "save_path" not in st.session_state:
+        #     if _self.userId is not None:
+        #         st.session_state["save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "main")
+        #     else:
+        #         st.session_state["save_path"] =os.environ["S3_MAIN_PATH"]
+        #     # if "temp_path" not in st.session_state:
+        #     st.session_state["temp_path"]  = os.environ["S3_TEMP_PATH"]
+        # paths = [st.session_state.save_path,
+        #         os.path.join(st.session_state.temp_path, st.session_state.sessionId), 
+        #         os.path.join(st.session_state.save_path, st.session_state.sessionId),
+        #         # os.path.join(st.session_state.save_path, st.session_state.sessionId, "downloads"),
+        #         os.path.join(st.session_state.save_path, st.session_state.sessionId, "uploads"),
+        #         ]
+        # mk_dirs(paths,)
 
    
     def _init_display(_self):

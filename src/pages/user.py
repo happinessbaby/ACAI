@@ -3,6 +3,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import yaml
 from yaml.loader import SafeLoader
 import streamlit_authenticator as stauth
+from streamlit_authenticator.utilities import RegisterError
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -57,6 +58,7 @@ elif STORAGE=="LOCAL":
     base_uri = os.environ["BASE_URI"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
+placeholder=st.empty()
 # initialize float feature/capability
 float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -224,39 +226,38 @@ class User():
         _, c1, _ = st.columns([1, 1, 1])
         with c1:
             with st.container(border=True):
-                # st.header("Welcome back")
-                st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome back</h1>", unsafe_allow_html=True)
+                st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 self.google_signin()
                 # add_vertical_space(1)
                 # sac.divider(label='or',  align='center', color='gray')
                 st.divider()
                 name, authentication_status, username = st.session_state.authenticator.login()
                 placeholder_error = st.empty()
-                st.markdown(
-                    """
-                    <style>
-                    button[kind="primary"] {
-                        background: none!important;
-                        border: none;
-                        padding: 0!important;
-                        color: black !important;
-                        text-decoration: none;
-                        cursor: pointer;
-                        border: none !important;
-                    }
-                    button[kind="primary"]:hover {
-                        text-decoration: none;
-                        color: blue !important;
-                    }
-                    button[kind="primary"]:focus {
-                        outline: none !important;
-                        box-shadow: none !important;
-                        color: blue !important;
-                    }
-                    </style>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                # st.markdown(
+                #     """
+                #     <style>
+                #     button[kind="primary"] {
+                #         background: none!important;
+                #         border: none;
+                #         padding: 0!important;
+                #         color: black !important;
+                #         text-decoration: none;
+                #         cursor: pointer;
+                #         border: none !important;
+                #     }
+                #     button[kind="primary"]:hover {
+                #         text-decoration: none;
+                #         color: blue !important;
+                #     }
+                #     button[kind="primary"]:focus {
+                #         outline: none !important;
+                #         box-shadow: none !important;
+                #         color: blue !important;
+                #     }
+                #     </style>
+                #     """,
+                #     unsafe_allow_html=True,
+                # )
                 signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
                 with signup_col:
                     add_vertical_space(2)
@@ -281,29 +282,13 @@ class User():
 
     @st.dialog(title=" ")
     def recover_password_username_popup(self, type):
+
         add_vertical_space(1)
-        # if type=="password":
-        #     try:
-        #         username, email, random_passowrd = st.session_state.authenticator.forgot_password(fields={"Form name": "", "Username":"Please provide the username associated with your account"})
-        #         if username:
-        #             st.write('Please check your email on steps to reset your password')
-        #             if send_recovery_email(email, type, username=username, password=random_passowrd):
-        #                 st.success('Please check your email to reset your password')
-        #         elif username==False:
-        #             st.error("Username not found")
-        #     except Exception as e:
-        #         st.error("something went wrong, please try again.")
-        # elif type=="username":
         try:
             username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
             if username:
-                # if type=="password":
-                    if send_recovery_email(email, type, username=username, ):
-                        st.success('Please check your email')
-                # elif type=="username":
-                #     # The developer should securely transfer the username to the user.
-                #     if send_recovery_email(email, type, username=username):
-                #         st.success('Please check your email for your username')
+                if send_recovery_email(email, type, username=username, ):
+                    st.success('Please check your email')
             elif username== False:
                 st.error('Email not found')
         except Exception as e:
@@ -384,8 +369,12 @@ class User():
                     st.success("User registered successfully")
                     time.sleep(5)
                     st.rerun()
-            except Exception as e:
-                st.info(e)
+            except RegisterError as e:
+                if e.message=="Password does not meet criteria":
+                    st.warning("""Password must:
+                    Contain at least one lowercase letter, at least one uppercase letter, at least one digit, at least one special character and between 8 and 20 characters in length""")
+                else:
+                    st.warning(e)
 
     def reset_password(self, token, username):
     
