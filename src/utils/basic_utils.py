@@ -556,7 +556,7 @@ def send_recovery_email(to_email, type, subject="Password and username recovery"
         """)
     elif type=="password":
         token = str(uuid.uuid4())
-        link = base_uri+f"""streamlit_user?token={token}&username={username}"""
+        link = base_uri+f"""user?token={token}&username={username}"""
         msg.set_content(f"""\
             Please use the temporary link follow the link to reset your passsword:
                         {link}

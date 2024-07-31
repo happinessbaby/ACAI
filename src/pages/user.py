@@ -9,9 +9,11 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+# from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+
+from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
-from utils.basic_utils import mk_dirs, send_recovery_email
+from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
 import uuid
 from streamlit_js_eval import get_geolocation
@@ -32,7 +34,7 @@ import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import requests
-from utils.async_utils import thread_with_trace
+from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
 import streamlit as st
 
@@ -94,7 +96,7 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
+            st.session_state["user_profile_dict"]= asyncio_run(retrieve_user_profile_dict(self.userId))
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -316,7 +318,7 @@ class User():
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
             scopes=["https://www.googleapis.com/auth/userinfo.email", "openid"],
-            redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else base_uri+"/streamlit_user",
+            redirect_uri=st.session_state.redirect_page if "redirect_page" in st.session_state else base_uri+"/user",
             )
         if auth_code:
             try:
@@ -401,7 +403,7 @@ class User():
                             st.success("Password has been reset successfully!")
                             time.sleep(5)
                             st.session_state["user_mode"]="signedout"
-                            nav_to(base_uri+"/streamlit_user")                              
+                            nav_to(base_uri+"/user")                              
                         else:
                             st.error("Passwords do not match.")
             else:
@@ -521,7 +523,7 @@ class User():
         resume_dict.update({"user_id": self.userId}) 
         #NOTE: the data added has to be a LIST!
         schema = convert_pydantic_schema_to_arrow(ResumeUsers)
-        add_to_lancedb_table(lance_users_table, [resume_dict], schema)
+        asyncio_run(add_to_lancedb_table(lance_users_table, [resume_dict], schema))
         print("Successfully added user to lancedb table")
     
 
@@ -1298,8 +1300,9 @@ class User():
         filename = str(uuid.uuid4())
         end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
-        with open(end_path, "w") as f:
-            pass
+        write_file("", end_path)
+        # with open(end_path, "w") as f:
+        #     pass
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 

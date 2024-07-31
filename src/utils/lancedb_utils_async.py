@@ -25,7 +25,8 @@ if STORAGE=="LOCAL":
     storage_options={}
 elif STORAGE == "CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
-    db_path = f"s3://{bucket_name}/"+ os.environ["S3_LANCEDB_PATH"]
+    lancedb_path=os.environ["S3_LANCEDB_PATH"]
+    db_path = f"s3://{bucket_name}{lancedb_path}"
     print("db path", db_path)
       #NOTE: only async api is supported for storage options 
      #see: https://lancedb.github.io/lancedb/guides/storage/#object-stores
@@ -38,7 +39,7 @@ elif STORAGE == "CLOUD":
     
 async def connect():
     return await lancedb.connect_async(
-    f"s3+ddb://{db_path}?ddbTableName=my-dynamodb-table",
+    db_path, storage_options=storage_options
 )
 
 

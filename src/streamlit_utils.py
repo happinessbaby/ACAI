@@ -43,23 +43,23 @@ def user_menu(userId, page, ):
         if not userId:
             if st.button("Log in", key="profile_button", type="primary"):
                 st.session_state["user_mode"] = "signedout"
-                st.switch_page("pages/streamlit_user.py")
+                st.switch_page("pages/user.py")
         else:
             with st.popover(label=f"👤 {userId}",):
                 # if page!="main":
                 #     if st.button("Home", type="primary"):
-                #         st.switch_page("streamlit_main.py")
+                #         st.switch_page("home.py")
                 if page!="profile":
                     if st.button("My profile", type="primary"):
-                        st.switch_page("pages/streamlit_user.py")
+                        st.switch_page("pages/user.py")
                 st.divider()
                 if st.button("Log out", type="primary"):
                     st.session_state["user_mode"]="signout"
-                    st.switch_page("pages/streamlit_user.py")
+                    st.switch_page("pages/user.py")
                 # if page=="profile":
                 #     if st.button("Delete my profile", type="primary"):
                 #         st.session_state["user_mode"] = "delete_profile"
-                #         st.switch_page("pages/streamlit_user.py")
+                #         st.switch_page("pages/user.py")
 
 
 def progress_bar(page):
@@ -74,7 +74,7 @@ def progress_bar(page):
     if step=="Step 1":
         if "current_page" in st.session_state and st.session_state.current_page!="profile":
             # st.session_state["current_page"]="profile"
-            st.switch_page("pages/streamlit_user.py")
+            st.switch_page("pages/user.py")
     elif step=="Step 2":
         if "current_page" in st.session_state and st.session_state.current_page!="template":
             # st.session_state["current_page"] = "template"

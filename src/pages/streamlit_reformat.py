@@ -34,7 +34,7 @@ class Reformat():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if not self.userId:
-            st.switch_page("pages/streamlit_user.py")
+            st.switch_page("pages/user.py")
         self._init_display()
 
     def _init_display(self, ):
