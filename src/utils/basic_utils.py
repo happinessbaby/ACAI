@@ -67,10 +67,14 @@ if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3 = get_client('s3')
     base_uri = os.environ["PRODUCTION_BASE_URI"]
+    libreoffice_path = "/snap/bin/libreoffice"
+    pdftopppm_path="/usr/bin/pdftoppm"
 else:
     bucket_name=None
     s3=None
     base_uri = os.environ["BASE_URI"]
+    libreoffice_path="libreoffice"
+    pdftoppm_path = "pdftoppm"
 
 def convert_to_txt(file, output_path,) -> bool:
 
@@ -103,7 +107,7 @@ def convert_doc_to_pdf(input_path, ext=".docx"):
     #retrieve docx from s3
     pdf_output_path = input_path.replace(ext, '.pdf')
     try:
-        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
+        subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
         print('converted docx to pdf', pdf_output_path)
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
@@ -120,7 +124,7 @@ def convert_pdf_to_img(pdf_path, image_format="png"):
         image_output_path = os.path.join(image_tmp_dir, 'image')
     try:
         # Convert PDF to images using pdftoppm
-        subprocess.run(['pdftoppm', '-{}'.format(image_format), pdf_path, image_output_path], check=True)
+        subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
         # Collect the generated image paths
         image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
         print("converted pdf to image: ", image_paths)
