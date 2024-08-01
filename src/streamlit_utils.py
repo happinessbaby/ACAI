@@ -66,10 +66,10 @@ def progress_bar(page):
 
     step = sac.steps(
         items=[
-            sac.StepsItem(title="Step 1", subtitle="Update your profile"),
+            sac.StepsItem(title="Step 1", subtitle="Complete your profile"),
             sac.StepsItem(title="Step 2", subtitle="Pick a template"), 
             sac.StepsItem(title="Step 3", subtitle="Download your resume")
-        ], index = page,  color="#FF6347", variant="navigation", key="progress_steps"
+        ], index = page,  color="#FF6347", key="progress_steps",
     )
     if step=="Step 1":
         if "current_page" in st.session_state and st.session_state.current_page!="profile":
@@ -78,9 +78,9 @@ def progress_bar(page):
     elif step=="Step 2":
         if "current_page" in st.session_state and st.session_state.current_page!="template":
             # st.session_state["current_page"] = "template"
-            st.switch_page("pages/streamlit_reformat.py")
+            st.switch_page("pages/templates.py")
     elif step=="Step 3":
         if "current_page" in st.session_state and st.session_state.current_page!="download":
-            st.switch_page("pages/streamlit_download.py")
+            st.switch_page("pages/downloads.py")
 
     

@@ -37,6 +37,7 @@ from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
+from streamlit_extras.grid import grid
 import streamlit as st
 
 
@@ -175,6 +176,7 @@ class User():
                     else:
                         #display the progress bar
                         progress_bar(0)
+                        add_vertical_space(8)
                         # display the main profile
                         self.display_profile()
                 except KeyError as e:
@@ -229,35 +231,10 @@ class User():
                 st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 self.google_signin()
                 # add_vertical_space(1)
-                # sac.divider(label='or',  align='center', color='gray')
+                sac.divider(label='or',  align='center', color='gray')
                 st.divider()
                 name, authentication_status, username = st.session_state.authenticator.login()
                 placeholder_error = st.empty()
-                # st.markdown(
-                #     """
-                #     <style>
-                #     button[kind="primary"] {
-                #         background: none!important;
-                #         border: none;
-                #         padding: 0!important;
-                #         color: black !important;
-                #         text-decoration: none;
-                #         cursor: pointer;
-                #         border: none !important;
-                #     }
-                #     button[kind="primary"]:hover {
-                #         text-decoration: none;
-                #         color: blue !important;
-                #     }
-                #     button[kind="primary"]:focus {
-                #         outline: none !important;
-                #         box-shadow: none !important;
-                #         color: blue !important;
-                #     }
-                #     </style>
-                #     """,
-                #     unsafe_allow_html=True,
-                # )
                 signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
                 with signup_col:
                     add_vertical_space(2)
@@ -713,7 +690,7 @@ class User():
             if type=="bullet_points":
                 c1, c2, y = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**+**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add another to list", use_container_width=True)
+                    st.button("**:green[+]**", type="primary", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add another to list", use_container_width=True)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -742,7 +719,7 @@ class User():
                     with c2: 
                         text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
                     with x_col:
-                        st.button("**x**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                        st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
 
         def callback(idx, ):
             
@@ -768,7 +745,7 @@ class User():
 
             for idx, value in enumerate(st.session_state["profile"][name]):
                 add_container(idx, value)
-            st.button("add", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
+            st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
             # adds new empty entry to profile dict
@@ -798,11 +775,12 @@ class User():
                 # with c1:
                 #     st.write(f"**{name} {idx}**")
                 with x:
-                    st.button("**x**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                    st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
                 if name=="awards" or name=="projects" or name=="qualifications":
                     title = value["title"]
                     # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
+                    st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="certifications" or name=="licenses":
@@ -813,6 +791,7 @@ class User():
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ))
                     st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ))
+                    st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="work_experience":
@@ -831,6 +810,7 @@ class User():
                         st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,) )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,) )
+                    st.write("Description")
                     get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
                     get_display()
                 
@@ -908,7 +888,7 @@ class User():
 
         """ Displays the field-specific analysis UI """
 
-        _, c1, c2 = st.columns([4, 1, 1])
+        _, c1, c2 = st.columns([5, 1, 1])
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 with st.popover("Show evaluation"):
@@ -916,7 +896,7 @@ class User():
                     st.write(evaluation)
                     st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
             else:
-                evaluate = st.button("evaluate ✨", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
+                evaluate = st.button("evaluate ✨",  type="primary", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
         with c2:
             if f"tailored_{field_name}" in st.session_state:
                 with st.popover("Show tailoring"):
@@ -924,7 +904,7 @@ class User():
                     st.write(tailoring)
                     st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ), )
             else:
-                tailor = st.button("tailor ✨",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
+                tailor = st.button("tailor ✨",  type="primary",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
 
      
           
@@ -1125,7 +1105,7 @@ class User():
                     get_display()
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
             # placeholder = st.empty()
-            # st.button("Add Custom Field", on_click=self.add_custom_field, args=(placeholder, ))
+            # st.button("+ custom field", on_click=self.add_custom_field, args=(placeholder, ))
             st.divider()
         # the menu container
         with menu_col:
