@@ -9,7 +9,7 @@ services:
       dockerfile: src/Dockerfile
     ports:
       - "8501:8501"
-    command: streamlit run streamlit_main.py --server.port=8501 --server.address=0.0.0.0
+    command: streamlit run home.py --server.port=8501 --server.address=0.0.0.0
     volumes:
       - ./src:/app
 

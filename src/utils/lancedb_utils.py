@@ -21,18 +21,17 @@ model="gpt-3.5-turbo-0613"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 STORAGE = os.environ["STORAGE"]
-region = os.environ["REGION_NAME"]
-if STORAGE=="LOCAL":
-    db_path=os.environ["LANCEDB_PATH"]
-    db = lancedb.connect(db_path,)
-elif STORAGE == "CLOUD":
-    bucket_name = os.environ["BUCKET_NAME"]
-    lancedb_path=os.environ["S3_LANCEDB_PATH"]
-    db_path = f"s3://{bucket_name}{lancedb_path}"
+# if STORAGE=="LOCAL":
+db_path=os.environ["LANCEDB_PATH"]
+db = lancedb.connect(db_path,)
+# elif STORAGE == "CLOUD":
+#     bucket_name = os.environ["BUCKET_NAME"]
+#     lancedb_path=os.environ["S3_LANCEDB_PATH"]
+#     db_path = f"s3://{bucket_name}{lancedb_path}"
     # """By default, S3 does not support concurrent writes. Having two or more processes writing to the same table at the same time can lead to data corruption. This is because S3, unlike other object stores, does not have any atomic put or copy operation.
     # To enable concurrent writes, you can configure LanceDB to use a DynamoDB table as a commit store. This table will be used to coordinate writes between different processes."""
     # db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
-    print("db path", db_path)
+print("db path", db_path)
     # args_dict={}
     # args_dict["KeySchema"] = [
     # {"AttributeName": "base_uri", "KeyType": "HASH"},
