@@ -33,18 +33,18 @@ elif STORAGE == "CLOUD":
     # To enable concurrent writes, you can configure LanceDB to use a DynamoDB table as a commit store. This table will be used to coordinate writes between different processes."""
     # db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
     print("db path", db_path)
-    args_dict={}
-    args_dict["KeySchema"] = [
-    {"AttributeName": "base_uri", "KeyType": "HASH"},
-    {"AttributeName": "version", "KeyType": "RANGE"},
-    ]
-    args_dict["AttributeDefinitions"]=[
-        {"AttributeName": "base_uri", "AttributeType": "S"},
-        {"AttributeName": "version", "AttributeType": "N"},
-    ]
-    args_dict["ProvisionedThroughput"]={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1}
-    table = init_dynamodb_table("my-dynamodb-table", args_dict)
-    db = lancedb.connect(db_path, region=region)
+    # args_dict={}
+    # args_dict["KeySchema"] = [
+    # {"AttributeName": "base_uri", "KeyType": "HASH"},
+    # {"AttributeName": "version", "KeyType": "RANGE"},
+    # ]
+    # args_dict["AttributeDefinitions"]=[
+    #     {"AttributeName": "base_uri", "AttributeType": "S"},
+    #     {"AttributeName": "version", "AttributeType": "N"},
+    # ]
+    # args_dict["ProvisionedThroughput"]={"ReadCapacityUnits": 1, "WriteCapacityUnits": 1}
+    # table = init_dynamodb_table("my-dynamodb-table", args_dict)
+db = lancedb.connect(db_path)
 
 
 
@@ -90,8 +90,6 @@ def create_lancedb_table(table_name, schema , mode="overwrite"):
         mode=mode,
         exist_ok=True, 
     )
-
-    
 
 
 def add_to_lancedb_table(table_name, data, schema, mode="append"):

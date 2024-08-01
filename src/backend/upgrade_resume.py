@@ -1,7 +1,6 @@
 import os
 import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
-from langchain.prompts import ChatPromptTemplate
 from utils.basic_utils import read_txt, memoized, process_json, count_length, read_text_boxes, render_template, save_rendered_content
 from utils.common_utils import (search_related_samples,  extract_similar_jobs, calculate_graduation_years)
 from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
@@ -20,6 +19,7 @@ from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
 import streamlit as st
+from langchain_core.prompts import ChatPromptTemplate
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file

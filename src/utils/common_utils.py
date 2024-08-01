@@ -1,24 +1,18 @@
 import openai
 from utils.openai_api import get_completion, get_completion_from_messages
 from langchain_openai import OpenAI, ChatOpenAI, OpenAIEmbeddings
-from langchain.prompts import ChatPromptTemplate,  StringPromptTemplate
 from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
-from langchain.agents import load_tools, initialize_agent, Tool, AgentExecutor
+from langchain.agents import load_tools, initialize_agent, AgentExecutor
 from pathlib import Path
 from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
-from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
-from langchain.vectorstores import FAISS
-from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
 # from langchain_experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
 from langchain_community.document_transformers import DoctranPropertyExtractor
-from langchain.prompts import PromptTemplate
 from typing import Any, List, Union, Dict, Optional
 import os
 import random
@@ -49,6 +43,11 @@ from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMCha
 
 # from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
+from langchain_community.utilities import GoogleSearchAPIWrapper
+from langchain_community.vectorstores import FAISS
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate, StringPromptTemplate
+from langchain_core.tools import Tool
+
 _ = load_dotenv(find_dotenv()) # read local .env file
 # Download the 'punkt' tokenizer models
 

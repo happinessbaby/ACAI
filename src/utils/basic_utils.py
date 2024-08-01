@@ -10,11 +10,8 @@ import urllib.request
 from urllib.request import Request, urlopen
 import uuid
 from pptx import Presentation
-from langchain.document_loaders import UnstructuredURLLoader
 from typing import Any, List, Union, Dict
 from docxtpl import DocxTemplate
-from langchain.document_transformers import Html2TextTransformer
-from langchain.document_loaders import AsyncHtmlLoader, S3FileLoader
 import asyncio
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
@@ -57,6 +54,9 @@ from email.headerregistry import Address
 from email.utils import make_msgid
     
 from dotenv import load_dotenv, find_dotenv
+from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, UnstructuredURLLoader
+from langchain_community.document_transformers import Html2TextTransformer
+
 _ = load_dotenv(find_dotenv()) # read local .env 
 nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]

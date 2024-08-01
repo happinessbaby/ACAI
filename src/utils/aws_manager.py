@@ -28,7 +28,7 @@ def get_session_token(duration=3600):
     credentials = response['Credentials']['SessionToken']
     return credentials
 
-def get_client(type):
+def get_client(type, config=None):
     
     if type=="s3":
         return get_aws_session().client('s3')
