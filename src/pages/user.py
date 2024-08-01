@@ -10,9 +10,9 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, save_eval_status
 
-# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
@@ -24,7 +24,7 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.pydantic_schema import ResumeUsers
+from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
@@ -58,6 +58,7 @@ elif STORAGE=="LOCAL":
     client_secret_json = os.environ["CLIENT_SECRET_JSON"]
     base_uri = os.environ["BASE_URI"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder=st.empty()
 # initialize float feature/capability
@@ -99,7 +100,8 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
+            st.session_state["user_profile_dict"]= retrieve_dict_from_table(self.userId, lance_users_table)
+            st.session_state["eval_dict"] = retrieve_dict_from_table(self.userId, lance_eval_table)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -594,10 +596,8 @@ class User():
                 if content_safe and content_type=="resume":
                     st.session_state["user_resume_path"]= end_path
                 else:
-                    print("user didn't upload resume")
                     st.info("Please upload your resume here")
             else:
-                print("upload didn't work")
                 st.info("That didn't work, please try again.")
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.save_path, st.session_state.sessionId)
@@ -1001,15 +1001,19 @@ class User():
         with eval_col:
             float_container= st.container()
             with float_container:
+                # eval_status = st.session_state["user_profile_dict"]["general_evaluation_status"]
+                # if eval_status is False:
+                #     if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
+                #         st.rerun()
                 # during first preview of the profile, display a button for general evaluation
                 # otherwise, unless page refresh, general evaluation will be in a popover
-                if "init_eval" not in st.session_state:
-                    if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
-                        st.session_state["init_eval"]=True
-                        st.rerun()
-                else:
-                    self.display_general_evaluation(float_container)
-                    self.evaluation_callback()
+                # if "init_eval" not in st.session_state:
+                #     if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
+                #         st.session_state["init_eval"]=True
+                #         st.rerun()
+                # else:
+                self.display_general_evaluation(float_container)
+                self.evaluation_callback()
             float_parent()
         # the main profile column
         with profile_col:
@@ -1124,7 +1128,7 @@ class User():
                         # """
                         ],
                 ):
-                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers,), use_container_width=True)
+                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers, lance_users_table), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
@@ -1141,10 +1145,11 @@ class User():
         """ Displays the general evaluation result of the profile """
 
         # eval_dict= self.get_dict("evaluation")
-        try:
-            eval_dict= st.session_state["eval_dict"]
-        except Exception:
-            eval_dict={}
+        # try:
+            # eval_dict= st.session_state["eval_dict"]
+        # except Exception:
+        #     eval_dict={}
+        eval_dict= st.session_state["eval_dict"]
         if eval_dict:
             if "finished_eval" in st.session_state:
                 display_name = "Your evaluation results are in! ✨"
@@ -1158,7 +1163,7 @@ class User():
                     st.write("**Length**")
                     try:
                         length=eval_dict["word_count"]
-                        pages=eval_dict["page_number"]
+                        pages=eval_dict["page_count"]
                         fig = self.display_length_chart(length)
                         st.plotly_chart(fig, 
                                         # use_container_width=True
@@ -1211,6 +1216,8 @@ class User():
                     if "finished_eval" not in st.session_state:
                         st.session_state["finished_eval"] = True
                         st.session_state["eval_rerun_timer"]=None
+                        eval_dict.update({"user_id":self.userId})
+                        save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
                         st.rerun()
                 except Exception:
                     if "finished_eval" not in st.session_state:
@@ -1220,7 +1227,9 @@ class User():
                         container.empty()
                         # delete previous evaluation states
                         try:
-                            del st.session_state["eval_dict"]
+                            # remove eval_dict from lance table
+                            delete_user_from_table(self.userId, lance_eval_table)
+                            # del st.session_state["eval_dict"]
                             del st.session_state["finished_eval"]
                         except Exception:
                             pass
@@ -1277,7 +1286,7 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.profile, ResumeUsers)
+        save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
        
 
 
@@ -1287,17 +1296,18 @@ class User():
         """ Opens a popup that warns user before uploading a new resume """
 
         add_vertical_space(2)
-        st.warning("Your current profile will be lost. Are you sure?")
+        st.warning("Your current profile will be re-populated. Are you sure?")
         add_vertical_space(2)
         c1, _, c2 = st.columns([1, 1, 1])
         with c2:
-            if st.button("yes, I'll upload a new one", type="primary", ):
-                delete_user_from_table(self.userId)
+            if st.button("yes, I'll upload a new resume", type="primary", ):
+                delete_user_from_table(self.userId, lance_users_table)
+                delete_user_from_table(self.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 try:
                     del st.session_state["profile"]
-                    del st.session_state["eval_dict"]
-                    del st.session_state["init_eval"]
+                    # del st.session_state["eval_dict"]
+                    # del st.session_state["init_eval"]
                 except Exception:
                     pass
                 st.rerun()

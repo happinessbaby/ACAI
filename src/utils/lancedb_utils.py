@@ -128,11 +128,11 @@ def retrieve_lancedb_table(table_name):
 #         raise e
 #     return results
 
-def delete_user_from_table(userId):
+def delete_user_from_table(userId, tablename):
 
-    table = retrieve_lancedb_table(lance_users_table)
+    table = retrieve_lancedb_table(tablename)
     table.delete(f"user_id = '{userId}'")
-    print('deleted user profile dict')
+    print(f'deleted user from {tablename}')
    
 
 def flatten(data):
@@ -158,36 +158,37 @@ def convert_arrays_to_lists(data):
         return data
 
 
-def retrieve_user_profile_dict(userId):
 
-    users_table = retrieve_lancedb_table(lance_users_table)
+def retrieve_dict_from_table(userId, tablename):
+
+    users_table = retrieve_lancedb_table(tablename)
     if users_table:
-        profile_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if not profile_dict["user_id"]:
+        dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        if not dict["user_id"]:
             return None
-        for key in profile_dict:
-            if isinstance(profile_dict[key], list):
+        for key in dict:
+            if isinstance(dict[key], list):
                 try:
-                    value=profile_dict[key][0]
+                    value=dict[key][0]
                     if isinstance(value, str):  # Handle strings
-                        profile_dict[key]=value
+                        dict[key]=value
                     elif isinstance(value, (np.ndarray, list)):  # Handle arrays
                         # print(value)
-                        cleaned_data= clean_field(profile_dict, key)
-                        profile_dict[key] = convert_arrays_to_lists(cleaned_data)
-                        # print("list pydantic arrays", profile_dict[key])
+                        cleaned_data= clean_field(dict, key)
+                        dict[key] = convert_arrays_to_lists(cleaned_data)
+                        # print("list pydantic arrays", dict[key])
                     elif isinstance(value, dict):
                         for k in value:
                             if isinstance(value[k], (np.ndarray, list)):
                                 cleaned_data = clean_field(value, k)
                                 value[k] = convert_arrays_to_lists(cleaned_data)
-                        profile_dict[key]=value
+                        dict[key]=value
                     else:                   # Handle None and anomalies
-                        profile_dict[key] = ''
+                        dict[key] = ''
                 except IndexError:
                     pass
-        print(f"Retrieved user profile dict from lancedb")
-        return profile_dict
+        print(f"Retrieved {tablename} dict from lancedb")
+        return dict
     else:
         return None
 
@@ -259,14 +260,24 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     return pa.schema(fields)
 
 
-def save_user_changes(profile, schema):
+def save_user_changes(data, schema, tablename):
 
     # converts profile into resume content 
-    profile["resume_content"] = json.dumps(profile)
+    if tablename==lance_users_table:
+        data["resume_content"] = json.dumps(data)
     try:
         schema = convert_pydantic_schema_to_arrow(schema)
-        add_to_lancedb_table(lance_users_table, [profile], schema=schema, mode="overwrite" )
-        print("Successfully saved profile")
+        add_to_lancedb_table(tablename, [data], schema=schema, mode="overwrite" )
+        print(f"Successsfully saved {tablename}")
     except Exception as e:
         raise e
     
+# def save_general_eval(userId, eval_dict):
+#     table = retrieve_lancedb_table(lance_users_table)
+#     # NOTE: nested column update is not supported yet 
+#     # the nested comparison dictionary will not be added to update
+#     table.update(where=f"user_id = '{userId}'", values=
+#                  {"impression": eval_dict["impression"], "word_count":eval_dict["word_count"], "page_count":eval_dict["page_count"],
+#                   "ideal_type": eval_dict["ideal_type"], "resume_type":eval_dict["resume_type"], }
+#                  )
+#     print("updated general evaluation statuss")

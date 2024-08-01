@@ -68,8 +68,8 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         if match:
             page_num = match.group(1)
         else:
-            page_num = ""
-        st.session_state.eval_dict.update({"page_number": page_num})
+            page_num = 0
+        st.session_state.eval_dict.update({"page_count": int(page_num)})
         # Research and analyze resume type
         ideal_type = research_resume_type(resume_dict=resume_dict, )
         st.session_state.eval_dict.update({"ideal_type": ideal_type})
@@ -80,7 +80,7 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         for category in categories:
             category_dict = analyze_language(resume_content, category)
             st.session_state.eval_dict["language"].append({category:category_dict})
-        section_names = ["objective", "work experience", "skillsets"]
+        section_names = ["objective", "work_experience", "skillsets"]
         field_names = ["summary_objective", "work_experience", "included_skills"]
         field_map = dict(zip(field_names, section_names))
         related_samples = search_related_samples(pursuit_jobs, resume_samples_path)

@@ -42,7 +42,7 @@ from json.decoder import JSONDecodeError
 from stqdm import stqdm
 import threading
 import queue
-from utils.lancedb_utils import retrieve_user_profile_dict
+from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
@@ -105,7 +105,7 @@ class Main():
         # if self.userId:
         #     if "user_mode" not in st.session_state:
         #         st.session_state["user_mode"]="signedin" 
-        #     st.session_state["user_profile_dict"]=retrieve_user_profile_dict(self.userId)
+        #     st.session_state["user_profile_dict"]=retrieve_dict_from_table(self.userId)
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())
             print(f"Session: {st.session_state.sessionId}")

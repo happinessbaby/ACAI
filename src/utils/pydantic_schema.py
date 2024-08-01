@@ -289,6 +289,28 @@ class Replacement(BaseModel):
 class Replacements(BaseModel):
     replacements: List[Replacement]
 
+class LanguageCriteria(BaseModel):
+    syntax: Language
+    diction: Language
+    tone: Language
+    coherence: Language
+
+class ComparisonFields(BaseModel):
+    objective: Comparison
+    work_experiece: Comparison
+    skillsets: Comparison
+
+class GeneralEvaluation(BaseModel):
+    userId : str
+    word_count: int
+    page_count: int
+    ideal_type: str
+    resume_type: str
+    impression: str
+    language: LanguageCriteria
+    comparison: ComparisonFields
+
+
 
 
 
