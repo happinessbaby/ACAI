@@ -3,26 +3,21 @@ import os
 import openai
 from pathlib import Path
 # from langchain.chat_models import ChatOpenAI
-from langchain_openai import ChatOpenAI
-from langchain.llms import OpenAI
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAI, OpenAIEmbeddings, ChatOpenAI
 from utils.agent_tools import search_user_material, search_all_chat_history, design_resume_template, resume_template_design_tool
 from utils.langchain_utils import  CustomOutputParser, CustomPromptTemplate, retrieve_vectorstore 
 from langchain.chains import LLMChain
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory,  ChatMessageHistory
-from langchain.agents import AgentType, Tool, load_tools, initialize_agent, Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, create_structured_chat_agent
-from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
+from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
+from langchain.agents import AgentType, load_tools, initialize_agent, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, create_structured_chat_agent
 from langchain.agents import AgentExecutor, ZeroShotAgent
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.callbacks import  StdOutCallbackHandler, FileCallbackHandler
+from langchain.callbacks import  FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
-from langchain_community.chat_message_histories import DynamoDBChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory, DynamoDBChatMessageHistory
 import langchain
 import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
 from utils.basic_utils import convert_to_txt, read_txt
-from langchain.schema import OutputParserException
 from multiprocessing import Process, Queue, Value
 # from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
 # from todo_tmp.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool
@@ -30,11 +25,7 @@ from typing import List, Dict, Any
 import re
 import asyncio
 from tenacity import retry, wait_exponential, stop_after_attempt, wait_fixed
-# from langchain.agents.agent_toolkits import FileManagementToolkit
-from langchain.tools.file_management.read import ReadFileTool
 from langchain.tools.retriever import create_retriever_tool
-from langchain.cache import InMemoryCache
-from langchain.tools import StructuredTool
 from langchain.globals import set_llm_cache
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain import hub
@@ -48,6 +39,12 @@ from langchain.agents.format_scratchpad.openai_tools import (
 
 
 from dotenv import load_dotenv, find_dotenv
+from langchain_community.cache import InMemoryCache
+from langchain_community.tools import ReadFileTool
+from langchain_core.callbacks import StdOutCallbackHandler, StreamingStdOutCallbackHandler
+from langchain_core.exceptions import OutputParserException
+from langchain_core.tools import StructuredTool, Tool
+
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 log_path = os.environ["LOG_PATH"]

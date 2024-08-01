@@ -1,75 +1,62 @@
 import openai
 from langchain.agents.react.base import DocstoreExplorer
 from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3FileLoader, S3DirectoryLoader
-from langchain.docstore.wikipedia import Wikipedia
 # from langchain.indexes import VectorstoreIndexCreator
 # from langchain.chat_models import ChatOpenAI
 # from langchain.llms import OpenAI
 from langchain_openai import OpenAI, ChatOpenAI, OpenAIEmbeddings
-from langchain.utilities.serpapi import SerpAPIWrapper
-from langchain.utilities.google_search import GoogleSearchAPIWrapper
-# from langchain import ElasticVectorSearch
-# from langchain.vectorstores.elastic_vector_search import ElasticKnnSearch
-# from langchain.embeddings import ElasticsearchEmbeddings
-# from elasticsearch import Elasticsearch
-# from ssl import create_default_context
-from langchain.prompts import BaseChatPromptTemplate
-from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser, initialize_agent, Tool
-from langchain.schema import AgentAction, AgentFinish, HumanMessage
+from langchain.agents import AgentExecutor, LLMSingleActionAgent, AgentOutputParser, initialize_agent
 from langchain.chains.summarize import load_summarize_chain
-from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain, stuff_prompt
 import os
-from langchain.text_splitter import CharacterTextSplitter,  RecursiveCharacterTextSplitter
 from langchain.chains.mapreduce import MapReduceChain
 from langchain.chains import ( RetrievalQA, RetrievalQAWithSourcesChain, TransformChain, StuffDocumentsChain,  create_tagging_chain, create_tagging_chain_pydantic, 
                                ReduceDocumentsChain, MapReduceDocumentsChain, create_extraction_chain, LLMMathChain,
                               create_extraction_chain_pydantic,  LLMChain)
-from langchain.vectorstores.redis import Redis
-from langchain_community.embeddings import OpenAIEmbeddings
 import redis
-from langchain.cache import RedisCache
-from langchain.cache import RedisSemanticCache
 import json
 from typing import List, Union, Any, Optional, Dict
 import re
-from langchain.tools import tool
 from langchain.agents.agent_types import AgentType
 from pydantic import BaseModel, Field
 from langchain_community.document_transformers import EmbeddingsRedundantFilter, LongContextReorder
 from langchain.retrievers.document_compressors import DocumentCompressorPipeline, EmbeddingsFilter, CohereRerank
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.docstore.document import Document
 from utils.basic_utils import read_txt, timing, timeout
 from json import JSONDecodeError
-from langchain.retrievers import BM25Retriever, EnsembleRetriever
+from langchain.retrievers import EnsembleRetriever
 from langchain_community.document_transformers.openai_functions import create_metadata_tagger
 from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
-from langchain.vectorstores import FAISS
 from utils.lancedb_utils import create_lancedb_table
 # from langchain.docstore import InMemoryDocstore
 from langchain.indexes import SQLRecordManager, index
-from langchain.schema import LLMResult, HumanMessage
-from langchain.callbacks.base import AsyncCallbackHandler, BaseCallbackHandler
-from langchain.schema.messages import BaseMessage
-from langchain.tools.base import ToolException
-from langchain_community.vectorstores import ElasticsearchStore, OpenSearchVectorSearch, FAISS, DocArrayInMemorySearch, LanceDB
-from langchain.embeddings.elasticsearch import ElasticsearchEmbeddings
+from langchain_community.vectorstores import Redis, ElasticsearchStore, OpenSearchVectorSearch, FAISS, DocArrayInMemorySearch, LanceDB
 from opensearchpy import RequestsHttpConnection
 from langchain.indexes import SQLRecordManager, index
-from langchain.schema import Document
 from langchain_experimental.smart_llm import SmartLLMChain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.output_parsers import CommaSeparatedListOutputParser
+from langchain_core.prompts import BaseChatPromptTemplate, PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 from utils.aws_manager import get_client
 
 
 
 
 from dotenv import load_dotenv, find_dotenv
+from langchain_community.cache import RedisCache, RedisSemanticCache
+from langchain_community.docstore import Wikipedia
+from langchain_community.embeddings import ElasticsearchEmbeddings
+from langchain_community.retrievers import BM25Retriever
+from langchain_community.utilities import GoogleSearchAPIWrapper, SerpAPIWrapper
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain_core.callbacks import AsyncCallbackHandler, BaseCallbackHandler
+from langchain_core.documents import Document
+from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.output_parsers import CommaSeparatedListOutputParser
+from langchain_core.outputs import LLMResult
+from langchain_core.tools import Tool, ToolException, tool
+from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
+
 _ = load_dotenv(find_dotenv()) # read local .env file
 # You may need to update the path depending on where you stored it
 openai.api_key = os.environ["OPENAI_API_KEY"]

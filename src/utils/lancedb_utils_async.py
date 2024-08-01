@@ -10,6 +10,8 @@ import json
 from utils.async_utils import asyncio_run
 from dotenv import load_dotenv, find_dotenv
 from utils.aws_manager import get_session_token
+import botocore
+from utils.aws_manager import get_client
 _ = load_dotenv(find_dotenv()) # read local .env file
 
 
@@ -26,8 +28,9 @@ if STORAGE=="LOCAL":
 elif STORAGE == "CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     lancedb_path=os.environ["S3_LANCEDB_PATH"]
-    # db_path = f"s3://{bucket_name}{lancedb_path}"
-    db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
+    db_path = f"s3://{bucket_name}{lancedb_path}"
+    # db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
+    # s3_client = get_client("s3", config = botocore.config.Config(s3={'addressing_style': 'path'}))
     print("db path", db_path)
       #NOTE: only async api is supported for storage options 
      #see: https://lancedb.github.io/lancedb/guides/storage/#object-stores
@@ -35,36 +38,18 @@ elif STORAGE == "CLOUD":
             "aws_access_key_id": os.environ["AWS_SERVER_PUBLIC_KEY"],
             "aws_secret_access_key": os.environ["AWS_SERVER_SECRET_KEY"],
             #   "aws_session_token": get_session_token(),
-            "region": os.environ["REGION_NAME"],
-            "allow_http":"true",
+            "aws_region": os.environ["REGION_NAME"],
+            "aws_server_side_encryption": "AES256",
+            "allow_http": "true"
         }
     
-async def connect():
-    return await lancedb.connect_async(
-    db_path, storage_options=storage_options
-)
+# async def connect():
+#     return await lancedb.connect_async(
+#     db_path, storage_options=storage_options
+# )
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
-
-# this is the schema for table of UserInfo
-#FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
-# class BasicInfo(LanceModel):
-
-# class Schema(LanceModel):
-#     text: str = func.SourceField() 
-#     vector: Vector(func.ndims()) = func.VectorField()
-#     id: str 
-#     job_title: str
-#     job_url: str
-#     # job_industry: str
-#     # job_level: str 
-#     # education: str 
-#     type: str 
-
-#     @property
-#     def url(self):
-#         return self.job_url
 
 
 def register_model(model_name):
@@ -82,7 +67,8 @@ async def create_lancedb_table(table_name, schema , mode="overwrite"):
         exist_ok=True, 
         # storage_options=storage_options
     )
-    
+
+        
 
 async def add_to_lancedb_table(table_name, data, schema, mode="append"):
     
@@ -160,7 +146,12 @@ async def retrieve_user_profile_dict(userId):
 
     users_table = await retrieve_lancedb_table(lance_users_table)
     if users_table:
-        profile_dict=await users_table.vector_search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        try:
+            #NOTE: async table currently doesn't have full text search and vector search cannot be left empty so below doesn't work for now
+            profile_dict=await users_table.vector_search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        except Exception as e:
+            print(e)
+            return None
         if not profile_dict["user_id"]:
             return None
         for key in profile_dict:
@@ -262,6 +253,7 @@ def save_user_changes(profile, schema):
     # converts profile into resume content 
     profile["resume_content"] = json.dumps(profile)
     try:
+        print("AAAAAAAAaaa")
         schema = convert_pydantic_schema_to_arrow(schema)
         asyncio_run(add_to_lancedb_table(lance_users_table, [profile], schema=schema, mode="overwrite" ))
         print("Successfully saved profile")

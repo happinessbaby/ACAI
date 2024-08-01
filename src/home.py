@@ -26,7 +26,6 @@ import json
 # from streamlit_modal import Modal
 # from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
-from langchain.callbacks.base import BaseCallbackHandler
 import time
 from utils.cookie_manager import CookieManager
 # from utils.aws_manager import get_client, request_aws4auth
@@ -34,7 +33,6 @@ from utils.cookie_manager import CookieManager
 # from streamlit_datalist import stDatalist
 import time
 import re
-from langchain.schema import ChatMessage
 # from st_click_detector import click_detector
 # from st_clickable_images import clickable_images
 # from streamlit_simple_gallery import ImageGallery
@@ -49,6 +47,8 @@ from streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
 import streamlit as st
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.messages import ChatMessage
 
 set_streamlit_page_config_once()
 

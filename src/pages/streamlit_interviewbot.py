@@ -29,7 +29,6 @@ import openai
 # import playsound
 # from streamlit_modal import Modal
 import json
-from langchain.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
@@ -55,6 +54,7 @@ import nest_asyncio
 import websocket
 from utils.whisper_stt import whisper_stt
 from streamlit_utils import nav_to
+from langchain_community.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file

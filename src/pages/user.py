@@ -10,9 +10,9 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-# from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
-from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
@@ -98,7 +98,7 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]= asyncio_run(retrieve_user_profile_dict(self.userId))
+            st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -512,7 +512,7 @@ class User():
         resume_dict.update({"user_id": self.userId}) 
         #NOTE: the data added has to be a LIST!
         schema = convert_pydantic_schema_to_arrow(ResumeUsers)
-        asyncio_run(add_to_lancedb_table(lance_users_table, [resume_dict], schema))
+        add_to_lancedb_table(lance_users_table, [resume_dict], schema)
         print("Successfully added user to lancedb table")
     
 
