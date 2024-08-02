@@ -11,7 +11,6 @@ from utils.async_utils import asyncio_run
 from dotenv import load_dotenv, find_dotenv
 from utils.aws_manager import get_session_token
 from utils.dynamodb_utils import init_dynamodb_table
-from utils.pydantic_schema import GeneralEvaluation
 import lance
 
 _ = load_dotenv(find_dotenv()) # read local .env file

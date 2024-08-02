@@ -37,6 +37,7 @@ from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
+#NOTE: below import is necessary for nested column fix, do not delete
 import streamlit_nested_layout
 import streamlit as st
 
@@ -384,7 +385,6 @@ class User():
         try:
             with open(filename, 'r') as file:
                 credentials = yaml.safe_load(file)
-                print(credentials)
                 # Add the new user's details to the dictionary
             # credentials['credentials']['usernames'][username] = {
             #     'email': email,
@@ -701,7 +701,7 @@ class User():
             placeholder.empty()
 
         def add_new_entry():
-            print("added new entry")
+            # print("added new entry")
             if type=="bullet_points":
                 if x!=-1:
                     st.session_state["profile"][field_name][x][field_detail].append("")
@@ -761,7 +761,7 @@ class User():
         def delete_container(placeholder, idx):
 
             #deletes field container
-            print("deleted", st.session_state["profile"][name][idx])
+            # print("deleted", st.session_state["profile"][name][idx])
             del st.session_state["profile"][name][idx]
             placeholder.empty()
 
@@ -1139,14 +1139,6 @@ class User():
             #if no general_eval_dict from table, evaluation comes from backend function
             try:
                 eval_dict= st.session_state["evaluation"]
-            except Exception:
-                eval_dict={}
-        else:
-            # if displaying from general_eval_dict
-            st.session_state["eval_rerun_timer"]=None
-            finished=True
-        if eval_dict:
-            try:
                 finished = eval_dict["finished"]
                 if finished:
                     st.session_state["eval_rerun_timer"]=None
@@ -1154,7 +1146,12 @@ class User():
                     save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
                     st.rerun()      
             except Exception:
-                pass
+                eval_dict={}
+        else:
+            # if displaying from general_eval_dict
+            st.session_state["eval_rerun_timer"]=None
+            finished=True
+        if eval_dict:
             if finished:
                 display_name = "Your profile has been evaluated ✨"
                 # button_name = "evaluate again ✨"

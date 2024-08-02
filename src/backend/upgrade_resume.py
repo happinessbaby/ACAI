@@ -1,12 +1,10 @@
 import os
 import openai
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
-from utils.basic_utils import read_txt, memoized, process_json, count_length, read_text_boxes, render_template, save_rendered_content
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from utils.basic_utils import read_txt, memoized, process_json, count_length
 from utils.common_utils import (search_related_samples,  extract_similar_jobs, calculate_graduation_years)
-from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
+from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
-from pathlib import Path
-import json
 from typing import Dict, List, Optional, Union
 from docxtpl import DocxTemplate	
 # from docx import Document
