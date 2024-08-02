@@ -99,6 +99,7 @@ def add_to_lancedb_table(table_name, data, schema, mode="append"):
         print(e)
         table = create_lancedb_table(table_name, schema)
     table.add(data, mode=mode)
+    print("Sucessfully added data to table")
 
 def create_lancedb_index(table_name, distance_type):
 
@@ -128,11 +129,11 @@ def retrieve_lancedb_table(table_name):
 #         raise e
 #     return results
 
-def delete_user_from_table(userId):
+def delete_user_from_table(userId, tablename):
 
-    table = retrieve_lancedb_table(lance_users_table)
+    table = retrieve_lancedb_table(tablename)
     table.delete(f"user_id = '{userId}'")
-    print('deleted user profile dict')
+    print(f'deleted user from {tablename}')
    
 
 def flatten(data):
@@ -158,67 +159,42 @@ def convert_arrays_to_lists(data):
         return data
 
 
-def retrieve_user_profile_dict(userId):
 
-    users_table = retrieve_lancedb_table(lance_users_table)
+def retrieve_dict_from_table(userId, tablename):
+
+    users_table = retrieve_lancedb_table(tablename)
     if users_table:
-        profile_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if not profile_dict["user_id"]:
+        table_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        if not table_dict["user_id"]:
             return None
-        for key in profile_dict:
-            if isinstance(profile_dict[key], list):
+        for key in table_dict:
+            if isinstance(table_dict[key], list):
                 try:
-                    value=profile_dict[key][0]
+                    value=table_dict[key][0]
                     if isinstance(value, str):  # Handle strings
-                        profile_dict[key]=value
+                        table_dict[key]=value
                     elif isinstance(value, (np.ndarray, list)):  # Handle arrays
                         # print(value)
-                        cleaned_data= clean_field(profile_dict, key)
-                        profile_dict[key] = convert_arrays_to_lists(cleaned_data)
-                        # print("list pydantic arrays", profile_dict[key])
+                        cleaned_data= clean_field(table_dict, key)
+                        table_dict[key] = convert_arrays_to_lists(cleaned_data)
+                        # print("list pydantic arrays", table_dict[key])
                     elif isinstance(value, dict):
                         for k in value:
                             if isinstance(value[k], (np.ndarray, list)):
                                 cleaned_data = clean_field(value, k)
                                 value[k] = convert_arrays_to_lists(cleaned_data)
-                        profile_dict[key]=value
+                        table_dict[key]=value
                     else:                   # Handle None and anomalies
-                        profile_dict[key] = ''
-                except IndexError:
+                        table_dict[key] = ''
+                except IndexError as e:
+                    print(e)
                     pass
-        print(f"Retrieved user profile dict from lancedb")
-        return profile_dict
+        print(f"Retrieved {tablename} dict from lancedb",)
+        return table_dict
     else:
         return None
 
 
-    # for field_name, model_field in schema.__fields__.items():
-    #     if field_name=="vector":
-    #         fields.append(pa.field(field_name, pa.list_(pa.float32())))
-    #     if hasattr(model_field.type_, "__fields__"):
-    #         # Assuming list of nested Pydantic models
-    #         nested_model = model_field.type_
-    #         print("list field name:", field_name)
-    #         nested_fields = [pa.field(name, pa.string()) for name in nested_model.__fields__.keys()]
-    #         # nested_fields = []
-    #         # for name, field in nested_model.__fields__.items():
-    #         #     if field.outer_type_ == list:
-    #         #         # Handle nested lists if needed
-    #         #         nested_fields.append(pa.field(name, pa.list_(pa.string())))
-    #         #     else:
-    #         #           # Determine the Arrow data type based on Pydantic field type
-    #         #         if issubclass(field.type_, str) or issubclass(field.type_, Optional):
-    #         #             arrow_type = pa.string()
-    #         #         elif issubclass(field.type_, int):
-    #         #             arrow_type = pa.int64()
-    #         #         else:
-    #         #             arrow_type = pa.string()  # Default to string if unsure
-    #         #         nested_fields.append(pa.field(name, arrow_type))
-    #         # Ensure fields are in the expected order for Arrow struct
-    #         nested_fields = sorted(nested_fields, key=lambda f: f.name)
-    #         fields.append(pa.field(field_name, pa.list_(pa.struct(nested_fields))))
-    #     else:
-    #         fields.append(pa.field(field_name, pa.string()))
 def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     fields = []
     for field_name, model_field in schema.__fields__.items():
@@ -259,14 +235,15 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     return pa.schema(fields)
 
 
-def save_user_changes(profile, schema):
+def save_user_changes(data, schema, tablename):
 
     # converts profile into resume content 
-    profile["resume_content"] = json.dumps(profile)
+    if tablename==lance_users_table:
+        data["resume_content"] = json.dumps(data)
     try:
         schema = convert_pydantic_schema_to_arrow(schema)
-        add_to_lancedb_table(lance_users_table, [profile], schema=schema, mode="overwrite" )
-        print("Successfully saved profile")
+        add_to_lancedb_table(tablename, [data], schema=schema, mode="overwrite" )
+        print(f"Successsfully saved {tablename}")
     except Exception as e:
         raise e
     

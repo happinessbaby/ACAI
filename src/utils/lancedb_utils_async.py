@@ -142,9 +142,9 @@ def convert_arrays_to_lists(data):
         return data
 
 
-async def retrieve_user_profile_dict(userId):
+async def retrieve_dict_from_table(userId, tablename):
 
-    users_table = await retrieve_lancedb_table(lance_users_table)
+    users_table = await retrieve_lancedb_table(tablename)
     if users_table:
         try:
             #NOTE: async table currently doesn't have full text search and vector search cannot be left empty so below doesn't work for now

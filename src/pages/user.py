@@ -10,9 +10,9 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
-# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_user_profile_dict, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
@@ -24,7 +24,7 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.pydantic_schema import ResumeUsers
+from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
@@ -37,6 +37,7 @@ from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
+#NOTE: below import is necessary for nested column fix, do not delete
 import streamlit_nested_layout
 import streamlit as st
 
@@ -58,6 +59,7 @@ elif STORAGE=="LOCAL":
     client_secret_json = os.environ["CLIENT_SECRET_JSON"]
     base_uri = os.environ["BASE_URI"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder=st.empty()
 # initialize float feature/capability
@@ -99,7 +101,8 @@ class User():
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]= retrieve_user_profile_dict(self.userId)
+            st.session_state["user_profile_dict"]= retrieve_dict_from_table(self.userId, lance_users_table)
+            st.session_state["general_eval_dict"] = retrieve_dict_from_table(self.userId, lance_eval_table)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -382,7 +385,6 @@ class User():
         try:
             with open(filename, 'r') as file:
                 credentials = yaml.safe_load(file)
-                print(credentials)
                 # Add the new user's details to the dictionary
             # credentials['credentials']['usernames'][username] = {
             #     'email': email,
@@ -594,10 +596,8 @@ class User():
                 if content_safe and content_type=="resume":
                     st.session_state["user_resume_path"]= end_path
                 else:
-                    print("user didn't upload resume")
                     st.info("Please upload your resume here")
             else:
-                print("upload didn't work")
                 st.info("That didn't work, please try again.")
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.save_path, st.session_state.sessionId)
@@ -701,7 +701,7 @@ class User():
             placeholder.empty()
 
         def add_new_entry():
-            print("added new entry")
+            # print("added new entry")
             if type=="bullet_points":
                 if x!=-1:
                     st.session_state["profile"][field_name][x][field_detail].append("")
@@ -761,7 +761,7 @@ class User():
         def delete_container(placeholder, idx):
 
             #deletes field container
-            print("deleted", st.session_state["profile"][name][idx])
+            # print("deleted", st.session_state["profile"][name][idx])
             del st.session_state["profile"][name][idx]
             placeholder.empty()
 
@@ -877,7 +877,6 @@ class User():
             try:
                 experience_description = st.session_state[f"experience_description_{idx}"]
                 if experience_description:
-                    # self.experience_list[idx]["description"] = experience_description
                     st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
             except Exception:
                 pass
@@ -973,8 +972,8 @@ class User():
             # starts specific evaluation of a field
             evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
         else:
-            # start general evaluation if haven't done so
-            if "eval_dict" not in st.session_state:
+            # start general evaluation if there's no saved evaluation 
+            if "evaluation" not in st.session_state and not st.session_state["general_eval_dict"]:
                 self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
@@ -1001,15 +1000,8 @@ class User():
         with eval_col:
             float_container= st.container()
             with float_container:
-                # during first preview of the profile, display a button for general evaluation
-                # otherwise, unless page refresh, general evaluation will be in a popover
-                if "init_eval" not in st.session_state:
-                    if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
-                        st.session_state["init_eval"]=True
-                        st.rerun()
-                else:
-                    self.display_general_evaluation(float_container)
-                    self.evaluation_callback()
+                self.display_general_evaluation(float_container)
+                self.evaluation_callback()
             float_parent()
         # the main profile column
         with profile_col:
@@ -1124,7 +1116,7 @@ class User():
                         # """
                         ],
                 ):
-                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers,), use_container_width=True)
+                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers, lance_users_table), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
@@ -1140,31 +1132,45 @@ class User():
 
         """ Displays the general evaluation result of the profile """
 
-        # eval_dict= self.get_dict("evaluation")
-        try:
-            eval_dict= st.session_state["eval_dict"]
-        except Exception:
-            eval_dict={}
+
+        # NOTE: eval_dict either comes from general_eval_dict or from backend function
+        eval_dict = st.session_state["general_eval_dict"]
+        if not eval_dict:
+            #if no general_eval_dict from table, evaluation comes from backend function
+            try:
+                eval_dict= st.session_state["evaluation"]
+                finished = eval_dict["finished"]
+                if finished:
+                    st.session_state["eval_rerun_timer"]=None
+                    eval_dict.update({"user_id":self.userId})
+                    save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
+                    st.rerun()      
+            except Exception:
+                eval_dict={}
+        else:
+            # if displaying from general_eval_dict
+            st.session_state["eval_rerun_timer"]=None
+            finished=True
         if eval_dict:
-            if "finished_eval" in st.session_state:
-                display_name = "Your evaluation results are in! ✨"
-                button_name = "evaluate again ✨"
+            if finished:
+                display_name = "Your profile has been evaluated ✨"
+                # button_name = "evaluate again ✨"
             else:
                 display_name = "Your profile is being evaluated ✨..."
-                button_name="stop evaluation"
+                # button_name="stop evaluation"
             with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
                     try:
                         length=eval_dict["word_count"]
-                        pages=eval_dict["page_number"]
+                        pages=eval_dict["page_count"]
                         fig = self.display_length_chart(length)
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
                     except Exception:
-                        if "finished_eval" not in st.session_state:
+                        if finished is False:
                             st.write("Evaluating...")
                 with c2:
                     st.write("**Formatting**")
@@ -1186,61 +1192,65 @@ class User():
                             # if st.button("Explore template options", key="resume_template_explore_button"):
                             #     self.explore_template_popup()
                     except Exception:
-                        if "finished_eval" not in st.session_state:
+                        if finished is False:
                             st.write("Evaluating...")
                 st.write("**Language**")
                 try:
-                    fig = self.display_language_radar(eval_dict["language"])
+                    categories=["syntax", "diction", "tone", "coherence"]
+                    language_data=[]
+                    for category in categories:
+                        language_data.append({category:eval_dict[category]})
+                    fig = self.display_language_radar(language_data)
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
                 st.write("**How does your resume compared to other resume?**")
                 try:
-                    fig = self.display_comparison_chart(eval_dict["comparison"])
+                    section_names = ["objective", "work_experience", "skillsets"]
+                    comparison_data = []
+                    for section in section_names:
+                        comparison_data.append({section:eval_dict[section]})
+                    fig = self.display_comparison_chart(comparison_data)
                     st.plotly_chart(fig)
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
                     impression = eval_dict["impression"]
                     st.write(impression)
-                    # finished evaluataion, stop timer
-                    if "finished_eval" not in st.session_state:
-                        st.session_state["finished_eval"] = True
-                        st.session_state["eval_rerun_timer"]=None
-                        st.rerun()
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
-                if st.button(button_name, key=f"eval_button", ):
-                    if button_name=="evaluate again ✨":
+                if st.button("evaluate again ✨", key=f"eval_button", ):
+                    # if button_name=="evaluate again ✨":
                         container.empty()
                         # delete previous evaluation states
                         try:
-                            del st.session_state["eval_dict"]
-                            del st.session_state["finished_eval"]
+                            # remove general_eval_dict from lance table
+                            delete_user_from_table(self.userId, lance_eval_table)
+                            del st.session_state["evaluation"]
                         except Exception:
                             pass
                         finally:
                             # reset evaluation rerun timer
                             st.session_state["eval_rerun_timer"]=3
                             st.rerun()
-                    elif button_name=="stop evaluation":
-                        try:
-                            # kill the evaluation thread 
-                            self.eval_thread.kill()
-                            self.eval_thread.join()
-                        except Exception as e:
-                            print(e)
-                            pass
-                        finally:
-                            # stop timer and finished evaluation
-                            st.session_state["eval_rerun_timer"] = None
-                            st.session_state["finished_eval"] = True
-                        st.rerun()
+                    # elif button_name=="stop evaluation":
+                    #     try:
+                    #         # kill the evaluation thread 
+                    #         self.eval_thread.kill()
+                    #         self.eval_thread.join()
+                    #     except Exception as e:
+                    #         print(e)
+                    #         pass
+                    #     finally:
+                    #         # stop timer and finished evaluation
+                    #         st.session_state["eval_rerun_timer"] = None
+                    #         st.session_state["finished_eval"] = True
+                    #         st.rerun()
 
 
     @st.dialog(" ")
@@ -1270,14 +1280,12 @@ class User():
         end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
         write_file("", end_path)
-        # with open(end_path, "w") as f:
-        #     pass
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.profile, ResumeUsers)
+        save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
        
 
 
@@ -1287,17 +1295,17 @@ class User():
         """ Opens a popup that warns user before uploading a new resume """
 
         add_vertical_space(2)
-        st.warning("Your current profile will be lost. Are you sure?")
+        st.warning("Your current profile will be re-populated. Are you sure?")
         add_vertical_space(2)
         c1, _, c2 = st.columns([1, 1, 1])
         with c2:
-            if st.button("yes, I'll upload a new one", type="primary", ):
-                delete_user_from_table(self.userId)
+            if st.button("yes, I'll upload a new resume", type="primary", ):
+                delete_user_from_table(self.userId, lance_users_table)
+                delete_user_from_table(self.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 try:
                     del st.session_state["profile"]
-                    del st.session_state["eval_dict"]
-                    del st.session_state["init_eval"]
+                    del st.session_state["evaluation"]
                 except Exception:
                     pass
                 st.rerun()
@@ -1443,7 +1451,6 @@ class User():
         # Add the first value at the end to close the radar chart circle
         values.append(values[0])
         metrics.append(metrics[0])
-        print("ratings", values)
         fig = go.Figure(data=go.Scatterpolar(
             r=values,
             theta=metrics,

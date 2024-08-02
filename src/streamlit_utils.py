@@ -45,7 +45,7 @@ def user_menu(userId, page, ):
                 st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/user.py")
         else:
-            with st.popover(label=f"👤 {userId}",):
+            with st.popover(label=f"{userId}",):
                 # if page!="main":
                 #     if st.button("Home", type="primary"):
                 #         st.switch_page("home.py")

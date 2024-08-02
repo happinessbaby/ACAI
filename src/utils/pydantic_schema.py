@@ -290,6 +290,24 @@ class Replacements(BaseModel):
     replacements: List[Replacement]
 
 
+class GeneralEvaluation(BaseModel):
+    user_id : str
+    word_count: int
+    page_count: int
+    ideal_type: str
+    resume_type: str
+    impression: str
+    syntax: Language
+    diction: Language
+    tone: Language
+    coherence: Language
+    objective: Comparison
+    work_experience: Comparison
+    skillsets: Comparison
+    finished: bool
+
+
+
 
 
 class ResumeUsers(BaseModel):
