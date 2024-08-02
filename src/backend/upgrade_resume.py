@@ -97,6 +97,11 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         work_experience= resume_dict["work_experience"]
         evaluated_work= analyze_field_content(work_experience, "work experience")
         st.session_state["evaluated_work_experience"]=evaluated_work
+    elif type=="summary":
+        summary_objective = resume_dict["summary_objective"]
+        if summary_objective:
+            evaluated_summary = analyze_summary_objective(resume_content)
+            st.session_state["evaluated_summary_objective"]=evaluated_summary
 
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
@@ -140,7 +145,30 @@ def analyze_field_content(field_content, field_type):
             The limitations of your project
             Conclusions and/pr recommendations
             Further questions to examine in the future"""
-            
+        
+
+def analyze_summary_objective(resume_content, ):
+    
+    summary_query = f"""Given the resume content below, please analyze the summary objective section based on the following criteria:
+
+    1. Is it about two to three sentences long? \n
+
+    2. Is it succinct and well-crafted? \n
+    
+    2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
+
+    Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. 
+
+    resume content: {resume_content}
+    
+    """
+
+    summary_resp = generate_multifunction_response(summary_query, create_search_tools("google", 1))
+    return summary_resp
+
+
+    
+
 
 def analyze_via_comparison(field_content, field_name,  sample_tools, tool_names):
 
