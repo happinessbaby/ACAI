@@ -301,14 +301,20 @@ class ComparisonFields(BaseModel):
     skillsets: Comparison
 
 class GeneralEvaluation(BaseModel):
-    userId : str
+    user_id : str
     word_count: int
     page_count: int
     ideal_type: str
     resume_type: str
     impression: str
-    language: LanguageCriteria
-    comparison: ComparisonFields
+    syntax: Language
+    diction: Language
+    tone: Language
+    coherence: Language
+    objective: Comparison
+    work_experience: Comparison
+    skillsets: Comparison
+    finished: bool
 
 
 

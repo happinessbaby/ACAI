@@ -11,6 +11,7 @@ from utils.async_utils import asyncio_run
 from dotenv import load_dotenv, find_dotenv
 from utils.aws_manager import get_session_token
 from utils.dynamodb_utils import init_dynamodb_table
+from utils.pydantic_schema import GeneralEvaluation
 import lance
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -99,6 +100,7 @@ def add_to_lancedb_table(table_name, data, schema, mode="append"):
         print(e)
         table = create_lancedb_table(table_name, schema)
     table.add(data, mode=mode)
+    print("Sucessfully added data to table")
 
 def create_lancedb_index(table_name, distance_type):
 
@@ -163,63 +165,37 @@ def retrieve_dict_from_table(userId, tablename):
 
     users_table = retrieve_lancedb_table(tablename)
     if users_table:
-        dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if not dict["user_id"]:
+        table_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        if not table_dict["user_id"]:
             return None
-        for key in dict:
-            if isinstance(dict[key], list):
+        for key in table_dict:
+            if isinstance(table_dict[key], list):
                 try:
-                    value=dict[key][0]
+                    value=table_dict[key][0]
                     if isinstance(value, str):  # Handle strings
-                        dict[key]=value
+                        table_dict[key]=value
                     elif isinstance(value, (np.ndarray, list)):  # Handle arrays
                         # print(value)
-                        cleaned_data= clean_field(dict, key)
-                        dict[key] = convert_arrays_to_lists(cleaned_data)
-                        # print("list pydantic arrays", dict[key])
+                        cleaned_data= clean_field(table_dict, key)
+                        table_dict[key] = convert_arrays_to_lists(cleaned_data)
+                        # print("list pydantic arrays", table_dict[key])
                     elif isinstance(value, dict):
                         for k in value:
                             if isinstance(value[k], (np.ndarray, list)):
                                 cleaned_data = clean_field(value, k)
                                 value[k] = convert_arrays_to_lists(cleaned_data)
-                        dict[key]=value
+                        table_dict[key]=value
                     else:                   # Handle None and anomalies
-                        dict[key] = ''
-                except IndexError:
+                        table_dict[key] = ''
+                except IndexError as e:
+                    print(e)
                     pass
-        print(f"Retrieved {tablename} dict from lancedb")
-        return dict
+        print(f"Retrieved {tablename} dict from lancedb",)
+        return table_dict
     else:
         return None
 
 
-    # for field_name, model_field in schema.__fields__.items():
-    #     if field_name=="vector":
-    #         fields.append(pa.field(field_name, pa.list_(pa.float32())))
-    #     if hasattr(model_field.type_, "__fields__"):
-    #         # Assuming list of nested Pydantic models
-    #         nested_model = model_field.type_
-    #         print("list field name:", field_name)
-    #         nested_fields = [pa.field(name, pa.string()) for name in nested_model.__fields__.keys()]
-    #         # nested_fields = []
-    #         # for name, field in nested_model.__fields__.items():
-    #         #     if field.outer_type_ == list:
-    #         #         # Handle nested lists if needed
-    #         #         nested_fields.append(pa.field(name, pa.list_(pa.string())))
-    #         #     else:
-    #         #           # Determine the Arrow data type based on Pydantic field type
-    #         #         if issubclass(field.type_, str) or issubclass(field.type_, Optional):
-    #         #             arrow_type = pa.string()
-    #         #         elif issubclass(field.type_, int):
-    #         #             arrow_type = pa.int64()
-    #         #         else:
-    #         #             arrow_type = pa.string()  # Default to string if unsure
-    #         #         nested_fields.append(pa.field(name, arrow_type))
-    #         # Ensure fields are in the expected order for Arrow struct
-    #         nested_fields = sorted(nested_fields, key=lambda f: f.name)
-    #         fields.append(pa.field(field_name, pa.list_(pa.struct(nested_fields))))
-    #     else:
-    #         fields.append(pa.field(field_name, pa.string()))
 def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     fields = []
     for field_name, model_field in schema.__fields__.items():
@@ -272,12 +248,3 @@ def save_user_changes(data, schema, tablename):
     except Exception as e:
         raise e
     
-# def save_general_eval(userId, eval_dict):
-#     table = retrieve_lancedb_table(lance_users_table)
-#     # NOTE: nested column update is not supported yet 
-#     # the nested comparison dictionary will not be added to update
-#     table.update(where=f"user_id = '{userId}'", values=
-#                  {"impression": eval_dict["impression"], "word_count":eval_dict["word_count"], "page_count":eval_dict["page_count"],
-#                   "ideal_type": eval_dict["ideal_type"], "resume_type":eval_dict["resume_type"], }
-#                  )
-#     print("updated general evaluation statuss")

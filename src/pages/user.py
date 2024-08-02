@@ -10,7 +10,7 @@ from google.auth.transport import requests
 from utils.cookie_manager import CookieManager
 import time
 from datetime import datetime, timedelta, date
-from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, save_eval_status
+from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
@@ -101,7 +101,7 @@ class User():
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             st.session_state["user_profile_dict"]= retrieve_dict_from_table(self.userId, lance_users_table)
-            st.session_state["eval_dict"] = retrieve_dict_from_table(self.userId, lance_eval_table)
+            st.session_state["general_eval_dict"] = retrieve_dict_from_table(self.userId, lance_eval_table)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -877,7 +877,6 @@ class User():
             try:
                 experience_description = st.session_state[f"experience_description_{idx}"]
                 if experience_description:
-                    # self.experience_list[idx]["description"] = experience_description
                     st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
             except Exception:
                 pass
@@ -973,8 +972,8 @@ class User():
             # starts specific evaluation of a field
             evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
         else:
-            # start general evaluation if haven't done so
-            if "eval_dict" not in st.session_state:
+            # start general evaluation if there's no saved evaluation 
+            if "evaluation" not in st.session_state and not st.session_state["general_eval_dict"]:
                 self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
@@ -1001,17 +1000,6 @@ class User():
         with eval_col:
             float_container= st.container()
             with float_container:
-                # eval_status = st.session_state["user_profile_dict"]["general_evaluation_status"]
-                # if eval_status is False:
-                #     if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
-                #         st.rerun()
-                # during first preview of the profile, display a button for general evaluation
-                # otherwise, unless page refresh, general evaluation will be in a popover
-                # if "init_eval" not in st.session_state:
-                #     if st.button("Evaluate my profile ✨", key="init_profile_eval_button"):
-                #         st.session_state["init_eval"]=True
-                #         st.rerun()
-                # else:
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
             float_parent()
@@ -1144,19 +1132,35 @@ class User():
 
         """ Displays the general evaluation result of the profile """
 
-        # eval_dict= self.get_dict("evaluation")
-        # try:
-            # eval_dict= st.session_state["eval_dict"]
-        # except Exception:
-        #     eval_dict={}
-        eval_dict= st.session_state["eval_dict"]
+
+        # NOTE: eval_dict either comes from general_eval_dict or from backend function
+        eval_dict = st.session_state["general_eval_dict"]
+        if not eval_dict:
+            #if no general_eval_dict from table, evaluation comes from backend function
+            try:
+                eval_dict= st.session_state["evaluation"]
+            except Exception:
+                eval_dict={}
+        else:
+            # if displaying from general_eval_dict
+            st.session_state["eval_rerun_timer"]=None
+            finished=True
         if eval_dict:
-            if "finished_eval" in st.session_state:
-                display_name = "Your evaluation results are in! ✨"
-                button_name = "evaluate again ✨"
+            try:
+                finished = eval_dict["finished"]
+                if finished:
+                    st.session_state["eval_rerun_timer"]=None
+                    eval_dict.update({"user_id":self.userId})
+                    save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
+                    st.rerun()      
+            except Exception:
+                pass
+            if finished:
+                display_name = "Your profile has been evaluated ✨"
+                # button_name = "evaluate again ✨"
             else:
                 display_name = "Your profile is being evaluated ✨..."
-                button_name="stop evaluation"
+                # button_name="stop evaluation"
             with st.popover(display_name):
                 c1, c2=st.columns([1, 1])
                 with c1:
@@ -1169,7 +1173,7 @@ class User():
                                         # use_container_width=True
                                         )
                     except Exception:
-                        if "finished_eval" not in st.session_state:
+                        if finished is False:
                             st.write("Evaluating...")
                 with c2:
                     st.write("**Formatting**")
@@ -1191,65 +1195,65 @@ class User():
                             # if st.button("Explore template options", key="resume_template_explore_button"):
                             #     self.explore_template_popup()
                     except Exception:
-                        if "finished_eval" not in st.session_state:
+                        if finished is False:
                             st.write("Evaluating...")
                 st.write("**Language**")
                 try:
-                    fig = self.display_language_radar(eval_dict["language"])
+                    categories=["syntax", "diction", "tone", "coherence"]
+                    language_data=[]
+                    for category in categories:
+                        language_data.append({category:eval_dict[category]})
+                    fig = self.display_language_radar(language_data)
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
                 st.write("**How does your resume compared to other resume?**")
                 try:
-                    fig = self.display_comparison_chart(eval_dict["comparison"])
+                    section_names = ["objective", "work_experience", "skillsets"]
+                    comparison_data = []
+                    for section in section_names:
+                        comparison_data.append({section:eval_dict[section]})
+                    fig = self.display_comparison_chart(comparison_data)
                     st.plotly_chart(fig)
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
                     impression = eval_dict["impression"]
                     st.write(impression)
-                    # finished evaluataion, stop timer
-                    if "finished_eval" not in st.session_state:
-                        st.session_state["finished_eval"] = True
-                        st.session_state["eval_rerun_timer"]=None
-                        eval_dict.update({"user_id":self.userId})
-                        save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
-                        st.rerun()
                 except Exception:
-                    if "finished_eval" not in st.session_state:
+                    if finished is False:
                         st.write("Evaluating...")
-                if st.button(button_name, key=f"eval_button", ):
-                    if button_name=="evaluate again ✨":
+                if st.button("evaluate again ✨", key=f"eval_button", ):
+                    # if button_name=="evaluate again ✨":
                         container.empty()
                         # delete previous evaluation states
                         try:
-                            # remove eval_dict from lance table
+                            # remove general_eval_dict from lance table
                             delete_user_from_table(self.userId, lance_eval_table)
-                            # del st.session_state["eval_dict"]
-                            del st.session_state["finished_eval"]
+                            del st.session_state["evaluation"]
                         except Exception:
                             pass
                         finally:
                             # reset evaluation rerun timer
                             st.session_state["eval_rerun_timer"]=3
                             st.rerun()
-                    elif button_name=="stop evaluation":
-                        try:
-                            # kill the evaluation thread 
-                            self.eval_thread.kill()
-                            self.eval_thread.join()
-                        except Exception as e:
-                            print(e)
-                            pass
-                        finally:
-                            # stop timer and finished evaluation
-                            st.session_state["eval_rerun_timer"] = None
-                            st.session_state["finished_eval"] = True
-                        st.rerun()
+                    # elif button_name=="stop evaluation":
+                    #     try:
+                    #         # kill the evaluation thread 
+                    #         self.eval_thread.kill()
+                    #         self.eval_thread.join()
+                    #     except Exception as e:
+                    #         print(e)
+                    #         pass
+                    #     finally:
+                    #         # stop timer and finished evaluation
+                    #         st.session_state["eval_rerun_timer"] = None
+                    #         st.session_state["finished_eval"] = True
+                    #         st.rerun()
 
 
     @st.dialog(" ")
@@ -1279,8 +1283,6 @@ class User():
         end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
         write_file("", end_path)
-        # with open(end_path, "w") as f:
-        #     pass
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
@@ -1306,8 +1308,7 @@ class User():
                  # delete session-specific copy of the profile and evaluation
                 try:
                     del st.session_state["profile"]
-                    # del st.session_state["eval_dict"]
-                    # del st.session_state["init_eval"]
+                    del st.session_state["evaluation"]
                 except Exception:
                     pass
                 st.rerun()
@@ -1453,7 +1454,6 @@ class User():
         # Add the first value at the end to close the radar chart circle
         values.append(values[0])
         metrics.append(metrics[0])
-        print("ratings", values)
         fig = go.Figure(data=go.Scatterpolar(
             r=values,
             theta=metrics,

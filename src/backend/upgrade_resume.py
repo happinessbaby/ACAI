@@ -54,13 +54,13 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
     if type=="general":
-        st.session_state["eval_dict"] = {"language":[], "comparison":[]}
+        st.session_state["evaluation"] = {"finished":False}
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(resume_file)
-        st.session_state.eval_dict.update({"word_count": word_count})
+        st.session_state.evaluation.update({"word_count": word_count})
         pattern = r'pages:(\d+)'
         # Search for the pattern in the text (I added page number when writing the file to txt)
         match = re.search(pattern, resume_content)
@@ -69,17 +69,17 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
             page_num = match.group(1)
         else:
             page_num = 0
-        st.session_state.eval_dict.update({"page_count": int(page_num)})
+        st.session_state.evaluation.update({"page_count": int(page_num)})
         # Research and analyze resume type
         ideal_type = research_resume_type(resume_dict=resume_dict, )
-        st.session_state.eval_dict.update({"ideal_type": ideal_type})
+        st.session_state.evaluation.update({"ideal_type": ideal_type})
         resume_type= analyze_resume_type(resume_content,)
-        st.session_state.eval_dict.update({"resume_type": resume_type})
-        # st.session_state.eval_dict.update(type_dict)
+        st.session_state.evaluation.update({"resume_type": resume_type})
+        # st.session_state.evaluation.update(type_dict)
         categories=["syntax", "diction", "tone", "coherence"]
         for category in categories:
             category_dict = analyze_language(resume_content, category)
-            st.session_state.eval_dict["language"].append({category:category_dict})
+            st.session_state.evaluation.update({category:category_dict})
         section_names = ["objective", "work_experience", "skillsets"]
         field_names = ["summary_objective", "work_experience", "included_skills"]
         field_map = dict(zip(field_names, section_names))
@@ -88,11 +88,12 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         for field_name, section_name in field_map.items():
             # for category in categories:
             comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
-            st.session_state.eval_dict["comparison"].append({section_name:comparison_dict})
+            st.session_state.evaluation.update({section_name:comparison_dict})
 
         # Generate overall impression
         impression = generate_impression(resume_content, pursuit_jobs)
-        st.session_state.eval_dict["impression"]= impression
+        st.session_state.evaluation["impression"]= impression
+        st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
     if type=="work_experience":
         work_experience= resume_dict["work_experience"]
