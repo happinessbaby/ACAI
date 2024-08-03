@@ -458,6 +458,9 @@ def reformat_resume(template_path, ):
 
 
     print("reformatting resume")
+
+    selected_fields = st.session_state["selected_fields"]
+    print(selected_fields)
     info_dict = st.session_state["profile"]
     filename = os.path.basename(template_path)
     output_dir = st.session_state["users_download_path"]
@@ -467,38 +470,44 @@ def reformat_resume(template_path, ):
         s3_object = s3.get_object(Bucket=bucket_name, Key=template_path)
         template_path = BytesIO(s3_object['Body'].read())
     doc_template = DocxTemplate(template_path)
-    func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
-    personal_context = {
-        "NAME": func("name", "YOUR NAME"),
-        "CITY": func("city", "YOUR CITY"),
-        "STATE": func("state", "YOUR STATE"),
-        "PHONE": func("phone", "YOUR PHONE"),
-        "EMAIL": func("email", "YOUR EMAIL"),
-        "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
-        "WEBSITE": func("websites", "WEBSITE"),
-    }
-    func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
-    education_context = {
-        "INSTITUTION": func("institution", "YOUR INSTITUTION"),
-        "DEGREE": func("degree", "YOUR DEGREE"),
-        "STUDY": func("study", "YOUR AREA OF STUDY"),
-        "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
-    }
-    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
-    other_context = {
-        "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),
-        "SUMMARY": func("summary_objective", "SUMMARY"),
-        "SKILLS": func("included_skills", "YOUR SKILLS"),
-        "PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),
-        "CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),
-        "SKILLS": func("included_skills", "YOUR SKILLS"),
-        "HOBBIES": func("hobbies", "YOUR HOBBIES")
-    }
     context={}
-    context.update(personal_context)
-    context.update(education_context)
-    context.update(other_context)
-    context.update({"WORK_EXPERIENCE": info_dict["work_experience"]})
+    if "Contact" in selected_fields:      
+        func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
+        personal_context = {
+            "NAME": func("name", "YOUR NAME"),
+            "CITY": func("city", "YOUR CITY"),
+            "STATE": func("state", "YOUR STATE"),
+            "PHONE": func("phone", "YOUR PHONE"),
+            "EMAIL": func("email", "YOUR EMAIL"),
+            "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
+            "WEBSITE": func("websites", "WEBSITE"),
+        }
+        context.update(personal_context)
+    if "Education" in selected_fields:
+        func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
+        education_context = {
+            "INSTITUTION": func("institution", "YOUR INSTITUTION"),
+            "DEGREE": func("degree", "YOUR DEGREE"),
+            "STUDY": func("study", "YOUR AREA OF STUDY"),
+            "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
+        }
+        context.update(education_context)
+    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    if "Summary/Objective" in selected_fields:
+        context.update({"SUMMARY": func("summary_objective", "SUMMARY/OBJECTIVE"), 
+                         "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),})      
+    if "Work Experience" in selected_fields:
+         context.update({"WORK_EXPERIENCE": func("work_experience", "YOUR WORK EXPERIENCE")})
+    if "Skills" in selected_fields:
+        context.update({"SKILLS": func("included_skills", "YOUR SKILLS"),})
+    if "Professional Accomplishment" in selected_fields:
+        context.update({"PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),})
+    if "Certifications" in selected_fields:
+        context.update({"CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),})
+    if "Projects" in selected_fields:
+        context.update({"PROJECTS":func("projects", "YOUR PROJECTS")})
+    if "Awards & Honors" in selected_fields:
+        context.update({"AWARDS/HONORS": func("awards", "YOUR AWARDS AND HONORS")})
     # text_box_contents = read_text_boxes(template_path)
     #  # Render each text box template with the context
     # rendered_contents = [render_template(content, context) for content in text_box_contents]

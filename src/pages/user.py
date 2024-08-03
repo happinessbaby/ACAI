@@ -1046,7 +1046,7 @@ class User():
         # if user calls to tailor fields
         if "init_tailoring" in st.session_state:
             self.job_posting_popup()
-        eval_col, profile_col, _ = st.columns([1, 4, 1])   
+        eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with eval_col:
             float_container= st.container()
@@ -1054,6 +1054,9 @@ class User():
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
             float_parent()
+        with fields_col:
+            self.fields_selection()
+            # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
@@ -1124,18 +1127,18 @@ class User():
                     self.generated_skills_set.add(skill["skill"])
                 get_display=self.display_skills()
                 get_display()
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                with st.expander(label="Professional Accomplihsment/Qualifications"):
-                    st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
-                                 label="learn more")
-                    get_display=self.display_field_content("qualifications")
-                    get_display()
-            with c2:
-                with st.expander(label="Projects"):
-                    get_display=self.display_field_content("projects")
-                    get_display()
-            c1, c2, c3=st.columns([1, 1, 1])
+            # c1, c2 = st.columns([1, 1])
+            # with c1:
+            with st.expander(label="Professional Accomplihsment"):
+                st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
+                                label="learn more")
+                get_display=self.display_field_content("qualifications")
+                get_display()
+            # with c2:
+            with st.expander(label="Projects"):
+                get_display=self.display_field_content("projects")
+                get_display()
+            c1, c2=st.columns([1, 1])
             with c1:
                 with st.expander(label="Certifications", ):
                     get_display=self.display_field_content("certifications")
@@ -1144,10 +1147,10 @@ class User():
                 with st.expander("Awards & Honors"):
                     get_display=self.display_field_content("awards")
                     get_display()
-            with c3:
-                with st.expander("Licenses"):
-                    get_display=self.display_field_content("licenses")
-                    get_display()
+            # with c3:
+            #     with st.expander("Licenses"):
+            #         get_display=self.display_field_content("licenses")
+            #         get_display()
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
             # placeholder = st.empty()
             # st.button("+ custom field", on_click=self.add_custom_field, args=(placeholder, ))
@@ -1175,9 +1178,27 @@ class User():
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
 
+    @st.fragment()
+    def fields_selection(self, ):
 
-
-        
+        st.write("Fields to include in the resume")
+        if "selected_fields" in st.session_state:
+            index_selected = [idx for idx, val in enumerate(st.session_state["selected_fields"])]
+        else:
+            index_selected = [0, 1, 2, 3]
+        st.session_state["selected_fields"] = sac.chip(items=[
+                sac.ChipItem(label='Contact'),
+                sac.ChipItem(label='Education'),
+                sac.ChipItem(label='Summary/Objective'),
+                sac.ChipItem(label='Work Experience'),
+                sac.ChipItem(label='Skills'),
+                sac.ChipItem(label='Professional Accomplishment'),
+                sac.ChipItem(label='Projects'),
+                sac.ChipItem(label='Certifications'),
+                sac.ChipItem(label='Awards & Honors'),
+            ], label=' ', index=index_selected, align='center', radius='md', multiple=True  )
+       
+   
 
     
     @st.fragment(run_every=st.session_state["eval_rerun_timer"])

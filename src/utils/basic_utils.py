@@ -18,6 +18,7 @@ from playwright.async_api import async_playwright
 import collections.abc, functools
 from functools import wraps
 from time import time
+import time
 import errno
 import os
 import signal
@@ -103,18 +104,20 @@ def convert_to_txt(file, output_path,) -> bool:
         print(e)
         return False
 
-def convert_doc_to_pdf(input_path, ext=".docx"):
+def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     #retrieve docx from s3
     pdf_output_path = input_path.replace(ext, '.pdf')
-    try:
-        subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
-        print('converted docx to pdf', pdf_output_path)
-    except subprocess.CalledProcessError as e:
-        print(f"Error during conversion: {e}")
-        return None
-    return pdf_output_path
+    for attempt in range(max_retries):
+        try:
+            subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
+            print('converted docx to pdf', pdf_output_path)
+            return pdf_output_path
+        except subprocess.CalledProcessError as e:
+            print(f"Error during conversion to pdf {attempt + 1}: {e}")
+            time.sleep(delay)  # Wait before retrying
+    return None  # Indicate failure after retries
 
-def convert_pdf_to_img(pdf_path, image_format="png"):
+def convert_pdf_to_img(pdf_path, image_format="png", max_retries=3, delay=1):
     #
     image_output_path = pdf_path.replace('.pdf', '_images')
     os.makedirs(image_output_path, exist_ok=True)
@@ -122,17 +125,19 @@ def convert_pdf_to_img(pdf_path, image_format="png"):
     if STORAGE=="CLOUD":
         image_tmp_dir = tempfile.mkdtemp()
         image_output_path = os.path.join(image_tmp_dir, 'image')
-    try:
-        # Convert PDF to images using pdftoppm
-        subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
-        # Collect the generated image paths
-        image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
-        print("converted pdf to image: ", image_paths)
-    except Exception as e:
-        print(e)
-        return None
+    for attempt in range(max_retries):
+        try:
+            # Convert PDF to images using pdftoppm
+            subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
+            # Collect the generated image paths
+            image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
+            print("converted pdf to image: ", image_paths)
+            return image_paths
+        except subprocess.CalledProcessError as e:
+                print(f"Error converting {pdf_path} to image on attempt {attempt + 1}: {e}")
+                time.sleep(delay)  # Wait before retrying
+    return None  # Indicate failure after retries
 
-    return image_paths
 
 
 def convert_log_to_txt(file, output_path):
