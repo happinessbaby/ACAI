@@ -148,7 +148,7 @@ class Skill(BaseModel):
         default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
     )
     skill:Optional[str] = Field(
-        default="", description="a skill listed "
+        default="", description="a skill"
     )
     type: Optional[str] = Field(
         default="", description="categorize the skill into 'hard skill' or 'soft skill' "

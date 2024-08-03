@@ -37,6 +37,10 @@ from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
+#NOTE: below import is necessary for nested column fix, do not delete
+import streamlit_nested_layout
+import streamlit as st
+from st_draggable_list import DraggableList
 import streamlit as st
 
 
@@ -59,6 +63,7 @@ elif STORAGE=="LOCAL":
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder=st.empty()
+st.logo("./resources/logo_acai.png")
 # initialize float feature/capability
 float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -657,13 +662,19 @@ class User():
             with c1:
                 with st.container(border=True):
                     st.write("Your skills")
+                    # data=[]
+                    # idx=0
+                    # for skill in self.skills_set:
+                    #     data.append({"id":skill, "order":idx, "name":skill})
+                    #     idx+=1
+                    # slist = DraggableList(data, key="foo")
                     for idx, skill in enumerate(self.skills_set):
                         x = st.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
                 st.write("Suggested skills to include")
                 for idx, skill in enumerate(self.generated_skills_set):
-                    y = st.button(skill +" :green[o]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-            st.text_input("Add a skill not from the suggestion", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
+                    y = st.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                st.text_input("Add a skill", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
             
         def skills_callback(idx, skill):
             try:
@@ -722,6 +733,44 @@ class User():
                 else:
                     del st.session_state["profile"][field_name][field_detail][idx]
             placeholder.empty()
+
+        def move_entry(idx, movement, ):
+            if movement=="up":
+                if x!=-1:
+                    current = st.session_state["profile"][field_name][x][field_detail][idx]
+                    try:
+                        prev =  st.session_state["profile"][field_name][x][field_detail][idx-1]
+                        st.session_state["profile"][field_name][x][field_detail][idx-1] = current
+                        st.session_state["profile"][field_name][x][field_detail][idx]=prev
+                    except Exception:
+                        pass
+                else:
+                    current = st.session_state["profile"][field_name][field_detail][idx]
+                    try:
+                        prev =  st.session_state["profile"][field_name][field_detail][idx-1]
+                        st.session_state["profile"][field_name][field_detail][idx-1] = current
+                        st.session_state["profile"][field_name][field_detail][idx]=prev
+                    except Exception:
+                        pass
+            elif movement=="down":
+                if x!=-1:
+                    current = st.session_state["profile"][field_name][x][field_detail][idx]
+                    try:
+                        nxt =  st.session_state["profile"][field_name][x][field_detail][idx+1]
+                        st.session_state["profile"][field_name][x][field_detail][idx+1] = current
+                        st.session_state["profile"][field_name][x][field_detail][idx]=nxt
+                    except Exception:
+                        pass
+                else:
+                    current = st.session_state["profile"][field_name][field_detail][idx]
+                    try:
+                        nxt =  st.session_state["profile"][field_name][field_detail][idx+1]
+                        st.session_state["profile"][field_name][field_detail][idx+1] = current
+                        st.session_state["profile"][field_name][field_detail][idx]=nxt
+                    except Exception:
+                        pass
+        
+
 
         def add_new_entry():
             print("added new entry")
