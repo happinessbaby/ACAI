@@ -11,6 +11,7 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
 from multiprocessing import Pool
+from streamlit_pdf_viewer import pdf_viewer
 import streamlit as st
 
 set_streamlit_page_config_once()
@@ -41,27 +42,34 @@ class Reformat():
 
         user_menu(self.userId, page="template")
         progress_bar(1)
-        self.display_resume_templates()
+        if self.reformat_templates():
+            self.display_resume_templates()
 
 
+    def reformat_templates(self, ):
+
+        try:
+            template_paths = list_files(template_path, ext=".docx")
+        
+            with Pool() as pool:
+                st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+            with Pool() as pool:
+                result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+            st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+            return True
+        except Exception as e:
+            raise e
+
+
+    @st.fragment()
     def display_resume_templates(self, ):
         
-    
-        template_paths = list_files(template_path, ext=".docx")
-      
-        with Pool() as pool:
-            st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-        with Pool() as pool:
-            result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-        st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
-            previews = [images[0] for images in st.session_state["image_paths"] if images is not None]
+            previews = [images[0] for images in st.session_state["image_paths"] if images]
             print(previews)
             selected_idx=image_select("Select a template", images=previews, return_value="index")
             st.markdown(general_button, unsafe_allow_html=True)    
-            # st.markdown(binary_file_downloader_html(formatted_pdf_paths[selected_idx], "Download as PDF"), unsafe_allow_html=True)
-            # st.markdown(binary_file_downloader_html(formatted_docx_paths[selected_idx], "Download as DOCX"), unsafe_allow_html=True)
         with c2:
             st.image(st.session_state["image_paths"][selected_idx])
         with c3:

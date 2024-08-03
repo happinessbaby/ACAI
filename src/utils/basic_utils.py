@@ -107,36 +107,33 @@ def convert_to_txt(file, output_path,) -> bool:
 def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     #retrieve docx from s3
     pdf_output_path = input_path.replace(ext, '.pdf')
+    output_dir = os.path.dirname(input_path)
     for attempt in range(max_retries):
         try:
-            subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', os.path.dirname(input_path)], check=True)
-            print('converted docx to pdf', pdf_output_path)
+            subprocess.run(["libreoffice", '--headless', '--convert-to', 'pdf', input_path, '--outdir', output_dir], check=True)
+            # print('converted docx to pdf', pdf_output_path)
             return pdf_output_path
         except subprocess.CalledProcessError as e:
             print(f"Error during conversion to pdf {attempt + 1}: {e}")
             time.sleep(delay)  # Wait before retrying
-    return None  # Indicate failure after retries
+    return ""  # Indicate failure after retries
 
-def convert_pdf_to_img(pdf_path, image_format="png", max_retries=3, delay=1):
+def convert_pdf_to_img(pdf_path, image_format="png", max_retries=1, delay=1):
     #
     image_output_path = pdf_path.replace('.pdf', '_images')
     os.makedirs(image_output_path, exist_ok=True)
-    # image_output_path = os.path.join(image_output_dir, f'image_{idx}')
-    if STORAGE=="CLOUD":
-        image_tmp_dir = tempfile.mkdtemp()
-        image_output_path = os.path.join(image_tmp_dir, 'image')
     for attempt in range(max_retries):
         try:
             # Convert PDF to images using pdftoppm
-            subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
+            subprocess.run(["pdftoppm", '-{}'.format(image_format), pdf_path, image_output_path], check=True)
             # Collect the generated image paths
             image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
-            print("converted pdf to image: ", image_paths)
+            # print("converted pdf to image: ", image_paths)
             return image_paths
         except subprocess.CalledProcessError as e:
                 print(f"Error converting {pdf_path} to image on attempt {attempt + 1}: {e}")
                 time.sleep(delay)  # Wait before retrying
-    return None  # Indicate failure after retries
+    return []  # Indicate failure after retries
 
 
 
@@ -204,19 +201,19 @@ def convert_pdf_to_txt(pdf_file, output_path):
 #         for line in text_content:
 #             f.write(line + '\n')
 
-def convert_txt_to_doc(txt_file, output_path,):
-    doc = Document()
-    with open(txt_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            doc.add_paragraph(line.strip())
-    if STORAGE=="LOCAL":
-        doc.save(output_path)
-    elif STORAGE=="CLOUD":
-         # Save DOCX to memory
-        docx_bytes = BytesIO()
-        doc.save(docx_bytes)
-        # Upload DOCX to S3
-        s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
+# def convert_txt_to_doc(txt_file, output_path,):
+#     doc = Document()
+#     with open(txt_file, 'r', encoding='utf-8') as f:
+#         for line in f:
+#             doc.add_paragraph(line.strip())
+#     if STORAGE=="LOCAL":
+#         doc.save(output_path)
+#     elif STORAGE=="CLOUD":
+#          # Save DOCX to memory
+#         docx_bytes = BytesIO()
+#         doc.save(docx_bytes)
+#         # Upload DOCX to S3
+#         s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
 
 def read_txt(file: str, ) -> str:
 
@@ -448,11 +445,13 @@ def convert_docx_to_img(docx_file_path, image_format='png'):
     
     # Convert DOCX to PDF using LibreOffice
     pdf_path = convert_doc_to_pdf(docx_file_path)
+
     if pdf_path:
+        # print("pdf_path", pdf_path)
         # Convert PDF to Image using pdftoppm
         image_paths=convert_pdf_to_img(pdf_path, image_format)
     else:
-        image_paths = None
+        image_paths = []
 
     # Return path to the image
     # pattern = os.path.join(output_dir, f"image_{idx}-*.{image_format}")
