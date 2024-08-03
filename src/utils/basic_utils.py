@@ -111,7 +111,7 @@ def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     for attempt in range(max_retries):
         try:
             subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', output_dir], check=True)
-            # print('converted docx to pdf', pdf_output_path)
+            print('converted docx to pdf', pdf_output_path)
             return pdf_output_path
         except subprocess.CalledProcessError as e:
             print(f"Error during conversion to pdf {attempt + 1}: {e}")
@@ -128,7 +128,7 @@ def convert_pdf_to_img(pdf_path, image_format="png", max_retries=1, delay=1):
             subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
             # Collect the generated image paths
             image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
-            # print("converted pdf to image: ", image_paths)
+            print("converted pdf to image: ", image_paths)
             return image_paths
         except subprocess.CalledProcessError as e:
                 print(f"Error converting {pdf_path} to image on attempt {attempt + 1}: {e}")
@@ -447,7 +447,7 @@ def convert_docx_to_img(docx_file_path, image_format='png'):
     pdf_path = convert_doc_to_pdf(docx_file_path)
 
     if pdf_path:
-        # print("pdf_path", pdf_path)
+        print("pdf_path", pdf_path)
         # Convert PDF to Image using pdftoppm
         image_paths=convert_pdf_to_img(pdf_path, image_format)
     else:
