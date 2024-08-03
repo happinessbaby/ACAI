@@ -78,7 +78,7 @@ class Reformat():
                     if st.button("Choose this template", key="resume_template_button"):
                         st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
                         st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
-                        st.switch_page("pages/streamlit_download.py")
+                        st.switch_page("pages/downloads.py")
             float_parent()
 
 

@@ -1,12 +1,10 @@
 import os
 import openai
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
-from utils.basic_utils import read_txt, memoized, process_json, count_length, read_text_boxes, render_template, save_rendered_content
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from utils.basic_utils import read_txt, memoized, process_json, count_length
 from utils.common_utils import (search_related_samples,  extract_similar_jobs, calculate_graduation_years)
-from utils.langchain_utils import create_mapreduce_chain, create_summary_chain, generate_multifunction_response, create_refine_chain, handle_tool_error, create_smartllm_chain, create_pydantic_parser
+from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
-from pathlib import Path
-import json
 from typing import Dict, List, Optional, Union
 from docxtpl import DocxTemplate	
 # from docx import Document
@@ -54,13 +52,13 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
     if type=="general":
-        st.session_state["eval_dict"] = {"language":[], "comparison":[]}
+        st.session_state["evaluation"] = {"finished":False}
         resume_file = resume_dict["resume_path"]
         resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(resume_file)
-        st.session_state.eval_dict.update({"word_count": word_count})
+        st.session_state.evaluation.update({"word_count": word_count})
         pattern = r'pages:(\d+)'
         # Search for the pattern in the text (I added page number when writing the file to txt)
         match = re.search(pattern, resume_content)
@@ -68,19 +66,19 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         if match:
             page_num = match.group(1)
         else:
-            page_num = ""
-        st.session_state.eval_dict.update({"page_number": page_num})
+            page_num = 0
+        st.session_state.evaluation.update({"page_count": int(page_num)})
         # Research and analyze resume type
         ideal_type = research_resume_type(resume_dict=resume_dict, )
-        st.session_state.eval_dict.update({"ideal_type": ideal_type})
+        st.session_state.evaluation.update({"ideal_type": ideal_type})
         resume_type= analyze_resume_type(resume_content,)
-        st.session_state.eval_dict.update({"resume_type": resume_type})
-        # st.session_state.eval_dict.update(type_dict)
+        st.session_state.evaluation.update({"resume_type": resume_type})
+        # st.session_state.evaluation.update(type_dict)
         categories=["syntax", "diction", "tone", "coherence"]
         for category in categories:
             category_dict = analyze_language(resume_content, category)
-            st.session_state.eval_dict["language"].append({category:category_dict})
-        section_names = ["objective", "work experience", "skillsets"]
+            st.session_state.evaluation.update({category:category_dict})
+        section_names = ["objective", "work_experience", "skillsets"]
         field_names = ["summary_objective", "work_experience", "included_skills"]
         field_map = dict(zip(field_names, section_names))
         related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
@@ -88,16 +86,22 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         for field_name, section_name in field_map.items():
             # for category in categories:
             comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
-            st.session_state.eval_dict["comparison"].append({section_name:comparison_dict})
+            st.session_state.evaluation.update({section_name:comparison_dict})
 
         # Generate overall impression
         impression = generate_impression(resume_content, pursuit_jobs)
-        st.session_state.eval_dict["impression"]= impression
+        st.session_state.evaluation["impression"]= impression
+        st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
     if type=="work_experience":
         work_experience= resume_dict["work_experience"]
         evaluated_work= analyze_field_content(work_experience, "work experience")
         st.session_state["evaluated_work_experience"]=evaluated_work
+    elif type=="summary":
+        summary_objective = resume_dict["summary_objective"]
+        if summary_objective:
+            evaluated_summary = analyze_summary_objective(resume_content)
+            st.session_state["evaluated_summary_objective"]=evaluated_summary
 
     # if resume_fields["projects"]!=-1:
     #     evaluted_project = analyze_field_content(resume_dict["projects"])
@@ -141,7 +145,30 @@ def analyze_field_content(field_content, field_type):
             The limitations of your project
             Conclusions and/pr recommendations
             Further questions to examine in the future"""
-            
+        
+
+def analyze_summary_objective(resume_content, ):
+    
+    summary_query = f"""Given the resume content below, please analyze the summary objective section based on the following criteria:
+
+    1. Is it about two to three sentences long? \n
+
+    2. Is it succinct and well-crafted? \n
+    
+    2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
+
+    Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. 
+
+    resume content: {resume_content}
+    
+    """
+
+    summary_resp = generate_multifunction_response(summary_query, create_search_tools("google", 1))
+    return summary_resp
+
+
+    
+
 
 def analyze_via_comparison(field_content, field_name,  sample_tools, tool_names):
 

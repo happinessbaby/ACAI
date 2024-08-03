@@ -2,9 +2,9 @@ import os
 import boto3
 import streamlit as st
 from requests_aws4auth import AWS4Auth
-import sagemaker
-from sagemaker.session import Session
-from sagemaker import get_execution_role
+# import sagemaker
+# from sagemaker.session import Session
+# from sagemaker import get_execution_role
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -52,12 +52,12 @@ def request_aws4auth(service="aoss", region='us-east-2'):
     return auth
 
 
-def get_sagemaker_session():
-    role = get_execution_role()
-    sage_session = sagemaker.Session()
-    default_bucket = sage_session.default_bucket()
-    print(default_bucket)
-    return sage_session
+# def get_sagemaker_session():
+#     role = get_execution_role()
+#     sage_session = sagemaker.Session()
+#     default_bucket = sage_session.default_bucket()
+#     print(default_bucket)
+#     return sage_session
 
 
 

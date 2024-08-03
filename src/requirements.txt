@@ -90,7 +90,7 @@ google-auth-oauthlib
 google-cloud-speech
 google-auth
 pydantic
-sagemaker
+# sagemaker
 requests-aws4auth 
 nltk
 Jinja2   
@@ -104,3 +104,4 @@ s3fs
 streamlit_float
 streamlit_js_eval
 streamlit-extras
+streamlit-nested-layout
