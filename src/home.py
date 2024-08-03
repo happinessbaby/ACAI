@@ -12,19 +12,13 @@ from backend.career_advisor import ChatController
 from utils.basic_utils import read_txt,delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import  num_tokens_from_text
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs, match_resume_to_job
+from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs
 import re
 from typing import Any, List, Union
 import multiprocessing as mp
 from utils.langchain_utils import update_vectorstore
 import openai
 import json
-# from st_pages import show_pages_from_config, add_page_title, show_pages, Page, Section
-# from st_clickable_images import clickable_images
-# from st_click_detector import click_detector
-# from streamlit_extras.switch_page_button import switch_page
-# from streamlit_modal import Modal
-# from thread_safe_st import ThreadSafeSt
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import time
 from utils.cookie_manager import CookieManager
