@@ -11,7 +11,6 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
 from multiprocessing import Pool
-from streamlit_pdf_viewer import pdf_viewer
 import streamlit as st
 
 set_streamlit_page_config_once()
