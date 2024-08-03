@@ -700,6 +700,40 @@ class User():
                     del st.session_state["profile"][field_name][field_detail][idx]
             placeholder.empty()
 
+        def move_entry(idx, movement, ):
+            if movement=="up":
+                if x!=-1:
+                    current = st.session_state["profile"][field_name][x][field_detail][idx]
+                    if idx!=0:
+                        prev =  st.session_state["profile"][field_name][x][field_detail][idx-1]
+                        st.session_state["profile"][field_name][x][field_detail][idx-1] = current
+                        st.session_state["profile"][field_name][x][field_detail][idx]=prev
+                else:
+                    current = st.session_state["profile"][field_name][field_detail][idx]
+                    if idx!=0:
+                        prev =  st.session_state["profile"][field_name][field_detail][idx-1]
+                        st.session_state["profile"][field_name][field_detail][idx-1] = current
+                        st.session_state["profile"][field_name][field_detail][idx]=prev
+            elif movement=="down":
+                if x!=-1:
+                    current = st.session_state["profile"][field_name][x][field_detail][idx]
+                    try:
+                        nxt =  st.session_state["profile"][field_name][x][field_detail][idx+1]
+                        st.session_state["profile"][field_name][x][field_detail][idx+1] = current
+                        st.session_state["profile"][field_name][x][field_detail][idx]=nxt
+                    except Exception:
+                        pass
+                else:
+                    current = st.session_state["profile"][field_name][field_detail][idx]
+                    try:
+                        nxt =  st.session_state["profile"][field_name][field_detail][idx+1]
+                        st.session_state["profile"][field_name][field_detail][idx+1] = current
+                        st.session_state["profile"][field_name][field_detail][idx]=nxt
+                    except Exception:
+                        pass
+        
+
+
         def add_new_entry():
             # print("added new entry")
             if type=="bullet_points":
@@ -713,11 +747,15 @@ class User():
             placeholder = st.empty()
             if type=="bullet_points":
                 with placeholder.container():
-                    c1, c2, x_col = st.columns([1, 20, 1])
+                    c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
                     with c1:
                         st.write("•")
                     with c2: 
                         text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
+                    with c3:
+                        st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                    with c4:
+                        st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
                     with x_col:
                         st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
 
@@ -995,7 +1033,7 @@ class User():
         # if user calls to tailor fields
         if "init_tailoring" in st.session_state:
             self.job_posting_popup()
-        eval_col, profile_col, _ = st.columns([1, 3, 1])   
+        eval_col, profile_col, _ = st.columns([1, 4, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with eval_col:
             float_container= st.container()
@@ -1049,17 +1087,19 @@ class User():
                     display_detail()
                     # #TODO list courseworks
             with st.expander(label="Summary/Objective",):
-                self.display_field_analysis("summary")
                 pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                 if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
+                if st.session_state["profile"]["summary_objective"]:
+                    self.display_field_analysis("summary")
                 summary = st.session_state["profile"]["summary_objective"]
                 if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
                 # if st.button("readability checker"):
                 #     st.write(readability_checker(summary))
             with st.expander(label="Work experience",):
-                self.display_field_analysis("work_experience")
+                if st.session_state["profile"]["work_experience"]:
+                    self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
             with st.expander(label="Skills",):
@@ -1165,7 +1205,8 @@ class User():
                     try:
                         length=eval_dict["word_count"]
                         pages=eval_dict["page_count"]
-                        fig = self.display_length_chart(length)
+                        st.write(length)
+                        fig = self.display_length_chart(int(length))
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
