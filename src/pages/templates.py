@@ -48,6 +48,7 @@ class Reformat():
         
     
         template_paths = list_files(template_path, ext=".docx")
+      
         with Pool() as pool:
             st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
         with Pool() as pool:
