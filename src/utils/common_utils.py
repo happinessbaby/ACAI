@@ -64,18 +64,18 @@ delimiter4 = '////'
 # feast_repo_path = "/home/tebblespc/Auto-GPT/autogpt/auto_gpt_workspace/my_feature_repo/feature_repo/"
 # store = FeatureStore(repo_path = feast_repo_path)
 
-# STORAGE = os.environ["STORAGE"]
-# if STORAGE=="S3":
-#     bucket_name = os.environ["BUCKET_NAME"]
-#     s3_save_path = os.environ["S3_CHAT_PATH"]
-#     session = boto3.Session(         
-#                     aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
-#                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
-#                 )
-#     s3 = session.client('s3')
-# else:
-#     bucket_name=None
-#     s3=None
+STORAGE = os.environ["STORAGE"]
+if STORAGE=="S3":
+    bucket_name = os.environ["BUCKET_NAME"]
+    s3_save_path = os.environ["S3_CHAT_PATH"]
+    session = boto3.Session(         
+                    aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"],
+                    aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
+                )
+    s3 = session.client('s3')
+else:
+    bucket_name=None
+    s3=None
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 resume_info_file = os.environ["RESUME_INFO_FILE"]
 job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
@@ -775,7 +775,8 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
     
     """
 
-    system_message = f"""
+    def get_response(content):
+        system_message = f"""
 		You are an assistant that evaluates whether the job position described in the content is similar to one fo the job titles: {job_titles}. 
 
 		Respond with a Y or N character, with no punctuation:
@@ -784,31 +785,46 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
 
 		Output a single letter only.
 		"""
-    related_files = []
-    for path in  Path(directory).glob('**/*.txt'):
-        if len(related_files)==3:
-            break
-        file = str(path)
-        content = read_txt(file)
-        # print(file, len(content))
+          # print(file, len(content))
         messages = [
         {'role': 'system', 'content': system_message},
         {'role': 'user', 'content': content}
         ]	
         try:
             response = get_completion_from_messages(messages, max_tokens=1)
-            if (response=="Y"):
-                related_files.append(file)
         #TODO: the resume file may be too long and cause openai.error.InvalidRequestError: This model's maximum context length is 4097 tokens.
         except Exception:
-            pass
+            response = None
+        return response
+    related_files=[]
+    if STORAGE=="Local":
+        for path in  Path(directory).glob('**/*.txt'):
+            if len(related_files)==3:
+                break
+            file = str(path)
+            content = read_txt(file)
+            # print(file, len(content))
+            response = get_response(content)
+            if (response=="Y"):
+                related_files.append(file)
+    elif STORAGE=="CLOUD":
+        paginator = s3.get_paginator('list_objects_v2')
+        # Paginate through the objects in the bucket
+        page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=directory)
+        for page in page_iterator:
+            if 'Contents' in page:
+                for obj in page['Contents']:
+                    key = obj['Key']
+                    obj = s3.get_object(Bucket=bucket_name, Key=key)
+                    content = obj['Body'].read().decode('utf-8')
+                    response = get_response(content)  
+                    if (response=="Y"):
+                        related_files.append(file)
     #TODO: if no match, a general template will be used
-    if len(related_files)==0:
-        related_files.append(file)
+    # if len(related_files)==0:
+    #     related_files.append(file)
     return related_files   
 
-def match_resume_to_job(resume_dict, job_dict):
-    """"""
 
 
 
