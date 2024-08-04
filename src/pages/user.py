@@ -1199,7 +1199,7 @@ class User():
                 sac.ChipItem(label='Projects'),
                 sac.ChipItem(label='Certifications'),
                 sac.ChipItem(label='Awards & Honors'),
-            ], label=' ', index=index_selected, align='center', radius='md', multiple=True  )
+            ], label=' ', index=index_selected, align='center', radius='md', multiple=True , color="#47ff5a")
        
    
 

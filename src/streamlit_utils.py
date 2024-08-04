@@ -69,7 +69,7 @@ def progress_bar(page):
             sac.StepsItem(title="Step 1", subtitle="Complete your profile"),
             sac.StepsItem(title="Step 2", subtitle="Pick a template"), 
             sac.StepsItem(title="Step 3", subtitle="Download your resume")
-        ], index = page,  color="#FF6347", key="progress_steps",
+        ], index = page,  color="#47ff5a", key="progress_steps",
     )
     if step=="Step 1":
         if "current_page" in st.session_state and st.session_state.current_page!="profile":

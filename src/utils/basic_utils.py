@@ -70,7 +70,7 @@ if STORAGE=="CLOUD":
     s3 = get_client('s3')
     base_uri = os.environ["PRODUCTION_BASE_URI"]
     libreoffice_path = os.environ["LIBREOFFICE_PATH"]
-    pdftopppm_path=os.environ["PDFTOPPM_PATH"]
+    pdftoppm_path=os.environ["PDFTOPPM_PATH"]
 else:
     bucket_name=None
     s3=None
