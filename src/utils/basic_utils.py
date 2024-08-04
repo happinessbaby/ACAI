@@ -62,6 +62,7 @@ _ = load_dotenv(find_dotenv()) # read local .env
 nltk.download('punkt')
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
+user = os.getenv('USER', 'default_user')  # Get the current user or use 'default_user' if not set
 
 STORAGE = os.environ["STORAGE"]
 if STORAGE=="CLOUD":
@@ -110,7 +111,7 @@ def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     output_dir = os.path.dirname(input_path)
     for attempt in range(max_retries):
         try:
-            subprocess.run([libreoffice_path, '--headless', '--nologo', '--nofirststartwizard', '--norestore',  '-env:UserInstallation=file:///tmp/LibreOffice_Conversion_${USER}', '--convert-to', 'pdf', input_path, '--outdir', output_dir], check=True)
+            subprocess.run([libreoffice_path, '--headless', '-env:UserInstallation=file:///tmp/LibreOffice_Conversion_${user}', '--convert-to', 'pdf:writer_pdf_Export', '--outdir', output_dir, input_path], check=True)
             print('converted docx to pdf', pdf_output_path)
             return pdf_output_path
         except subprocess.CalledProcessError as e:

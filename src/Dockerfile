@@ -1,13 +1,22 @@
 FROM python:3.10.11-slim
 
-WORKDIR /app
-
 # Combine the update and install commands, and clean up to reduce image size
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libreoffice \
+    openjdk-11-jre \
+    fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a user to avoid running as root
+RUN useradd -m acai 
+USER acai
+
+# Ensure /tmp is writable
+RUN chmod -R 777 /tmp
+
+WORKDIR /app
 # Copy requirements.txt into the container
 COPY src/requirements.txt ./
 

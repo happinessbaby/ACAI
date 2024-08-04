@@ -10,7 +10,7 @@ serverAddress="acareerai.com"
 showSidebarNavigation = false
 
 [theme]
-primaryColor="#47ff5a"
+primaryColor="#ff8247"
 backgroundColor="#ffffff"
 secondaryBackgroundColor="#f1fdff"
 textColor="#2d2e29"
