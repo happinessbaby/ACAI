@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice \
     openjdk-11-jre \
     fonts-dejavu \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a user to avoid running as root
