@@ -110,7 +110,7 @@ def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     output_dir = os.path.dirname(input_path)
     for attempt in range(max_retries):
         try:
-            subprocess.run([libreoffice_path, '--headless', '--convert-to', 'pdf', input_path, '--outdir', output_dir], check=True)
+            subprocess.run([libreoffice_path, '--headless', '--nologo', '--nofirststartwizard', '--norestore',  '-env:UserInstallation=file:///tmp/LibreOffice_Conversion_${USER}', '--convert-to', 'pdf', input_path, '--outdir', output_dir], check=True)
             print('converted docx to pdf', pdf_output_path)
             return pdf_output_path
         except subprocess.CalledProcessError as e:

@@ -1051,13 +1051,13 @@ class User():
             with float_container:
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
-            float_parent()
+            # float_parent()
         with fields_col:
             self.fields_selection()
             add_vertical_space(2)
             _, c = st.columns([1, 1])
             with c:
-                if st.button("Pick a template", key="select_template_button", ):
+                if st.button("Pick a template ➡", key="select_template_button", ):
                     st.switch_page("pages/templates.py")
             # print(st.session_state["selected_fields"])
         # the main profile column
