@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a user to avoid running as root
-RUN useradd -m acai 
-USER acai
+# RUN useradd -m acai 
+# USER acai
 
 # Ensure /tmp is writable
 # RUN mkdir -p /tmp
