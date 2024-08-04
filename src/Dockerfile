@@ -14,7 +14,8 @@ RUN useradd -m acai
 USER acai
 
 # Ensure /tmp is writable
-RUN chmod -R 777 /tmp
+RUN mkdir -p /tmp
+RUN chmod -R 1777 /tmp
 
 WORKDIR /app
 # Copy requirements.txt into the container
