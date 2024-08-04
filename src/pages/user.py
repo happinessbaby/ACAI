@@ -1165,7 +1165,7 @@ class User():
                             # background-color: #4682B4;
                         css_styles=["""button {
                             color: white;
-                            background-color: #FF6347;
+                            background-color: #47ff5a;
                         }""",
                         # """{
                         #     border: 1px solid rgba(49, 51, 63, 0.2);
