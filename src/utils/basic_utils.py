@@ -473,9 +473,11 @@ def list_files(root_dir, ext=""):
             if 'Contents' in page:
                 for obj in page['Contents']:
                     key = obj['Key']
+                    print(key)
                     if ext:
                         if key.endswith(ext):
                             files.append(key)
+                            print(files)
                     else:
                         files.append(key)
     elif STORAGE=="LOCAL":

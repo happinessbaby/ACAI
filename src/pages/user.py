@@ -1054,6 +1054,8 @@ class User():
             float_parent()
         with fields_col:
             self.fields_selection()
+            if st.button("Select a template", key="select_template_button", ):
+                st.switch_page("pages/templates.py")
             # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
@@ -1400,11 +1402,11 @@ class User():
         if length<300:
             text = "too short"
         elif length>=300 and length<450:
-            text="could be longer"
+            text="good"
         elif length>=450 and length<=600:
-            text="good length"
+            text="great"
         elif length>600 and length<800:
-            text="could be shorter"
+            text="good"
         else:
             text="too long"
         # Cap the displayed value at 1000, bust keep the actual value for the text annotation
