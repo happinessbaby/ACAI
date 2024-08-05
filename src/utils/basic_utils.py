@@ -48,7 +48,7 @@ from botocore.exceptions import ClientError
 import pypandoc
 import shutil
 from pdf2image import convert_from_bytes
-from utils.aws_manager import get_client
+from utils.aws_manager import get_client, get_resource
 import smtplib
 from email.message import EmailMessage
 from email.headerregistry import Address
@@ -273,7 +273,7 @@ def mk_dirs(paths: List[str],):
                
 
 
-def write_file(file_content:Any, end_path: str, mode="wb",):
+def write_file(end_path: str, file_content="", file_path="", mode="wb",):
 
     """ Writes content to file. """
 
@@ -287,7 +287,10 @@ def write_file(file_content:Any, end_path: str, mode="wb",):
             return False
     elif STORAGE=="CLOUD":
         try:
-            s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+            if file_path:
+                s3.upload_file(file_path, bucket_name, end_path)
+            else:
+                s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
             return True
         except Exception as e:
             print(e)

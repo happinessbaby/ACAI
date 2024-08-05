@@ -1057,8 +1057,16 @@ class User():
             add_vertical_space(2)
             _, c = st.columns([1, 1])
             with c:
-                if st.button("Pick a template ➡", key="select_template_button", ):
-                    st.switch_page("pages/templates.py")
+                with stylable_container(
+                    key="custom_button1_profile2",
+                        css_styles=  
+                    """   button {
+                                    background-color: #ff8247;
+                                    color: white;
+                                }"""
+                    ):
+                    if st.button("Pick a template ➡", key="select_template_button", ):
+                        st.switch_page("pages/templates.py")
             # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
@@ -1160,7 +1168,7 @@ class User():
             st.divider()
         # the menu container
         with menu_col:
-            with stylable_container(key="custom_button1",
+            with stylable_container(key="custom_button1_profile1",
                             # border-radius: 20px;
                             # background-color: #4682B4;
                         css_styles=["""button {
@@ -1357,7 +1365,7 @@ class User():
         filename = str(uuid.uuid4())
         end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
-        write_file("", end_path)
+        write_file(end_path, file_content="")
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 

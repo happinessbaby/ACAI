@@ -1,7 +1,7 @@
 from backend.upgrade_resume import reformat_resume
 import uuid
 import os
-from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files
+from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files, mk_dirs
 from css.streamlit_css import general_button
 from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
@@ -11,6 +11,7 @@ from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
 from multiprocessing import Pool
+from datetime import datetime
 import streamlit as st
 
 set_streamlit_page_config_once()
@@ -35,7 +36,25 @@ class Reformat():
         self.userId = st.session_state.cm.retrieve_userId()
         if not self.userId:
             st.switch_page("pages/user.py")
+        self._init_session_states()
         self._init_display()
+
+    def _init_session_states(_self, ):
+
+        if "user_save_path" not in st.session_state:
+            if STORAGE=="CLOUD":
+                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
+            elif STORAGE=="LOCAL":
+                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
+            # Get the current time
+            now = datetime.now()
+            # Format the time as "year-month-day-hour-second"
+            formatted_time = now.strftime("%Y-%m-%d-%H-%M")
+            st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
+            st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
+            paths=[st.session_state["users_download_path"]]
+            mk_dirs(paths,)
+
 
     def _init_display(self, ):
 
@@ -57,7 +76,7 @@ class Reformat():
             st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
             return True
         except Exception as e:
-            raise e
+            return False
 
 
     @st.fragment()
@@ -76,14 +95,14 @@ class Reformat():
             with float_container:
                 add_vertical_space(30)
                 with stylable_container(
-                    key="custom_template_container",
+                    key="custom_button1_template",
                         css_styles=  
                     """   button {
-                                    background-color: #FF6347;
+                                    background-color: #ff8247;
                                     color: white;
                                 }"""
                     ):
-                    if st.button("Choose this template", key="resume_template_button"):
+                    if st.button("Use this template", key="resume_template_button"):
                         st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
                         st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
                         st.switch_page("pages/downloads.py")

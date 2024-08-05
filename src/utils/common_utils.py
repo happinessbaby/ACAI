@@ -988,7 +988,7 @@ def process_uploads(uploads, save_path,):
         filename = str(uuid.uuid4())
         tmp_save_path = os.path.join(save_path, filename+file_ext)
         end_path =  os.path.join(save_path, filename+'.txt')
-        if write_file(uploaded_file.getvalue(), tmp_save_path,):
+        if write_file(tmp_save_path, file_content=uploaded_file.getvalue(),):
             if convert_to_txt(tmp_save_path, end_path,):
                 content_safe, content_type, content_topics = check_content(end_path, )
                 return (content_safe, content_type, content_topics, end_path)

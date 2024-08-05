@@ -458,13 +458,15 @@ def reformat_resume(template_path, ):
 
 
     print("reformatting resume")
-
-    selected_fields = st.session_state["selected_fields"]
-    print(selected_fields)
-    info_dict = st.session_state["profile"]
-    filename = os.path.basename(template_path)
-    output_dir = st.session_state["users_download_path"]
-    end_path = os.path.join(output_dir, filename)
+    try:
+        selected_fields = st.session_state["selected_fields"]
+        print(selected_fields)
+        info_dict = st.session_state["profile"]
+        filename = os.path.basename(template_path)
+        output_dir = st.session_state["users_download_path"]
+        end_path = os.path.join(output_dir, filename)
+    except Exception:
+        return ""
     if STORAGE=="CLOUD":
         # Download the file content from S3 into memory
         s3_object = s3.get_object(Bucket=bucket_name, Key=template_path)

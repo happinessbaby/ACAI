@@ -42,6 +42,8 @@ def get_client(type, config=None):
 def get_resource(type):
     if type=="dynamodb":
         return get_aws_session().resource(type, region_name)
+    if type=="s3":
+        return get_aws_session().resource(type, )
 
 
 def request_aws4auth(service="aoss", region='us-east-2'):
