@@ -98,12 +98,15 @@ class User():
         # NOTE: userId is retrieved from browser cookie
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
-        self.userId = st.session_state.cm.retrieve_userId()
+        self.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+        time.sleep(3)
         if self.userId:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
-            st.session_state["user_profile_dict"]= retrieve_dict_from_table(self.userId, lance_users_table)
-            st.session_state["general_eval_dict"] = retrieve_dict_from_table(self.userId, lance_eval_table)
+            if "profile" not in st.session_state:
+                st.session_state["profile"]= retrieve_dict_from_table(self.userId, lance_users_table)
+            if "evaluation" not in st.session_state:
+                st.session_state["evaluation"] = retrieve_dict_from_table(self.userId, lance_eval_table)
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -173,7 +176,7 @@ class User():
                 st.switch_page(st.session_state.redirect_page)
             else:
                 try:
-                    if not st.session_state["user_profile_dict"]:
+                    if not st.session_state["profile"]:
                         print("user profile does not exists yet")
                         # ask user for their resumes
                         self.initialize_resume()
@@ -435,53 +438,9 @@ class User():
                     if "user_resume_path" in st.session_state:
                         del st.session_state["user_resume_path"]
                     # the following takes to "create_empty_profile", which has a rerun, so cannot be in callback
-                    self.display_profile()
-                 
-        
-
-    def about_future(self):
-
-        st.text_area("Where do you see yourself in 5 years?")
-
-
-
-
-    def about_career(self):
-
-        c1, c2 = st.columns([1, 1])
-        # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
-        with c1:
-            st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.form_callback)
-        with c2:
-            st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.form_callback)   
-        c1, c2=st.columns([1, 1])
-        with c1:
-            min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.form_callback)
-        with c2: 
-            pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.form_callback)
-        job_unsure=st.checkbox("Not sure about the job")
-        if job_unsure:
-            st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.form_callback)
-        career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.form_callback)
-        if career_switch:
-            st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.form_callback)
-        location = st.checkbox("Location is important to me")
-        # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.form_callback)
-        if location:
-            location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
-            if location_input=="I want remote work":
-                st.session_state.location_input = "remote"
-            if location_input == "I have a specific place in mind":
-                st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.form_callback)
-            if location_input == "work near where I currently live":
-                if st.checkbox("Share my location"):
-                    loc = get_geolocation()
-                    if loc:
-                        address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-                        st.session_state["location_input"] = address
-
-
-
+                    # self.display_profile()
+                    self.create_empty_profile() 
+                    st.rerun()
 
     def initialize_resume_callback(self, ):
 
@@ -490,10 +449,82 @@ class User():
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
         resume_dict.update({"user_id": self.userId}) 
-        #NOTE: the data added has to be a LIST!
-        schema = convert_pydantic_schema_to_arrow(ResumeUsers)
-        add_to_lancedb_table(lance_users_table, [resume_dict], schema)
+        st.session_state["profile"] = resume_dict
+        # schema = convert_pydantic_schema_to_arrow(ResumeUsers)
+        # add_to_lancedb_table(lance_users_table, [resume_dict], schema)
+        save_user_changes(resume_dict, ResumeUsers, lance_users_table)
+        # delete any old profile instance
+        try:
+            del st.session_state["profile"]
+        except Exception:
+            pass
         print("Successfully added user to lancedb table")
+                 
+    def create_empty_profile(self):
+
+        """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
+
+        filename = str(uuid.uuid4())
+        end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
+        #creates an empty file
+        write_file(end_path, file_content="")
+        st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
+                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
+                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
+                   "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
+        save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table) 
+        # delete any old profile instance
+        try:
+            del st.session_state["profile"]
+        except Exception:
+            pass
+
+    # def about_future(self):
+
+    #     st.text_area("Where do you see yourself in 5 years?")
+
+
+
+
+    # def about_career(self):
+
+    #     c1, c2 = st.columns([1, 1])
+    #     # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
+    #     with c1:
+    #         st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.form_callback)
+    #     with c2:
+    #         st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.form_callback)   
+    #     c1, c2=st.columns([1, 1])
+    #     with c1:
+    #         min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.form_callback)
+    #     with c2: 
+    #         pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.form_callback)
+    #     job_unsure=st.checkbox("Not sure about the job")
+    #     if job_unsure:
+    #         st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.form_callback)
+    #     career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.form_callback)
+    #     if career_switch:
+    #         st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.form_callback)
+    #     location = st.checkbox("Location is important to me")
+    #     # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.form_callback)
+    #     if location:
+    #         location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
+    #         if location_input=="I want remote work":
+    #             st.session_state.location_input = "remote"
+    #         if location_input == "I have a specific place in mind":
+    #             st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.form_callback)
+    #         if location_input == "work near where I currently live":
+    #             if st.checkbox("Share my location"):
+    #                 loc = get_geolocation()
+    #                 if loc:
+    #                     address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
+    #                     st.session_state["location_input"] = address
+
+
+
+
+
     
 
 
@@ -1022,7 +1053,7 @@ class User():
             evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
         else:
             # start general evaluation if there's no saved evaluation 
-            if "evaluation" not in st.session_state and not st.session_state["general_eval_dict"]:
+            if not st.session_state["evaluation"]:
                 self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
@@ -1034,14 +1065,8 @@ class User():
         """Displays interactive user profile UI"""
 
     
-        # initialize a temporary copy of the user profile 
-        if "profile" not in st.session_state:
-            st.session_state["profile"]=st.session_state["user_profile_dict"]
-            # If user has not uploaded a resume, create an empty profile
-            if not st.session_state["profile"]:
-                self.create_empty_profile() 
-                st.rerun()
         # if user calls to tailor fields
+        self.save_session_profile()
         if "init_tailoring" in st.session_state:
             self.job_posting_popup()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
@@ -1076,6 +1101,8 @@ class User():
                     name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name",)!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+                        st.session_state["profile_changed"] = True
+                        # save_user_changes(st.session_state["profile"], ResumeUsers, lance_users_table)
                     email = st.session_state["profile"]["contact"]["email"]
                     if st.text_input("Email", value=email, key="profile_email", )!=email:
                         value = st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
@@ -1183,7 +1210,7 @@ class User():
                         # """
                         ],
                 ):
-                st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers, lance_users_table), use_container_width=True)
+                # st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers, lance_users_table), use_container_width=True)
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
@@ -1218,25 +1245,20 @@ class User():
         """ Displays the general evaluation result of the profile """
 
 
-        # NOTE: eval_dict either comes from general_eval_dict or from backend function
-        eval_dict = st.session_state["general_eval_dict"]
-        if not eval_dict:
-            #if no general_eval_dict from table, evaluation comes from backend function
-            try:
-                eval_dict= st.session_state["evaluation"]
-                finished = eval_dict["finished"]
-                if finished:
+        # NOTE: evaluation either comes from table or from backend function
+        try:
+            # eval_dict= st.session_state["evaluation"]
+            finished = st.session_state["evaluation"]["finished"]
+            if finished:
+                if st.session_state["eval_rerun_timer"]:
+                    st.session_state["evaluation"].update({"user_id":self.userId})
+                    save_user_changes(st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
                     st.session_state["eval_rerun_timer"]=None
-                    eval_dict.update({"user_id":self.userId})
-                    save_user_changes(eval_dict, GeneralEvaluation, lance_eval_table)
                     st.rerun()      
-            except Exception:
-                eval_dict={}
-        else:
-            # if displaying from general_eval_dict
-            st.session_state["eval_rerun_timer"]=None
-            finished=True
-        if eval_dict:
+        except Exception:
+            finished=False
+
+        if st.session_state["evaluation"]:
             if finished:
                 display_name = "Your profile has been evaluated ✨"
                 # button_name = "evaluate again ✨"
@@ -1248,8 +1270,8 @@ class User():
                 with c1:
                     st.write("**Length**")
                     try:
-                        length=eval_dict["word_count"]
-                        pages=eval_dict["page_count"]
+                        length=st.session_state["evaluation"]["word_count"]
+                        pages=st.session_state["evaluation"]["page_count"]
                         st.write(length)
                         fig = self.display_length_chart(int(length))
                         st.plotly_chart(fig, 
@@ -1262,8 +1284,8 @@ class User():
                     st.write("**Formatting**")
                     try:
                         add_vertical_space(3)
-                        ideal_type = eval_dict["ideal_type"]
-                        resume_type=eval_dict["resume_type"]
+                        ideal_type = st.session_state["evaluation"]["ideal_type"]
+                        resume_type=st.session_state["evaluation"]["resume_type"]
                         if ideal_type==resume_type:
                             st.subheader(":green[Good]")
                             st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
@@ -1285,7 +1307,7 @@ class User():
                     categories=["syntax", "diction", "tone", "coherence"]
                     language_data=[]
                     for category in categories:
-                        language_data.append({category:eval_dict[category]})
+                        language_data.append({category:st.session_state["evaluation"][category]})
                     fig = self.display_language_radar(language_data)
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
@@ -1297,7 +1319,7 @@ class User():
                     section_names = ["objective", "work_experience", "skillsets"]
                     comparison_data = []
                     for section in section_names:
-                        comparison_data.append({section:eval_dict[section]})
+                        comparison_data.append({section:st.session_state["evaluation"][section]})
                     fig = self.display_comparison_chart(comparison_data)
                     st.plotly_chart(fig)
                 except Exception:
@@ -1305,7 +1327,7 @@ class User():
                         st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
-                    impression = eval_dict["impression"]
+                    impression = st.session_state["evaluation"]["impression"]
                     st.write(impression)
                 except Exception:
                     if finished is False:
@@ -1315,7 +1337,7 @@ class User():
                         container.empty()
                         # delete previous evaluation states
                         try:
-                            # remove general_eval_dict from lance table
+                            # remove evaluation from lance table
                             delete_user_from_table(self.userId, lance_eval_table)
                             del st.session_state["evaluation"]
                         except Exception:
@@ -1343,36 +1365,28 @@ class User():
     def resume_type_popup(self, ):
         st.image("./resources/functional_chronological_resume.png")
     
-    @st.dialog(" ", width="large")
-    def explore_template_popup(self, ):
-        """"""
-        type = sac.tabs([
-            sac.TabsItem(label='functional',),
-            sac.TabsItem(label='chronological',),
-            sac.TabsItem(label='mixed', ),
-        ], align='center', variant="outline")
+    # @st.dialog(" ", width="large")
+    # def explore_template_popup(self, ):
+    #     """"""
+    #     type = sac.tabs([
+    #         sac.TabsItem(label='functional',),
+    #         sac.TabsItem(label='chronological',),
+    #         sac.TabsItem(label='mixed', ),
+    #     ], align='center', variant="outline")
 
-        if type=="functional":
-            st.image(["./resources/functional/functional0.png", "./resources/functional/functional1.png", "./resources/functional/functional2.png"])
-        elif type=="chronological":
-            st.image(["./resources/chronological/chronological0.png", "./resources/chronological/chronological1.png", "./resources/chronological/chronological2.png"])
+    #     if type=="functional":
+    #         st.image(["./resources/functional/functional0.png", "./resources/functional/functional1.png", "./resources/functional/functional2.png"])
+    #     elif type=="chronological":
+    #         st.image(["./resources/chronological/chronological0.png", "./resources/chronological/chronological1.png", "./resources/chronological/chronological2.png"])
 
 
-    def create_empty_profile(self):
 
-        """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
-
-        filename = str(uuid.uuid4())
-        end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
-        #creates an empty file
-        write_file(end_path, file_content="")
-        st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
-                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
-                   "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
-                   "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
        
+    # #NOTE: doing automatic saving every x seconds crashes the app!
+    @st.fragment(run_every=5)
+    def save_session_profile(self, ):
+        if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
+            save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
 
 
     @st.dialog("Warning")

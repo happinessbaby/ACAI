@@ -65,7 +65,7 @@ delimiter4 = '////'
 # store = FeatureStore(repo_path = feast_repo_path)
 
 STORAGE = os.environ["STORAGE"]
-if STORAGE=="S3":
+if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
@@ -73,12 +73,14 @@ if STORAGE=="S3":
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
                 )
     s3 = session.client('s3')
+    job_posting_info_file=os.environ["S3_JOB_POSTING_INFO_FILE"]
+    # user_profile_file=os.environ["S3_USER_PROFILE_FILE"]
 else:
     bucket_name=None
     s3=None
-user_profile_file=os.environ["USER_PROFILE_FILE"]
-resume_info_file = os.environ["RESUME_INFO_FILE"]
-job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
+    job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
+    # user_profile_file=os.environ["USER_PROFILE_FILE"]
+# resume_info_file = os.environ["RESUME_INFO_FILE"]
       
 
 

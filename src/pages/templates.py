@@ -60,8 +60,13 @@ class Reformat():
 
         user_menu(self.userId, page="template")
         progress_bar(1)
-        if self.reformat_templates():
+        if  ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or "formatted_docx_paths" not in st.session_state:
+            if self.reformat_templates():
+                self.display_resume_templates()
+                st.session_state["profile_changed"]=False
+        elif "profile_changed" in st.session_state and not st.session_state["profile_changed"]:
             self.display_resume_templates()
+            st.session_state["profile_changed"]=False
 
 
     def reformat_templates(self, ):

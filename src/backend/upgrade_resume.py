@@ -22,7 +22,6 @@ from langchain_core.prompts import ChatPromptTemplate
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
-resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 STORAGE = os.environ["STORAGE"]
 local_save_path = os.environ["CHAT_PATH"]
@@ -43,9 +42,11 @@ if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     s3 = get_client('s3')
+    resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 else:
     bucket_name=None
     s3=None
+    resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
 def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:

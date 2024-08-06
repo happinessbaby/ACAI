@@ -36,7 +36,6 @@ from io import BytesIO
 from pathlib import Path
 # from PyPDF2 import PdfReader  
 import nltk
-from nltk.tokenize import word_tokenize
 import PyPDF2
 import subprocess
 import base64
@@ -59,7 +58,9 @@ from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, 
 from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 
-nltk.download('punkt')
+
+
+
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 user = os.getenv('USER', 'default_user')  # Get the current user or use 'default_user' if not set
@@ -328,6 +329,13 @@ def move_file(source_file:str, dest_dir:str, ):
 
 def count_length(filename, ):
 
+    # Path to the punkt package
+    punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+    # Check if 'punkt' is already downloaded
+    if not os.path.exists(punkt_path):
+        nltk.download('punkt')
+    # Now you can use the word tokenizer
+    from nltk.tokenize import word_tokenize
     try:
         content = read_file(filename, )
         words = word_tokenize(content)
