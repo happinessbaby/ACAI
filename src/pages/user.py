@@ -1065,15 +1065,8 @@ class User():
         """Displays interactive user profile UI"""
 
     
-        # initialize a temporary copy of the user profile 
-        # if "profile" not in st.session_state:
-        #     st.session_state["profile"]=st.session_state["user_profile_dict"]
-            # If user has not uploaded a resume, create an empty profile
-            # if not st.session_state["profile"]:
-            #     self.create_empty_profile() 
-            #     st.rerun()
-        # self.save_session_profile()
         # if user calls to tailor fields
+        self.save_session_profile()
         if "init_tailoring" in st.session_state:
             self.job_posting_popup()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
@@ -1108,6 +1101,7 @@ class User():
                     name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name",)!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+                        st.session_state["profile_changed"] = True
                         # save_user_changes(st.session_state["profile"], ResumeUsers, lance_users_table)
                     email = st.session_state["profile"]["contact"]["email"]
                     if st.text_input("Email", value=email, key="profile_email", )!=email:
@@ -1389,9 +1383,10 @@ class User():
 
        
     # #NOTE: doing automatic saving every x seconds crashes the app!
-    # @st.fragment(run_every=5)
-    # def save_session_profile(self, ):
-    #     save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
+    @st.fragment(run_every=5)
+    def save_session_profile(self, ):
+        if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
+            save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
 
 
     @st.dialog("Warning")
