@@ -477,40 +477,43 @@ def reformat_resume(template_path, ):
     if "Contact" in selected_fields:      
         func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
         personal_context = {
-            "NAME": func("name", "YOUR NAME"),
-            "CITY": func("city", "YOUR CITY"),
-            "STATE": func("state", "YOUR STATE"),
-            "PHONE": func("phone", "YOUR PHONE"),
-            "EMAIL": func("email", "YOUR EMAIL"),
-            "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
-            "WEBSITE": func("websites", "WEBSITE"),
+            "NAME": func("name", ""),
+            "CITY": func("city", ""),
+            "STATE": func("state", ""),
+            "PHONE": func("phone", ""),
+            "EMAIL": func("email", ""),
+            "LINKEDIN": func("linkedin", ""),
+            "WEBSITE": func("websites", ""),
         }
         context.update(personal_context)
     if "Education" in selected_fields:
-        func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
+        func = lambda key, default: default if info_dict["education"][key]=="" or info_dict["education"][key]==[] or info_dict["education"][key]==None else info_dict["education"][key]
         education_context = {
-            "INSTITUTION": func("institution", "YOUR INSTITUTION"),
-            "DEGREE": func("degree", "YOUR DEGREE"),
-            "STUDY": func("study", "YOUR AREA OF STUDY"),
-            "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
+            "show_education":True,
+            "INSTITUTION": func("institution", ""),
+            "DEGREE": func("degree", ""),
+            "STUDY": func("study", ""),
+            "GRAD_YEAR": func("graduation_year", ""),
+            "GPA": func("gpa", ""), 
+            "COURSEWORKS": func("coursework", ""),
         }
         context.update(education_context)
-    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
+    func = lambda key, default: default if info_dict[key]=="" or info_dict[key]==[] or info_dict[key]==None else info_dict[key]
     if "Summary Objective" in selected_fields:
-        context.update({"SUMMARY": func("summary_objective", "SUMMARY OBJECTIVE"), 
-                         "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),})      
+        context.update({"show_summary":True, "SUMMARY": func("summary_objective", ""), 
+                         "PURSUIT_JOB": func("pursuit_jobs", ""),})      
     if "Work Experience" in selected_fields:
-         context.update({"WORK_EXPERIENCE": func("work_experience", "YOUR WORK EXPERIENCE")})
+         context.update({"show_work_experience":True,"WORK_EXPERIENCE": func("work_experience", "")})
     if "Skills" in selected_fields:
-        context.update({"SKILLS": func("included_skills", "YOUR SKILLS"),})
+        context.update({"show_skills":True,"SKILLS": func("included_skills", ""),})
     if "Professional Accomplishment" in selected_fields:
-        context.update({"PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),})
+        context.update({"show_pa":True, "PA": func("qualifications", ""),})
     if "Certifications" in selected_fields:
-        context.update({"CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),})
+        context.update({"show_certifications":True,"CERTIFICATIONS": func("certifications", ""),})
     if "Projects" in selected_fields:
-        context.update({"PROJECTS":func("projects", "YOUR PROJECTS")})
+        context.update({"show_projects":True,"PROJECTS":func("projects", "")})
     if "Awards & Honors" in selected_fields:
-        context.update({"AWARDS/HONORS": func("awards", "YOUR AWARDS AND HONORS")})
+        context.update({"show_awards":True,"AWARDS": func("awards", "")})
     # text_box_contents = read_text_boxes(template_path)
     #  # Render each text box template with the context
     # rendered_contents = [render_template(content, context) for content in text_box_contents]

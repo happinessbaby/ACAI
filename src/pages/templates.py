@@ -72,11 +72,11 @@ class Reformat():
         progress_bar(1)
         add_vertical_space(8)
         if  ("formatted_docx_paths" not in st.session_state) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]):
-            print(st.session_state["selected_fields"])
             if self.reformat_templates():
+                print(st.session_state["selected_fields"])
                 self.display_resume_templates()
-            st.session_state["profile_changed"]=False
-            st.session_state["fields_changed"]=False
+                st.session_state["profile_changed"]=False
+                st.session_state["fields_changed"]=False
         else:
             self.display_resume_templates()
             st.session_state["profile_changed"]=False
@@ -87,7 +87,7 @@ class Reformat():
 
         try:
             template_paths = list_files(template_path, ext=".docx")
-            print(template_paths)
+            # print(template_paths)
             with Pool() as pool:
                 st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
             # if option==1:
@@ -110,7 +110,7 @@ class Reformat():
         with c1:
             self.fields_selection()  
         # if option==1: 
-        #     with c2:
+        #     with c2:s
         #         previews = [images[0] for images in st.session_state["image_paths"] if images]
         #         print(previews)
         #         selected_idx=image_select("Select a template", images=previews, return_value="index")
@@ -120,7 +120,7 @@ class Reformat():
                 c1, c2, c3 = st.columns([1, 20, 1])
                 previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
                 st.session_state["previews_len"] = len(previews)
-                print(previews)
+                # print(previews)
                 if "selected_idx" not in st.session_state:
                     st.session_state["selected_idx"]=0
                 with c1:
@@ -172,11 +172,13 @@ class Reformat():
     @st.fragment()
     def fields_selection(self, ):
 
-        st.write("Fields to include in the resume")
+        if "resume_fields" not in st.session_state:
+            st.session_state["resume_fields"] = ['Contact', 'Education', 'Summary Objective', 'Work Experience', 'Skills', 'Professional Accomplishment', 'Projects', 'Certifications', 'Awards & Honors']
         if "selected_fields" in st.session_state:
-            index_selected = [idx for idx, val in enumerate(st.session_state["selected_fields"])]
+            index_selected = [idx for idx, val in enumerate(st.session_state["resume_fields"]) if val in st.session_state["selected_fields"]]
         else:
             index_selected = [0, 1, 2, 3]
+        st.write("Fields to include in the resume")
         selected_fields = sac.chip(items=[
                 sac.ChipItem(label='Contact'),
                 sac.ChipItem(label='Education'),

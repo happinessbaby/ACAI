@@ -686,6 +686,7 @@ class User():
                 if new_skill:
                     self.skills_set.add(new_skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    st.session_state["profile_changed"]=True
                     st.session_state.add_skill_custom=''
             except Exception:
                     pass
@@ -698,6 +699,7 @@ class User():
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
                     self.generated_skills_set.remove(skill)
                     st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
+                    st.session_state["profile_changed"]=True
             except Exception:
                 pass
             try:
@@ -707,6 +709,7 @@ class User():
                     # print('remove skill', skill)
                     self.skills_set.remove(skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    st.session_state["profile_changed"]=True
             except Exception:
                 pass
         return get_display
