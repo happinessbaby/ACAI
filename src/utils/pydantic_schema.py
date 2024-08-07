@@ -48,8 +48,8 @@ class Contact(BaseModel):
     state: Optional[str] = Field(
         default="", description="state of the candidate on the resume"
         )
-    websites: Optional[List[str]]=Field(
-        default=[], description="other website addresses besides linkedin on the resume"
+    websites: Optional[str]=Field(
+        default="", description="other website addresses besides linkedin on the resume"
         )
         
 class Education(BaseModel):
