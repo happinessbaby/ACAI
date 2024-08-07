@@ -1,9 +1,9 @@
 from utils.basic_utils import binary_file_downloader_html, write_file, mk_dirs
-import streamlit_antd_components as sac
+# import streamlit_antd_components as sac
 import json
 from utils.cookie_manager import CookieManager
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
-from streamlit_extras.stylable_container import stylable_container
+# from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.buy_me_a_coffee import button
 import boto3
@@ -138,17 +138,23 @@ class Download():
                         else:
                             st.info("Something happened, please try again")
             else:
-                sac.result(label='Please go back and select a template', )
+                st.warning('Please go back and select a template',  icon="⚠️")
 
 
     def leave_feedback(self, ):
         _, c, _ = st.columns([2, 1, 2])
         with c:
             with st.container(border=True):
-                st.write("Would you like to give a feedback?")
-                helpfulness = sac.rate(label='helpfulness', color="yellow", )
-                use= sac.rate(label='ease of use', color="yellow",)
-                speed = sac.rate(label='speed', color="yellow",)
+                st.write("Would you like to provide a feedback?")
+                st.write("helpfulness")
+                helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
+                st.write('ease of use')
+                use = st.feedback(options="faces", key="use_rating")
+                st.write('speed')
+                speed = st.feedback(options="faces", key="speed_rating")
+                # helpfulness = sac.rate(label='helpfulness', color="yellow", )
+                # use= sac.rate(label='ease of use', color="yellow",)
+                # speed = sac.rate(label='speed', color="yellow",)
                 suggestions = st.text_area("suggestions", )
                 st.button("submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, ))
 

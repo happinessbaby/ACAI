@@ -1081,21 +1081,21 @@ class User():
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
             # float_parent()
-        with fields_col:
-            self.fields_selection()
-            add_vertical_space(2)
-            _, c = st.columns([1, 1])
-            with c:
-                with stylable_container(
-                    key="custom_button1_profile2",
-                        css_styles=  
-                    """   button {
-                                    background-color: #ff8247;
-                                    color: white;
-                                }"""
-                    ):
-                    if st.button("Pick a template ➡", key="select_template_button", ):
-                        st.switch_page("pages/templates.py")
+        # with fields_col:
+        #     self.fields_selection()
+        #     add_vertical_space(2)
+        #     _, c = st.columns([1, 1])
+        #     with c:
+        #         with stylable_container(
+        #             key="custom_button1_profile2",
+        #                 css_styles=  
+        #             """   button {
+        #                             background-color: #ff8247;
+        #                             color: white;
+        #                         }"""
+        #             ):
+        #             if st.button("Pick a template ➡", key="select_template_button", ):
+        #                 st.switch_page("pages/templates.py")
             # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
@@ -1230,25 +1230,25 @@ class User():
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
 
-    @st.fragment()
-    def fields_selection(self, ):
+    # @st.fragment()
+    # def fields_selection(self, ):
 
-        st.write("Fields to include in the resume")
-        if "selected_fields" in st.session_state:
-            index_selected = [idx for idx, val in enumerate(st.session_state["selected_fields"])]
-        else:
-            index_selected = [0, 1, 2, 3]
-        st.session_state["selected_fields"] = sac.chip(items=[
-                sac.ChipItem(label='Contact'),
-                sac.ChipItem(label='Education'),
-                sac.ChipItem(label='Summary/Objective'),
-                sac.ChipItem(label='Work Experience'),
-                sac.ChipItem(label='Skills'),
-                sac.ChipItem(label='Professional Accomplishment'),
-                sac.ChipItem(label='Projects'),
-                sac.ChipItem(label='Certifications'),
-                sac.ChipItem(label='Awards & Honors'),
-            ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
+    #     st.write("Fields to include in the resume")
+    #     if "selected_fields" in st.session_state:
+    #         index_selected = [idx for idx, val in enumerate(st.session_state["selected_fields"])]
+    #     else:
+    #         index_selected = [0, 1, 2, 3]
+    #     st.session_state["selected_fields"] = sac.chip(items=[
+    #             sac.ChipItem(label='Contact'),
+    #             sac.ChipItem(label='Education'),
+    #             sac.ChipItem(label='Summary/Objective'),
+    #             sac.ChipItem(label='Work Experience'),
+    #             sac.ChipItem(label='Skills'),
+    #             sac.ChipItem(label='Professional Accomplishment'),
+    #             sac.ChipItem(label='Projects'),
+    #             sac.ChipItem(label='Certifications'),
+    #             sac.ChipItem(label='Awards & Honors'),
+    #         ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
        
    
 
