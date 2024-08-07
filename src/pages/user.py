@@ -726,9 +726,9 @@ class User():
             for idx, value in enumerate(field_list):
                 add_detail(value, idx,)
             if type=="bullet_points":
-                c1, c2, y = st.columns([1, 20, 1])
+                y, _, _ = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**:green[+]**", type="primary", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add another to list", use_container_width=True)
+                    st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -810,6 +810,7 @@ class User():
                         st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
                     else:
                         st.session_state["profile"][field_name][field_detail][idx] = new_entry
+                    st.session_state["profile_changed"]=True
             except Exception as e:
                 pass
 
@@ -859,8 +860,8 @@ class User():
                 if name=="awards" or name=="projects" or name=="qualifications":
                     title = value["title"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
-                    st.write("Description")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    # st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="certifications" or name=="licenses":
@@ -868,10 +869,10 @@ class User():
                     organization = value["issue_organization"]
                     date = value["issue_date"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ))
-                    st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ))
-                    st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ))
-                    st.write("Description")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ), placeholder="Issue organization", label_visibility="collapsed")
+                    st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
+                    # st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="work_experience":
@@ -883,14 +884,14 @@ class User():
                     location = st.session_state["profile"][name][idx]["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback,args=(idx,)  )
-                        st.text_input("Company", value=company, key=f"company_{idx}", on_change=callback,args=(idx,)  )
+                        st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=callback,args=(idx,)  )
-                        st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,) )
+                        st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,) )
-                    st.write("Description")
+                        st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                    # st.write("Description")
                     get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
                     get_display()
                 
@@ -960,6 +961,7 @@ class User():
                     st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
             except Exception:
                 pass
+            st.session_state["profile_changed"]=True
             
         return get_display
 
@@ -1064,6 +1066,8 @@ class User():
 
         """Displays interactive user profile UI"""
 
+        
+
     
         # if user calls to tailor fields
         self.save_session_profile()
@@ -1095,63 +1099,73 @@ class User():
             # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
+        
             c1, c2 = st.columns([1, 1])
             with c1:
-                with st.expander(label="Contact", expanded=True ):
+                with st.expander(label="Contact", ):
                     name = st.session_state["profile"]["contact"]["name"]
-                    if st.text_input("Name", value=name, key="profile_name",)!=name:
+                    if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
                         st.session_state["profile_changed"] = True
-                        # save_user_changes(st.session_state["profile"], ResumeUsers, lance_users_table)
                     email = st.session_state["profile"]["contact"]["email"]
-                    if st.text_input("Email", value=email, key="profile_email", )!=email:
-                        value = st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+                    if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
+                        st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+                        st.session_state["profile_changed"] = True
                     phone = st.session_state["profile"]["contact"]["phone"]
-                    if st.text_input("Phone", value=phone, key="profile_phone", )!=phone:
+                    if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
                         st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
+                        st.session_state["profile_changed"] = True
                     city = st.session_state["profile"]["contact"]["city"]
-                    if st.text_input("City", value=city, key="profile_city", )!=city:
+                    if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
                         st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
+                        st.session_state["profile_changed"] = True
                     state = st.session_state["profile"]["contact"]["state"]
-                    if st.text_input("State", value=state, key="profile_state", )!=state:
+                    if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
                         st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
+                        st.session_state["profile_changed"] = True
                     linkedin = st.session_state["profile"]["contact"]["linkedin"]
-                    if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", )!=linkedin:
+                    if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
+                        st.session_state["profile_changed"] = True
                     website = st.session_state["profile"]["contact"]["websites"]
-                    st.markdown("Personal websites")
-                    display_detail=self.display_field_details("contact", -1, "websites", "bullet_points")
-                    display_detail()
+                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, please separate each by a comma", label_visibility="collapsed")!=linkedin:
+                        st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
+                        st.session_state["profile_changed"] = True
             with c2:
-                with st.expander(label="Education", expanded=True):
+                with st.expander(label="Education"):
                     degree = st.session_state["profile"]["education"]["degree"]
-                    if st.text_input("Degree", value=degree, key="profile_degree", )!=degree:
+                    if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
+                        st.session_state["profile_changed"] = True
                     study = st.session_state["profile"]["education"]["study"]
-                    if st.text_input("Area of study", value=study, key="profile_study", )!=study:
+                    if st.text_input("Area of study", value=study, key="profile_study", placeholder="Area of Study", label_visibility="collapsed")!=study:
                         st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
+                        st.session_state["profile_changed"] = True
                     grad_year = st.session_state["profile"]["education"]["graduation_year"]
-                    if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", )!=grad_year:
+                    if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", placeholder="Graduation year", label_visibility="collapsed")!=grad_year:
                         st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
+                        st.session_state["profile_changed"] = True
                     gpa = st.session_state["profile"]["education"]["gpa"]
-                    if st.text_input("GPA", value=gpa, key="profile_gpa", )!=gpa:
+                    if st.text_input("GPA", value=gpa, key="profile_gpa", placeholder="GPA", label_visibility="collapsed")!=gpa:
                         st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
+                        st.session_state["profile_changed"] = True
                     st.markdown("Course works")
                     display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
                     display_detail()
-                    # #TODO list courseworks
-            with st.expander(label="Summary/Objective",):
+            with st.expander(label="Summary Objective",):
                 pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
-                if st.text_input("Pursuing job titles", value=pursuit_jobs, key="profile_pursuit_jobs",)!=pursuit_jobs:
-                    st.session_state["profile"]["pursuit_jobs"] = st.session_state.pursuit_jobs
+                if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
+                    st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
+                    st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
                     self.display_field_analysis("summary")
                 summary = st.session_state["profile"]["summary_objective"]
-                if st.text_area("Summary", value=summary, key="profile_summary",)!=summary:
+                if st.text_area("Summary", value=summary, key="profile_summary", placeholder="Your summary objective", label_visibility="collapsed")!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
+                    st.session_state["profile_changed"] = True
                 # if st.button("readability checker"):
                 #     st.write(readability_checker(summary))
-            with st.expander(label="Work experience",):
+            with st.expander(label="Work Experience",):
                 if st.session_state["profile"]["work_experience"]:
                     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
@@ -1234,7 +1248,7 @@ class User():
                 sac.ChipItem(label='Projects'),
                 sac.ChipItem(label='Certifications'),
                 sac.ChipItem(label='Awards & Honors'),
-            ], label=' ', index=index_selected, align='center', radius='md', multiple=True , color="#47ff5a")
+            ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
        
    
 
