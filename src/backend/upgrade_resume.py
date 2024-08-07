@@ -496,8 +496,8 @@ def reformat_resume(template_path, ):
         }
         context.update(education_context)
     func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
-    if "Summary/Objective" in selected_fields:
-        context.update({"SUMMARY": func("summary_objective", "SUMMARY/OBJECTIVE"), 
+    if "Summary Objective" in selected_fields:
+        context.update({"SUMMARY": func("summary_objective", "SUMMARY OBJECTIVE"), 
                          "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),})      
     if "Work Experience" in selected_fields:
          context.update({"WORK_EXPERIENCE": func("work_experience", "YOUR WORK EXPERIENCE")})
