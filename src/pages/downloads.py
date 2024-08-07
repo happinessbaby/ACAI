@@ -145,13 +145,13 @@ class Download():
         _, c, _ = st.columns([2, 1, 2])
         with c:
             with st.container(border=True):
-                st.write("Would you like to give a feedback?")
+                st.write("Would you like to provide a feedback?")
                 st.write("helpfulness")
-                helpfulness = st.feedback(options="stars", key="helpfulness_rating",)
+                helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
                 st.write('ease of use')
-                use = st.feedback(options="stars", key="use_rating")
+                use = st.feedback(options="faces", key="use_rating")
                 st.write('speed')
-                speed = st.feedback(options="stars", key="speed_rating")
+                speed = st.feedback(options="faces", key="speed_rating")
                 # helpfulness = sac.rate(label='helpfulness', color="yellow", )
                 # use= sac.rate(label='ease of use', color="yellow",)
                 # speed = sac.rate(label='speed', color="yellow",)
