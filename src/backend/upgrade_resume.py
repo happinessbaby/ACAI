@@ -16,8 +16,9 @@ from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
-import streamlit as st
+import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate
+import streamlit as st
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -272,10 +273,10 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    if type=="skillls":
-        tailored_skills_dict = tailor_skills(required_skills, resume_dict["skills"])
+    if type=="included_skillls":
+        tailored_skills_dict = tailor_skills(required_skills, resume_dict["included_skills"])
         st.session_state[f"tailored_{type}"]=tailored_skills_dict
-    if type=="summary":
+    if type=="summary_objective":
         tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, resume_dict["summary_objective"])
         st.session_state[f"tailored_{type}"]=tailored_objective_dict
     if type=="work_experience":
@@ -538,7 +539,25 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-
+def readability_checker(w, field_name):
+    stats = dict(
+            flesch_reading_ease=ts.flesch_reading_ease(w),
+            smog_index = ts.smog_index(w),
+            # flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
+            # automated_readability_index=ts.automated_readability_index(w),
+            # coleman_liau_index=ts.coleman_liau_index(w),
+            # dale_chall_readability_score=ts.dale_chall_readability_score(w),
+            # linsear_write_formula=ts.linsear_write_formula(w),
+            # gunning_fog=ts.gunning_fog(w),
+            # word_count=ts.lexicon_count(w),
+            difficult_words=ts.difficult_words(w),
+            # text_standard=ts.text_standard(w),
+            # sentence_count=ts.sentence_count(w),
+            # syllable_count=ts.syllable_count(w),
+            # reading_time=ts.reading_time(w)
+    )
+    st.session_state[f"{field_name}_readability"]=stats
+    
 
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:

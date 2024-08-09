@@ -27,6 +27,7 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 # pages = get_pages("")
 # NOTE: TESTING OUT OPTION 2 FOR NOW 
 option = 2
+# st.logo("./resources/logo_acareerai.png")
 
 class Reformat():
 

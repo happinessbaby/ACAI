@@ -35,7 +35,7 @@ from selenium import webdriver
 # from unstructured.partition.html import partition_html
 from dateutil import parser
 from utils.pydantic_schema import BasicResumeFields, SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1
-import textstat as ts
+# import textstat as ts
 import language_tool_python
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMChain
 
@@ -1314,25 +1314,7 @@ def create_profile_summary(userId: str) -> str:
 
 
 
-def readability_checker(w):
-    stats = dict(
-            flesch_reading_ease=ts.flesch_reading_ease(w),
-            flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
-            automated_readability_index=ts.automated_readability_index(w),
-            smog_index=ts.smog_index(w),
-            coleman_liau_index=ts.coleman_liau_index(w),
-            dale_chall_readability_score=ts.dale_chall_readability_score(w),
-            linsear_write_formula=ts.linsear_write_formula(w),
-            gunning_fog=ts.gunning_fog(w),
-            word_count=ts.lexicon_count(w),
-            difficult_words=ts.difficult_words(w),
-            text_standard=ts.text_standard(w),
-            sentence_count=ts.sentence_count(w),
-            syllable_count=ts.syllable_count(w),
-            reading_time=ts.reading_time(w)
-    )
-    return stats
-    
+
         
 def grammar_checker(text):
     tool = language_tool_python.LanguageTool('en-US', config={'maxSpellingSuggestions': 1})
