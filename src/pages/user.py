@@ -386,7 +386,7 @@ class User():
                             st.success("Password has been reset successfully! Redirecting...")
                             time.sleep(5)
                             st.session_state["user_mode"]="signedout"
-                            nav_to(base_uri+"/user")                              
+                            nav_to("/user")                              
                         else:
                             st.error("Passwords do not match.")
             else:
