@@ -53,10 +53,10 @@ else:
 def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
 
     print("start evaluating...")
+    resume_content = resume_dict["resume_content"]
     if type=="general":
         st.session_state["evaluation"] = {"finished":False}
         resume_file = resume_dict["resume_path"]
-        resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(resume_file)
@@ -99,7 +99,7 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
         work_experience= resume_dict["work_experience"]
         evaluated_work= analyze_field_content(work_experience, "work experience")
         st.session_state["evaluated_work_experience"]=evaluated_work
-    elif type=="summary":
+    elif type=="summary_objective":
         summary_objective = resume_dict["summary_objective"]
         if summary_objective:
             evaluated_summary = analyze_summary_objective(resume_content)
@@ -267,6 +267,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     # st.session_state["tailor_dict"] = {}
+    print('start tailoring....')
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])

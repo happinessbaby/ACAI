@@ -997,7 +997,7 @@ class User():
                 with st.popover("evaluate"):
                         evaluation = st.session_state[f"evaluated_{field_name}"]
                         st.write(evaluation)
-                        st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
+                        st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", type="primary", on_click=self.evaluation_callback, args=(field_name, ), )
             else:
                 evaluate = st.button("evaluate ✨",  type="primary", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
         with c2:
@@ -1005,7 +1005,7 @@ class User():
                 with st.popover("tailor"):
                     tailoring = st.session_state[f"tailored_{field_name}"]
                     st.write(tailoring)
-                    st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ), )
+                    st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", type="primary", on_click=self.tailor_callback, args=(field_name, ), )
             else:
                 tailor = st.button("tailor ✨",  type="primary",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
 
@@ -1022,7 +1022,7 @@ class User():
             st.session_state["job_posting_disabled"]=False
         else:
             st.session_state["job_posting_disabled"]=True
-        st.info("In case when a job link does not work, please copy and paste the complete job posting into the job description")
+        st.info("In case a job link does not work, please copy and paste the complete job posting into the job description")
         job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0
@@ -1053,7 +1053,7 @@ class User():
             if "tailoring_field" in st.session_state:
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
             # delete "init_tailoring" variable to prevent popup from being called again
-            del st.session_state["init_tailoring"]
+            # del st.session_state["init_tailoring"]
             st.rerun()
 
     
@@ -1064,9 +1064,10 @@ class User():
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
         else:
             # initialize a job posting popup 
-            st.session_state["init_tailoring"] = True
+            # st.session_state["init_tailoring"] = True
             if field_name:
                 st.session_state["tailoring_field"]=field_name
+            self.job_posting_popup()
 
 
 
@@ -1093,8 +1094,8 @@ class User():
     
         # if user calls to tailor fields
         self.save_session_profile()
-        if "init_tailoring" in st.session_state:
-            self.job_posting_popup()
+        # if "init_tailoring" in st.session_state:
+        #     self.job_posting_popup()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with eval_col:
@@ -1299,7 +1300,7 @@ class User():
             # else:
             #     display_name = "Your profile is being evaluated ✨..."
             #     # button_name="stop evaluation"
-            with st.popover("profile evaluation ✨"):
+            with st.popover("My profile evaluation ✨"):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
