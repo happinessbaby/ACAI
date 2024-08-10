@@ -38,10 +38,6 @@ from utils.pydantic_schema import BasicResumeFields, SpecialResumeFields, Keywor
 # import textstat as ts
 import language_tool_python
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMChain
-
-
-
-# from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_community.vectorstores import FAISS
@@ -925,8 +921,15 @@ def create_job_posting_info(posting_path="", about_job="", ):
         job_posting_info_dict[job_posting].update({"company_description": company_description})
     # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
-    with open(job_posting_info_file, 'a') as json_file:
-        json.dump(job_posting_info_dict, json_file, indent=4)
+    if STORAGE=="LOCAL":
+        with open(job_posting_info_file, 'a') as json_file:
+            json.dump(job_posting_info_dict, json_file, indent=4)
+    elif STORAGE=="CLOUD":
+        # Convert your dictionary to a JSON string
+        json_data = json.dumps(job_posting_info_dict, indent=4)
+        # Upload the JSON string to S3
+        s3.put_object(Bucket=bucket_name, Key=job_posting_info_file, Body=json_data)
+
     return job_posting_info_dict[job_posting]
 
 def retrieve_or_create_resume_info(resume_path, q=None, ):
