@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
-from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, readability_checker, grammar_checker
+from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
 import uuid
@@ -27,7 +27,7 @@ import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
 from css.streamlit_css import general_button, primary_button, google_button
-from backend.upgrade_resume import tailor_resume, evaluate_resume
+from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
 from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
@@ -39,6 +39,8 @@ from utils.async_utils import thread_with_trace, asyncio_run
 import streamlit_antd_components as sac
 #NOTE: below import is necessary for nested column fix, do not delete
 import streamlit_nested_layout 
+import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 
@@ -62,7 +64,6 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder=st.empty()
-st.logo("./resources/logo_acai.png")
 # initialize float feature/capability
 float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -100,16 +101,12 @@ class User():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
         time.sleep(3)
-        if self.userId:
-            if "user_mode" not in st.session_state:
-                st.session_state["user_mode"]="signedin"
-            if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(self.userId, lance_users_table)
-            if "evaluation" not in st.session_state:
-                st.session_state["evaluation"] = retrieve_dict_from_table(self.userId, lance_eval_table)
-        else:
-            if "user_mode" not in st.session_state:  
-                st.session_state["user_mode"]="signedout"
+        # if self.userId:
+        #     if "user_mode" not in st.session_state:
+        #         st.session_state["user_mode"]="signedin"
+        # else:
+        #     if "user_mode" not in st.session_state:  
+        #         st.session_state["user_mode"]="signedout"
         self._init_session_states()
         self._init_display()
 
@@ -134,6 +131,12 @@ class User():
         #     except JSONDecodeError:
         #         raise 
         if _self.userId is not None:
+            if "user_mode" not in st.session_state:
+                st.session_state["user_mode"]="signedin"
+            if "profile" not in st.session_state:
+                st.session_state["profile"]= retrieve_dict_from_table(_self.userId, lance_users_table)
+            if "evaluation" not in st.session_state:
+                st.session_state["evaluation"] = retrieve_dict_from_table(_self.userId, lance_eval_table)
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
@@ -147,6 +150,9 @@ class User():
                 st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
+        else:
+            if "user_mode" not in st.session_state:  
+                st.session_state["user_mode"]="signedout"
 
 
 
@@ -164,12 +170,10 @@ class User():
             self.reset_password(token, username)
         if st.session_state.user_mode!="signedout" and st.session_state.user_mode!="reset":
             user_menu(self.userId, page="profile")
+            st.logo("./resources/logo_acareerai.png")
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
-        elif st.session_state.user_mode=="signedout":
-            print("signed out")
-            self.sign_in()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
             if "redirect_page" in st.session_state:
@@ -198,6 +202,9 @@ class User():
                     # else:
                     #     # Re-raise the KeyError for any other missing key
                     #     raise
+        elif st.session_state.user_mode=="signedout":
+            print("signed out")
+            self.sign_in()
         elif st.session_state.user_mode=="signout":
             self.sign_out()
         # elif st.session_state.user_mode=="reset_password":
@@ -218,7 +225,7 @@ class User():
         try:
             # still needs the logout code since the authenticators need to be cleared
             st.session_state.authenticator.logout(location="unrendered")
-            self.google_signout()
+            # self.google_signout()
         except Exception:
             pass
         st.session_state["user_mode"]="signedout"
@@ -235,11 +242,12 @@ class User():
         _, c1, _ = st.columns([1, 1, 1])
         with c1:
             with st.container(border=True):
-                st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
-                self.google_signin()
+                # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
+                st.image("./resources/logo_acareerai.png")
+                # self.google_signin()
                 # add_vertical_space(1)
-                sac.divider(label='or',  align='center', color='gray')
-                st.divider()
+                # sac.divider(label='or',  align='center', color='gray')
+                # st.divider()
                 name, authentication_status, username = st.session_state.authenticator.login()
                 placeholder_error = st.empty()
                 signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
@@ -367,13 +375,15 @@ class User():
             if self.verify_token(token):
                 with st.form(key="password_reset_form"):
                 # Display the password reset form
+                    st.image("./resources/logo_acareerai.png")
+                    st.subheader("Password Reset")
                     new_password = st.text_input("New Password", type="password", )
                     confirm_password = st.text_input("Confirm Password", type="password")               
                     if st.form_submit_button("Reset Password"):
                         if new_password == confirm_password:
                             # Update the user's password in the database
                             self.save_password(new_password, username)
-                            st.success("Password has been reset successfully!")
+                            st.success("Password has been reset successfully! Redirecting...")
                             time.sleep(5)
                             st.session_state["user_mode"]="signedout"
                             nav_to(base_uri+"/user")                              
@@ -686,6 +696,7 @@ class User():
                 if new_skill:
                     self.skills_set.add(new_skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    st.session_state["profile_changed"]=True
                     st.session_state.add_skill_custom=''
             except Exception:
                     pass
@@ -698,6 +709,7 @@ class User():
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
                     self.generated_skills_set.remove(skill)
                     st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
+                    st.session_state["profile_changed"]=True
             except Exception:
                 pass
             try:
@@ -707,6 +719,7 @@ class User():
                     # print('remove skill', skill)
                     self.skills_set.remove(skill)
                     st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    st.session_state["profile_changed"]=True
             except Exception:
                 pass
         return get_display
@@ -965,25 +978,34 @@ class User():
             
         return get_display
 
+    @st.fragment()
     def display_field_analysis(self, field_name):
 
         """ Displays the field-specific analysis UI """
 
-        _, c1, c2 = st.columns([5, 1, 1])
+        _, c0, c1, c2 = st.columns([5, 1, 1, 1])
+        with c0:
+            if f"{field_name}_readability" in st.session_state:
+                with st.popover("readability"):
+                    fig = self.display_readability_indicator(st.session_state[f"{field_name}_readability"])
+                    st.plotly_chart(fig)
+            else:
+                content=st.session_state["profile"][field_name]
+                checker = st.button("readability", type="primary", key=f"textstat_{field_name}_button",on_click=readability_checker, args=(content, field_name, ) )
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
-                with st.popover("Show evaluation"):
-                    evaluation = st.session_state[f"evaluated_{field_name}"]
-                    st.write(evaluation)
-                    st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
+                with st.popover("evaluate"):
+                        evaluation = st.session_state[f"evaluated_{field_name}"]
+                        st.write(evaluation)
+                        st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", type="primary", on_click=self.evaluation_callback, args=(field_name, ), )
             else:
                 evaluate = st.button("evaluate ✨",  type="primary", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
         with c2:
             if f"tailored_{field_name}" in st.session_state:
-                with st.popover("Show tailoring"):
+                with st.popover("tailor"):
                     tailoring = st.session_state[f"tailored_{field_name}"]
                     st.write(tailoring)
-                    st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ), )
+                    st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", type="primary", on_click=self.tailor_callback, args=(field_name, ), )
             else:
                 tailor = st.button("tailor ✨",  type="primary",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
 
@@ -1000,7 +1022,7 @@ class User():
             st.session_state["job_posting_disabled"]=False
         else:
             st.session_state["job_posting_disabled"]=True
-        st.info("In case when a job link does not work, please copy and paste the complete job posting into the job description")
+        st.info("In case a job link does not work, please copy and paste the complete job posting into the job description")
         job_posting = st.radio(f" ", 
                                 key="job_posting_radio", options=["job description", "job posting link"], 
                                 index = 1 if "job_description"  not in st.session_state else 0
@@ -1031,7 +1053,7 @@ class User():
             if "tailoring_field" in st.session_state:
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
             # delete "init_tailoring" variable to prevent popup from being called again
-            del st.session_state["init_tailoring"]
+            # del st.session_state["init_tailoring"]
             st.rerun()
 
     
@@ -1042,9 +1064,10 @@ class User():
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
         else:
             # initialize a job posting popup 
-            st.session_state["init_tailoring"] = True
+            # st.session_state["init_tailoring"] = True
             if field_name:
                 st.session_state["tailoring_field"]=field_name
+            self.job_posting_popup()
 
 
 
@@ -1071,8 +1094,8 @@ class User():
     
         # if user calls to tailor fields
         self.save_session_profile()
-        if "init_tailoring" in st.session_state:
-            self.job_posting_popup()
+        # if "init_tailoring" in st.session_state:
+        #     self.job_posting_popup()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
         with eval_col:
@@ -1157,21 +1180,19 @@ class User():
                 if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
                     st.session_state["profile_changed"] = True
-                if st.session_state["profile"]["summary_objective"]:
-                    self.display_field_analysis("summary")
                 summary = st.session_state["profile"]["summary_objective"]
                 if st.text_area("Summary", value=summary, key="profile_summary", placeholder="Your summary objective", label_visibility="collapsed")!=summary:
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
                     st.session_state["profile_changed"] = True
-                # if st.button("readability checker"):
-                #     st.write(readability_checker(summary))
+                if st.session_state["profile"]["summary_objective"]:
+                    self.display_field_analysis("summary_objective")
             with st.expander(label="Work Experience",):
                 if st.session_state["profile"]["work_experience"]:
                     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
             with st.expander(label="Skills",):
-                self.display_field_analysis("skills")
+                self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= set( st.session_state["profile"]["included_skills"])
                 self.generated_skills_set=set()
@@ -1273,20 +1294,19 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-            if finished:
-                display_name = "Your profile has been evaluated ✨"
-                # button_name = "evaluate again ✨"
-            else:
-                display_name = "Your profile is being evaluated ✨..."
-                # button_name="stop evaluation"
-            with st.popover(display_name):
+            # if finished:
+            #     display_name = "Your profile has been evaluated ✨"
+            #     # button_name = "evaluate again ✨"
+            # else:
+            #     display_name = "Your profile is being evaluated ✨..."
+            #     # button_name="stop evaluation"
+            with st.popover("My profile evaluation ✨"):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
                     try:
                         length=st.session_state["evaluation"]["word_count"]
                         pages=st.session_state["evaluation"]["page_count"]
-                        st.write(length)
                         fig = self.display_length_chart(int(length))
                         st.plotly_chart(fig, 
                                         # use_container_width=True
@@ -1346,7 +1366,7 @@ class User():
                 except Exception:
                     if finished is False:
                         st.write("Evaluating...")
-                if st.button("evaluate again ✨", key=f"eval_button", ):
+                if st.button("Evaluate again ✨", type="primary", key=f"eval_button", ):
                     # if button_name=="evaluate again ✨":
                         container.empty()
                         # delete previous evaluation states
@@ -1587,58 +1607,12 @@ class User():
         return fig
 
 
-    def display_readability_indicator(self, value):
-        min_value = 0
-        max_value = 100
-        steps = [20, 40, 60, 80]
-        indicator_color = "red"
-        line_color = "black"
+    def display_readability_indicator(self, data):
 
-        # Create the figure
-        fig = go.Figure()
-
-        # Add the horizontal line
-        fig.add_trace(go.Scatter(
-            x=[min_value, max_value],
-            y=[0, 0],
-            mode='lines',
-            line=dict(color=line_color, width=2)
-        ))
-
-        # Add the indicators
-        for step in steps:
-            fig.add_trace(go.Scatter(
-                x=[step, step],
-                y=[-0.1, 0.1],
-                mode='lines',
-                line=dict(color=line_color, width=2)
-            ))
-
-        # Add the dot for the value
-        fig.add_trace(go.Scatter(
-            x=[value],
-            y=[0],
-            mode='markers',
-            marker=dict(color=indicator_color, size=10)
-        ))
-
-        # Update layout to remove axis
-        fig.update_layout(
-            xaxis=dict(
-                range=[min_value, max_value],
-                showgrid=False,
-                zeroline=False,
-                showline=False,
-                showticklabels=False
-            ),
-            yaxis=dict(
-                showgrid=False,
-                zeroline=False,
-                showline=False,
-                showticklabels=False
-            ),
-            margin=dict(l=0, r=0, t=0, b=0)
-        )
+        print(data)
+        df = pd.DataFrame(list(data.items()), columns=['Metric', 'Score'])
+        fig = px.bar(df, x='Metric', y='Score', title="readability stats",
+             labels={"Score": "Score Value", "Metric": "Text Metric"})
         return fig
 
 

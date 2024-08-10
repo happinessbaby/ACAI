@@ -28,6 +28,7 @@ if STORAGE=="CLOUD":
 else:
     bucket_name=None
     s3=None
+# st.logo("./resources/logo_acareerai.png")
 
 class Download():
 

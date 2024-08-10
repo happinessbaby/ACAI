@@ -297,7 +297,6 @@ def write_file(end_path: str, file_content="", file_path="", mode="wb",):
             print(e)
             return False
 
-
 def read_file(file_path:str, mode="r", ):
     
     if STORAGE=="LOCAL":
@@ -558,14 +557,14 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     return results 
 
 
-def send_recovery_email(to_email, type, subject="Password/Username recovery", password=None, username=None, ):
+def send_recovery_email(to_email, type, subject="Recover your password/username", password=None, username=None, ):
 
     # Create the base text message.
     msg = EmailMessage()
     to_email = to_email.split("@")
     # print(to_email)
     msg['Subject'] = subject
-    msg['From'] = Address("ACAI", "yueqipeng2021", "gmail.com")
+    msg['From'] = Address("aCareerAi", "yueqipeng2021", "gmail.com")
     msg['To'] = (
                 Address(username, "yueqipeng2021", "gmail.com"),
                 Address(username, to_email[0], to_email[1])
