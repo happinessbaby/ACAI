@@ -26,7 +26,7 @@ from googleapiclient.discovery import build
 import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
-from css.streamlit_css import general_button, primary_button, google_button
+from css.streamlit_css import general_button, primary_button, google_button, primary_button2
 from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
 from streamlit_float import *
 import threading
@@ -738,6 +738,12 @@ class User():
                 field_list = st.session_state["profile"][field_name][field_detail]
             for idx, value in enumerate(field_list):
                 add_detail(value, idx,)
+            if x!=-1:
+                details = ", ".join(st.session_state["profile"][field_name][x])
+                self.display_field_analysis(field_name, details=details, idx=x)
+            else:
+                details = ", ".join(st.session_state["profile"][field_name])
+                self.display_field_analysis(field_name, details=details)
             if type=="bullet_points":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
@@ -813,6 +819,7 @@ class User():
                         st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
                     with x_col:
                         st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                   
 
         def callback(idx, ):
             
@@ -979,7 +986,7 @@ class User():
         return get_display
 
     @st.fragment()
-    def display_field_analysis(self, field_name):
+    def display_field_analysis(self, field_name, details, idx=None):
 
         """ Displays the field-specific analysis UI """
 
@@ -987,27 +994,63 @@ class User():
         with c0:
             if f"{field_name}_readability" in st.session_state:
                 with st.popover("readability"):
+                    if idx:
+                        button_key=f"textstat_again_{field_name}_button_{idx}"
+                    else:
+                        button_key = f"textstat_again_{field_name}_button"
                     fig = self.display_readability_indicator(st.session_state[f"{field_name}_readability"])
                     st.plotly_chart(fig)
+                    st.markdown(primary_button2, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                    st.button("check again", key=button_key, on_click=readability_checker, args=(field_name, details, ))
             else:
-                content=st.session_state["profile"][field_name]
-                checker = st.button("readability", type="primary", key=f"textstat_{field_name}_button",on_click=readability_checker, args=(content, field_name, ) )
+                if idx:
+                    button_key=f"textstat_{field_name}_button_{idx}"
+                else:
+                    button_key = f"textstat_{field_name}_button"
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                checker = st.button("readability", key=button_key,on_click=readability_checker, args=(field_name, details, ) )
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 with st.popover("evaluate"):
+                        if idx:
+                            button_key=f"eval_again_{field_name}_button_{idx}"
+                        else:
+                            button_key=f"eval_again_{field_name}_button"
                         evaluation = st.session_state[f"evaluated_{field_name}"]
                         st.write(evaluation)
-                        st.button("evaluate again ✨", key=f"eval_again_{field_name}_button", type="primary", on_click=self.evaluation_callback, args=(field_name, ), )
+                        st.markdown(primary_button2, unsafe_allow_html=True)
+                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                        st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, ), )
             else:
-                evaluate = st.button("evaluate ✨",  type="primary", key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, ), )
+                if idx:
+                    button_key=f"eval_{field_name}_button_{idx}"
+                else:
+                    button_key=f"eval_{field_name}_button"
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                evaluate = st.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details), )
         with c2:
             if f"tailored_{field_name}" in st.session_state:
                 with st.popover("tailor"):
+                    if idx:
+                        button_key=f"tailor_again_{field_name}_button_{idx}"
+                    else:
+                        button_key=f"tailor_again_{field_name}_button"
                     tailoring = st.session_state[f"tailored_{field_name}"]
                     st.write(tailoring)
-                    st.button("tailor again ✨", key=f"tailor_again_{field_name}_button", type="primary", on_click=self.tailor_callback, args=(field_name, ), )
+                    st.markdown(primary_button2, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                    st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
-                tailor = st.button("tailor ✨",  type="primary",key=f"tailor_{field_name}_button", on_click=self.tailor_callback, args=(field_name, ))
+                if idx:
+                    button_key=f"tailor_{field_name}_button_{idx}"
+                else:
+                    button_key=f"tailor_{field_name}_button"
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                tailor = st.button("tailor", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ))
 
      
           
@@ -1057,11 +1100,11 @@ class User():
             st.rerun()
 
     
-    def tailor_callback(self, field_name=None):
+    def tailor_callback(self, field_name=None, details=None):
       
         if "job_posting_dict" in st.session_state and field_name:
             # starts specific field tailoring
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name)
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, details,)
         else:
             # initialize a job posting popup 
             # st.session_state["init_tailoring"] = True
@@ -1071,11 +1114,11 @@ class User():
 
 
 
-    def evaluation_callback(self, field_name=None, ):
+    def evaluation_callback(self, field_name=None, details=None,):
 
         if field_name:
             # starts specific evaluation of a field
-            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name,)
+            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details )
         else:
             # start general evaluation if there's no saved evaluation 
             if not st.session_state["evaluation"]:
@@ -1185,14 +1228,14 @@ class User():
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
                     st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
-                    self.display_field_analysis("summary_objective")
+                    self.display_field_analysis("summary_objective", st.session_state["profile"]["summary_objective"])
             with st.expander(label="Work Experience",):
-                if st.session_state["profile"]["work_experience"]:
-                    self.display_field_analysis("work_experience")
+                # if st.session_state["profile"]["work_experience"]:
+                #     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
             with st.expander(label="Skills",):
-                self.display_field_analysis("included_skills")
+                # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= set( st.session_state["profile"]["included_skills"])
                 self.generated_skills_set=set()
