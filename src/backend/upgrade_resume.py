@@ -50,7 +50,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, str]:
 
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
@@ -89,19 +89,19 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
             # for category in categories:
             comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
             st.session_state.evaluation.update({section_name:comparison_dict})
-
         # Generate overall impression
         impression = generate_impression(resume_content, pursuit_jobs)
         st.session_state.evaluation["impression"]= impression
         st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
     if type=="work_experience":
-        work_experience= resume_dict["work_experience"]
-        evaluated_work= analyze_field_content(work_experience, "work experience")
-        st.session_state["evaluated_work_experience"]=evaluated_work
+        # work_experience= resume_dict["work_experience"]
+        if details:
+            evaluated_work= analyze_field_content(details, "work experience")
+            st.session_state["evaluated_work_experience"]=evaluated_work
     elif type=="summary_objective":
-        summary_objective = resume_dict["summary_objective"]
-        if summary_objective:
+        # summary_objective = resume_dict["summary_objective"]
+        if details:
             evaluated_summary = analyze_summary_objective(resume_content)
             st.session_state["evaluated_summary_objective"]=evaluated_summary
 
@@ -260,7 +260,7 @@ def analyze_resume_type(resume_content, ):
     type_dict = create_pydantic_parser(response, ResumeType)
     return type_dict["type"]
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
 
     # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
@@ -275,13 +275,13 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
     if type=="included_skillls":
-        tailored_skills_dict = tailor_skills(required_skills, resume_dict["included_skills"])
+        tailored_skills_dict = tailor_skills(required_skills, details)
         st.session_state[f"tailored_{type}"]=tailored_skills_dict
     if type=="summary_objective":
-        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, resume_dict["summary_objective"])
+        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, details)
         st.session_state[f"tailored_{type}"]=tailored_objective_dict
     if type=="work_experience":
-        tailored_experience = tailor_experience(job_requirements, resume_dict["work_experience"])
+        tailored_experience = tailor_experience(job_requirements, details)
         st.session_state[f"tailored_{type}"]= tailored_experience
     # return st.session_state.tailor_dict
 
@@ -540,7 +540,7 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-def readability_checker(w, field_name):
+def readability_checker(field_name, w):
     stats = dict(
             flesch_reading_ease=ts.flesch_reading_ease(w),
             smog_index = ts.smog_index(w),
