@@ -738,16 +738,16 @@ class User():
                 field_list = st.session_state["profile"][field_name][field_detail]
             for idx, value in enumerate(field_list):
                 add_detail(value, idx,)
-            if x!=-1:
-                details = ", ".join(st.session_state["profile"][field_name][x])
-                self.display_field_analysis(field_name, details=details, idx=x)
-            else:
-                details = ", ".join(st.session_state["profile"][field_name])
-                self.display_field_analysis(field_name, details=details)
+            # else:
+            #     details = ", ".join(st.session_state["profile"][field_name])
+            #     self.display_field_analysis(field_name, details=details)
             if type=="bullet_points":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
+            if x!=-1 and len(field_list)>0:
+                details = ", ".join(st.session_state["profile"][field_name][x])
+                self.display_field_analysis(field_name, details=details, idx=x)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -1131,9 +1131,6 @@ class User():
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
-
-        
-
     
         # if user calls to tailor fields
         self.save_session_profile()
@@ -1409,7 +1406,9 @@ class User():
                 except Exception:
                     if finished is False:
                         st.write("Evaluating...")
-                if st.button("Evaluate again ✨", type="primary", key=f"eval_button", ):
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                if st.button("evaluate again", key=f"eval_button", ):
                     # if button_name=="evaluate again ✨":
                         container.empty()
                         # delete previous evaluation states
@@ -1423,7 +1422,7 @@ class User():
                             # reset evaluation rerun timer
                             st.session_state["eval_rerun_timer"]=3
                             st.rerun()
-                    # elif button_name=="stop evaluation":
+                    # elif button_name=="stop evaluation":s
                     #     try:
                     #         # kill the evaluation thread 
                     #         self.eval_thread.kill()
