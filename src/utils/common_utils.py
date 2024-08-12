@@ -7,7 +7,7 @@ from langchain.agents import load_tools, initialize_agent, AgentExecutor
 from pathlib import Path
 from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
-from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,
+from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,retrieve_vectorstore,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
 from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
@@ -703,7 +703,7 @@ def get_web_resources(query: str, with_source: bool=False, engine="retriever", l
     return response
 
 
-def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -> str:
+def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss", llm=OpenAI(temperature=0.8)) -> str:
 
     """ Retrieves query answer from vector store using Docuemnt + Chain method.
 
@@ -726,7 +726,8 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
         generated response
   
     """
-
+    if vectorstore_type=="faiss":
+        vectorstore=retrieve_vectorstore("faiss", faiss_web_data_path)
     compression_retriever = create_compression_retriever(vectorstore.as_retriever())
     docs = compression_retriever.get_relevant_documents(query)
     reordered_docs = reorder_docs(docs)
@@ -904,7 +905,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         #         {posting}"""
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
-    job_posting_info_dict[job_posting].update({"summary": posting})
+    job_posting_info_dict[job_posting].update({"content": posting})
     basic_info_dict = create_pydantic_parser(posting, Keywords)
     job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required

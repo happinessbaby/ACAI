@@ -238,8 +238,8 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
 def save_user_changes(data, schema, tablename):
 
     # converts profile into resume content 
-    # if tablename==lance_users_table:
-    #     data["resume_content"] = json.dumps(data)
+    if tablename==lance_users_table:
+        data["resume_content"] = json.dumps(data)
     try:
         schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!

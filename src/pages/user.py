@@ -26,8 +26,9 @@ from googleapiclient.discovery import build
 import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
-from css.streamlit_css import general_button, primary_button, google_button, primary_button2
+from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
+from backend.generate_cover_letter import generate_basic_cover_letter
 from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
@@ -101,12 +102,6 @@ class User():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
         time.sleep(3)
-        # if self.userId:
-        #     if "user_mode" not in st.session_state:
-        #         st.session_state["user_mode"]="signedin"
-        # else:
-        #     if "user_mode" not in st.session_state:  
-        #         st.session_state["user_mode"]="signedout"
         self._init_session_states()
         self._init_display()
 
@@ -253,15 +248,19 @@ class User():
                 signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
                 with signup_col:
                     add_vertical_space(2)
-                    sign_up = st.button(label="**Sign up**", key="signup",  type="primary")
+                    sign_up = st.button(label="Sign up", key="signup",  type="primary")
                     if sign_up:
                         st.session_state["user_mode"]="signup"
                         st.rerun()
                 with forgot_password_col:
-                    if st.button(label="forgot my password", key="forgot_password", type="primary"):
+                    st.markdown(primary_button3, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                    if st.button(label="forgot my password", key="forgot_password", ):
                         self.recover_password_username_popup(type="password")
                 with forgot_username_col:
-                    if st.button(label="forgot my username", key="forgot_username", type="primary"):
+                    st.markdown(primary_button3, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                    if st.button(label="forgot my username", key="forgot_username",):
                         self.recover_password_username_popup(type="username")
                 # print(name, authentication_status, username)
                 if authentication_status:
@@ -271,6 +270,9 @@ class User():
                     st.rerun()
                 elif authentication_status==False:
                     placeholder_error.error('Username/password is incorrect')
+            if st.button("skip log in", ):
+                self.userId="test"
+                st.session_state["mode"]="signedin"
 
     @st.dialog(title=" ")
     def recover_password_username_popup(self, type):
@@ -738,15 +740,12 @@ class User():
                 field_list = st.session_state["profile"][field_name][field_detail]
             for idx, value in enumerate(field_list):
                 add_detail(value, idx,)
-            # else:
-            #     details = ", ".join(st.session_state["profile"][field_name])
-            #     self.display_field_analysis(field_name, details=details)
             if type=="bullet_points":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
             if x!=-1 and len(field_list)>0:
-                details = ", ".join(st.session_state["profile"][field_name][x])
+                details = ". ".join(st.session_state["profile"][field_name][x])
                 self.display_field_analysis(field_name, details=details, idx=x)
 
         def delete_entry(placeholder, idx):
@@ -993,16 +992,34 @@ class User():
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
         with c0:
             if f"{field_name}_readability" in st.session_state:
-                with st.popover("readability"):
-                    if idx:
-                        button_key=f"textstat_again_{field_name}_button_{idx}"
-                    else:
-                        button_key = f"textstat_again_{field_name}_button"
-                    fig = self.display_readability_indicator(st.session_state[f"{field_name}_readability"])
-                    st.plotly_chart(fig)
-                    st.markdown(primary_button2, unsafe_allow_html=True)
-                    st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    st.button("check again", key=button_key, on_click=readability_checker, args=(field_name, details, ))
+                if idx:
+                    popover_key=f"textstat_{field_name}_popover_{idx}"
+                else:
+                    popover_key = f"textstat_{field_name}_popover"
+                with stylable_container(
+                    key=popover_key,
+                    css_styles="""
+                        button {
+                            background: none;
+                            border: none;
+                            color: #ff8247;
+                            padding: 0;
+                            cursor: pointer;
+                            font-size: 12px; 
+                            text-decoration: none;
+                        }
+                        """,
+                ):
+                    with st.popover("readability"):
+                        if idx:
+                            button_key=f"textstat_again_{field_name}_button_{idx}"
+                        else:
+                            button_key = f"textstat_again_{field_name}_button"
+                        fig = self.display_readability_indicator(st.session_state[f"{field_name}_readability"])
+                        st.plotly_chart(fig)
+                        st.markdown(primary_button2, unsafe_allow_html=True)
+                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                        st.button("check again", key=button_key, on_click=readability_checker, args=(field_name, details, ))
             else:
                 if idx:
                     button_key=f"textstat_{field_name}_button_{idx}"
@@ -1013,16 +1030,34 @@ class User():
                 checker = st.button("readability", key=button_key,on_click=readability_checker, args=(field_name, details, ) )
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
-                with st.popover("evaluate"):
-                        if idx:
-                            button_key=f"eval_again_{field_name}_button_{idx}"
-                        else:
-                            button_key=f"eval_again_{field_name}_button"
-                        evaluation = st.session_state[f"evaluated_{field_name}"]
-                        st.write(evaluation)
-                        st.markdown(primary_button2, unsafe_allow_html=True)
-                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, ), )
+                if idx:
+                    popover_key=f"eval_{field_name}_popover_{idx}"
+                else:
+                    popover_key = f"eval_{field_name}_popover"
+                with stylable_container(
+                    key=popover_key,
+                    css_styles="""
+                        button {
+                            background: none;
+                            border: none;
+                            color: #ff8247;
+                            padding: 0;
+                            cursor: pointer;
+                            font-size: 12px; 
+                            text-decoration: none;
+                        }
+                        """,
+                ):
+                    with st.popover("evaluate"):
+                            if idx:
+                                button_key=f"eval_again_{field_name}_button_{idx}"
+                            else:
+                                button_key=f"eval_again_{field_name}_button"
+                            evaluation = st.session_state[f"evaluated_{field_name}"]
+                            st.write(evaluation)
+                            st.markdown(primary_button2, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                            st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, ), )
             else:
                 if idx:
                     button_key=f"eval_{field_name}_button_{idx}"
@@ -1033,16 +1068,34 @@ class User():
                 evaluate = st.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details), )
         with c2:
             if f"tailored_{field_name}" in st.session_state:
-                with st.popover("tailor"):
-                    if idx:
-                        button_key=f"tailor_again_{field_name}_button_{idx}"
-                    else:
-                        button_key=f"tailor_again_{field_name}_button"
-                    tailoring = st.session_state[f"tailored_{field_name}"]
-                    st.write(tailoring)
-                    st.markdown(primary_button2, unsafe_allow_html=True)
-                    st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
+                if idx:
+                    popover_key=f"tailor_{field_name}_popover_{idx}"
+                else:
+                    popover_key = f"tailor_{field_name}_popover"
+                with stylable_container(
+                    key=popover_key,
+                    css_styles="""
+                        button {
+                            background: none;
+                            border: none;
+                            color: #ff8247;
+                            padding: 0;
+                            cursor: pointer;
+                            font-size: 12px; 
+                            text-decoration: none;
+                        }
+                        """,
+                ):
+                    with st.popover("tailor"):
+                        if idx:
+                            button_key=f"tailor_again_{field_name}_button_{idx}"
+                        else:
+                            button_key=f"tailor_again_{field_name}_button"
+                        tailoring = st.session_state[f"tailored_{field_name}"]
+                        st.write(tailoring)
+                        st.markdown(primary_button2, unsafe_allow_html=True)
+                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                        st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
                 if idx:
                     button_key=f"tailor_{field_name}_button_{idx}"
@@ -1056,7 +1109,7 @@ class User():
           
 
     @st.dialog("Please provide a job posting")   
-    def job_posting_popup(self,):
+    def job_posting_popup(self, mode="resume"):
 
         """ Opens a popup for adding a job posting """
 
@@ -1093,10 +1146,13 @@ class User():
                         st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
                     )
             # starts field tailoring if called to tailor a field
-            if "tailoring_field" in st.session_state:
+            if mode=="resume" and "tailoring_field" in st.session_state:
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
-            # delete "init_tailoring" variable to prevent popup from being called again
-            # del st.session_state["init_tailoring"]
+            # starts cover letter generation if called to generate cover letter
+            elif mode=="cover_letter":
+                st.session_state["cover_letter_download_path"]=generate_basic_cover_letter(resume_dict=st.session_state["profile"], job_posting_dict=st.session_state["job_posting_dict"], output_dir=st.session_state["users_download_path"])  
+                print("sucessfully generated cover letter")
+                st.write(st.session_state["cover_letter_download_path"])
             st.rerun()
 
     
@@ -1107,7 +1163,6 @@ class User():
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, details,)
         else:
             # initialize a job posting popup 
-            # st.session_state["init_tailoring"] = True
             if field_name:
                 st.session_state["tailoring_field"]=field_name
             self.job_posting_popup()
@@ -1126,43 +1181,31 @@ class User():
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
          
+    def cover_letter_callback(self, ):
 
+        if "job_posting_dict" in st.session_state:
+            st.session_state["cover_letter_download_path"] = generate_basic_cover_letter(resume_dict=st.session_state["profile"], job_posting_dict=st.session_state["job_posting_dict"], output_dir=st.session_state["users_download_path"])   
+            print("sucessfully generated cover letter")
+            st.write(st.session_state["cover_letter_download_path"])
+        else:
+            self.job_posting_popup(mode="cover_letter")
     
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
-    
-        # if user calls to tailor fields
+
+        # save session profile periodically
         self.save_session_profile()
-        # if "init_tailoring" in st.session_state:
-        #     self.job_posting_popup()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
+        # general evaluation column
         with eval_col:
             float_container= st.container()
             with float_container:
                 self.display_general_evaluation(float_container)
                 self.evaluation_callback()
-            # float_parent()
-        # with fields_col:
-        #     self.fields_selection()
-        #     add_vertical_space(2)
-        #     _, c = st.columns([1, 1])
-        #     with c:
-        #         with stylable_container(
-        #             key="custom_button1_profile2",
-        #                 css_styles=  
-        #             """   button {
-        #                             background-color: #ff8247;
-        #                             color: white;
-        #                         }"""
-        #             ):
-        #             if st.button("Pick a template ➡", key="select_template_button", ):
-        #                 st.switch_page("pages/templates.py")
-            # print(st.session_state["selected_fields"])
         # the main profile column
         with profile_col:
-        
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", ):
@@ -1290,27 +1333,7 @@ class User():
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
-
-    # @st.fragment()
-    # def fields_selection(self, ):
-
-    #     st.write("Fields to include in the resume")
-    #     if "selected_fields" in st.session_state:
-    #         index_selected = [idx for idx, val in enumerate(st.session_state["selected_fields"])]
-    #     else:
-    #         index_selected = [0, 1, 2, 3]
-    #     st.session_state["selected_fields"] = sac.chip(items=[
-    #             sac.ChipItem(label='Contact'),
-    #             sac.ChipItem(label='Education'),
-    #             sac.ChipItem(label='Summary/Objective'),
-    #             sac.ChipItem(label='Work Experience'),
-    #             sac.ChipItem(label='Skills'),
-    #             sac.ChipItem(label='Professional Accomplishment'),
-    #             sac.ChipItem(label='Projects'),
-    #             sac.ChipItem(label='Certifications'),
-    #             sac.ChipItem(label='Awards & Honors'),
-    #         ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
-       
+                st.button("Draft a cover letter", key="cover_letter_button", on_click=self.cover_letter_callback, use_container_width=True)
    
 
     
@@ -1340,7 +1363,7 @@ class User():
             # else:
             #     display_name = "Your profile is being evaluated ✨..."
             #     # button_name="stop evaluation"
-            with st.popover("My profile evaluation ✨"):
+            with st.popover("Your profile evaluation"):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")

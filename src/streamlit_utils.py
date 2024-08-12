@@ -5,6 +5,7 @@ import os
 import extra_streamlit_components as stx
 # Note that you can also import these from streamlit directly
 from st_pages import get_pages, get_script_run_ctx 
+from streamlit_extras.stylable_container import stylable_container
 import streamlit_antd_components as sac
 
 
@@ -45,17 +46,31 @@ def user_menu(userId, page, ):
                 st.session_state["user_mode"] = "signedout"
                 st.switch_page("pages/user.py")
         else:
-            with st.popover(label=f"{userId}",):
-                # if page!="main":
-                #     if st.button("Home", type="primary"):
-                #         st.switch_page("home.py")
-                if page!="profile":
-                    if st.button("My profile", type="primary"):
+            with stylable_container(
+                key="menu_popover",
+                css_styles="""
+                    button {
+                        background: none;
+                        border: none;
+                        color: #2d2e29;
+                        padding: 0;
+                        cursor: pointer;
+                        font-size: 12px; /* Adjust as needed */
+                        text-decoration: none;
+                    }
+                    """,
+            ):
+                with st.popover(label=f"{userId}",):
+                    # if page!="main":
+                    #     if st.button("Home", type="primary"):
+                    #         st.switch_page("home.py")
+                    if page!="profile":
+                        if st.button("My profile", type="primary"):
+                            st.switch_page("pages/user.py")
+                    st.divider()
+                    if st.button("Log out", type="primary"):
+                        st.session_state["user_mode"]="signout"
                         st.switch_page("pages/user.py")
-                st.divider()
-                if st.button("Log out", type="primary"):
-                    st.session_state["user_mode"]="signout"
-                    st.switch_page("pages/user.py")
                 # if page=="profile":
                 #     if st.button("Delete my profile", type="primary"):
                 #         st.session_state["user_mode"] = "delete_profile"
