@@ -273,9 +273,9 @@ class User():
                     st.rerun()
                 elif authentication_status==False:
                     placeholder_error.error('Username/password is incorrect')
-            if st.button("skip log in", ):
-                self.userId="test"
-                st.session_state["mode"]="signedin"
+            # if st.button("skip log in", ):
+            #     self.userId="test"
+            #     st.session_state["mode"]="signedin"
 
     @st.dialog(title=" ")
     def recover_password_username_popup(self, type):
@@ -1173,13 +1173,14 @@ class User():
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
          
-    def cover_letter_callback(self, ):
+    # def cover_letter_callback(self, ):
 
-        if "job_posting_dict" in st.session_state:
-            download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
-            automatic_download(download_path)
-        else:
-            self.job_posting_popup(mode="cover_letter")
+    #     if "job_posting_dict" in st.session_state:
+    #         download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
+    #         if download_path:
+    #             automatic_download(download_path)
+    #     else:
+    #         self.job_posting_popup(mode="cover_letter")
     
 
 
@@ -1227,7 +1228,7 @@ class User():
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
                         st.session_state["profile_changed"] = True
                     website = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, please separate each by a comma", label_visibility="collapsed")!=linkedin:
+                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, each separated by a comma", label_visibility="collapsed")!=linkedin:
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
@@ -1328,7 +1329,7 @@ class User():
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
                 if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     # NOTE:cannot be in callback because job_posting_popup is a dialog
-                    self.cover_letter_callback()
+                    self.job_posting_popup(mode="cover_letter")
    
 
     
