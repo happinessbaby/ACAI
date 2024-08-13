@@ -48,7 +48,7 @@ else:
     bucket_name=None
     s3=None
       
-def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=None) -> None:
+def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=None, ) -> None:
     
     """ Main function that generates the cover letter.
     
@@ -64,6 +64,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
     
     document = Document()
     document.add_heading('Cover Letter', 0)
+    print(")0000000000000000)))))))))")
     end_path = os.path.join(output_dir, "cover_letter.docx")
     # Get resume info
     resume_content = resume_dict["resume_content"]
@@ -78,46 +79,56 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
     name = resume_dict["contact"].get("name", "")
     phone = resume_dict["contact"].get("phone", "")
     email = resume_dict["contact"].get("email", "")
+    print("AAAAAAAAAAAAAAAAAAAAAAAaaa")
     # Get adviced from web data on personalized best practices
-    advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
-    advices = retrieve_from_db(advice_query, vectorstore_path=faiss_web_data, vectorstore_type="faiss")
-    # Get sample comparisons
-    related_samples = search_related_samples(job, cover_letter_samples_path)
-    sample_tools, tool_names = create_sample_tools(related_samples, "cover_letter")
-    # Get resume's relevant and irrelevant info for job: few-shot learning works great here
-    query_relevancy = f""" You are an expert resume advisor. 
+    # advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
+    # advices = retrieve_from_db(advice_query, vectorstore_path=faiss_web_data, vectorstore_type="faiss")
+    # # Get sample comparisons
+    # related_samples = search_related_samples(job, cover_letter_samples_path)
+    # sample_tools, tool_names = create_sample_tools(related_samples, "cover_letter")
+    # # Get resume's relevant and irrelevant info for job: few-shot learning works great here
+    # query_relevancy = f""" You are an expert resume advisor. 
     
-     Step 1: Determine the relevant and irrelevant information contained in the resume document delimited with {delimiter} characters.
+    #  Step 1: Determine the relevant and irrelevant information contained in the resume document delimited with {delimiter} characters.
 
-      resume: {delimiter}{resume_content}{delimiter} \n
+    #   resume: {delimiter}{resume_content}{delimiter} \n
 
-      Generate a list of irrelevant information that should not be included in the cover letter and a list of relevant information that should be included in the cover letter.
+    #   Generate a list of irrelevant information that should not be included in the cover letter and a list of relevant information that should be included in the cover letter.
        
-      Remember to use either job specification or general job description as your guideline. 
+    #   Remember to use either job specification or general job description as your guideline. 
 
-      job specification: {job_specification}
+    #   job specification: {job_specification}
 
-        Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
+    #     Your answer should be detailed and only from the resume. Please also provide your reasoning too. 
         
-        For example, your answer may look like this:
+    #     For example, your answer may look like this:
 
-        Relevant information:
+    #     Relevant information:
 
-        1. Experience as a Big Data Engineer: using Spark and Python are transferable skills to using Panda in data analysis
+    #     1. Experience as a Big Data Engineer: using Spark and Python are transferable skills to using Panda in data analysis
 
-        Irrelevant information:
+    #     Irrelevant information:
 
-        1. Education in Management of Human Resources is not directly related to skills required for a data analyst 
+    #     1. Education in Management of Human Resources is not directly related to skills required for a data analyst 
 
-      Step 2:  Sample cover letters are provided in your tools. Research {str(tool_names)} and answer the following question: and answer the following question:
+    #   Step 2:  Sample cover letters are provided in your tools. Research {str(tool_names)} and answer the following question: and answer the following question:
 
-           Make a list of common features these cover letters share. 
+    #        Make a list of common features these cover letters share. 
 
-        """
-    # tool = [search_relevancy_advice]
-    relevancy = generate_multifunction_response(query_relevancy, sample_tools)
+    #     """
+    # # tool = [search_relevancy_advice]
+    # relevancy = generate_multifunction_response(query_relevancy, sample_tools)
     # Use an LLM to generate a cover letter that is specific to the resume file that is being read
     # Step wise instructions: https://learn.deeplearning.ai/chatgpt-building-system/lesson/5/chain-of-thought-reasoning
+      # Step 1: You are given two lists of information delimited with characters. One is irrelevant to applying for {job} and the other is relevant. 
+
+      #   Use them as a reference when determining what to include and what not to include in the cover letter. 
+    
+      #   information list: {relevancy}.  \n
+
+      # Step 2: You are also given some expert advices. Keep them in mind when generating the cover letter.
+
+      #   expert advices: {advices}
     template_string2 = """You are a professional cover letter writer. A Human client has asked you to generate a cover letter for them.
   
         The content you are to use as reference to create the cover letter is delimited with {delimiter} characters.
@@ -126,17 +137,8 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
 
         content: {delimiter}{content}{delimiter}. \n
 
-      Step 1: You are given two lists of information delimited with characters. One is irrelevant to applying for {job} and the other is relevant. 
 
-        Use them as a reference when determining what to include and what not to include in the cover letter. 
-    
-        information list: {relevancy}.  \n
-
-      Step 2: You are also given some expert advices. Keep them in mind when generating the cover letter.
-
-        expert advices: {advices}
-
-      Step 3: You're provided with some company informtion, job description, and/or job specification. 
+      Step 1: You're provided with some company informtion, job description, and/or job specification. 
 
         Use it to make the cover letter cater to the company values. 
 
@@ -144,7 +146,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
 
         job specification: {job_specification} \n
     
-      Step 4: Change all personal information of the cover letter to the following. Do not incude them if they are -1 or empty: 
+      Step 2: Change all personal information of the cover letter to the following. Do not incude them if they are -1 or empty: 
 
         name: {name}. \
 
@@ -158,7 +160,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
 
         job position they are applying for: {job}. \
     
-      Step 5: Generate the cover letter using what you've learned in Step 1 through Step 4. Do not make stuff up. 
+      Step 3: Generate the cover letter using what you've learned in Step 1 through Step 4. Do not make stuff up. 
     
       Use the following format:
         Step 1:{delimiter4} <step 1 reasoning>
@@ -170,6 +172,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
       Make sure to include {delimiter4} to separate every step.
     """  
     prompt_template = ChatPromptTemplate.from_template(template_string2)
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     # print(prompt_template.messages[0].prompt.input_variables)
     cover_letter_message = prompt_template.format_messages(
                     name = name,
@@ -179,16 +182,18 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
                     company = company,
                     job = job,
                     content=resume_content,
-                    relevancy=relevancy, 
-                    advices = advices,
+                    # relevancy=relevancy, 
+                    # advices = advices,
                     company_description = company_description, 
                     job_specification = job_specification,
                     delimiter = delimiter,
                     delimiter4 = delimiter4,
     )
-    my_cover_letter = llm(cover_letter_message).content
+    my_cover_letter = llm.invoke(cover_letter_message).content
+    print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
     cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
+    print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
     if STORAGE=="LOCAL":
       document.save(end_path)
     elif STORAGE=="CLOUD":
@@ -196,6 +201,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
         output_stream = BytesIO()
         document.save(output_stream)
         output_stream.seek(0)    
+        print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
         # # Upload the BytesIO object to S3
         # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
         # Write to a temporary file

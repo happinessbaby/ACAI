@@ -1,4 +1,3 @@
-import extra_streamlit_components as stx
 from streamlit_extras.add_vertical_space import add_vertical_space
 import yaml
 from yaml.loader import SafeLoader
@@ -25,23 +24,21 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
 from backend.generate_cover_letter import generate_basic_cover_letter
-from streamlit_float import *
+# from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
-import plotly.graph_objects as go
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import requests
 from utils.async_utils import thread_with_trace, asyncio_run
-import streamlit_antd_components as sac
+import queue
+# import streamlit_antd_components as sac
 #NOTE: below import is necessary for nested column fix, do not delete
 import streamlit_nested_layout 
-import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 
@@ -66,7 +63,7 @@ lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 placeholder=st.empty()
 # initialize float feature/capability
-float_init()
+# float_init()
 # store = FeatureStore("./my_feature_repo/")
 
 
@@ -449,21 +446,19 @@ class User():
                     # delete any old resume saved in session state
                     if "user_resume_path" in st.session_state:
                         del st.session_state["user_resume_path"]
-                    # the following takes to "create_empty_profile", which has a rerun, so cannot be in callback
-                    # self.display_profile()
                     self.create_empty_profile() 
                     st.rerun()
 
     def initialize_resume_callback(self, ):
 
         """Saves user resume to a lancedb table"""
-
+        # create generated dict from resume
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
         resume_dict.update({"user_id": self.userId}) 
+        # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
-        # schema = convert_pydantic_schema_to_arrow(ResumeUsers)
-        # add_to_lancedb_table(lance_users_table, [resume_dict], schema)
+        # save resume/profile into lancedb table
         save_user_changes(resume_dict, ResumeUsers, lance_users_table)
         # delete any old profile instance
         try:
@@ -549,18 +544,18 @@ class User():
     #     clear_index(record_manager, vectorstore)
     #     print(f"record manager keys: {record_manager.list_keys()}")
 
-    def get_address(self, latitude, longitude):
+    # def get_address(self, latitude, longitude):
 
-        """Retrieves the address of user's current location """
+    #     """Retrieves the address of user's current location """
 
-        geolocator = Nominatim(user_agent="nearest_city_finder")
-        try:
-            location = geolocator.reverse((latitude, longitude), exactly_one=True)
-            print(location.address)
-            return location.address
-        except GeocoderTimedOut:
-            # Retry after a short delay
-            return self.get_address(latitude, longitude)
+    #     geolocator = Nominatim(user_agent="nearest_city_finder")
+    #     try:
+    #         location = geolocator.reverse((latitude, longitude), exactly_one=True)
+    #         print(location.address)
+    #         return location.address
+    #     except GeocoderTimedOut:
+    #         # Retry after a short delay
+    #         return self.get_address(latitude, longitude)
         
     def form_callback(self):
 
@@ -1015,7 +1010,7 @@ class User():
                             button_key=f"textstat_again_{field_name}_button_{idx}"
                         else:
                             button_key = f"textstat_again_{field_name}_button"
-                        fig = self.display_readability_indicator(st.session_state[f"{field_name}_readability"])
+                        fig = readability_indicator(st.session_state[f"{field_name}_readability"])
                         st.plotly_chart(fig)
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
@@ -1147,24 +1142,26 @@ class User():
                     )
             # starts field tailoring if called to tailor a field
             if mode=="resume" and "tailoring_field" in st.session_state:
-                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
+                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
+                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
             # starts cover letter generation if called to generate cover letter
             elif mode=="cover_letter":
-                st.session_state["cover_letter_download_path"]=generate_basic_cover_letter(resume_dict=st.session_state["profile"], job_posting_dict=st.session_state["job_posting_dict"], output_dir=st.session_state["users_download_path"])  
-                print("sucessfully generated cover letter")
-                st.write(st.session_state["cover_letter_download_path"])
+                download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
+                print('DOWNLOAD PATH', download_path)
             st.rerun()
 
     
-    def tailor_callback(self, field_name=None, details=None):
+    def tailor_callback(self, field_name=None, field_details=None):
       
         if "job_posting_dict" in st.session_state and field_name:
             # starts specific field tailoring
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, details,)
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, field_details,)
         else:
             # initialize a job posting popup 
             if field_name:
                 st.session_state["tailoring_field"]=field_name
+            if field_details:
+                st.session_state["tailoring_details"]=field_details
             self.job_posting_popup()
 
 
@@ -1184,12 +1181,13 @@ class User():
     def cover_letter_callback(self, ):
 
         if "job_posting_dict" in st.session_state:
-            st.session_state["cover_letter_download_path"] = generate_basic_cover_letter(resume_dict=st.session_state["profile"], job_posting_dict=st.session_state["job_posting_dict"], output_dir=st.session_state["users_download_path"])   
-            print("sucessfully generated cover letter")
-            st.write(st.session_state["cover_letter_download_path"])
+            download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
+            print('DOWNLOAD PATH', download_path)
         else:
             self.job_posting_popup(mode="cover_letter")
     
+
+
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
@@ -1333,7 +1331,9 @@ class User():
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
                 st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
-                st.button("Draft a cover letter", key="cover_letter_button", on_click=self.cover_letter_callback, use_container_width=True)
+                if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
+                    # NOTE:cannot be in callback because job_posting_popup is a dialog
+                    self.cover_letter_callback()
    
 
     
@@ -1370,7 +1370,7 @@ class User():
                     try:
                         length=st.session_state["evaluation"]["word_count"]
                         pages=st.session_state["evaluation"]["page_count"]
-                        fig = self.display_length_chart(int(length))
+                        fig = length_chart(int(length))
                         st.plotly_chart(fig, 
                                         # use_container_width=True
                                         )
@@ -1405,7 +1405,7 @@ class User():
                     language_data=[]
                     for category in categories:
                         language_data.append({category:st.session_state["evaluation"][category]})
-                    fig = self.display_language_radar(language_data)
+                    fig = language_radar(language_data)
                     st.plotly_chart(fig)
                     # st.scatter_chart(df)
                 except Exception:
@@ -1417,7 +1417,7 @@ class User():
                     comparison_data = []
                     for section in section_names:
                         comparison_data.append({section:st.session_state["evaluation"][section]})
-                    fig = self.display_comparison_chart(comparison_data)
+                    fig = comparison_chart(comparison_data)
                     st.plotly_chart(fig)
                 except Exception:
                     if finished is False:
@@ -1436,7 +1436,7 @@ class User():
                         container.empty()
                         # delete previous evaluation states
                         try:
-                            # remove evaluation from lance table
+                            # remove evaluation from lance table and old evaluation from session
                             delete_user_from_table(self.userId, lance_eval_table)
                             del st.session_state["evaluation"]
                         except Exception:
@@ -1480,8 +1480,6 @@ class User():
 
 
 
-       
-    # #NOTE: doing automatic saving every x seconds crashes the app!
     @st.fragment(run_every=5)
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
@@ -1509,9 +1507,7 @@ class User():
                     pass
                 st.rerun()
 
-
-
-        
+      
     # def get_current_page(self, ):
     #     try:
     #         current_page = pages[ctx.page_script_hash]
@@ -1522,167 +1518,6 @@ class User():
     #     print("Current page:", current_page)
     #     return current_page
                 
-    def display_length_chart(self, length):
-        if length<300:
-            text = "too short"
-        elif length>=300 and length<450:
-            text="good"
-        elif length>=450 and length<=600:
-            text="great"
-        elif length>600 and length<800:
-            text="good"
-        else:
-            text="too long"
-        # Cap the displayed value at 1000, bust keep the actual value for the text annotation
-        display_value = min(length, 1000)
-        # Create a gauge chart
-        fig = go.Figure(go.Indicator(
-            mode = "gauge",
-            value = display_value,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Your resume is:"},
-            gauge = {
-                    # 'shape':"bullet",
-                    'axis': {'range': [1, 1000]},
-                    'bar': {'color': "white", "thickness":0.1},
-                    'steps': [
-                        {'range': [1, 300], 'color': "red"},
-                        {'range': [300, 450], "color":"yellow"},
-                        {'range': [450, 600], 'color': "lightgreen"},
-                            {'range': [600, 800], "color":"yellow"},
-                        {'range': [800, 1000], 'color': "red"}
-                    ],
-                    'threshold': {
-                        'line': {'color': "black", 'width': 1},
-                        'thickness': 0.2,
-                        'value': display_value
-                    }
-                }
-        ))
-        # Add annotation for the text
-        fig.add_annotation(
-            x=0.5, 
-            y=0.5, 
-            text=text, 
-            showarrow=False,
-            font=dict(size=24)
-        )
-        return fig
-
-
-    def display_comparison_chart(self, data):
-        # Mapping from similarity categories to numeric values
-        similarity_mapping = {
-            'no similarity': 0,
-            'some similarity': 1,
-            'very similar': 2,
-             'no data': -1  # Map empty strings to -1,
-        }
-        size_mapping = {
-            'no similarity': 10,
-            'some similarity': 20,
-            'very similar': 30,
-            'no data': 5  # Size for empty strings
-        }
-        # Extract fields and similarity values
-        fields = []
-        values = []
-        hover_texts = []
-        sizes = []
-        for item in data:
-            for field, similarity in item.items():
-                fields.append(field)
-                values.append(similarity_mapping[similarity["closeness"] if similarity["closeness"] else 'no data'])
-                sizes.append(size_mapping[similarity["closeness"] if similarity["closeness"] else "no data"])
-                hover_texts.append(similarity["reason"] if similarity["reason"] else " ")
-
-        # Create scatter plot
-        # fig = px.scatter(
-        #     x=fields,
-        #     y=values,
-        #     # color=values,
-        #     # color_continuous_scale='Viridis',
-        #     mode='markers',
-        #     marker=dict(
-        #         size=sizes
-        #     ),
-        #     labels={'x': 'Resume Field', 'y': 'Similarity Level'},
-        #     # title='Resume Similarity Scatter Plot',
-        #     # hover_data={'x': fields, 'y': [list(similarity_mapping.keys())[list(similarity_mapping.values()).index(val)] for val in values]}
-        # )
-        # Create scatter plot
-        fig = go.Figure(data=go.Scatter(
-            x=fields,
-            y=values,
-            mode='markers',
-            marker=dict(
-                size=sizes
-            ),
-            text=hover_texts,  # Add custom hover text
-            hoverinfo='text'  # Display only the custom hover text
-        ))
-        # Add custom hover text
-        fig.update_traces(
-            hovertext=hover_texts,
-            hoverinfo='text'  # Display only the custom hover text
-        )
-        fig.update_yaxes(
-            tickmode='array',
-            tickvals=[-1, 0, 1, 2],
-            ticktext=['No data', 'No similarity', 'Some similarity', 'Very similar'],
-            range=[0, 2]
-        )
-        return fig
-        
-    def display_language_radar(self, data_list):
-        # Sample data
-        # Mapping from categories to numeric values
-        category_mapping = {"no data": 0, 'bad': 1, 'good': 2, 'great': 3}
-        metrics = []
-        values = []
-        hover_texts=[]
-        for item in data_list:
-            for metric, details in item.items():
-                metrics.append(metric)
-                values.append(category_mapping[details['rating'] if details['rating'] else 'no data'])
-                hover_texts.append(details["reason"] if details['reason'] else " ")
-
-        # Add the first value at the end to close the radar chart circle
-        values.append(values[0])
-        metrics.append(metrics[0])
-        fig = go.Figure(data=go.Scatterpolar(
-            r=values,
-            theta=metrics,
-            fill='toself', 
-            hovertext=hover_texts,  # Add custom hover text
-            hoverinfo='text'  # Display only the hover text
-        ))
-        # Define axis labels
-        axis_labels = {1: 'Bad', 2: 'Good', 3: 'Great'}
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 3],  # Set the range for the radial axis
-                    tickvals=list(axis_labels.keys()),  # Specify the ticks
-                    ticktext=[axis_labels[val] for val in axis_labels.keys()]  # Set the labels
-                )
-            ),
-        )
-        return fig
-
-
-    def display_readability_indicator(self, data):
-
-        print(data)
-        df = pd.DataFrame(list(data.items()), columns=['Metric', 'Score'])
-        fig = px.bar(df, x='Metric', y='Score', title="readability stats",
-             labels={"Score": "Score Value", "Metric": "Text Metric"})
-        return fig
-
-
-
-
 
 
 if __name__ == '__main__':
