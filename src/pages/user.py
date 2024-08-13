@@ -34,7 +34,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import requests
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from utils.async_utils import thread_with_trace, asyncio_run
 import queue
 # import streamlit_antd_components as sac
@@ -563,7 +563,7 @@ class User():
     #         # Retry after a short delay
     #         return self.get_address(latitude, longitude)
         
-    def form_callback(self):
+    def form_callback(self,):
 
 
         # try:
@@ -610,27 +610,40 @@ class User():
         # except AttributeError:
         #     pass
         try:
+            # delete old instance of user_resume_path
+            try:
+                del st.session_state["user_resume_path"]
+            except Exception:
+                pass
             resume = st.session_state.user_resume
             if resume:
-                self.process([resume], "resume")
+                self.process([resume], "resume", )
         except AttributeError:
             pass
         try:
+            try:
+                del st.session_state["job_posting_path"]
+            except Exception:
+                pass
             posting_link = st.session_state.posting_link
             if posting_link:
-                self.process(posting_link, "job_posting")
+                self.process(posting_link, "job_posting",)
         except AttributeError:
             pass
         try:
+            try:
+                del st.session_state["job_description"]
+            except Exception:
+                pass
             job_descr = st.session_state.job_descriptionx
             if job_descr:
-                self.process(job_descr, "job_description")
+                self.process(job_descr, "job_description",)
         except AttributeError:
             pass
 
 
 
-    def process(self, input_value: Any, input_type:str):
+    def process(self, input_value: Any, input_type:str, ):
 
         """ Processes and checks user inputs and uploads"""
 
@@ -641,9 +654,9 @@ class User():
                 if content_safe and content_type=="resume":
                     st.session_state["user_resume_path"]= end_path
                 else:
-                    st.info("Please upload your resume here")
+                    st.info("Please upload your resume")
             else:
-                st.info("That didn't work, please try again.")
+                st.info("That didn't work, please try again.")         
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.save_path, st.session_state.sessionId)
             if result is not None:
@@ -651,16 +664,15 @@ class User():
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                 else:
-                    # st.session_state.job_posting_checkmark=":red[*]"
-                    st.info("Please upload your job posting link here")
+                    st.info("Please upload a job posting link")
             else:
-                st.info("That didn't work. Please try pasting the content in job description instead.")
+                st.info("That didn't work. Please try pasting the content into job description")
         elif input_type=="job_description":
             result = process_inputs(input_value, match_topic="job posting or job description")
             if result is not None:
                 st.session_state["job_description"] = input_value
             else:
-                st.info("Please share a job description here")
+                st.info("Please share a job descriptions")
 
         # if input_type=="location_input":
         #     st.session_state.location_input=input_value.split(",")
@@ -918,7 +930,6 @@ class User():
 
         def callback(idx):
        
-
             try:
                 title = st.session_state[f"{name}_title_{idx}"]
                 st.session_state["profile"][name][idx]["title"]=title
@@ -1124,6 +1135,7 @@ class User():
                                         value=st.session_state.job_description if "job_description" in st.session_state else "",
                                         on_change=self.form_callback
                                             )
+        # st.session_state["info_container"]=st.empty()
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
             # deletes previously generated job posting dictionary 
             try: 
@@ -1326,7 +1338,8 @@ class User():
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
-                st.button("Upload a new job posting", key="new_posting_button", on_click = self.tailor_callback, use_container_width=True)
+                if st.button("Upload a new job posting", key="new_posting_button", use_container_width=True):
+                    self.job_posting_popup(mode="resume")
                 if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     self.job_posting_popup(mode="cover_letter")

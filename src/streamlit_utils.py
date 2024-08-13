@@ -273,14 +273,16 @@ def automatic_download(file_path ):
 
     # Encode the binary data using Base64
     b64 = base64.b64encode(binary_data)
-    id_link = '_'+str(uuid.uuid4())
+    # id_link = '_'+str(uuid.uuid4())
     components.html(
-        f"""<html><body>                                   
-        <a href="data:application/pdf;base64,{b64}" download="cover_letter.docx" id="{id_link}"></a>""" +
-        """<script>                                    
-                window.onload = function () {                                            
-                    document.getElementById('""" + id_link + """').click();
-                                    };                                        
-                                </script>
-                            </body></html>                                    
-                            """, height=0, width=0)
+        f"""
+    <html>
+    <head>
+    <title>Start Auto Download file</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+    $('<a href="data:text/csv;base64,{b64}" download="cover_letter.docx">')[0].click()
+    </script>
+    </head>
+    </html>
+    """, height=0, width=0)
