@@ -400,7 +400,6 @@ def html_to_text(urls:List[str], save_path, ):
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
-        print(content)
         if STORAGE=="LOCAL":            
             with open(save_path, 'w') as file:
                 file.write(content)

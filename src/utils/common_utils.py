@@ -997,21 +997,19 @@ def process_uploads(uploads, save_path,):
         if write_file(tmp_save_path, file_content=uploaded_file.getvalue(),):
             if convert_to_txt(tmp_save_path, end_path,):
                 content_safe, content_type, content_topics = check_content(end_path, )
-                return (content_safe, content_type, content_topics, end_path)
-            else:
-                return None
-        else:
-            return None
+                if content_safe is not None:
+                    return (content_safe, content_type, content_topics, end_path)
+        return None
         
 
-def process_links(links, save_path, sessionId, ):
+def process_links(links, save_path,  ):
 
-    end_path = os.path.join(save_path, sessionId, "uploads", str(uuid.uuid4())+".txt")
+    end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
     if html_to_text(links, save_path=end_path, ):
         content_safe, content_type, content_topics = check_content(end_path, )
-        return  (content_safe, content_type, content_topics, end_path)
-    else:
-        return None
+        if content_safe is not None:
+            return  (content_safe, content_type, content_topics, end_path)
+    return None
     # if (Path(program_path).is_file()):
     #     posting = read_txt(program_path)
     #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
@@ -1167,27 +1165,29 @@ def check_content(file_path: str,) -> Union[bool, str, set] :
         }
     content_dict = {}
     content_topics = set()
-    for doc in docs:
-        metadata_dict = create_document_tagger(schema, doc)
-        content_type=metadata_dict["category"]
-        content_safe=metadata_dict["safety"]
-        content_topics.add(metadata_dict.get("topics", ""))
-        if content_safe is False:
-            print("content is unsafe")
-            break
-        if content_type not in content_dict:
-            content_dict[content_type]=1
-        else:
-            content_dict[content_type]+=1
+    try:
+        for doc in docs:
+            metadata_dict = create_document_tagger(schema, doc)
+            content_type=metadata_dict["category"]
+            content_safe=metadata_dict["safety"]
+            content_topics.add(metadata_dict.get("topics", ""))
+            if content_safe is False:
+                print("content is unsafe")
+                break
+            if content_type not in content_dict:
+                content_dict[content_type]=1
+            else:
+                content_dict[content_type]+=1
         # if (content_type=="other"):
         #     content_topics.add(content_topic)
-    content_type = max(content_dict, key=content_dict.get)
-    if (content_dict):    
-        # return content_safe, content_type, content_topics
-        print('Successfully checked content')
-        return content_safe, content_type, content_topics
-    else:
-        raise Exception(f"Content checking failed for {file_path}")
+        content_type = max(content_dict, key=content_dict.get)
+        if (content_dict):    
+            # return content_safe, content_type, content_topics
+            print('Successfully checked content')
+            return content_safe, content_type, content_topics
+    except Exception:
+        # raise Exception(f"Content checking failed for {file_path}")
+        return None, None, None
     
     
 
