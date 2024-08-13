@@ -24,7 +24,7 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
 from backend.generate_cover_letter import generate_basic_cover_letter
@@ -34,6 +34,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import requests
+from apscheduler.schedulers.background import BackgroundScheduler
 from utils.async_utils import thread_with_trace, asyncio_run
 import queue
 # import streamlit_antd_components as sac
@@ -122,11 +123,16 @@ class User():
         #         st.session_state["users_dict"] = {user['userId']: user for user in st.session_state.users}
         #     except JSONDecodeError:
         #         raise 
+            
+
         if _self.userId is not None:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(_self.userId, lance_users_table)
+                # scheduler = BackgroundScheduler()
+                # scheduler.add_job(_self.save_session_profile, 'interval', seconds=5, )
+                # scheduler.start()
             if "evaluation" not in st.session_state:
                 st.session_state["evaluation"] = retrieve_dict_from_table(_self.userId, lance_eval_table)
             if "user_save_path" not in st.session_state:
@@ -459,7 +465,7 @@ class User():
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
-        save_user_changes(resume_dict, ResumeUsers, lance_users_table)
+        save_user_changes(self.userId, resume_dict, ResumeUsers, lance_users_table)
         # delete any old profile instance
         try:
             del st.session_state["profile"]
@@ -480,7 +486,7 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table) 
+        save_user_changes(self.userId, st.session_state.profile, ResumeUsers, lance_users_table) 
         # delete any old profile instance
         try:
             del st.session_state["profile"]
@@ -819,14 +825,14 @@ class User():
             
             try:
                 new_entry = st.session_state[f"descr_{field_name}_{x}_{field_detail}_{idx}"]
-                if new_entry:
-                    if x!=-1:
-                        st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
-                    else:
-                        st.session_state["profile"][field_name][field_detail][idx] = new_entry
-                    st.session_state["profile_changed"]=True
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
+                else:
+                    st.session_state["profile"][field_name][field_detail][idx] = new_entry
+                st.session_state["profile_changed"]=True
             except Exception as e:
                 pass
+            st.session_state["profile_changed"]=True
 
         return get_display
 
@@ -915,64 +921,53 @@ class User():
 
             try:
                 title = st.session_state[f"{name}_title_{idx}"]
-                if title:
-                    st.session_state["profile"][name][idx]["title"]=title
+                st.session_state["profile"][name][idx]["title"]=title
             except Exception:
                 pass
             try:
                 date = st.session_state[f"{name}_date_{idx}"]
-                if date:
-                    st.session_state["profile"][name][idx]["issue_date"]=date
+                st.session_state["profile"][name][idx]["issue_date"]=date
             except Exception:
                 pass
             try:
-                date = st.session_state[f"{name}_org_{idx}"]
-                if date:
-                    st.session_state["profile"][name][idx]["issue_date"]=date
+                org = st.session_state[f"{name}_org_{idx}"]
+                st.session_state["profile"][name][idx]["issue_organization"]=org
             except Exception:
                 pass
             try:
                 descr = st.session_state[f"{name}_descr_{idx}"]
-                if descr:
-                    st.session_state["profile"][name][idx]["description"]=descr
+                st.session_state["profile"][name][idx]["description"]=descr
             except Exception:
                 pass
             try:
                 title = st.session_state[f"experience_title_{idx}"]
-                if title:
                     # self.experience_list[idx]["job_title"] = title
-                    st.session_state["profile"]["work_experience"][idx]["job_title"] = title
+                st.session_state["profile"]["work_experience"][idx]["job_title"] = title
             except Exception:
                 pass
             try:
                 company = st.session_state[f"company_{idx}"]
-                if company:
-                    # self.experience_list[idx]["company"] = company
-                    st.session_state["profile"]["work_experience"][idx]["company"] = company
+                st.session_state["profile"]["work_experience"][idx]["company"] = company
             except Exception:
                 pass
             try:
                 start_date = st.session_state[f"start_date_{idx}"]
-                if start_date:
-                    st.session_state["profile"]["work_experience"][idx]["start_date"] =start_date
+                st.session_state["profile"]["work_experience"][idx]["start_date"] =start_date
             except Exception:
                 pass
             try:
                 end_date = st.session_state[f"end_date_{idx}"]
-                if end_date:
-                    st.session_state["profile"]["work_experience"][idx]["end_date"] = end_date
+                st.session_state["profile"]["work_experience"][idx]["end_date"] = end_date
             except Exception:
                 pass
             try:
                 location = st.session_state[f"experience_location_{idx}"]
-                if location:
-                    st.session_state["profile"]["work_experience"][idx]["location"] = location
+                st.session_state["profile"]["work_experience"][idx]["location"] = location
             except Exception:
                 pass
             try:
                 experience_description = st.session_state[f"experience_description_{idx}"]
-                if experience_description:
-                    st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
+                st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
             except Exception:
                 pass
             st.session_state["profile_changed"]=True
@@ -1147,7 +1142,7 @@ class User():
             # starts cover letter generation if called to generate cover letter
             elif mode=="cover_letter":
                 download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
-                print('DOWNLOAD PATH', download_path)
+                automatic_download(download_path)
             st.rerun()
 
     
@@ -1182,7 +1177,7 @@ class User():
 
         if "job_posting_dict" in st.session_state:
             download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
-            print('DOWNLOAD PATH', download_path)
+            automatic_download(download_path)
         else:
             self.job_posting_popup(mode="cover_letter")
     
@@ -1350,7 +1345,7 @@ class User():
             if finished:
                 if st.session_state["eval_rerun_timer"]:
                     st.session_state["evaluation"].update({"user_id":self.userId})
-                    save_user_changes(st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
+                    save_user_changes(self.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
                     st.session_state["eval_rerun_timer"]=None
                     st.rerun()      
         except Exception:
@@ -1483,7 +1478,7 @@ class User():
     @st.fragment(run_every=5)
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
-            save_user_changes(st.session_state.profile, ResumeUsers, lance_users_table)
+            save_user_changes(self.userId, st.session_state.profile, ResumeUsers, lance_users_table)
 
 
     @st.dialog("Warning")

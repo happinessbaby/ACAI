@@ -64,7 +64,6 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
     
     document = Document()
     document.add_heading('Cover Letter', 0)
-    print(")0000000000000000)))))))))")
     end_path = os.path.join(output_dir, "cover_letter.docx")
     # Get resume info
     resume_content = resume_dict["resume_content"]
@@ -79,7 +78,6 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
     name = resume_dict["contact"].get("name", "")
     phone = resume_dict["contact"].get("phone", "")
     email = resume_dict["contact"].get("email", "")
-    print("AAAAAAAAAAAAAAAAAAAAAAAaaa")
     # Get adviced from web data on personalized best practices
     # advice_query = f"""Best practices when writing a cover letter for applicant with {highest_education_level} and {work_experience_level} experience as a {job}"""
     # advices = retrieve_from_db(advice_query, vectorstore_path=faiss_web_data, vectorstore_type="faiss")
@@ -172,7 +170,6 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
       Make sure to include {delimiter4} to separate every step.
     """  
     prompt_template = ChatPromptTemplate.from_template(template_string2)
-    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     # print(prompt_template.messages[0].prompt.input_variables)
     cover_letter_message = prompt_template.format_messages(
                     name = name,
@@ -190,10 +187,8 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
                     delimiter4 = delimiter4,
     )
     my_cover_letter = llm.invoke(cover_letter_message).content
-    print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
     cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter}")
     document.add_paragraph(cover_letter)
-    print("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD")
     if STORAGE=="LOCAL":
       document.save(end_path)
     elif STORAGE=="CLOUD":
@@ -201,7 +196,6 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
         output_stream = BytesIO()
         document.save(output_stream)
         output_stream.seek(0)    
-        print("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
         # # Upload the BytesIO object to S3
         # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
         # Write to a temporary file

@@ -256,7 +256,7 @@ def language_radar(data_list):
     )
     return fig
 
-def readability_indicator(self, data):
+def readability_indicator(data):
 
     # print(data)
     df = pd.DataFrame(list(data.items()), columns=['Metric', 'Score'])
@@ -265,23 +265,22 @@ def readability_indicator(self, data):
     return fig
 
 
-# def automatic_download(self, file_path ):
+def automatic_download(file_path ):
 
-#         # Read the binary file
-#     with open(file_path, 'rb') as file:
-#         binary_data = file.read()
+        # Read the binary file
+    with open(file_path, 'rb') as file:
+        binary_data = file.read()
 
-#     # Encode the binary data using Base64
-#     b64 = base64.b64encode(binary_data)
-#     st.markdown()
-#     id_link = '_'+str(uuid.uuid4())
-#     components.html(
-#         f"""<html><body>                                   
-#         <a href="data:application/pdf;base64,{b64}" download="cover_letter.docx" id="{id_link}"></a>""" +
-#         """<script>                                    
-#                 window.onload = function () {                                            
-#                     document.getElementById('""" + id_link + """').click();
-#                                     };                                        
-#                                 </script>
-#                             </body></html>                                    
-#                             """, height=0, width=0)
+    # Encode the binary data using Base64
+    b64 = base64.b64encode(binary_data)
+    id_link = '_'+str(uuid.uuid4())
+    components.html(
+        f"""<html><body>                                   
+        <a href="data:application/pdf;base64,{b64}" download="cover_letter.docx" id="{id_link}"></a>""" +
+        """<script>                                    
+                window.onload = function () {                                            
+                    document.getElementById('""" + id_link + """').click();
+                                    };                                        
+                                </script>
+                            </body></html>                                    
+                            """, height=0, width=0)
