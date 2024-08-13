@@ -1002,9 +1002,9 @@ def process_uploads(uploads, save_path,):
         return None
         
 
-def process_links(links, save_path, sessionId, ):
+def process_links(links, save_path,  ):
 
-    end_path = os.path.join(save_path, sessionId, "uploads", str(uuid.uuid4())+".txt")
+    end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
     if html_to_text(links, save_path=end_path, ):
         content_safe, content_type, content_topics = check_content(end_path, )
         if content_safe is not None:
