@@ -60,6 +60,20 @@ primary_button="""
             </style>
             """
 
+primary_button3="""
+            <style>
+          .element-container:has(.primary-button3) + div button {
+            background: none;
+            border: none;
+            color: #6C6C69;
+            padding: 0;
+            cursor: pointer;
+            font-size: 6px; 
+            text-decoration: none;
+            }
+            </style>
+            """
+
 
 tabs= """
 <style>

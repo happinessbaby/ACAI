@@ -131,10 +131,14 @@ def retrieve_lancedb_table(table_name):
 
 def delete_user_from_table(userId, tablename):
 
-    table = retrieve_lancedb_table(tablename)
-    table.delete(f"user_id = '{userId}'")
-    print(f'deleted user from {tablename}')
-   
+    try:
+        table = retrieve_lancedb_table(tablename)
+        table.delete(f"user_id = '{userId}'")
+        print(f'deleted user from {tablename}')
+    except Exception as e:
+        print(e)
+        pass
+    
 
 def flatten(data):
     if isinstance(data, (list, np.ndarray)):
@@ -235,15 +239,18 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     return pa.schema(fields)
 
 
-def save_user_changes(data, schema, tablename):
+def save_user_changes(userId, data, schema, tablename):
 
     # converts profile into resume content 
+    #NOTE: below json dump crashes the ui
     # if tablename==lance_users_table:
-    #     data["resume_content"] = json.dumps(data)
+    #     data["resume_content"] = json.dumpss(data)
+    # NOTE: currently does not support update, so need to delete the row and append it again
     try:
+        delete_user_from_table(userId, tablename)
         schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!
-        add_to_lancedb_table(tablename, [data], schema=schema, mode="overwrite" )
+        add_to_lancedb_table(tablename, [data], schema=schema)
         print(f"Successsfully saved {tablename}")
     except Exception as e:
         raise e
