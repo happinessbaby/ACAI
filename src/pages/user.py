@@ -23,7 +23,7 @@ from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import webbrowser
-from utils.pydantic_schema import ResumeUsers, GeneralEvaluation
+from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
@@ -62,6 +62,7 @@ elif STORAGE=="LOCAL":
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
+lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 placeholder=st.empty()
 # initialize float feature/capability
 # float_init()
@@ -135,6 +136,8 @@ class User():
                 # scheduler.start()
             if "evaluation" not in st.session_state:
                 st.session_state["evaluation"] = retrieve_dict_from_table(_self.userId, lance_eval_table)
+            if "tracker" not in st.session_state:
+                st.session_state["tracker"] = retrieve_dict_from_table(_self.userId, lance_tracker_table)
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
@@ -363,7 +366,7 @@ class User():
                         yaml.dump(st.session_state.config, file, default_flow_style=False)
                     # if self.save_password( username, name, password, email):
                     st.session_state["user_mode"]="signedout"
-                    st.success("User registered successfully")
+                    st.success("User registered successfully. Redirecting...")
                     time.sleep(5)
                     st.rerun()
             except RegisterError as e:
@@ -674,6 +677,7 @@ class User():
                 content_safe, content_type, content_topics, end_path = result
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
+                    st.session_state["posting_link"]=input_value
                 else:
                     st.info("Please upload a job posting link")
             else:
@@ -1165,9 +1169,18 @@ class User():
                 pass
             # creates a new job posting dictionary
             st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
-                        st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
-                        st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+                        st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
+                        st.session_state.job_description if "job_description" in st.session_state else "",  
                     )
+            if "job_posting_path" in st.session_state:
+                st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"]})
+            if "posting_link" in st.session_state:
+                st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"]})
+            st.session_state["job_posting_dict"].update({"user_id": self.userId})
+            st.session_state["job_posting_dict"].update({"resume_path": ""})
+            st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
+            st.session_state["job_posting_dict"].update({"status": ""})
+            save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
             # starts field tailoring if called to tailor a field
             if mode=="resume" and "tailoring_field" in st.session_state:
                 # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
@@ -1175,7 +1188,14 @@ class User():
             # starts cover letter generation if called to generate cover letter
             elif mode=="cover_letter":
                 download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
+                st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
+                save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
                 automatic_download(download_path)
+            try:
+                del st.session_state["job_posting_path"]
+                del st.session_state["job_description"]
+            except Exception:
+                pass
             st.rerun()
 
     
@@ -1261,7 +1281,7 @@ class User():
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
                         st.session_state["profile_changed"] = True
                     website = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, each separated by a comma", label_visibility="collapsed")!=linkedin:
+                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, each separated by a comma", label_visibility="collapsed")!=website:
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
@@ -1514,6 +1534,7 @@ class User():
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             save_user_changes(self.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+            st.session_state["profile_changed"]=False
 
 
     @st.dialog("Warning")
@@ -1536,7 +1557,7 @@ class User():
                 except Exception:
                     pass
                 st.rerun()
-
+    
       
     # def get_current_page(self, ):
     #     try:
