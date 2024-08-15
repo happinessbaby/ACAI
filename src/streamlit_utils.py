@@ -104,6 +104,18 @@ def progress_bar(page):
         if "current_page" in st.session_state and st.session_state.current_page!="download":
             st.switch_page("pages/downloads.py")
 
+
+def job_tracker():
+
+    with st.popover("link"):
+        st.text_input("job posting link", )
+    with st.popover("cover letter"):
+        st.write("cv")
+    with st.popover("resume"):
+        st.write("resume")
+    with st.popover("status"):
+        status=st.radio(label = "select", options=["applied", "offered", "rejected", "declined"], index=None)
+
     
 def length_chart(length):
     if length<300:
