@@ -1,9 +1,9 @@
 from utils.basic_utils import binary_file_downloader_html, write_file, mk_dirs
-import streamlit_antd_components as sac
+# import streamlit_antd_components as sac
 import json
 from utils.cookie_manager import CookieManager
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
-from streamlit_extras.stylable_container import stylable_container
+# from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.buy_me_a_coffee import button
 import boto3
@@ -28,6 +28,7 @@ if STORAGE=="CLOUD":
 else:
     bucket_name=None
     s3=None
+# st.logo("./resources/logo_acareerai.png")
 
 class Download():
 
@@ -90,25 +91,24 @@ class Download():
                     #     """
                     # ):
                     if STORAGE=="LOCAL":
-                        with open(st.session_state["sselected_docx_resume"], "rb") as f:
+                        with open(st.session_state["selected_docx_resume"], "rb") as f:
                             st.download_button("**Download as DOCX**", f, type="primary")
                         # st.markdown(binary_file_downloader_html(st.session_state["selected_docx_resume"], "Download as DOCX"), unsafe_allow_html=True)
                     elif STORAGE=="CLOUD":
                         #upload selected docx to s3
-                        
-                        filename=str(uuid.uuid4())
-                        end_path = os.path.join(st.session_state["users_download_path"], filename+".docx")
-                        if write_file(end_path, file_path=st.session_state["selected_docx_resume"]):
-                            docx_file = f"s3://{bucket_name}/{end_path}"
-                            if s3_fs.exists(docx_file):
-                                with s3_fs.open(docx_file, 'rb') as f:
-                                    binary_data = f.read()  # Read file content as binary data
-                                    st.download_button("click to download", binary_data,  type="primary", key="docx_download_button", )
-                            else:
-                                print("file does not exists in s3")
-                                st.info("Something happened, please try again")
+                        if "s3_docx_download_path" not in st.session_state:
+                            filename=str(uuid.uuid4())
+                            end_path = os.path.join(st.session_state["users_download_path"], filename+".docx")
+                            if write_file(end_path, file_path=st.session_state["selected_docx_resume"]):
+                                st.session_state["s3_docx_download_path"] = f"s3://{bucket_name}/{end_path}"
+                        if s3_fs.exists(st.session_state.s3_docx_download_path):
+                            with s3_fs.open(st.session_state.s3_docx_download_path, 'rb') as f:
+                                binary_data = f.read()  # Read file content as binary data
+                                st.download_button("click to download", binary_data,  type="primary", key="docx_download_button", mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                         else:
+                            print("file does not exists in s3")
                             st.info("Something happened, please try again")
+        
                 with c2:
                     st.write("Download as PDF")
                     st.write("⬇")
@@ -127,37 +127,42 @@ class Download():
                             st.download_button("**Download as PDF**", f, type="primary",)
                     elif STORAGE=="CLOUD":
                             #upload selected pdf to s3
-                        filename=str(uuid.uuid4())
-                        end_path = os.path.join(st.session_state["users_download_path"], filename+".pdf")
-                        if write_file(end_path, file_path=st.session_state["selected_pdf_resume"]):
-                            pdf_file = f"s3://{bucket_name}/{end_path}"
-                            if s3_fs.exists(pdf_file):
-                                with s3_fs.open(pdf_file, 'rb') as f:
-                                    binary_data = f.read()  # Read file content as binary data
-                                    st.download_button("click to download", binary_data, type="primary",  key="pdf_download_button",)
-                            else:
-                                st.info("Something happened, please try again")
+                        if "s3_pdf_download_path" not in st.session_state:
+                            filename=str(uuid.uuid4())
+                            end_path = os.path.join(st.session_state["users_download_path"], filename+".pdf")
+                            if write_file(end_path, file_path=st.session_state["selected_pdf_resume"]):
+                                st.session_state["s3_pdf_download_path"] = f"s3://{bucket_name}/{end_path}"
+                        if s3_fs.exists(st.session_state.s3_pdf_download_path):
+                            with s3_fs.open(st.session_state.s3_pdf_download_path, 'rb') as f:
+                                binary_data = f.read()  # Read file content as binary data
+                                st.download_button("click to download", binary_data, type="primary",  key="pdf_download_button",  mime='application/pdf')
                         else:
                             st.info("Something happened, please try again")
             else:
-                sac.result(label='Please go back and select a template', )
+                st.warning('Please go back and select a template',  icon="⚠️")
 
 
     def leave_feedback(self, ):
         _, c, _ = st.columns([2, 1, 2])
         with c:
             with st.container(border=True):
-                st.write("Would you like to give a feedback?")
-                helpfulness = sac.rate(label='helpfulness', color="yellow", )
-                use= sac.rate(label='ease of use', color="yellow",)
-                speed = sac.rate(label='speed', color="yellow",)
-                suggestion = st.text_area("suggestion", )
-                st.button("submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestion, ))
+                st.write("Would you like to provide a feedback?")
+                st.write("helpfulness")
+                helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
+                st.write('ease of use')
+                use = st.feedback(options="faces", key="use_rating")
+                st.write('speed')
+                speed = st.feedback(options="faces", key="speed_rating")
+                # helpfulness = sac.rate(label='helpfulness', color="yellow", )
+                # use= sac.rate(label='ease of use', color="yellow",)
+                # speed = sac.rate(label='speed', color="yellow",)
+                suggestions = st.text_area("suggestions", )
+                st.button("submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, ))
 
-    def save_feedback(self, helpfulness, use, speed, suggestion,):
+    def save_feedback(self, helpfulness, use, speed, suggestions,):
         st.session_state["feedback"]=True
         if self.userId:
-            feedback = {self.userId:{"helpfulness":helpfulness, "ease of use":use, "speed":speed, "suggestion":suggestion}}
+            feedback = {self.userId:{"helpfulness":helpfulness, "ease of use":use, "speed":speed, "suggestions":suggestions}}
             with open("user_feedback.json", "w") as f:
                 json.dump(feedback, f)
 

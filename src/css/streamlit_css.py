@@ -22,7 +22,22 @@ general_button = """<style>.element-container:has(.general-button) + div button 
             } </style>
             """
 
-primary_button =  """
+primary_button2 =  """
+         <style>.element-container:has(.primary-button2) + div button {
+            background: none;
+            border: none;
+            color: #ff8247;
+            padding: 0;
+            cursor: pointer;
+            font-size: 12px; /* Adjust as needed */
+            text-decoration: none;
+            }
+             .element-container:has(.primary-button2) + div button:hover {
+               text-decoration: underline;
+            }
+            </style>
+            """
+primary_button="""
             <style>
             button[kind="primary"] {
                 background: none!important;
@@ -44,6 +59,21 @@ primary_button =  """
             }
             </style>
             """
+
+primary_button3="""
+            <style>
+          .element-container:has(.primary-button3) + div button {
+            background: none;
+            border: none;
+            color: #6C6C69;
+            padding: 0;
+            cursor: pointer;
+            font-size: 6px; 
+            text-decoration: none;
+            }
+            </style>
+            """
+
 
 tabs= """
 <style>

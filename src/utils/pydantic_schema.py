@@ -48,8 +48,8 @@ class Contact(BaseModel):
     state: Optional[str] = Field(
         default="", description="state of the candidate on the resume"
         )
-    websites: Optional[List[str]]=Field(
-        default=[], description="other website addresses besides linkedin on the resume"
+    websites: Optional[str]=Field(
+        default="", description="other website addresses besides linkedin on the resume"
         )
         
 class Education(BaseModel):
@@ -307,6 +307,24 @@ class GeneralEvaluation(BaseModel):
     finished: bool
 
 
+class JobTrackingUsers(BaseModel):
+
+    user_id: str
+    posting_path: str
+    link: str
+    content: str
+    skills:Optional[List[Skill]]
+    job: Optional[str] 
+    about_job: Optional[str]
+    company: Optional[str] 
+    company_description: Optional[str]
+    qualifications: Optional[List[str]]
+    responsibilities: Optional[List[str]] 
+    salary: Optional[str] 
+    on_site: Optional[bool] 
+    resume_path: str
+    cover_letter_path: str
+    status: str
 
 
 

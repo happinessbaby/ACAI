@@ -7,7 +7,7 @@ from langchain.agents import load_tools, initialize_agent, AgentExecutor
 from pathlib import Path
 from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
-from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,
+from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,retrieve_vectorstore,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
 from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
@@ -35,13 +35,9 @@ from selenium import webdriver
 # from unstructured.partition.html import partition_html
 from dateutil import parser
 from utils.pydantic_schema import BasicResumeFields, SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1
-import textstat as ts
+# import textstat as ts
 import language_tool_python
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMChain
-
-
-
-# from feast import FeatureStore
 from dotenv import load_dotenv, find_dotenv
 from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_community.vectorstores import FAISS
@@ -65,7 +61,7 @@ delimiter4 = '////'
 # store = FeatureStore(repo_path = feast_repo_path)
 
 STORAGE = os.environ["STORAGE"]
-if STORAGE=="S3":
+if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     session = boto3.Session(         
@@ -73,12 +69,14 @@ if STORAGE=="S3":
                     aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"],
                 )
     s3 = session.client('s3')
+    job_posting_info_file=os.environ["S3_JOB_POSTING_INFO_FILE"]
+    # user_profile_file=os.environ["S3_USER_PROFILE_FILE"]
 else:
     bucket_name=None
     s3=None
-user_profile_file=os.environ["USER_PROFILE_FILE"]
-resume_info_file = os.environ["RESUME_INFO_FILE"]
-job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
+    job_posting_info_file=os.environ["JOB_POSTING_INFO_FILE"]
+    # user_profile_file=os.environ["USER_PROFILE_FILE"]
+# resume_info_file = os.environ["RESUME_INFO_FILE"]
       
 
 
@@ -705,7 +703,7 @@ def get_web_resources(query: str, with_source: bool=False, engine="retriever", l
     return response
 
 
-def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -> str:
+def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss", llm=OpenAI(temperature=0.8)) -> str:
 
     """ Retrieves query answer from vector store using Docuemnt + Chain method.
 
@@ -728,7 +726,8 @@ def retrieve_from_db(query: str, vectorstore: str,llm=OpenAI(temperature=0.8)) -
         generated response
   
     """
-
+    if vectorstore_type=="faiss":
+        vectorstore=retrieve_vectorstore("faiss", faiss_web_data_path)
     compression_retriever = create_compression_retriever(vectorstore.as_retriever())
     docs = compression_retriever.get_relevant_documents(query)
     reordered_docs = reorder_docs(docs)
@@ -906,7 +905,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         #         {posting}"""
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
-    job_posting_info_dict[job_posting].update({"summary": posting})
+    job_posting_info_dict[job_posting].update({"content": posting})
     basic_info_dict = create_pydantic_parser(posting, Keywords)
     job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required
@@ -923,8 +922,15 @@ def create_job_posting_info(posting_path="", about_job="", ):
         job_posting_info_dict[job_posting].update({"company_description": company_description})
     # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
-    with open(job_posting_info_file, 'a') as json_file:
-        json.dump(job_posting_info_dict, json_file, indent=4)
+    # if STORAGE=="LOCAL":
+    #     with open(job_posting_info_file, 'a') as json_file:
+    #         json.dump(job_posting_info_dict, json_file, indent=4)
+    # elif STORAGE=="CLOUD":
+    #     # Convert your dictionary to a JSON string
+    #     json_data = json.dumps(job_posting_info_dict, indent=4)
+    #     # Upload the JSON string to S3
+    #     s3.put_object(Bucket=bucket_name, Key=job_posting_info_file, Body=json_data)
+
     return job_posting_info_dict[job_posting]
 
 def retrieve_or_create_resume_info(resume_path, q=None, ):
@@ -991,21 +997,19 @@ def process_uploads(uploads, save_path,):
         if write_file(tmp_save_path, file_content=uploaded_file.getvalue(),):
             if convert_to_txt(tmp_save_path, end_path,):
                 content_safe, content_type, content_topics = check_content(end_path, )
-                return (content_safe, content_type, content_topics, end_path)
-            else:
-                return None
-        else:
-            return None
+                if content_safe is not None:
+                    return (content_safe, content_type, content_topics, end_path)
+        return None
         
 
-def process_links(links, save_path, sessionId, ):
+def process_links(links, save_path,  ):
 
-    end_path = os.path.join(save_path, sessionId, "uploads", str(uuid.uuid4())+".txt")
+    end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
     if html_to_text(links, save_path=end_path, ):
         content_safe, content_type, content_topics = check_content(end_path, )
-        return  (content_safe, content_type, content_topics, end_path)
-    else:
-        return None
+        if content_safe is not None:
+            return  (content_safe, content_type, content_topics, end_path)
+    return None
     # if (Path(program_path).is_file()):
     #     posting = read_txt(program_path)
     #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
@@ -1161,27 +1165,29 @@ def check_content(file_path: str,) -> Union[bool, str, set] :
         }
     content_dict = {}
     content_topics = set()
-    for doc in docs:
-        metadata_dict = create_document_tagger(schema, doc)
-        content_type=metadata_dict["category"]
-        content_safe=metadata_dict["safety"]
-        content_topics.add(metadata_dict.get("topics", ""))
-        if content_safe is False:
-            print("content is unsafe")
-            break
-        if content_type not in content_dict:
-            content_dict[content_type]=1
-        else:
-            content_dict[content_type]+=1
+    try:
+        for doc in docs:
+            metadata_dict = create_document_tagger(schema, doc)
+            content_type=metadata_dict["category"]
+            content_safe=metadata_dict["safety"]
+            content_topics.add(metadata_dict.get("topics", ""))
+            if content_safe is False:
+                print("content is unsafe")
+                break
+            if content_type not in content_dict:
+                content_dict[content_type]=1
+            else:
+                content_dict[content_type]+=1
         # if (content_type=="other"):
         #     content_topics.add(content_topic)
-    content_type = max(content_dict, key=content_dict.get)
-    if (content_dict):    
-        # return content_safe, content_type, content_topics
-        print('Successfully checked content')
-        return content_safe, content_type, content_topics
-    else:
-        raise Exception(f"Content checking failed for {file_path}")
+        content_type = max(content_dict, key=content_dict.get)
+        if (content_dict):    
+            # return content_safe, content_type, content_topics
+            print('Successfully checked content')
+            return content_safe, content_type, content_topics
+    except Exception:
+        # raise Exception(f"Content checking failed for {file_path}")
+        return None, None, None
     
     
 
@@ -1312,25 +1318,7 @@ def create_profile_summary(userId: str) -> str:
 
 
 
-def readability_checker(w):
-    stats = dict(
-            flesch_reading_ease=ts.flesch_reading_ease(w),
-            flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
-            automated_readability_index=ts.automated_readability_index(w),
-            smog_index=ts.smog_index(w),
-            coleman_liau_index=ts.coleman_liau_index(w),
-            dale_chall_readability_score=ts.dale_chall_readability_score(w),
-            linsear_write_formula=ts.linsear_write_formula(w),
-            gunning_fog=ts.gunning_fog(w),
-            word_count=ts.lexicon_count(w),
-            difficult_words=ts.difficult_words(w),
-            text_standard=ts.text_standard(w),
-            sentence_count=ts.sentence_count(w),
-            syllable_count=ts.syllable_count(w),
-            reading_time=ts.reading_time(w)
-    )
-    return stats
-    
+
         
 def grammar_checker(text):
     tool = language_tool_python.LanguageTool('en-US', config={'maxSpellingSuggestions': 1})

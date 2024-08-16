@@ -36,7 +36,6 @@ from io import BytesIO
 from pathlib import Path
 # from PyPDF2 import PdfReader  
 import nltk
-from nltk.tokenize import word_tokenize
 import PyPDF2
 import subprocess
 import base64
@@ -59,7 +58,9 @@ from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, 
 from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 
-nltk.download('punkt')
+
+
+
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
 user = os.getenv('USER', 'default_user')  # Get the current user or use 'default_user' if not set
@@ -296,7 +297,6 @@ def write_file(end_path: str, file_content="", file_path="", mode="wb",):
             print(e)
             return False
 
-
 def read_file(file_path:str, mode="r", ):
     
     if STORAGE=="LOCAL":
@@ -328,6 +328,13 @@ def move_file(source_file:str, dest_dir:str, ):
 
 def count_length(filename, ):
 
+    # Path to the punkt package
+    punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+    # Check if 'punkt' is already downloaded
+    if not os.path.exists(punkt_path):
+        nltk.download('punkt')
+    # Now you can use the word tokenizer
+    from nltk.tokenize import word_tokenize
     try:
         content = read_file(filename, )
         words = word_tokenize(content)
@@ -393,7 +400,6 @@ def html_to_text(urls:List[str], save_path, ):
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
-        print(content)
         if STORAGE=="LOCAL":            
             with open(save_path, 'w') as file:
                 file.write(content)
@@ -550,14 +556,14 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     return results 
 
 
-def send_recovery_email(to_email, type, subject="Password/Username recovery", password=None, username=None, ):
+def send_recovery_email(to_email, type, subject="Recover your password/username", password=None, username=None, ):
 
     # Create the base text message.
     msg = EmailMessage()
     to_email = to_email.split("@")
     # print(to_email)
     msg['Subject'] = subject
-    msg['From'] = Address("ACAI", "yueqipeng2021", "gmail.com")
+    msg['From'] = Address("aCareerAi", "yueqipeng2021", "gmail.com")
     msg['To'] = (
                 Address(username, "yueqipeng2021", "gmail.com"),
                 Address(username, to_email[0], to_email[1])

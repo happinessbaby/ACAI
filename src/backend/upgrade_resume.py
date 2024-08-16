@@ -16,13 +16,13 @@ from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
-import streamlit as st
+import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate
+import streamlit as st
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
-resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 STORAGE = os.environ["STORAGE"]
 local_save_path = os.environ["CHAT_PATH"]
@@ -43,18 +43,20 @@ if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3_save_path = os.environ["S3_CHAT_PATH"]
     s3 = get_client('s3')
+    resume_samples_path = os.environ["RESUME_SAMPLES_PATH"]
 else:
     bucket_name=None
     s3=None
+    resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, str]:
 
     print("start evaluating...")
+    resume_content = resume_dict["resume_content"]
     if type=="general":
         st.session_state["evaluation"] = {"finished":False}
         resume_file = resume_dict["resume_path"]
-        resume_content = resume_dict["resume_content"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(resume_file)
@@ -87,19 +89,19 @@ def evaluate_resume(resume_dict={},  type="general", ) -> Dict[str, str]:
             # for category in categories:
             comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
             st.session_state.evaluation.update({section_name:comparison_dict})
-
         # Generate overall impression
         impression = generate_impression(resume_content, pursuit_jobs)
         st.session_state.evaluation["impression"]= impression
         st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
     if type=="work_experience":
-        work_experience= resume_dict["work_experience"]
-        evaluated_work= analyze_field_content(work_experience, "work experience")
-        st.session_state["evaluated_work_experience"]=evaluated_work
-    elif type=="summary":
-        summary_objective = resume_dict["summary_objective"]
-        if summary_objective:
+        # work_experience= resume_dict["work_experience"]
+        if details:
+            evaluated_work= analyze_field_content(details, "work experience")
+            st.session_state["evaluated_work_experience"]=evaluated_work
+    elif type=="summary_objective":
+        # summary_objective = resume_dict["summary_objective"]
+        if details:
             evaluated_summary = analyze_summary_objective(resume_content)
             st.session_state["evaluated_summary_objective"]=evaluated_summary
 
@@ -258,27 +260,28 @@ def analyze_resume_type(resume_content, ):
     type_dict = create_pydantic_parser(response, ResumeType)
     return type_dict["type"]
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type="general"):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
 
     # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
     # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
     # st.session_state["tailor_dict"] = {}
+    print('start tailoring....')
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    if type=="skillls":
-        tailored_skills_dict = tailor_skills(required_skills, resume_dict["skills"])
+    if type=="included_skillls":
+        tailored_skills_dict = tailor_skills(required_skills, details)
         st.session_state[f"tailored_{type}"]=tailored_skills_dict
-    if type=="summary":
-        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, resume_dict["summary_objective"])
+    if type=="summary_objective":
+        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, details)
         st.session_state[f"tailored_{type}"]=tailored_objective_dict
     if type=="work_experience":
-        tailored_experience = tailor_experience(job_requirements, resume_dict["work_experience"])
+        tailored_experience = tailor_experience(job_requirements, details)
         st.session_state[f"tailored_{type}"]= tailored_experience
     # return st.session_state.tailor_dict
 
@@ -476,40 +479,43 @@ def reformat_resume(template_path, ):
     if "Contact" in selected_fields:      
         func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
         personal_context = {
-            "NAME": func("name", "YOUR NAME"),
-            "CITY": func("city", "YOUR CITY"),
-            "STATE": func("state", "YOUR STATE"),
-            "PHONE": func("phone", "YOUR PHONE"),
-            "EMAIL": func("email", "YOUR EMAIL"),
-            "LINKEDIN": func("linkedin", "YOUR LINKEDIN URL"),
-            "WEBSITE": func("websites", "WEBSITE"),
+            "NAME": func("name", ""),
+            "CITY": func("city", ""),
+            "STATE": func("state", ""),
+            "PHONE": func("phone", ""),
+            "EMAIL": func("email", ""),
+            "LINKEDIN": func("linkedin", ""),
+            "WEBSITE": func("websites", ""),
         }
         context.update(personal_context)
     if "Education" in selected_fields:
-        func = lambda key, default: default if info_dict["education"][key]==-1 else info_dict["education"][key]
+        func = lambda key, default: default if info_dict["education"][key]=="" or info_dict["education"][key]==[] or info_dict["education"][key]==None else info_dict["education"][key]
         education_context = {
-            "INSTITUTION": func("institution", "YOUR INSTITUTION"),
-            "DEGREE": func("degree", "YOUR DEGREE"),
-            "STUDY": func("study", "YOUR AREA OF STUDY"),
-            "GRAD_YEAR": func("graduation_year", "YOUR GRADUATION DATE")
+            "show_education":True,
+            "INSTITUTION": func("institution", ""),
+            "DEGREE": func("degree", ""),
+            "STUDY": func("study", ""),
+            "GRAD_YEAR": func("graduation_year", ""),
+            "GPA": func("gpa", ""), 
+            "COURSEWORKS": func("coursework", ""),
         }
         context.update(education_context)
-    func = lambda key, default: default if info_dict[key]==-1 else info_dict[key]
-    if "Summary/Objective" in selected_fields:
-        context.update({"SUMMARY": func("summary_objective", "SUMMARY/OBJECTIVE"), 
-                         "PURSUIT_JOB": func("pursuit_jobs", "YOUR PURSUING JOB TITLE"),})      
+    func = lambda key, default: default if info_dict[key]=="" or info_dict[key]==[] or info_dict[key]==None else info_dict[key]
+    if "Summary Objective" in selected_fields:
+        context.update({"show_summary":True, "SUMMARY": func("summary_objective", ""), 
+                         "PURSUIT_JOB": func("pursuit_jobs", ""),})      
     if "Work Experience" in selected_fields:
-         context.update({"WORK_EXPERIENCE": func("work_experience", "YOUR WORK EXPERIENCE")})
+         context.update({"show_work_experience":True,"WORK_EXPERIENCE": func("work_experience", "")})
     if "Skills" in selected_fields:
-        context.update({"SKILLS": func("included_skills", "YOUR SKILLS"),})
+        context.update({"show_skills":True,"SKILLS": func("included_skills", ""),})
     if "Professional Accomplishment" in selected_fields:
-        context.update({"PA": func("qualifications", "YOUR PROFESSIONAL ACCOMPLISHMENTS"),})
+        context.update({"show_pa":True, "PA": func("qualifications", ""),})
     if "Certifications" in selected_fields:
-        context.update({"CERTIFICATIONS": func("certifications", "CERTIFICATIONS"),})
+        context.update({"show_certifications":True,"CERTIFICATIONS": func("certifications", ""),})
     if "Projects" in selected_fields:
-        context.update({"PROJECTS":func("projects", "YOUR PROJECTS")})
+        context.update({"show_projects":True,"PROJECTS":func("projects", "")})
     if "Awards & Honors" in selected_fields:
-        context.update({"AWARDS/HONORS": func("awards", "YOUR AWARDS AND HONORS")})
+        context.update({"show_awards":True,"AWARDS": func("awards", "")})
     # text_box_contents = read_text_boxes(template_path)
     #  # Render each text box template with the context
     # rendered_contents = [render_template(content, context) for content in text_box_contents]
@@ -534,7 +540,25 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-
+def readability_checker(field_name, w):
+    stats = dict(
+            # flesch_reading_ease=ts.flesch_reading_ease(w),
+            smog_index = ts.smog_index(w),
+            flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
+            # automated_readability_index=ts.automated_readability_index(w),
+            # coleman_liau_index=ts.coleman_liau_index(w),
+            # dale_chall_readability_score=ts.dale_chall_readability_score(w),
+            # linsear_write_formula=ts.linsear_write_formula(w),
+            # gunning_fog=ts.gunning_fog(w),
+            # word_count=ts.lexicon_count(w),
+            difficult_words=ts.difficult_words(w),
+            # text_standard=ts.text_standard(w),
+            # sentence_count=ts.sentence_count(w),
+            # syllable_count=ts.syllable_count(w),
+            # reading_time=ts.reading_time(w)
+    )
+    st.session_state[f"{field_name}_readability"]=stats
+    
 
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
