@@ -1142,7 +1142,7 @@ def check_content(file_path: str,) -> Union[bool, str, set] :
     schema = {
             "properties": {
                 "category": {"type": "string", 
-                            "enum":  ["empty", "resume", "cover letter", "job posting", "education program", "personal statement", "browser error", "learning material", "other"],
+                            "enum":  ["empty", "resume", "cover letter", "job posting", "browser error", "learning material", "other"],
                              "description": "categorizes content into the provided categories",
                             },
 
