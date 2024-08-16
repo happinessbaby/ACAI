@@ -246,6 +246,7 @@ def save_user_changes(userId, data, schema, tablename):
     # if tablename==lance_users_table:
     #     data["resume_content"] = json.dumpss(data)
     # NOTE: currently does not support update, so need to delete the row and append it again
+    print(data)
     try:
         delete_user_from_table(userId, tablename)
         schema = convert_pydantic_schema_to_arrow(schema)

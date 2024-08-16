@@ -584,7 +584,7 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
-def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
+async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -601,12 +601,12 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
             ]
         )
     runnable = prompt | llm.with_structured_output(schema=schema)
-    response = runnable.invoke({"content": content})
+    response = await runnable.ainvoke({"content": content})
     response_dict = response.dict()
     print(response_dict)
     return response_dict
 
-def create_comma_separated_list_parser(input_variables, base_template, query_dict):
+async def create_comma_separated_list_parser(input_variables, base_template, query_dict):
 
     """Outputs in comma separated list format: https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/types/csv/
     
@@ -631,7 +631,7 @@ def create_comma_separated_list_parser(input_variables, base_template, query_dic
 
     model = ChatOpenAI(temperature=0)
     chain = prompt | model | output_parser
-    response = chain.invoke(query_dict)
+    response = await chain.ainvoke(query_dict)
     print(response)
     return response
 
@@ -651,17 +651,17 @@ def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperatu
     return response
 
 
-def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
+async def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
 
     prompt = PromptTemplate.from_template(query)
     chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=n_ideas, verbose=verbose)
-    response = chain.run({})
+    response = await chain.arun({})
     print(response)
     return response
 
 # Assuming you have an instance of BaseOpenAI or OpenAIChat called `llm_instance`
 
-def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0125", cache=False)) -> str:
+async def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0125", cache=False)) -> str:
 
     """ General purpose agent that uses the OpenAI functions ability.
      
@@ -698,12 +698,12 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
             tools, llm, agent=AgentType.OPENAI_MULTI_FUNCTIONS
         )
     try: 
-        response = agent({"input": query}).get("output", "")   
+        response = await agent.ainvoke({"input": query}) 
         print(f"Successfully got multifunction response: {response}")
     except Exception as e:
         print(e)
         response = ""
-    return response
+    return response.get("output", "") if response else response
 
 
 
