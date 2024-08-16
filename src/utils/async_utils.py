@@ -36,12 +36,14 @@ class thread_with_trace(threading.Thread):
   def kill(self):
     self.killed = True
 
-def asyncio_run(future, as_task=True):
+def asyncio_run(future, as_task=True, timeout=None):
     """
-    A better implementation of `asyncio.run`.
+    A better implementation of `asyncio.run` that supports returning values and timeout. 
 
     :param future: A future or task or call of an async method.
     :param as_task: Forces the future to be scheduled as task (needed for e.g. aiohttp).
+    :param timeout: The maximum time to wait for the future (in seconds).
+    :return: The result of the future, or raises asyncio.TimeoutError if it times out.
     """
 
     try:
@@ -49,17 +51,17 @@ def asyncio_run(future, as_task=True):
         print("loop exists")
     except RuntimeError:  # no event loop running:
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         print('loop is created ')
         # loop.run_until_complete(_to_task(future, as_task, loop))
-
-    else:
-        nest_asyncio.apply(loop)
+    try:
+        return loop.run_until_complete(asyncio.wait_for(_to_task(future, as_task, loop), timeout))
+    except asyncio.TimeoutError:
+        print(f"Task timed out after {timeout} seconds.")
+        return None  # Handle the timeout case appropriately (e.g., return a default value or raise an exception)
     finally:
-        loop.run_until_complete(_to_task(future, as_task, loop))
-        # loop.close()
-        
-        # return asyncio.run(_to_task(future, as_task, loop))
-
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
 
 def _to_task(future, as_task, loop):
     if not as_task or isinstance(future, asyncio.Task):
@@ -67,3 +69,11 @@ def _to_task(future, as_task, loop):
     return loop.create_task(future)
 
 
+
+    # else:
+    #     nest_asyncio.apply(loop)
+    # finally:
+    #     loop.run_until_complete(_to_task(future, as_task, loop))
+        # loop.close()
+        
+        # return asyncio.run(_to_task(future, as_task, loop))

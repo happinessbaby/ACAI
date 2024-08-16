@@ -18,6 +18,7 @@ from utils.aws_manager import get_client
 import tempfile
 import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate
+from utils.async_utils import asyncio_run
 import streamlit as st
 
 
@@ -135,7 +136,7 @@ def analyze_field_content(field_content, field_type):
         field content list: {field_content}  \
 
         DO NOT USE ANY TOOLS. """
-        response = generate_multifunction_response(star_prompt, create_search_tools("google", 1))
+        response = asyncio_run(generate_multifunction_response(star_prompt, create_search_tools("google", 1)))
         return response
     elif field_type=="projects":
         """Summary of the project
@@ -161,11 +162,13 @@ def analyze_summary_objective(resume_content, ):
 
     Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. 
 
+    DO NOT USE ANY TOOLS!
+
     resume content: {resume_content}
     
     """
 
-    summary_resp = generate_multifunction_response(summary_query, create_search_tools("google", 1))
+    summary_resp = asyncio_run(generate_multifunction_response(summary_query, create_search_tools("google", 1)))
     return summary_resp
 
 
@@ -197,23 +200,26 @@ s
     candidate resume's {field_name} content: {field_content} \
     
     """
-   
-    comparison_resp = generate_multifunction_response(query_comparison, sample_tools, early_stopping=False)
-    comparison_dict = create_pydantic_parser(comparison_resp, Comparison)
+    comparison_dict = {"closenses":"", "reason":""}
+    comparison_resp = asyncio_run(generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=3)
+    if comparison_resp:
+        comparison_dict = asyncio_run(create_pydantic_parser(comparison_resp, Comparison))
     return comparison_dict
 
 def analyze_language(resume_content, category):
+
     """"""
     query_language=f"""Assess the {category} of the resume based on how a resume's {category} should be. Output the following metrics: ["bad", "good", "great"] and provide your reasoning. Your reasoning should be about a sentence long.
     resume: {resume_content}
     """
-    language_resp = generate_multifunction_response(query_language, create_search_tools("google", 1))
-    language_dict = create_pydantic_parser(language_resp, Language)
+    language_dict= {"rating":"", "reason":""}
+    language_resp = asyncio_run(generate_multifunction_response(query_language, create_search_tools("google", 1), early_stopping=False), timeout=3)
+    if language_resp:
+        language_dict = asyncio_run(create_pydantic_parser(language_resp, Language))
     return language_dict
 
 
 def generate_impression(resume_content, jobs):
-
 
     #NOTE: this prompt uses self-reflective thinking by answering questions
     query_impression= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
@@ -225,16 +231,18 @@ def generate_impression(resume_content, jobs):
     2. Does the candidate have the work experience for the jobs they are seeking? \
 
     3. Does the summary or objective section of the resume reflect the jobs they are seeking? \
-    
 
     candidate's resume: {resume_content} \
     
     jobs the candidate is seeking: {jobs} \
 
-    Your final analysis should be about 50-100 words long summarizing your impression of the candidate's resume. """
+    Your final analysis should be about 50-100 words long summarizing your impression of the candidate's resume.
+     
+    DO NOT USE ANY TOOLS! """
 
-    impression_resp = generate_multifunction_response(query_impression, create_search_tools("google", 1))
-    return impression_resp
+
+    impression_resp = asyncio_run(generate_multifunction_response(query_impression, create_search_tools("google", 1), early_stopping=False), timeout=10)
+    return impression_resp if impression_resp else ""
 
 
 def analyze_resume_type(resume_content, ):
@@ -256,8 +264,8 @@ def analyze_resume_type(resume_content, ):
       Note a resume can be mix of chronological and functional type.
 
     """
-    response=create_smartllm_chain(query_type, n_ideas=1)
-    type_dict = create_pydantic_parser(response, ResumeType)
+    response=asyncio_run(create_smartllm_chain(query_type, n_ideas=1))
+    type_dict = asyncio_run(create_pydantic_parser(response, ResumeType))
     return type_dict["type"]
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
@@ -430,7 +438,7 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])
-    similar_jobs = extract_similar_jobs(jobs_list, desired_jobs)
+    similar_jobs = asyncio_run(extract_similar_jobs(jobs_list, desired_jobs))
     total_years_work=0
     for job in jobs:
         if job in similar_jobs:

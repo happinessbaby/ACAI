@@ -610,7 +610,7 @@ def calculate_graduation_years(graduation_year:str) -> int:
     
 
 
-def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
+async def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
 
     #NOTE: this query benefits a lot from examples
     
@@ -623,7 +623,7 @@ def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
         If there's none, output -1.
         """
 
-    return create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_titles"], query_dict={"job_list":job_list, "desired_titles":desired_titles})
+    return await create_comma_separated_list_parser(base_template=query, input_variables=["job_list", "desired_titles"], query_dict={"job_list":job_list, "desired_titles":desired_titles})
 
 
 # def research_relevancy_in_resume(resume_content, job_description, job_description_type, relationship, n_ideas=2, llm=ChatOpenAI()):

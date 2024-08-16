@@ -171,7 +171,7 @@ class User():
             self.reset_password(token, username)
         if st.session_state.user_mode!="signedout" and st.session_state.user_mode!="reset":
             user_menu(self.userId, page="profile")
-            st.logo("./resources/logo_acareerai.png")
+            # st.logo("./resources/logo_acareerai.png")
         if st.session_state.user_mode=="signup":
             print("signing up")
             self.sign_up()
@@ -1397,12 +1397,11 @@ class User():
         try:
             # eval_dict= st.session_state["evaluation"]
             finished = st.session_state["evaluation"]["finished"]
-            if finished:
-                if st.session_state["eval_rerun_timer"]:
-                    st.session_state["evaluation"].update({"user_id":self.userId})
-                    save_user_changes(self.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
-                    st.session_state["eval_rerun_timer"]=None
-                    st.rerun()      
+            if finished and st.session_state["eval_rerun_timer"]:
+                st.session_state["evaluation"].update({"user_id":self.userId})
+                st.session_state["eval_rerun_timer"]=None
+                save_user_changes(self.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
+                st.rerun()      
         except Exception:
             finished=False
 
