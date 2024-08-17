@@ -200,7 +200,7 @@ s
     candidate resume's {field_name} content: {field_content} \
     
     """
-    comparison_dict = {"closenses":"", "reason":""}
+    comparison_dict = {"closeness":"", "reason":""}
     comparison_resp = asyncio_run(generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=3)
     if comparison_resp:
         comparison_dict = asyncio_run(create_pydantic_parser(comparison_resp, Comparison))

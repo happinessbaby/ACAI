@@ -135,7 +135,7 @@ def length_chart(length):
         mode = "gauge",
         value = display_value,
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Your resume is:"},
+        title = {'text': "Your resume length is:"},
         gauge = {
                 # 'shape':"bullet",
                 'axis': {'range': [1, 1000]},

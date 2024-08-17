@@ -13,6 +13,7 @@ from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
 # from langchain_experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
 from langchain_community.document_transformers import DoctranPropertyExtractor
+from langchain_community.docstore.in_memory import InMemoryDocstore
 from typing import Any, List, Union, Dict, Optional
 import os
 import random
@@ -42,6 +43,7 @@ from dotenv import load_dotenv, find_dotenv
 from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate, StringPromptTemplate
+from utils.async_utils import asyncio_run
 from langchain_core.tools import Tool
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -541,9 +543,10 @@ def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI(
     Please draw all your answers from the content and provide examples if available:
     content: {content}
     """
-    content=create_smartllm_chain(query, n_ideas=n_ideas)
-    response = create_pydantic_parser(content, Skills)
-    return response
+    content=asyncio_run(create_smartllm_chain(query, n_ideas=n_ideas), timeout=5)
+    if content:
+        response = asyncio_run(create_pydantic_parser(content, Skills))
+    return response if content else None
 
 
 def researches_posting_keywords():
@@ -646,7 +649,7 @@ async def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
 
 
 
-def get_web_resources(query: str, with_source: bool=False, engine="retriever", llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo-0613", cache=False)) -> str:
+async def get_web_resources(query: str, with_source: bool=False, engine="retriever", llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo-0613", cache=False)) -> str:
 
     """ Retrieves web answer given a query question. The default search is using WebReserachRetriever: https://python.langchain.com/docs/modules/data_connection/retrievers/web_research.
     
@@ -680,7 +683,7 @@ def get_web_resources(query: str, with_source: bool=False, engine="retriever", l
             response = qa_source_chain({"question":query})
         else:
             qa_chain = RetrievalQA.from_chain_type(llm, retriever=web_research_retriever)
-            response = qa_chain.run(query)
+            response = await qa_chain.arun(query)
         print(f"Successfully retreived web resources using Web Research Retriever: {response}")
     elif engine=="agent":
         tools = create_search_tools("google", 3)
@@ -692,7 +695,7 @@ def get_web_resources(query: str, with_source: bool=False, engine="retriever", l
             verbose = True,
             )
         try:
-            response = agent.run(query)
+            response = await agent.arun(query)
             return response
         except ValueError as e:
             response = str(e)
@@ -835,10 +838,9 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
     resume_content = read_txt(resume_path,)
     # Extract resume fields
     resume_info_dict[resume_path].update({"resume_content":resume_content})
-    # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
-    special_field_content = create_pydantic_parser(resume_content, SpecialResumeFields)
-    # special_field_group1 = create_pydantic_parser(resume_content, SpecialFieldGroup1)
-    # resume_info_dict[resume_path].update(special_field_group1)
+    special_field_content = asyncio_run(create_pydantic_parser(resume_content, SpecialResumeFields))
+    special_field_group1 = asyncio_run(create_pydantic_parser(resume_content, SpecialFieldGroup1))
+    resume_info_dict[resume_path].update(special_field_group1)
     # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
     resume_info_dict[resume_path].update({"pursuit_jobs":special_field_content["pursuit_jobs"]})
     resume_info_dict[resume_path].update({"summary_objective": special_field_content["summary_objective_section"]})
@@ -851,35 +853,40 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
     #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
     #         work_experience[i].update({"years_of_experience": years_experience})
     #     resume_info_dict[resume_path].update({"work_experience": work_experience})
-    contact = create_pydantic_parser(resume_content, Contact)
+    contact = asyncio_run(create_pydantic_parser(resume_content, Contact))
     resume_info_dict[resume_path].update({"contact":contact})
-    education = create_pydantic_parser(resume_content, Education)
+    education = asyncio_run(create_pydantic_parser(resume_content, Education))
     resume_info_dict[resume_path].update({"education":education})
-    experience = create_pydantic_parser(resume_content, Jobs)
+    # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
+    # if basic_field_content["work_experience"]:
+    experience = asyncio_run(create_pydantic_parser(resume_content, Jobs))
     resume_info_dict[resume_path].update(experience)
     # if special_field_content["skills_section"]:
     #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
     #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
     # else:
     #     resume_info_dict[resume_path].update({"included_skills": None})
-    if special_field_content["projects_section"]:
-        projects = create_pydantic_parser(special_field_content["projects_section"], Projects)
-        resume_info_dict[resume_path].update(projects)
-    else:
-        resume_info_dict[resume_path].update({"projects": None})
-    if special_field_content["qualifications_section"]:
-        qualifications = create_pydantic_parser(special_field_content["qualifications_section"], Qualifications)
-        resume_info_dict[resume_path].update(qualifications)
-    else:
-        resume_info_dict[resume_path].update({"qualifications": None})
-    licenses = create_pydantic_parser(resume_content, Licenses)
-    resume_info_dict[resume_path].update(licenses)
-    certifications = create_pydantic_parser(resume_content, Certifications)
-    resume_info_dict[resume_path].update(certifications)
-    awards = create_pydantic_parser(resume_content, Awards)
-    resume_info_dict[resume_path].update(awards)
+    # if special_field_content["projects_section"]:
+    projects = asyncio_run(create_pydantic_parser(resume_content, Projects))
+    resume_info_dict[resume_path].update(projects)
+    # else:
+    #     resume_info_dict[resume_path].update({"projects": None})
+    # if special_field_content["qualifications_section"]:
+    qualifications = asyncio_run(create_pydantic_parser(resume_content, Qualifications))
+    resume_info_dict[resume_path].update(qualifications)
+    # else:
+    #     resume_info_dict[resume_path].update({"qualifications": None})
+    # licenses = asyncio_run(create_pydantic_parser(resume_content, Licenses))
+    # resume_info_dict[resume_path].update(licenses)
+    # certifications = asyncio_run(create_pydantic_parser(resume_content, Certifications))
+    # resume_info_dict[resume_path].update(certifications)
+    # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
+    # resume_info_dict[resume_path].update(awards)
     suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
-    resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
+    if suggested_skills:
+        resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"]})
+    else:
+        resume_info_dict[resume_path].update({"suggested_skills":None})
 
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
@@ -906,7 +913,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     job_posting_info_dict[job_posting].update({"content": posting})
-    basic_info_dict = create_pydantic_parser(posting, Keywords)
+    basic_info_dict = asyncio_run(create_pydantic_parser(posting, Keywords))
     job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
