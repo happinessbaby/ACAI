@@ -6,27 +6,30 @@ from typing import Any, List, Union, Dict, Optional, Set
  #NOTE: ALL NESTED PYDANTIC FIELDS ARE IN ALPHABETIC ORDER FOR THE SCHEMA VALIDATION
 class Job(BaseModel):
     company: Optional[str] = Field(
-        default="", description = "the company of the job position"
+        default="", description = "the company of the job position where the person worked"
     )
     description: Optional[List[str]] = Field(
-      default=[], description = """bullet point description of the responsibilities and roles of the job experience, do not leave out any details"""
+      default=[], description = """description of the responsibilities and roles of the job experience, please list them verbatim"""
       )
     end_date: Optional[str] = Field(
-      default="", description = "the end date of the job position if available"
+      default="", description = "the end date of this job experience if available"
       )
     job_title: Optional[str] = Field(
-        default="", description="the job position"
+        default="", description="the job position, this needs to be a work experience"
         )
     location: Optional[str] = Field(
         default="remote", description="the location where the candidate worked for this job position"
     )
     start_date: Optional[str] = Field(
-      default="", description = "the start date of the job position if available"
+      default="", description = "the start date of this job experinece if available"
       )
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
-    work_experience: List[Job] 
+    work_experience: List[Job] = Field(
+        default="", description=""" the content of the work experience section of the resume, most likely there's a whole section dedicated to work experience. Include everything in the section verbatim.
+        Exclude anything that's not in the work experience section"""
+    )
 
 
 class Contact(BaseModel):
@@ -80,15 +83,17 @@ class Project(BaseModel):
         default="", description="the name of the project, can be a personal or work-related project, examples include coding project, art project, construction project, etc."
     )
 class Projects(BaseModel):
-    projects: List[Project]
+    projects: List[Project] = Field(
+        default="", description="""content from the projects section of the resume.
+    Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    ""                                  
+    )
 
 class Award(BaseModel):
     description: Optional[List[str]] = Field(
-        default=[], description = "any descriptions of the award or honor"
+        default=[], description = "any description of the award or honor"
     )
     title: Optional[str] = Field(
-        default="", description = """the award or honor listed in the resume, this should not be job-specific ceritifications or skills, but awards received at workplace or school. 
-        Examples include employee of the month, certificate of achievement, etc. 
+        default="", description = """the title of the award or honor
         """    
     )
 class Awards(BaseModel):
@@ -96,7 +101,7 @@ class Awards(BaseModel):
 
 class Certification(BaseModel):
     description: Optional[List[str]] = Field(
-        default=[], descripton = "details and description about the certification"
+        default=[], descripton = "description of the certification,  excluding issue date and issue organization, usually listed after title, issue date, and/or issue organization"
     )
     issue_date: Optional[str] = Field(
         default="", description="the issuing date of the certification"
@@ -105,15 +110,14 @@ class Certification(BaseModel):
         default="", description ="the industry-specific organization or professional body that issued the certification"
     )
     title: Optional[str] = Field(
-        default="", description="""the title of the certifications, these may be in the education section, 
-        should be industry-specific, should not be a degree"""
+        default="", description="""title of the certification """
     )
 class Certifications(BaseModel):
     certifications: List[Certification]
 
 class License(BaseModel):
     description: Optional[List[str]] = Field(
-        default=[], description = "any description of the license"
+        default=[], description = "description of the license, excluding issue date and issue organization, usually listed after title, issue date, and/or issue organization"
     )
     issue_date: Optional[str] = Field(
         default="", description="the issuing date of the license"
@@ -128,9 +132,18 @@ class Licenses(BaseModel):
     licenses: List[License]
 
 class SpecialFieldGroup1(BaseModel):
-    licenses: List[License]
-    awards: List[Award]
-    certifications: List[Certification]
+    licenses: Optional[List[License]]  = Field(
+        default="", description="""the content of occupational licenses, examples include those of teachers, nurses, doctors, lawyers, contractors. etc"""
+    )
+    awards: Optional[List[Award]]  = Field(
+        default="", description = """the content of the award or honor, such as received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
+        """    
+    )
+    certifications: Optional[List[Certification]] = Field(
+        default="", description="""the content of the certification, may be in the education section, 
+        should be industry-specific and should not be a degree, usually awarded for gaining new skillsets"""
+    )
 
 class Qualification(BaseModel):
     description: Optional[List[str]] = Field(
@@ -141,7 +154,10 @@ class Qualification(BaseModel):
         default="", description = "The name of the skill or qualification"
     )
 class Qualifications(BaseModel):
-    qualifications: List[Qualification]
+    qualifications: List[Qualification] = Field(
+        default="", description="""the accomplishment/qualification section of the resume that is not work experience or projects, 
+        should have detailed description of each accomplishment, qualification, and/or skill. Include everything verbatim. """
+    )
 
 class Skill(BaseModel):
     example:Optional[str] = Field(
@@ -193,16 +209,16 @@ class SpecialResumeFields(BaseModel):
         default = "", description="the summary or objective section of the resume"
     )
     included_skills: Optional[List[str]] = Field(
-        default=[], description=" all the skills and skillsets listed in the resume "
+        default=[], description=" all the skills and skillsets listed in the resume, most like there's a section dedicated to this"
     )
-    qualifications_section: Optional[str] = Field(
-        default="", description="""the accomplishment/qualification section of the resume that is not work experience, 
-        should have detailed description of each accomplishment,  qualification, skill. If there's no description, do not include it here. """
-    )
-    projects_section: Optional[str] = Field(
-        default="", description = """the projects sections of the resume. This should not be a section about qualifications or skills. 
-        Projects include personal projects or work-related projects. Please include the whole section. """    
-    )
+    # qualifications_section: Optional[str] = Field(
+    #     default="", description="""the accomplishment/qualification section of the resume that is not work experience, 
+    #     should have detailed description of each accomplishment, qualification, skill. This should not be about projects. Include everything verbatim. """
+    # )
+    # projects_section: Optional[str] = Field(
+    #     default="", description = """the projects sections of the resume.
+    #     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    
+    # )
     hobbies_section: Optional[List[str]] = Field(
         default=[], description = "a list of hobbies in the resume"
     )
@@ -292,11 +308,11 @@ class Replacements(BaseModel):
 
 class GeneralEvaluation(BaseModel):
     user_id : str
-    word_count: int
-    page_count: int
-    ideal_type: str
-    resume_type: str
-    impression: str
+    word_count: Optional[int]
+    page_count: Optional[int]
+    ideal_type: Optional[str]
+    resume_type: Optional[str]
+    impression: Optional[str]
     syntax: Language
     diction: Language
     tone: Language
@@ -310,9 +326,9 @@ class GeneralEvaluation(BaseModel):
 class JobTrackingUsers(BaseModel):
 
     user_id: str
-    posting_path: str
-    link: str
-    content: str
+    posting_path: Optional[str]
+    link: Optional[str]
+    content: Optional[str]
     skills:Optional[List[Skill]]
     job: Optional[str] 
     about_job: Optional[str]
@@ -322,10 +338,9 @@ class JobTrackingUsers(BaseModel):
     responsibilities: Optional[List[str]] 
     salary: Optional[str] 
     on_site: Optional[bool] 
-    resume_path: str
-    cover_letter_path: str
-    status: str
-
+    resume_path: Optional[str]
+    cover_letter_path: Optional[str]
+    status: Optional[str]
 
 
 class ResumeUsers(BaseModel):

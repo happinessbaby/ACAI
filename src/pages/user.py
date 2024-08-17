@@ -1162,25 +1162,7 @@ class User():
                                             )
         # st.session_state["info_container"]=st.empty()
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
-            # deletes previously generated job posting dictionary 
-            try: 
-                del st.session_state["job_posting_dict"]
-            except Exception:
-                pass
-            # creates a new job posting dictionary
-            st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
-                        st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
-                        st.session_state.job_description if "job_description" in st.session_state else "",  
-                    )
-            if "job_posting_path" in st.session_state:
-                st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"]})
-            if "posting_link" in st.session_state:
-                st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"]})
-            st.session_state["job_posting_dict"].update({"user_id": self.userId})
-            st.session_state["job_posting_dict"].update({"resume_path": ""})
-            st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
-            st.session_state["job_posting_dict"].update({"status": ""})
-            save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+            self.initialize_job_posting_callback(self, )
             # starts field tailoring if called to tailor a field
             if mode=="resume" and "tailoring_field" in st.session_state:
                 # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
@@ -1197,6 +1179,29 @@ class User():
             except Exception:
                 pass
             st.rerun()
+
+    def initialize_job_posting_callback(self, ):
+
+        # deletes previously generated job posting dictionary 
+        try: 
+            del st.session_state["job_posting_dict"]
+        except Exception:
+            pass
+        # creates a new job posting dictionary
+        st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+                    st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
+                    st.session_state.job_description if "job_description" in st.session_state else "",  
+                )
+        if "job_posting_path" in st.session_state:
+            st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"]})
+        if "posting_link" in st.session_state:
+            st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"]})
+        st.session_state["job_posting_dict"].update({"user_id": self.userId})
+        st.session_state["job_posting_dict"].update({"resume_path": ""})
+        st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
+        st.session_state["job_posting_dict"].update({"status": ""})
+        save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+
 
     
     def tailor_callback(self, field_name=None, field_details=None):
@@ -1395,7 +1400,6 @@ class User():
 
         # NOTE: evaluation either comes from table or from backend function
         try:
-            # eval_dict= st.session_state["evaluation"]
             finished = st.session_state["evaluation"]["finished"]
             if finished and st.session_state["eval_rerun_timer"]:
                 st.session_state["evaluation"].update({"user_id":self.userId})
@@ -1482,7 +1486,7 @@ class User():
                 st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                 if st.button("evaluate again", key=f"eval_button", ):
                     # if button_name=="evaluate again ✨":
-                        container.empty()
+                        # container.empty()
                         # delete previous evaluation states
                         try:
                             # remove evaluation from lance table and old evaluation from session
