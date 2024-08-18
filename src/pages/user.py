@@ -1192,10 +1192,8 @@ class User():
                     st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
                     st.session_state.job_description if "job_description" in st.session_state else "",  
                 )
-        if "job_posting_path" in st.session_state:
-            st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"]})
-        if "posting_link" in st.session_state:
-            st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"]})
+        st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
+        st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"user_id": self.userId})
         st.session_state["job_posting_dict"].update({"resume_path": ""})
         st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
