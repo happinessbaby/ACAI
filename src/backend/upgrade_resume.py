@@ -551,7 +551,7 @@ def reformat_resume(template_path, ):
 def readability_checker(field_name, w):
     stats = dict(
             # flesch_reading_ease=ts.flesch_reading_ease(w),
-            smog_index = ts.smog_index(w),
+            # smog_index = ts.smog_index(w),
             flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
             # automated_readability_index=ts.automated_readability_index(w),
             # coleman_liau_index=ts.coleman_liau_index(w),

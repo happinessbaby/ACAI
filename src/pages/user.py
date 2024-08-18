@@ -1227,9 +1227,10 @@ class User():
         else:
             # start general evaluation if there's no saved evaluation 
             if not st.session_state["evaluation"]:
-                self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
-                add_script_run_ctx(self.eval_thread, self.ctx)
-                self.eval_thread.start()   
+                evaluate_resume(st.session_state["profile"], "general")
+                # self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
+                # add_script_run_ctx(self.eval_thread, self.ctx)
+                # self.eval_thread.start()   
          
     # def cover_letter_callback(self, ):
 
