@@ -1162,7 +1162,7 @@ class User():
                                             )
         # st.session_state["info_container"]=st.empty()
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
-            self.initialize_job_posting_callback(self, )
+            self.initialize_job_posting_callback()
             # starts field tailoring if called to tailor a field
             if mode=="resume" and "tailoring_field" in st.session_state:
                 # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
