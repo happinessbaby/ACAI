@@ -205,7 +205,7 @@ class SpecialResumeFields(BaseModel):
         default= "", description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume. 
         If there are many, separate each by a comma."""
     )
-    summary_objective_section: Optional[str] = Field(
+    summary_objective: Optional[str] = Field(
         default = "", description="the summary or objective section of the resume"
     )
     included_skills: Optional[List[str]] = Field(
@@ -219,7 +219,7 @@ class SpecialResumeFields(BaseModel):
     #     default="", description = """the projects sections of the resume.
     #     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    
     # )
-    hobbies_section: Optional[List[str]] = Field(
+    hobbies: Optional[List[str]] = Field(
         default=[], description = "a list of hobbies in the resume"
     )
 

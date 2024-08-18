@@ -842,12 +842,13 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
     special_field_group1 = asyncio_run(create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=5)
     if special_field_group1:
         resume_info_dict[resume_path].update(special_field_group1)
+    else:
+        resume_info_dict[resume_path].update({"licenses":[], "awards":[], "certifications":[]})
     # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
     if special_field_content:
-        resume_info_dict[resume_path].update({"pursuit_jobs":special_field_content["pursuit_jobs"]})
-        resume_info_dict[resume_path].update({"summary_objective": special_field_content["summary_objective_section"]})
-        resume_info_dict[resume_path].update({"included_skills":special_field_content["included_skills"]})
-        resume_info_dict[resume_path].update({"hobbies":special_field_content["hobbies_section"]})
+        resume_info_dict[resume_path].update(special_field_content)
+    else:
+        resume_info_dict[resume_path].update({"pursuit_jobs":"", "summary_objective":"", "included_skills":[], "hobbies":[]})
     # resume_info_dict[resume_path].update(field_details)
     # work_experience = field_details["work_experience"]
     # if work_experience:
@@ -913,10 +914,13 @@ def create_job_posting_info(posting_path="", about_job="", ):
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     job_posting_info_dict[job_posting].update({"content": posting})
     basic_info_dict = asyncio_run(create_pydantic_parser(posting, Keywords), timeout=5)
-    job_posting_info_dict[job_posting].update(basic_info_dict)
+    if basic_info_dict:
+        job_posting_info_dict[job_posting].update(basic_info_dict)
+    else:
+        job_posting_info_dict[job_posting].update({"job":"", "about_job":"", "company":"", "company_description":"", "qualificatios":[], "responsibilities":[], "salary":"", "on_site":None})
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
-    job_posting_info_dict[job_posting].update(job_posting_skills)
+    job_posting_info_dict[job_posting].update(job_posting_skills if job_posting_skills else {"skills":[]})
     # Research company
     company = basic_info_dict["company"]
     company_description = basic_info_dict["company_description"]
