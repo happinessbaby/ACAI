@@ -1226,11 +1226,12 @@ class User():
             evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details )
         else:
             # start general evaluation if there's no saved evaluation 
-            if not st.session_state["evaluation"]:
-                evaluate_resume(st.session_state["profile"], "general")
-                # self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
-                # add_script_run_ctx(self.eval_thread, self.ctx)
-                # self.eval_thread.start()   
+            if "init_eval" not in st.session_state and st.session_state["evaluation"] is None:
+                # evaluate_resume(st.session_state["profile"], "general")
+                self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
+                add_script_run_ctx(self.eval_thread, self.ctx)
+                self.eval_thread.start()   
+                st.session_state["init_eval"]=True
          
     # def cover_letter_callback(self, ):
 
@@ -1493,6 +1494,7 @@ class User():
                             # remove evaluation from lance table and old evaluation from session
                             delete_user_from_table(self.userId, lance_eval_table)
                             del st.session_state["evaluation"]
+                            del st.session_state["init_eval"]
                         except Exception:
                             pass
                         finally:
@@ -1558,6 +1560,7 @@ class User():
                 try:
                     del st.session_state["profile"]
                     del st.session_state["evaluation"]
+                    del st.session_state["init_eval"]
                 except Exception:
                     pass
                 st.rerun()

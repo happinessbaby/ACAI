@@ -27,7 +27,7 @@ class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
     work_experience: List[Job] = Field(
-        default="", description=""" the content of the work experience section of the resume, most likely there's a whole section dedicated to work experience. Include everything in the section verbatim.
+        default=[], description=""" the content of the work experience section of the resume, most likely there's a whole section dedicated to work experience. Include everything in the section verbatim.
         Exclude anything that's not in the work experience section"""
     )
 
@@ -84,7 +84,7 @@ class Project(BaseModel):
     )
 class Projects(BaseModel):
     projects: List[Project] = Field(
-        default="", description="""content from the projects section of the resume.
+        default=[], description="""content from the projects section of the resume.
     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    ""                                  
     )
 
@@ -133,15 +133,15 @@ class Licenses(BaseModel):
 
 class SpecialFieldGroup1(BaseModel):
     licenses: Optional[List[License]]  = Field(
-        default="", description="""the content of occupational licenses, examples include those of teachers, nurses, doctors, lawyers, contractors. etc"""
+        default=[], description="""the content of occupational licenses, examples include those of teachers, nurses, doctors, lawyers, contractors. etc"""
     )
     awards: Optional[List[Award]]  = Field(
-        default="", description = """the content of the award or honor, such as received at workplace or school. 
+        default=[], description = """the content of the award or honor, such as received at workplace or school. 
         Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
         """    
     )
     certifications: Optional[List[Certification]] = Field(
-        default="", description="""the content of the certification, may be in the education section, 
+        default=[], description="""the content of the certification, may be in the education section, 
         should be industry-specific and should not be a degree, usually awarded for gaining new skillsets"""
     )
 
@@ -155,7 +155,7 @@ class Qualification(BaseModel):
     )
 class Qualifications(BaseModel):
     qualifications: List[Qualification] = Field(
-        default="", description="""the accomplishment/qualification section of the resume that is not work experience or projects, 
+        default=[], description="""the accomplishment/qualification section of the resume that is not work experience or projects, 
         should have detailed description of each accomplishment, qualification, and/or skill. Include everything verbatim. """
     )
 
@@ -191,10 +191,10 @@ class Skills(BaseModel):
 
 class BasicResumeFields(BaseModel):
     contact: Optional[Contact] = Field(
-        default="", description = "The contact section of the resume, usually includes name, address, personal websites, etc."
+        default=None, description = "The contact section of the resume, usually includes name, address, personal websites, etc."
     )
     education: Optional[Education] = Field(
-        default="", description = "the education part of the resume where some degree is obtained"
+        default=None, description = "the education part of the resume where some degree is obtained"
     )
     work_experience_section:  Optional[str] = Field(
         default="", description=" the work experience section of the resume"

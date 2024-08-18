@@ -201,9 +201,9 @@ s
     
     """
     comparison_dict = {"closeness":"", "reason":""}
-    comparison_resp = asyncio_run(generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=3)
+    comparison_resp = asyncio_run(generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=5)
     if comparison_resp:
-        comparison_dict = asyncio_run(create_pydantic_parser(comparison_resp, Comparison))
+        comparison_dict = asyncio_run(create_pydantic_parser(comparison_resp, Comparison), timeout=5)
     return comparison_dict
 
 def analyze_language(resume_content, category):
@@ -213,9 +213,9 @@ def analyze_language(resume_content, category):
     resume: {resume_content}
     """
     language_dict= {"rating":"", "reason":""}
-    language_resp = asyncio_run(generate_multifunction_response(query_language, create_search_tools("google", 1), early_stopping=False), timeout=3)
+    language_resp = asyncio_run(generate_multifunction_response(query_language, create_search_tools("google", 1), early_stopping=False), timeout=5)
     if language_resp:
-        language_dict = asyncio_run(create_pydantic_parser(language_resp, Language))
+        language_dict = asyncio_run(create_pydantic_parser(language_resp, Language), timeout=5)
     return language_dict
 
 
