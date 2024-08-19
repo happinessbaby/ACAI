@@ -356,7 +356,7 @@ async def tailor_skills(required_skills, my_skills,):
     tailored_skills = llm.ainvoke(message).content
     # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
     tailored_skills_dict = asyncio_run(create_pydantic_parser(tailored_skills, TailoredSkills), timeout=5)
-    return tailored_skills_dict if tailored_skills_dict else {}
+    return tailored_skills_dict if tailored_skills_dict else "please try again"
 
 
 def tailor_objective(job_requirements, my_objective):
@@ -383,8 +383,8 @@ def tailor_objective(job_requirements, my_objective):
         """
             
             # about job/company: {company_description} \
-        tailored_objective_dict = []
-        tailored_objective = asyncio_run(create_smartllm_chain(prompt, n_ideas=2), timeout=5)
+        tailored_objective_dict = "please try again"
+        tailored_objective = asyncio_run(create_smartllm_chain(prompt, n_ideas=1), timeout=10)
         if tailored_objective:
         # tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
             tailored_objective_dict = asyncio_run(create_pydantic_parser(tailored_objective, Replacements), timeout=5)
@@ -407,7 +407,7 @@ def tailor_experience(job_requirements, experience,):
         DO NOT USE ANY TOOLS
     """
     ranked_experience = asyncio_run(generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=5)
-    return ranked_experience if ranked_experience else ""
+    return ranked_experience if ranked_experience else "please try again"
 
 
 
