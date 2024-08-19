@@ -283,7 +283,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=N
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
     if type=="included_skillls":
-        tailored_skills_dict = tailor_skills(required_skills, details)
+        tailored_skills_dict = asyncio_run(tailor_skills(required_skills, details))
         st.session_state[f"tailored_{type}"]=tailored_skills_dict
     if type=="summary_objective":
         tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, details)
