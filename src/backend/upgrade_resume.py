@@ -301,7 +301,7 @@ def concat_skills(skills_list, skills_str=""):
     return skills_str
 
 
-def tailor_skills(required_skills, my_skills,):
+async def tailor_skills(required_skills, my_skills,):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
@@ -353,16 +353,15 @@ def tailor_skills(required_skills, my_skills,):
                                             required_skills = required_skills_str,
                                             my_skills = my_skills,
     )
-    tailored_skills = llm(message).content
+    tailored_skills = llm.ainvoke(message).content
     # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
-    tailored_skills_dict = create_pydantic_parser(tailored_skills, TailoredSkills)
-    return tailored_skills_dict
+    tailored_skills_dict = asyncio_run(create_pydantic_parser(tailored_skills, TailoredSkills), timeout=5)
+    return tailored_skills_dict if tailored_skills_dict else {}
 
 
 def tailor_objective(job_requirements, my_objective):
 
     #TODO: THIS needs to to be redone!
-    if my_objective!=-1:
         prompt = f""" Your task is to find out words and phrases from the objective/summary section of the resume that can be substitued so it aligns with job description.
         
         You are provided withs some job requirements and a resume objective.
@@ -384,14 +383,13 @@ def tailor_objective(job_requirements, my_objective):
         """
             
             # about job/company: {company_description} \
-
-        tailored_objective = create_smartllm_chain(prompt, n_ideas=2)
+        tailored_objective_dict = []
+        tailored_objective = asyncio_run(create_smartllm_chain(prompt, n_ideas=2), timeout=5)
+        if tailored_objective:
         # tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
-        tailored_objective_dict = create_pydantic_parser(tailored_objective, Replacements)
+            tailored_objective_dict = asyncio_run(create_pydantic_parser(tailored_objective, Replacements), timeout=5)
+        return tailored_objective_dict
         
-    else:
-        tailored_objective_dict = {"generated objective": ""}
-    return tailored_objective_dict
 
 
 def tailor_experience(job_requirements, experience,):
@@ -408,8 +406,8 @@ def tailor_experience(job_requirements, experience,):
         For experiences that are ranked lower with little relevancy to the job requirements, please also suggest some transferable skills that can be included.
         DO NOT USE ANY TOOLS
     """
-    ranked_experience = generate_multifunction_response(rank_prompt, create_search_tools("google", 1), )
-    return ranked_experience
+    ranked_experience = asyncio_run(generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=5)
+    return ranked_experience if ranked_experience else ""
 
 
 
