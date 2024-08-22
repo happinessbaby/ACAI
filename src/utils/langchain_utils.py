@@ -584,7 +584,7 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
-async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI()):
+async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini")):
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -661,7 +661,7 @@ async def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()
 
 # Assuming you have an instance of BaseOpenAI or OpenAIChat called `llm_instance`
 
-async def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-3.5-turbo-0125", cache=False)) -> str:
+async def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-4o-mini", cache=False)) -> str:
 
     """ General purpose agent that uses the OpenAI functions ability.
      

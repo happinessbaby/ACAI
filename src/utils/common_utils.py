@@ -706,7 +706,7 @@ async def get_web_resources(query: str, with_source: bool=False, engine="retriev
     return response
 
 
-def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss", llm=OpenAI(temperature=0.8)) -> str:
+async def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss", llm=OpenAI(temperature=0.8)) -> str:
 
     """ Retrieves query answer from vector store using Docuemnt + Chain method.
 
@@ -756,7 +756,7 @@ def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss"
         document_prompt=document_prompt,
         document_variable_name=document_variable_name,
     )
-    response = chain.run(input_documents=reordered_docs, query=query, verbose=True)
+    response = await chain.arun(input_documents=reordered_docs, query=query, verbose=True)
     print(f"Successfully retrieved answer using compression retriever with Stuff Document Chain: {response}")
     return response
 
@@ -895,8 +895,8 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
 
 def create_job_posting_info(posting_path="", about_job="", ):
     # pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
-    job_posting = posting_path if posting_path else about_job[:50]
-    job_posting_info_dict={job_posting: {"skills": {}}}
+    job_posting = posting_path if posting_path else about_job
+    job_posting_info_dict = {}
 
     if (Path(posting_path).is_file()):
         posting = read_txt(posting_path)
@@ -913,11 +913,12 @@ def create_job_posting_info(posting_path="", about_job="", ):
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     job_posting_info_dict[job_posting].update({"content": posting})
-    basic_info_dict = asyncio_run(create_pydantic_parser(posting, Keywords), timeout=5)
+    basic_info_dict = asyncio_run(create_pydantic_parser(posting, Keywords), timeout=10)
     if basic_info_dict:
         job_posting_info_dict[job_posting].update(basic_info_dict)
     else:
-        job_posting_info_dict[job_posting].update({"job":"", "about_job":"", "company":"", "company_description":"", "qualificatios":[], "responsibilities":[], "salary":"", "on_site":None})
+        basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualificatios":[], "responsibilities":[], "salary":"", "on_site":None}
+        job_posting_info_dict[job_posting].update(basic_info_dict)
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
     job_posting_info_dict[job_posting].update(job_posting_skills if job_posting_skills else {"skills":[]})
@@ -928,7 +929,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
         company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
                             In 50 words or less, summarize your research result.                 
                             Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
-        company_description = get_web_resources(company_query, engine="agent")
+        company_description = asyncio_run(get_web_resources(company_query, engine="agent"))
         job_posting_info_dict[job_posting].update({"company_description": company_description})
     # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)

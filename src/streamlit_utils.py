@@ -107,6 +107,7 @@ def progress_bar(page):
 
 def job_tracker():
 
+    
     with st.popover("link"):
         st.text_input("job posting link", )
     with st.popover("cover letter"):

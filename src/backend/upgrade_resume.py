@@ -28,7 +28,7 @@ faiss_web_data = os.environ["FAISS_WEB_DATA_PATH"]
 STORAGE = os.environ["STORAGE"]
 local_save_path = os.environ["CHAT_PATH"]
 # TODO: caching and serialization of llm
-llm = ChatOpenAI(temperature=0.9)
+llm = ChatOpenAI(model="gpt-4o-mini")
 embeddings = OpenAIEmbeddings()
 # TODO: save these delimiters in json file to be loaded from .env
 delimiter = "####"
@@ -98,11 +98,13 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
     if type=="work_experience":
         # work_experience= resume_dict["work_experience"]
         if details:
+            readability_checker(type, details)
             evaluated_work= analyze_field_content(details, "work experience")
             st.session_state["evaluated_work_experience"]=evaluated_work
     elif type=="summary_objective":
         # summary_objective = resume_dict["summary_objective"]
         if details:
+            readability_checker(type, details)
             evaluated_summary = analyze_summary_objective(resume_content)
             st.session_state["evaluated_summary_objective"]=evaluated_summary
 
@@ -270,28 +272,43 @@ def analyze_resume_type(resume_content, ):
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
 
-    # resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # posting = read_txt(posting_path, storage=STORAGE, bucket_name=bucket_name, s3=s3)
-    # resume_dict = retrieve_or_create_resume_info(resume_path=resume_file, )
-    # job_posting_dict= retrieve_or_create_job_posting_info(posting_path=posting_path, about_job=about_job, )
-    # st.session_state["tailor_dict"] = {}
     print('start tailoring....')
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
+    resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
     if type=="included_skillls":
-        tailored_skills_dict = asyncio_run(tailor_skills(required_skills, details))
-        st.session_state[f"tailored_{type}"]=tailored_skills_dict
+        tailored_skills = asyncio_run(tailor_skills(job_requirements, details))
+        if tailored_skills:
+            tailored_skills_dict = asyncio_run(create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
+            if tailored_skills_dict:    
+                st.session_state[f"tailored_{type}"]=tailored_skills_dict
+            else:
+                st.session_state[f"tailored_{type}"]="please try again"
+        else:
+            st.session_state[f"tailored_{type}"] = "please try again"
     if type=="summary_objective":
-        tailored_objective_dict = tailor_objective(job_requirements+company_description+about_job, details)
-        st.session_state[f"tailored_{type}"]=tailored_objective_dict
+        job_title = job_posting_dict["job"]
+        response = asyncio_run(tailor_objective(about_job, details, resume_content, job_title))
+        if response:
+            tailored_objective_dict = asyncio_run(create_pydantic_parser(response.content, Replacements), timeout=5)
+            if tailored_objective_dict:
+                st.session_state[f"tailored_{type}"]=tailored_objective_dict
+            else:
+                print("PYDANTIC FAILED FOR TAILORING OBJECTIVE")
+                st.session_state[f"tailored_{type}"]="please try again"
+        else:
+            st.session_state[f"tailored_{type}"]="please try again"
     if type=="work_experience":
-        tailored_experience = tailor_experience(job_requirements, details)
+        print("experience details", details)
+        tailored_experience = asyncio_run(tailor_experience(job_requirements, details))
         st.session_state[f"tailored_{type}"]= tailored_experience
     # return st.session_state.tailor_dict
+
+
 
 def concat_skills(skills_list, skills_str=""):
     for s in skills_list:
@@ -299,7 +316,6 @@ def concat_skills(skills_list, skills_str=""):
         example = s["example"]
         skills_str+="(skill: " +skill + ", example: "+ example + ")"
     return skills_str
-
 
 async def tailor_skills(required_skills, my_skills,):
 
@@ -353,43 +369,81 @@ async def tailor_skills(required_skills, my_skills,):
                                             required_skills = required_skills_str,
                                             my_skills = my_skills,
     )
-    tailored_skills = llm.ainvoke(message).content
-    # tailored_skills = generate_multifunction_response(skills_prompt, create_search_tools("google", 1), )
-    tailored_skills_dict = asyncio_run(create_pydantic_parser(tailored_skills, TailoredSkills), timeout=5)
-    return tailored_skills_dict if tailored_skills_dict else "please try again"
+    tailored_skills = await llm.ainvoke(message)
+    return tailored_skills
 
 
-def tailor_objective(job_requirements, my_objective):
+async def tailor_objective(job_requirements, my_objective, resume_content, job_title):
 
-    #TODO: THIS needs to to be redone!
-        prompt = f""" Your task is to find out words and phrases from the objective/summary section of the resume that can be substitued so it aligns with job description.
+    # prompt = f""" Your task is to find relevant information in the resume content that can be matched to the job requirements in a job posting. 
+
+    # The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
+
+    # Other type of relevant information can be indirect, such as  
+     
+    #   resume content: {resume_content} \n
+
+    # job requirements: {job_requirements} \n
+
+    # Please output your answer as a comma separated list where any relevant information is listed as words or phrases.  """
+    # commonality = asyncio_run(create_smartllm_chain(prompt, n_ideas=1), timeout=10)
+    # if commonality:
+    #     prompt = f""" Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
         
-        You are provided withs some job requirements and a resume objective.
-        
-            Please Use them to generate a list of words or phrases in the objective/summary section of the resume can be replaced along with their subsitutions. 
-
-            The goal is having an objective/summary section of the resume tailored to the job and company alignment. 
-
-            resume objective/summary: {my_objective} \n\n
+    #     You are provided withs a resume objective, the job title, and a list of words and phrases that 
+    #         resume's objective/summary: {my_objective} \n
             
-            job requirements: {job_requirements} \n\n
+    #         job title: {job_title} \n
 
-            Please follow the following format and make sure all replacements are unique:
+    #         list of things the job posting and resume share: {commonality}
 
-            1. Replaced_words: <the phrase/words to be replaced> Substitution: <the substitution for the phrase/words>
+    #         Please follow the following format and make sure all replacements are unique:
 
-        DO NOT USE ANY TOOLS and make sure all the words/phrases to be replaced come from the resume objective. 
+    #         1. Replaced_words: <the phrase/words to be replaced> ; Substitution: <the substitution for the phrase/words>
+
+    #     DO NOT USE ANY TOOLS and make sure all the words/phrases to be replaced come from the resume's objective/summary. 
         
-        """
+    #     """
+
             
-            # about job/company: {company_description} \
-        tailored_objective_dict = "please try again"
-        tailored_objective = asyncio_run(create_smartllm_chain(prompt, n_ideas=1), timeout=10)
-        if tailored_objective:
-        # tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
-            tailored_objective_dict = asyncio_run(create_pydantic_parser(tailored_objective, Replacements), timeout=5)
-        return tailored_objective_dict
-        
+    #         # about job/company: {company_description} \
+    #     tailored_objective = asyncio_run(generate_multifunction_response(prompt, create_search_tools("google", 1)), timeout=10)
+    #     if tailored_objective:
+    #     # tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
+    #         tailored_objective_dict = asyncio_run(create_pydantic_parser(tailored_objective, Replacements), timeout=5)
+    template_string = """ 
+    
+    Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
+
+    Please follow the below steps:
+
+    Step 1: find relevant information in the resume content that can be matched to the job requirements in a job posting. 
+
+    The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
+
+    Other type of relevant information which can be induced based on skills and work experience should also be included.
+    
+    resume content: {resume_content} \n
+
+    job requirements: {job_requirements} \n
+
+    Step 2:  you are provided withs a resume objective and the job title, if available.
+
+        job title: {job_title} \n
+
+        resume objective: {my_objective} 
+
+        Please follow the following format and the relevant information from Step 1 to make appropriate changes to the resume objective. Make sure all replacements are unique and use the following format as your output:
+
+        1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
+
+    """
+    prompt_template = ChatPromptTemplate.from_template(template_string)
+    # print(prompt_template.messages[0].prompt.input_variables)
+    message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
+    response = await llm.ainvoke(message)
+    return response
+
 
 
 def tailor_experience(job_requirements, experience,):

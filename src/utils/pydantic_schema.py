@@ -300,10 +300,12 @@ class Replacement(BaseModel):
         default="", description="word or phrases to be replaced or subsituted"
     )
     substitution: Optional[str] = Field(
-        default="", description = "substitution words or phrases, can be multiple"
+        default="", description = "the substitution"
     )
 class Replacements(BaseModel):
-    replacements: List[Replacement]
+    replacements: List[Replacement] = Field(
+        default=[], description="the content will be a list made up of words that are to be replaced and their subtitutions"
+    )
 
 
 class GeneralEvaluation(BaseModel):
@@ -341,6 +343,7 @@ class JobTrackingUsers(BaseModel):
     resume_path: Optional[str]
     cover_letter_path: Optional[str]
     status: Optional[str]
+    time: str
 
 
 class ResumeUsers(BaseModel):
