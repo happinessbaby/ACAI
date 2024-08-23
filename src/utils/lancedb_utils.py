@@ -48,6 +48,7 @@ db = lancedb.connect(db_path)
 
 
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
+lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 
 # this is the schema for table of UserInfo
 #FOR SCHEMA SETUP: https://lancedb.github.io/lancedb/guides/tables/#open-existing-tablesa
@@ -168,33 +169,49 @@ def retrieve_dict_from_table(userId, tablename):
 
     users_table = retrieve_lancedb_table(tablename)
     if users_table:
-        table_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
-        if not table_dict["user_id"]:
+        # table_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict("list")
+        table_dict= users_table.search().where(f"user_id = '{userId}'", prefilter=True).to_pandas().to_dict(orient="records")
+        if not table_dict:
+        # if not table_dict["user_id"]:
             return None
-        for key in table_dict:
-            if isinstance(table_dict[key], list):
-                try:
-                    value=table_dict[key][0]
-                    if isinstance(value, str):  # Handle strings
-                        table_dict[key]=value
-                    elif isinstance(value, (np.ndarray, list)):  # Handle arrays
-                        # print(value)
-                        cleaned_data= clean_field(table_dict, key)
-                        table_dict[key] = convert_arrays_to_lists(cleaned_data)
-                        # print("list pydantic arrays", table_dict[key])
-                    elif isinstance(value, dict):
-                        for k in value:
-                            if isinstance(value[k], (np.ndarray, list)):
-                                cleaned_data = clean_field(value, k)
-                                value[k] = convert_arrays_to_lists(cleaned_data)
-                        table_dict[key]=value
-                    else:                   # Handle None and anomalies
-                        table_dict[key] = ''
-                except IndexError as e:
-                    print(e)
-                    pass
-        print(f"Retrieved {tablename} dict from lancedb",)
-        return table_dict
+        for row in table_dict:
+            for key in row:
+                if isinstance(row[key], str):  # Handle strings
+                    row[key] = row[key].strip()  # Optional: strip any extra whitespace
+                elif isinstance(row[key], (np.ndarray, list)):  # Handle arrays
+                    cleaned_data = clean_field(row, key)
+                    row[key] = convert_arrays_to_lists(cleaned_data)
+                elif isinstance(row[key], dict):  # Handle nested dictionaries
+                    for k in row[key]:
+                        if isinstance(row[key][k], (np.ndarray, list)):
+                            cleaned_data = clean_field(row[key], k)
+                            row[key][k] = convert_arrays_to_lists(cleaned_data)
+                else:  # Handle None and anomalies
+                    row[key] = ''
+        # for key in table_dict:
+        #     if isinstance(table_dict[key], list):
+        #         try:
+        #             value=table_dict[key][0]
+        #             if isinstance(value, str):  # Handle strings
+        #                 table_dict[key]=value
+        #             elif isinstance(value, (np.ndarray, list)):  # Handle arrays
+        #                 # print(value)
+        #                 cleaned_data= clean_field(table_dict, key)
+        #                 table_dict[key] = convert_arrays_to_lists(cleaned_data)
+        #                 # print("list pydantic arrays", table_dict[key])
+        #             elif isinstance(value, dict):
+        #                 for k in value:
+        #                     if isinstance(value[k], (np.ndarray, list)):
+        #                         cleaned_data = clean_field(value, k)
+        #                         value[k] = convert_arrays_to_lists(cleaned_data)
+        #                 table_dict[key]=value
+        #             else:                   # Handle None and anomalies
+        #                 table_dict[key] = ''
+        #         except IndexError as e:
+        #             print(e)
+        #             pass
+        print(f"Retrieved {tablename} dict from lancedb", table_dict)
+        return table_dict if tablename==lance_tracker_table else table_dict[0]
     else:
         return None
 

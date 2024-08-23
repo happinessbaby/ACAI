@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
-from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, grammar_checker
+from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
 import uuid
@@ -33,9 +33,11 @@ import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
+from annotated_text import annotated_text
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
 from utils.async_utils import thread_with_trace, asyncio_run
+import re
 import queue
 # import streamlit_antd_components as sac
 #NOTE: below import is necessary for nested column fix, do not delete
@@ -151,6 +153,8 @@ class User():
                 st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
+            if "freeze" not in st.session_state:
+                st.session_state["freeze"]=False
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -627,6 +631,7 @@ class User():
             try:
                 del st.session_state["job_posting_path"]
                 del st.session_state["job_description"]
+                # del st.session_state["preselection"]
             except Exception:
                 pass
             posting = st.session_state.job_postingx
@@ -1010,44 +1015,37 @@ class User():
         """ Displays the field-specific analysis UI """
 
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
-        with c0:
-            if f"{field_name}_readability" in st.session_state:
-                if idx:
-                    popover_key=f"textstat_{field_name}_popover_{idx}"
-                else:
-                    popover_key = f"textstat_{field_name}_popover"
-                with stylable_container(
-                    key=popover_key,
+
+        def display_tailor_options(popover_label="tailor"):
+            st.markdown(primary_button2, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            with stylable_container(
+                    key=button_key,
                     css_styles="""
                         button {
                             background: none;
                             border: none;
-                            color: #ff8247;
+                            color: #2d2e29;
                             padding: 0;
                             cursor: pointer;
-                            font-size: 12px; 
+                            font-size: 12px; /* Adjust as needed */
                             text-decoration: none;
                         }
                         """,
                 ):
-                    with st.popover("readability"):
-                        if idx:
-                            button_key=f"textstat_again_{field_name}_button_{idx}"
-                        else:
-                            button_key = f"textstat_again_{field_name}_button"
-                        fig = readability_indicator(st.session_state[f"{field_name}_readability"])
-                        st.plotly_chart(fig)
-                        st.markdown(primary_button2, unsafe_allow_html=True)
-                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        st.button("check again", key=button_key, on_click=readability_checker, args=(field_name, details, ))
-            else:
-                if idx:
-                    button_key=f"textstat_{field_name}_button_{idx}"
-                else:
-                    button_key = f"textstat_{field_name}_button"
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                checker = st.button("readability", key=button_key,on_click=readability_checker, args=(field_name, details, ) )
+                with st.popover(popover_label):
+                    if "job_posting_dict" not in st.session_state:
+                        upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
+                        if upload:
+                            self.job_posting_popup(mode="resume")
+                    else:
+                        selection = st.radio(label=" ", options=["with the current job posting", "with a new job posting"],
+                                                key=button_key+"_selection",
+                                    label_visibility="collapsed", 
+                                    index=None, )
+                        if selection == "with the current job posting":
+                            self.tailor_callback(field_name, details, )
+                            st.rerun()
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 if idx:
@@ -1073,6 +1071,9 @@ class User():
                                 button_key=f"eval_again_{field_name}_button_{idx}"
                             else:
                                 button_key=f"eval_again_{field_name}_button"
+                            if f"{field_name}_readability" in st.session_state:
+                                fig = readability_indicator(st.session_state[f"{field_name}_readability"])
+                                st.plotly_chart(fig)
                             evaluation = st.session_state[f"evaluated_{field_name}"]
                             st.write(evaluation)
                             st.markdown(primary_button2, unsafe_allow_html=True)
@@ -1112,19 +1113,41 @@ class User():
                         else:
                             button_key=f"tailor_again_{field_name}_button"
                         tailoring = st.session_state[f"tailored_{field_name}"]
-                        st.write(tailoring)
+                        if field_name=="summary_objective":
+                            if tailoring!="please try again":
+                                # split sentence into words and punctuations
+                                text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
+                                replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
+                                substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
+                                # replace replacements with annotation
+                                for i in range(len(text_list)):
+                                    for j in range(1, len(text_list)-i+1):
+                                        substring = " ".join(text_list[i:i+j])
+                                        if substring in replaced_words:
+                                            idx = replaced_words.index(substring)
+                                            text_list[i] = (substitutions[idx], substring)
+                                            for x in range(i+1, i+j):
+                                                text_list[x]=""
+                                            break                 
+                                # text_list = [text for text in text_list if text!=""]
+                                # text_list = [text + " " if not isinstance(text, tuple) else text for text in text_list]
+                                text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
+                                print(text_list)
+                                annotated_text(text_list)
+                            else:
+                                st.write(tailoring)
+                        else:
+                            st.write(tailoring)
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
+                        display_tailor_options(popover_label="tailor again")
+                        # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
                 if idx:
                     button_key=f"tailor_{field_name}_button_{idx}"
                 else:
                     button_key=f"tailor_{field_name}_button"
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                tailor = st.button("tailor", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ))
-
+                display_tailor_options(popover_label="tailor")
      
           
 
@@ -1138,22 +1161,15 @@ class User():
             st.session_state["job_posting_disabled"]=False
         else:
             st.session_state["job_posting_disabled"]=True
-        st.info("In case a link does not work, please copy and paste the complete job posting content into box below")
-        # job_posting = st.radio(f" ", 
-        #                         key="job_posting_radio", options=["job description", "job posting link"], 
-        #                         index = 1 if "job_description"  not in st.session_state else 0
-        #                         )
-        # if job_posting=="job posting link":
-        #     job_posting_link = st.text_input(label="Job posting link",
-        #                                     key="posting_link", 
-        #                                     on_change=self.form_callback,
-        #                                     )
-        # elif job_posting=="job description":
-            # job_description = st.text_area("Job description", 
-            #                             key="job_descriptionx", 
-            #                             value=st.session_state.job_description if "job_description" in st.session_state else "",
-            #                             on_change=self.form_callback
-            #                                 )
+        st.info("In case a link does not work, please copy and paste the complete job posting content into the box below")
+        # past_jobs = st.session_state["tracker"]
+        # if past_jobs:
+        #     options =[past_job["company"] + "-" + past_job["job"] for past_job in past_jobs]
+        #     print(options)
+        #     selection = st.selectbox(label="Select a past job", options = options, index=None, )
+        #     if selection:
+        #         st.session_state["job_posting_dict"] = past_jobs[past_jobs.index(selection)]
+        #         st.session_state["preselection"] = True
         job_description = st.text_area("job posting link or job description", 
                                         key="job_postingx", 
                                         placeholder="Pleasae paste a job posting link or a job description here",
@@ -1161,34 +1177,30 @@ class User():
                                         label_visibility="collapsed",
                                             )
         # st.session_state["info_container"]=st.empty()
+        freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
+                 help = "This will make your tailoring changes a session copy",
+                 options=["yes", "no"], 
+                 horizontal=True,)
+        if freeze:
+            st.session_state["freeze"]=True
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
+            # if "preselection" not in st.session_state:
             self.initialize_job_posting_callback()
             # starts field tailoring if called to tailor a field
             if mode=="resume" and "tailoring_field" in st.session_state:
                 # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
                 tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
             # starts cover letter generation if called to generate cover letter
-            elif mode=="cover_letter":
+            if mode=="cover_letter":
                 download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
                 st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
                 save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
                 automatic_download(download_path)
-            try:
-                del st.session_state["job_posting_path"]
-                del st.session_state["job_description"]
-            except Exception:
-                pass
             st.rerun()
 
     def initialize_job_posting_callback(self, ):
 
-        # deletes previously generated job posting dictionary 
-        try: 
-            del st.session_state["job_posting_dict"]
-        except Exception:
-            pass
-        # creates a new job posting dictionary
-        st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+        st.session_state["job_posting_dict"] = create_job_posting_info(
                     st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
                     st.session_state.job_description if "job_description" in st.session_state else "",  
                 )
@@ -1198,6 +1210,7 @@ class User():
         st.session_state["job_posting_dict"].update({"resume_path": ""})
         st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
         st.session_state["job_posting_dict"].update({"status": ""})
+        st.session_state["job_posting_dict"].update({"time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
         save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
 
 
@@ -1208,13 +1221,15 @@ class User():
             # starts specific field tailoring
             tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, field_details,)
         else:
+
             # initialize a job posting popup 
             if field_name:
                 st.session_state["tailoring_field"]=field_name
             if field_details:
                 st.session_state["tailoring_details"]=field_details
             self.job_posting_popup()
-
+            
+   
 
 
     def evaluation_callback(self, field_name=None, details=None,):
@@ -1231,14 +1246,7 @@ class User():
                 self.eval_thread.start()   
                 st.session_state["init_eval"]=True
          
-    # def cover_letter_callback(self, ):
 
-    #     if "job_posting_dict" in st.session_state:
-    #         download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
-    #         if download_path:
-    #             automatic_download(download_path)
-    #     else:
-    #         self.job_posting_popup(mode="cover_letter")
     
 
 
@@ -1246,10 +1254,17 @@ class User():
 
         """Displays interactive user profile UI"""
 
-        # save session profile periodically
-        self.save_session_profile()
+        # self.save_session_profile()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
+        with fields_col:
+             # save session profile periodically unless user freezes their profile
+            freeze=st.toggle("freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            if freeze:
+                 pass
+            else:
+                self.save_session_profile()
+
         # general evaluation column
         with eval_col:
             float_container= st.container()
@@ -1384,8 +1399,8 @@ class User():
                 if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                     # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                     self.delete_profile_popup()
-                if st.button("Upload a new job posting", key="new_posting_button", use_container_width=True):
-                    self.job_posting_popup(mode="resume")
+                # if st.button("Upload a new job posting", key="new_posting_button", use_container_width=True):
+                #     self.job_posting_popup(mode="resume")
                 if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     self.job_posting_popup(mode="cover_letter")
@@ -1416,7 +1431,7 @@ class User():
             # else:
             #     display_name = "Your profile is being evaluated ✨..."
             #     # button_name="stop evaluation"
-            with st.popover("Your profile evaluation"):
+            with st.popover("Your profile report ✨"):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
@@ -1464,7 +1479,7 @@ class User():
                 except Exception:
                     if finished is False:
                         st.write("Evaluating...")
-                st.write("**How does your resume compared to other resume?**")
+                st.write("**How does your resume compare to others?**")
                 try:
                     section_names = ["objective", "work_experience", "skillsets"]
                     comparison_data = []

@@ -106,3 +106,4 @@ streamlit_js_eval
 streamlit-extras
 streamlit-nested-layout
 streamlit-pdf-viewer
+st-annotated-text

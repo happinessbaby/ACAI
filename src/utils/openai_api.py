@@ -89,7 +89,7 @@ def get_moderation_flag(prompt):
 	return moderation_output["flagged"]
 	
 @retry(wait=wait_exponential(multiplier=1, min=2, max=6))
-def get_completion(prompt, model="gpt-3.5-turbo"):
+def get_completion(prompt, model="gpt-4o-mini"):
     messages = [{"role": "user", "content": prompt}]
     response = openai.chat.completions.create(
         model=model,
@@ -100,7 +100,7 @@ def get_completion(prompt, model="gpt-3.5-turbo"):
 
 @retry(wait=wait_exponential(multiplier=1, min=2, max=6))
 def get_completion_from_messages(messages, 
-                                 model="gpt-3.5-turbo", 
+                                 model="gpt-4o-mini", 
                                  temperature=0, 
                                  max_tokens=500):
     response = openai.chat.completions.create(
