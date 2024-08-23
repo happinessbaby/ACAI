@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
-from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, retrieve_or_create_job_posting_info, grammar_checker
+from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
 import uuid
@@ -153,6 +153,8 @@ class User():
                 st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
+            if "freeze" not in st.session_state:
+                st.session_state["freeze"]=False
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -1123,11 +1125,14 @@ class User():
                                         substring = " ".join(text_list[i:i+j])
                                         if substring in replaced_words:
                                             idx = replaced_words.index(substring)
-                                            text_list[i] = (substitutions[idx], replaced_words)
+                                            text_list[i] = (substitutions[idx], substring)
                                             for x in range(i+1, i+j):
                                                 text_list[x]=""
                                             break                 
-                                text_list = [text for text in text_list if text!=""]
+                                # text_list = [text for text in text_list if text!=""]
+                                # text_list = [text + " " if not isinstance(text, tuple) else text for text in text_list]
+                                text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
+                                print(text_list)
                                 annotated_text(text_list)
                             else:
                                 st.write(tailoring)
@@ -1172,6 +1177,12 @@ class User():
                                         label_visibility="collapsed",
                                             )
         # st.session_state["info_container"]=st.empty()
+        freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
+                 help = "This will make your tailoring changes a session copy",
+                 options=["yes", "no"], 
+                 horizontal=True,)
+        if freeze:
+            st.session_state["freeze"]=True
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
             # if "preselection" not in st.session_state:
             self.initialize_job_posting_callback()
@@ -1189,7 +1200,7 @@ class User():
 
     def initialize_job_posting_callback(self, ):
 
-        st.session_state["job_posting_dict"] = retrieve_or_create_job_posting_info(
+        st.session_state["job_posting_dict"] = create_job_posting_info(
                     st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
                     st.session_state.job_description if "job_description" in st.session_state else "",  
                 )
@@ -1243,10 +1254,17 @@ class User():
 
         """Displays interactive user profile UI"""
 
-        # save session profile periodically
-        self.save_session_profile()
+        # self.save_session_profile()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         _, menu_col, _ = st.columns([3, 1, 3])   
+        with fields_col:
+             # save session profile periodically unless user freezes their profile
+            freeze=st.toggle("freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            if freeze:
+                 pass
+            else:
+                self.save_session_profile()
+
         # general evaluation column
         with eval_col:
             float_container= st.container()

@@ -81,15 +81,15 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
         for category in categories:
             category_dict = analyze_language(resume_content, category)
             st.session_state.evaluation.update({category:category_dict})
-        section_names = ["objective", "work_experience", "skillsets"]
-        field_names = ["summary_objective", "work_experience", "included_skills"]
-        field_map = dict(zip(field_names, section_names))
-        related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
-        sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-        for field_name, section_name in field_map.items():
-            # for category in categories:
-            comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
-            st.session_state.evaluation.update({section_name:comparison_dict})
+        # section_names = ["objective", "work_experience", "skillsets"]
+        # field_names = ["summary_objective", "work_experience", "included_skills"]
+        # field_map = dict(zip(field_names, section_names))
+        # related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
+        # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+        # for field_name, section_name in field_map.items():
+        #     # for category in categories:
+        #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
+        #     st.session_state.evaluation.update({section_name:comparison_dict})
         # Generate overall impression
         impression = generate_impression(resume_content, pursuit_jobs)
         st.session_state.evaluation["impression"]= impression
@@ -138,7 +138,7 @@ def analyze_field_content(field_content, field_type):
         field content list: {field_content}  \
 
         DO NOT USE ANY TOOLS. """
-        response = asyncio_run(generate_multifunction_response(star_prompt, create_search_tools("google", 1)))
+        response = asyncio_run(lambda: generate_multifunction_response(star_prompt, create_search_tools("google", 1)))
         return response
     elif field_type=="projects":
         """Summary of the project
@@ -170,7 +170,7 @@ def analyze_summary_objective(resume_content, ):
     
     """
 
-    summary_resp = asyncio_run(generate_multifunction_response(summary_query, create_search_tools("google", 1)))
+    summary_resp = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)))
     return summary_resp
 
 
@@ -203,9 +203,9 @@ s
     
     """
     comparison_dict = {"closeness":"", "reason":""}
-    comparison_resp = asyncio_run(generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=5)
+    comparison_resp = asyncio_run(lambda:generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=5)
     if comparison_resp:
-        comparison_dict = asyncio_run(create_pydantic_parser(comparison_resp, Comparison), timeout=5)
+        comparison_dict = asyncio_run(lambda:create_pydantic_parser(comparison_resp, Comparison), timeout=5)
     return comparison_dict
 
 def analyze_language(resume_content, category):
@@ -215,9 +215,9 @@ def analyze_language(resume_content, category):
     resume: {resume_content}
     """
     language_dict= {"rating":"", "reason":""}
-    language_resp = asyncio_run(generate_multifunction_response(query_language, create_search_tools("google", 1), early_stopping=False), timeout=5)
+    language_resp = asyncio_run(lambda: create_smartllm_chain(query_language, n_ideas=1), timeout=5)
     if language_resp:
-        language_dict = asyncio_run(create_pydantic_parser(language_resp, Language), timeout=5)
+        language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
     return language_dict
 
 
@@ -243,7 +243,7 @@ def generate_impression(resume_content, jobs):
     DO NOT USE ANY TOOLS! """
 
 
-    impression_resp = asyncio_run(generate_multifunction_response(query_impression, create_search_tools("google", 1), early_stopping=False), timeout=10)
+    impression_resp = asyncio_run(lambda: generate_multifunction_response(query_impression, create_search_tools("google", 1), early_stopping=False), timeout=10)
     return impression_resp if impression_resp else ""
 
 
@@ -266,8 +266,8 @@ def analyze_resume_type(resume_content, ):
       Note a resume can be mix of chronological and functional type.
 
     """
-    response=asyncio_run(create_smartllm_chain(query_type, n_ideas=1))
-    type_dict = asyncio_run(create_pydantic_parser(response, ResumeType))
+    response=asyncio_run(lambda: create_smartllm_chain(query_type, n_ideas=1))
+    type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType))
     return type_dict["type"]
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
@@ -281,9 +281,9 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=N
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
     if type=="included_skillls":
-        tailored_skills = asyncio_run(tailor_skills(job_requirements, details))
+        tailored_skills = asyncio_run(lambda: tailor_skills(job_requirements, details))
         if tailored_skills:
-            tailored_skills_dict = asyncio_run(create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
+            tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
             if tailored_skills_dict:    
                 st.session_state[f"tailored_{type}"]=tailored_skills_dict
             else:
@@ -291,10 +291,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=N
         else:
             st.session_state[f"tailored_{type}"] = "please try again"
     if type=="summary_objective":
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
         job_title = job_posting_dict["job"]
-        response = asyncio_run(tailor_objective(about_job, details, resume_content, job_title))
+        response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title))
         if response:
-            tailored_objective_dict = asyncio_run(create_pydantic_parser(response.content, Replacements), timeout=5)
+            tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
             if tailored_objective_dict:
                 st.session_state[f"tailored_{type}"]=tailored_objective_dict
             else:
@@ -304,7 +305,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=N
             st.session_state[f"tailored_{type}"]="please try again"
     if type=="work_experience":
         print("experience details", details)
-        tailored_experience = asyncio_run(tailor_experience(job_requirements, details))
+        tailored_experience = asyncio_run(lambda: tailor_experience(job_requirements, details))
         st.session_state[f"tailored_{type}"]= tailored_experience
     # return st.session_state.tailor_dict
 
@@ -442,6 +443,7 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
     # print(prompt_template.messages[0].prompt.input_variables)
     message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
     response = await llm.ainvoke(message)
+    print(response)
     return response
 
 
@@ -460,7 +462,7 @@ def tailor_experience(job_requirements, experience,):
         For experiences that are ranked lower with little relevancy to the job requirements, please also suggest some transferable skills that can be included.
         DO NOT USE ANY TOOLS
     """
-    ranked_experience = asyncio_run(generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=5)
+    ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=5)
     return ranked_experience if ranked_experience else "please try again"
 
 
@@ -490,7 +492,7 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])
-    similar_jobs = asyncio_run(extract_similar_jobs(jobs_list, desired_jobs))
+    similar_jobs = asyncio_run(lambda: extract_similar_jobs(jobs_list, desired_jobs))
     total_years_work=0
     for job in jobs:
         if job in similar_jobs:

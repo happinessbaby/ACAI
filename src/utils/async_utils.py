@@ -36,7 +36,7 @@ class thread_with_trace(threading.Thread):
   def kill(self):
     self.killed = True
 
-def asyncio_run(future, as_task=True, timeout=None):
+def asyncio_run(coro_factory, as_task=True, timeout=None, max_try=2):
     """
     A better implementation of `asyncio.run` that supports returning values and timeout. 
 
@@ -46,6 +46,17 @@ def asyncio_run(future, as_task=True, timeout=None):
     :return: The result of the future, or raises asyncio.TimeoutError if it times out.
     """
 
+    async def run_with_retries():
+      for attempt in range(max_try):
+          try:
+              result = await asyncio.wait_for(_to_task(coro_factory(), as_task, loop), timeout)
+              return result
+          except asyncio.TimeoutError:
+              if attempt < max_try - 1:
+                  print(f"Task timed out after {timeout} seconds. Retrying... ({attempt + 1}/{max_try})")
+              else:
+                  print(f"Max retries reached. Returning None.")
+                  return None
     try:
         loop = asyncio.get_running_loop()
         print("loop exists")
@@ -55,10 +66,7 @@ def asyncio_run(future, as_task=True, timeout=None):
         print('loop is created ')
         # loop.run_until_complete(_to_task(future, as_task, loop))
     try:
-        return loop.run_until_complete(asyncio.wait_for(_to_task(future, as_task, loop), timeout))
-    except asyncio.TimeoutError:
-        print(f"Task timed out after {timeout} seconds.")
-        return None  # Handle the timeout case appropriately (e.g., return a default value or raise an exception)
+        return loop.run_until_complete(run_with_retries())
     finally:
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
