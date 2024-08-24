@@ -62,20 +62,20 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
         # Evaluate resume length
         word_count = count_length(resume_file)
         st.session_state.evaluation.update({"word_count": word_count})
-        pattern = r'pages:(\d+)'
-        # Search for the pattern in the text (I added page number when writing the file to txt)
-        match = re.search(pattern, resume_content)
-        # If a match is found, extract and return the number
-        if match:
-            page_num = match.group(1)
-        else:
-            page_num = 0
-        st.session_state.evaluation.update({"page_count": int(page_num)})
+        # pattern = r'pages:(\d+)'
+        # # Search for the pattern in the text (I added page number when writing the file to txt)
+        # match = re.search(pattern, resume_content)
+        # # If a match is found, extract and return the number
+        # if match:
+        #     page_num = match.group(1)
+        # else:
+        #     page_num = 0
+        # st.session_state.evaluation.update({"page_count": int(page_num)})
         # Research and analyze resume type
         ideal_type = research_resume_type(resume_dict=resume_dict, )
         st.session_state.evaluation.update({"ideal_type": ideal_type})
-        resume_type= analyze_resume_type(resume_content,)
-        st.session_state.evaluation.update({"resume_type": resume_type})
+        # resume_type= analyze_resume_type(resume_content,)
+        # st.session_state.evaluation.update({"resume_type": resume_type})
         # st.session_state.evaluation.update(type_dict)
         categories=["syntax", "diction", "tone", "coherence"]
         for category in categories:
@@ -270,7 +270,7 @@ def analyze_resume_type(resume_content, ):
     type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType))
     return type_dict["type"]
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None):
 
     print('start tailoring....')
     about_job = job_posting_dict["about_job"]
@@ -280,33 +280,32 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type="general", details=N
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    if type=="included_skillls":
+    if field_name=="included_skillls":
         tailored_skills = asyncio_run(lambda: tailor_skills(job_requirements, details))
         if tailored_skills:
             tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
             if tailored_skills_dict:    
-                st.session_state[f"tailored_{type}"]=tailored_skills_dict
+                st.session_state[f"tailored_{field_name}"]=tailored_skills_dict
             else:
-                st.session_state[f"tailored_{type}"]="please try again"
+                st.session_state[f"tailored_{field_name}"]="please try again"
         else:
-            st.session_state[f"tailored_{type}"] = "please try again"
-    if type=="summary_objective":
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
+            st.session_state[f"tailored_{field_name}"] = "please try again"
+    elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title))
         if response:
             tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
             if tailored_objective_dict:
-                st.session_state[f"tailored_{type}"]=tailored_objective_dict
+                st.session_state[f"tailored_{field_name}"]=tailored_objective_dict
             else:
                 print("PYDANTIC FAILED FOR TAILORING OBJECTIVE")
-                st.session_state[f"tailored_{type}"]="please try again"
+                st.session_state[f"tailored_{field_name}"]="please try again"
         else:
-            st.session_state[f"tailored_{type}"]="please try again"
-    if type=="work_experience":
-        print("experience details", details)
-        tailored_experience = asyncio_run(lambda: tailor_experience(job_requirements, details))
-        st.session_state[f"tailored_{type}"]= tailored_experience
+            st.session_state[f"tailored_{field_name}"]="please try again"
+    if type=="bullet_points":
+        print("bullet point details", details)
+        tailored_experience = tailor_bullet_points(field_name, details, job_requirements,)
+        st.session_state[f"tailored_{field_name}"]= tailored_experience
     # return st.session_state.tailor_dict
 
 
@@ -448,21 +447,21 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
 
 
-def tailor_experience(job_requirements, experience,):
+def tailor_bullet_points(field_name, field_detail,  job_requirements,):
 
     """ Evaluates relevancy and ranks most important roles"""
 
-    rank_prompt = f"""Please rank content of the experience section of the resume with respective to the job requirements.
+    rank_prompt = f"""Please rank content of the {field_name} section of the resume with respective to the job requirements.
         For example, if a candidate has experience in SQL and SQL is also a skill required in the job, then this experience should be ranked higher on the list.
         If a candidate has experience in customer service but this is not part of the role of the job, then this experience should be ranked lower. 
-        experience: {experience} \
+        {field_name} section: {field_detail} \
         job requirements: {job_requirements} \
 
         Please provide your reasoning for your ranking process. 
-        For experiences that are ranked lower with little relevancy to the job requirements, please also suggest some transferable skills that can be included.
+        For items that are ranked lower with little relevancy to the job requirements, please also suggest some transferable skills that can be included.
         DO NOT USE ANY TOOLS
     """
-    ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=5)
+    ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
     return ranked_experience if ranked_experience else "please try again"
 
 

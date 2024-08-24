@@ -917,7 +917,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
     if basic_info_dict:
         job_posting_info_dict.update(basic_info_dict)
     else:
-        basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualificatios":[], "responsibilities":[], "salary":"", "on_site":None}
+        basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
         job_posting_info_dict.update(basic_info_dict)
     # Research soft and hard skills required
     job_posting_skills = research_skills(posting, "job posting", n_ideas=1)

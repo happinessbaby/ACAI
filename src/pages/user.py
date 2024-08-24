@@ -782,8 +782,9 @@ class User():
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
             if x!=-1 and len(field_list)>0:
-                details = ". ".join(st.session_state["profile"][field_name][x])
-                self.display_field_analysis(field_name, details=details, idx=x)
+                details = ". ".join(st.session_state["profile"][field_name][x][field_detail])
+                # print("BBBBB", details)
+                self.display_field_analysis(type, field_name, details=details, idx=x)
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -1010,7 +1011,7 @@ class User():
         return get_display
 
     @st.fragment()
-    def display_field_analysis(self, field_name, details, idx=None):
+    def display_field_analysis(self, type, field_name, details, idx=None):
 
         """ Displays the field-specific analysis UI """
 
@@ -1044,8 +1045,12 @@ class User():
                                     label_visibility="collapsed", 
                                     index=None, )
                         if selection == "with the current job posting":
-                            self.tailor_callback(field_name, details, )
+                            self.tailor_callback(type, field_name, details, )
+                            # make sure the radio is initiated to none every time
+                            del st.session_state[button_key+"_selection"]
                             st.rerun()
+                        elif selection=="with a new job posting":
+                            self.job_posting_popup()
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 if idx:
@@ -1129,8 +1134,6 @@ class User():
                                             for x in range(i+1, i+j):
                                                 text_list[x]=""
                                             break                 
-                                # text_list = [text for text in text_list if text!=""]
-                                # text_list = [text + " " if not isinstance(text, tuple) else text for text in text_list]
                                 text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
                                 print(text_list)
                                 annotated_text(text_list)
@@ -1161,7 +1164,9 @@ class User():
             st.session_state["job_posting_disabled"]=False
         else:
             st.session_state["job_posting_disabled"]=True
-        st.info("In case a link does not work, please copy and paste the complete job posting content into the box below")
+        if mode=="cover_letter":
+            st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
+        st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
         # past_jobs = st.session_state["tracker"]
         # if past_jobs:
         #     options =[past_job["company"] + "-" + past_job["job"] for past_job in past_jobs]
@@ -1177,25 +1182,35 @@ class User():
                                         label_visibility="collapsed",
                                             )
         # st.session_state["info_container"]=st.empty()
-        freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
-                 help = "This will make your tailoring changes a session copy",
-                 options=["yes", "no"], 
-                 horizontal=True,)
-        if freeze:
-            st.session_state["freeze"]=True
+        if mode=="resume":
+            freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
+                    help = "This will make your tailoring changes a session copy so you can edit without losing the original profile",
+                    options=["yes", "no"], 
+                    horizontal=True,)
+            if freeze:
+                st.session_state["freeze"]=True
         if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
             # if "preselection" not in st.session_state:
             self.initialize_job_posting_callback()
             # starts field tailoring if called to tailor a field
-            if mode=="resume" and "tailoring_field" in st.session_state:
-                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
-                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
+            # if mode=="cover_letter":
+            #     download_path=asyncio_run(lambda: generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], ))
+            #     if download_path:
+            #         st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
+            #         save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+            #         with open(download_path, "rb") as file:
+            #             file_content = file.read()
+            #         st.download_button(
+            #             label="Download your cover letter",
+            #             data=file_content,
+            #             file_name="cover_letter.docx",  # Specify the default name for the downloaded file
+            #             mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    # )
             # starts cover letter generation if called to generate cover letter
-            if mode=="cover_letter":
-                download_path=generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], )
-                st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
-                save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
-                automatic_download(download_path)
+                # automatic_download(download_path)
+            # elif mode=="resume" and "tailoring_field" in st.session_state:
+                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
+                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
             st.rerun()
 
     def initialize_job_posting_callback(self, ):
@@ -1215,11 +1230,11 @@ class User():
 
 
     
-    def tailor_callback(self, field_name=None, field_details=None):
+    def tailor_callback(self, type=None, field_name=None, field_details=None):
       
         if "job_posting_dict" in st.session_state and field_name:
             # starts specific field tailoring
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], field_name, field_details,)
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details,)
         else:
 
             # initialize a job posting popup 
@@ -1259,7 +1274,7 @@ class User():
         _, menu_col, _ = st.columns([3, 1, 3])   
         with fields_col:
              # save session profile periodically unless user freezes their profile
-            freeze=st.toggle("freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
             if freeze:
                  pass
             else:
@@ -1335,7 +1350,7 @@ class User():
                     st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
                     st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
-                    self.display_field_analysis("summary_objective", st.session_state["profile"]["summary_objective"])
+                    self.display_field_analysis(type="text", field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
             with st.expander(label="Work Experience",):
                 # if st.session_state["profile"]["work_experience"]:
                 #     self.display_field_analysis("work_experience")
@@ -1401,9 +1416,9 @@ class User():
                     self.delete_profile_popup()
                 # if st.button("Upload a new job posting", key="new_posting_button", use_container_width=True):
                 #     self.job_posting_popup(mode="resume")
-                if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
-                    # NOTE:cannot be in callback because job_posting_popup is a dialog
-                    self.job_posting_popup(mode="cover_letter")
+                # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
+                #     # NOTE:cannot be in callback because job_posting_popup is a dialog
+                #     self.job_posting_popup(mode="cover_letter")
    
 
     
@@ -1425,19 +1440,14 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-            # if finished:
-            #     display_name = "Your profile has been evaluated ✨"
-            #     # button_name = "evaluate again ✨"
-            # else:
-            #     display_name = "Your profile is being evaluated ✨..."
-            #     # button_name="stop evaluation"
-            with st.popover("Your profile report ✨"):
+
+            with st.popover("My profile report ✨"):
                 c1, c2=st.columns([1, 1])
                 with c1:
                     st.write("**Length**")
                     try:
                         length=st.session_state["evaluation"]["word_count"]
-                        pages=st.session_state["evaluation"]["page_count"]
+                        # pages=st.session_state["evaluation"]["page_count"]
                         fig = length_chart(int(length))
                         st.plotly_chart(fig, 
                                         # use_container_width=True
@@ -1450,13 +1460,18 @@ class User():
                     try:
                         add_vertical_space(3)
                         ideal_type = st.session_state["evaluation"]["ideal_type"]
-                        resume_type=st.session_state["evaluation"]["resume_type"]
-                        if ideal_type==resume_type:
-                            st.subheader(":green[Good]")
-                            st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
-                        else:
-                            st.subheader(":red[Mismatch]")
-                            st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
+                        st.write("The ideal type for your resume is:")
+                        if ideal_type=="chronological":
+                            st.header(":green[Chronological]")
+                        elif ideal_type=="functional":
+                            st.header(":blue[Functional]")
+                        # resume_type=st.session_state["evaluation"]["resume_type"]
+                        # if ideal_type==resume_type:
+                        #     st.subheader(":green[Good]")
+                        #     st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
+                        # else:
+                        #     st.subheader(":red[Mismatch]")
+                        #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
                             add_vertical_space(1)
                             if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
@@ -1479,17 +1494,17 @@ class User():
                 except Exception:
                     if finished is False:
                         st.write("Evaluating...")
-                st.write("**How does your resume compare to others?**")
-                try:
-                    section_names = ["objective", "work_experience", "skillsets"]
-                    comparison_data = []
-                    for section in section_names:
-                        comparison_data.append({section:st.session_state["evaluation"][section]})
-                    fig = comparison_chart(comparison_data)
-                    st.plotly_chart(fig)
-                except Exception:
-                    if finished is False:
-                        st.write("Evaluating...")
+                # st.write("**How does your resume compare to others?**")
+                # try:
+                #     section_names = ["objective", "work_experience", "skillsets"]
+                #     comparison_data = []
+                #     for section in section_names:
+                #         comparison_data.append({section:st.session_state["evaluation"][section]})
+                #     fig = comparison_chart(comparison_data)
+                #     st.plotly_chart(fig)
+                # except Exception:
+                #     if finished is False:
+                #         st.write("Evaluating...")
                 st.write("**Impression**")
                 try:
                     impression = st.session_state["evaluation"]["impression"]
