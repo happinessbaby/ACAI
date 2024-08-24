@@ -107,3 +107,4 @@ streamlit-extras
 streamlit-nested-layout
 streamlit-pdf-viewer
 st-annotated-text
+streamlit-draggable-list
