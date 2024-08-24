@@ -58,6 +58,11 @@ from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, 
 from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 
+# Path to the punkt package
+punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+# Check if 'punkt' is already downloaded
+if not os.path.exists(punkt_path):
+    nltk.download('punkt')
 
 
 
@@ -328,11 +333,7 @@ def move_file(source_file:str, dest_dir:str, ):
 
 def count_length(filename, ):
 
-    # Path to the punkt package
-    punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
-    # Check if 'punkt' is already downloaded
-    if not os.path.exists(punkt_path):
-        nltk.download('punkt')
+
     # Now you can use the word tokenizer
     from nltk.tokenize import word_tokenize
     try:
