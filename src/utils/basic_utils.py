@@ -59,11 +59,12 @@ from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 
 # Path to the punkt package
-punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
-# Check if 'punkt' is already downloaded
-if not os.path.exists(punkt_path):
-    nltk.download('punkt')
-
+# punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+# # Check if 'punkt' is already downloaded
+# if not os.path.exists(punkt_path):
+#     nltk.download('punkt')
+# Optional: ensure NLTK is using the right path, though it should automatically pick it up
+nltk.data.path.append('/usr/share/nltk_data')
 
 
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
