@@ -85,24 +85,26 @@ def user_menu(userId, page, ):
 
 def progress_bar(page):
 
-    step = sac.steps(
-        items=[
-            sac.StepsItem(title=" ", subtitle="Complete your profile"),
-            sac.StepsItem(title=" ", subtitle="Pick a template"), 
-            sac.StepsItem(title=" ", subtitle="Download your resume")
-        ], index = page,  color="#47ff5a", key="progress_steps", return_index=True,
-    )
-    if step==0:
-        if "current_page" in st.session_state and st.session_state.current_page!="profile":
-            # st.session_state["current_page"]="profile"
-            st.switch_page("pages/user.py")
-    elif step==1:
-        if "current_page" in st.session_state and st.session_state.current_page!="template":
-            # st.session_state["current_page"] = "template"
-            st.switch_page("pages/templates.py")
-    elif step==2:
-        if "current_page" in st.session_state and st.session_state.current_page!="download":
-            st.switch_page("pages/downloads.py")
+    _, c, _ = st.columns([1, 3, 1])
+    with c:
+        step = sac.steps(
+            items=[
+                sac.StepsItem(title=" ", subtitle="Complete your profile"),
+                sac.StepsItem(title=" ", subtitle="Pick a template"), 
+                # sac.StepsItem(title=" ", subtitle="Download your resume")
+            ], index = page,  color="#47ff5a", key="progress_steps", return_index=True,
+        )
+        if step==0:
+            if "current_page" in st.session_state and st.session_state.current_page!="profile":
+                # st.session_state["current_page"]="profile"
+                st.switch_page("pages/user.py")
+        elif step==1:
+            if "current_page" in st.session_state and st.session_state.current_page!="template":
+                # st.session_state["current_page"] = "template"
+                st.switch_page("pages/templates.py")
+        # elif step==2:
+        #     if "current_page" in st.session_state and st.session_state.current_page!="download":
+        #         st.switch_page("pages/downloads.py")
 
 
 def job_tracker():

@@ -311,17 +311,17 @@ class Replacements(BaseModel):
 class GeneralEvaluation(BaseModel):
     user_id : str
     word_count: Optional[int]
-    page_count: Optional[int]
+    # page_count: Optional[int]
     ideal_type: Optional[str]
-    resume_type: Optional[str]
+    # resume_type: Optional[str]
     impression: Optional[str]
     syntax: Language
     diction: Language
     tone: Language
     coherence: Language
-    objective: Comparison
-    work_experience: Comparison
-    skillsets: Comparison
+    # objective: Comparison
+    # work_experience: Comparison
+    # skillsets: Comparison
     finished: bool
 
 

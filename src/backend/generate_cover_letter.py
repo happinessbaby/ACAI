@@ -48,7 +48,7 @@ else:
     bucket_name=None
     s3=None
       
-def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=None, ) -> None:
+async def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=None, ) -> None:
     
     """ Main function that generates the cover letter.
     
@@ -63,7 +63,7 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
     """
     
     document = Document()
-    document.add_heading('Cover Letter', 0)
+    document.add_heading('aCareerAi', 0)
     end_path = os.path.join(output_dir, "cover_letter.docx")
     # Get resume info
     resume_content = resume_dict["resume_content"]
@@ -186,25 +186,26 @@ def generate_basic_cover_letter(resume_dict={}, job_posting_dict={}, output_dir=
                     delimiter = delimiter,
                     delimiter4 = delimiter4,
     )
-    my_cover_letter = llm.invoke(cover_letter_message).content
-    cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter}")
-    document.add_paragraph(cover_letter)
-    if STORAGE=="LOCAL":
-      document.save(end_path)
-    elif STORAGE=="CLOUD":
-          # Save the rendered template to a BytesIO object
-        output_stream = BytesIO()
-        document.save(output_stream)
-        output_stream.seek(0)    
-        # # Upload the BytesIO object to S3
-        # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
-        # Write to a temporary file
-        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
-            temp_file.write(output_stream.getvalue())
-            temp_file.seek(0)  # Reset stream position to the beginning if needed
-            end_path = temp_file.name
-            print(f"Temporary file created at: {end_path}")
-    return end_path
+    my_cover_letter = await llm.ainvoke(cover_letter_message)
+    if my_cover_letter:
+      cover_letter = get_completion(f"Extract the entire cover letter and nothing else in the following text: {my_cover_letter.content}")
+      document.add_paragraph(cover_letter)
+      if STORAGE=="LOCAL":
+        document.save(end_path)
+      elif STORAGE=="CLOUD":
+            # Save the rendered template to a BytesIO object
+          output_stream = BytesIO()
+          document.save(output_stream)
+          output_stream.seek(0)    
+          # # Upload the BytesIO object to S3
+          # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
+          # Write to a temporary file
+          with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+              temp_file.write(output_stream.getvalue())
+              temp_file.seek(0)  # Reset stream position to the beginning if needed
+              end_path = temp_file.name
+              print(f"Temporary file created at: {end_path}")
+      return end_path
 
 
 def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_description='', save_path="./test_cover_letter.docx"):

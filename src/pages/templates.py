@@ -2,7 +2,7 @@ from backend.upgrade_resume import reformat_resume
 import uuid
 import os
 from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files, mk_dirs, convert_doc_to_pdf
-from css.streamlit_css import general_button
+from css.streamlit_css import general_button, primary_button
 # from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
@@ -14,6 +14,7 @@ from datetime import datetime
 import streamlit_antd_components as sac
 from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_pdf_viewer import pdf_viewer
+from streamlit_extras.stylable_container import stylable_container
 import streamlit as st
 
 set_streamlit_page_config_once()
@@ -26,7 +27,8 @@ elif STORAGE=="LOCAL":
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 # pages = get_pages("")
 # NOTE: TESTING OUT OPTION 2 FOR NOW 
-option = 2
+float_init()
+option=2
 # st.logo("./resources/logo_acareerai.png")
 
 class Reformat():
@@ -69,6 +71,7 @@ class Reformat():
     def _init_display(self, ):
 
         st.markdown(general_button, unsafe_allow_html=True)   
+        st.markdown(primary_button, unsafe_allow_html=True )
         user_menu(self.userId, page="template")
         progress_bar(1)
         add_vertical_space(8)
@@ -107,7 +110,7 @@ class Reformat():
     @st.fragment()
     def display_resume_templates(self, ):
         
-        c1, c2, c3 = st.columns([1, 3, 1])
+        c1, template_col, select_col = st.columns([1, 3, 1])
         with c1:
             self.fields_selection()  
         # if option==1: 
@@ -117,7 +120,7 @@ class Reformat():
         #         selected_idx=image_select("Select a template", images=previews, return_value="index")
         #         st.image(st.session_state["image_paths"][selected_idx])
         if option==2:
-            with c2:
+            with template_col:
                 c1, c2, c3 = st.columns([1, 20, 1])
                 previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
                 st.session_state["previews_len"] = len(previews)
@@ -132,34 +135,57 @@ class Reformat():
                     #         st.session_state["selected_idx"]-=1
                     #         st.rerun()
                 with c2:
-                    pdf_viewer(previews[st.session_state.selected_idx])
-                    st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
-                    st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
+                    with stylable_container(
+                        key="container_with_border",
+                        css_styles="""
+                            {
+                                border: 1px solid red;
+                                border-radius: 0.5rem;
+                                padding: calc(1em - 1px)
+                            }
+                            """,
+                    ):
+                        pdf_viewer(previews[st.session_state.selected_idx])
+                        # st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+                        # st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
                 with c3:
                     add_vertical_space(30)
                     nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
-                    # if nxt:
-                    #     if st.session_state["selected_idx"]!=len(previews)-1:
-                    #         st.session_state["selected_idx"]+=1
-                            # st.rerun()
+                    if nxt:
+                        if st.session_state["selected_idx"]!=len(previews)-1:
+                            st.session_state["selected_idx"]+=1
+                            st.rerun()
 
-           # with c3:
-        #     float_container=st.container()
-        #     with float_container:
-        #         add_vertical_space(30)
-        #         with stylable_container(
-        #             key="custom_button1_template",
-        #                 css_styles=  
-        #             """   button {
-        #                             background-color: #ff8247;
-        #                             color: white;
-        #                         }"""
-        #             ):
-        #             if st.button("Use this template", key="resume_template_button"):
-        #                 st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
-        #                 st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
-        #                 st.switch_page("pages/downloads.py")
-        #     float_parent()
+            with select_col:
+                _, c = st.columns([0.5, 1])
+                with c:
+                    float_container=st.container()
+                    with float_container:
+                        add_vertical_space(10)
+                        if st.button(label="Is this template for me?", key="template_learn_more_button", type="primary"):
+                            self.learn_more_popup()
+                        with stylable_container(
+                            key="custom_button1_template",
+                                css_styles=  
+                            """   button {
+                                            background-color: #ff8247;
+                                            color: white;
+                                        }"""
+                            ):
+                            with st.popover("Download my resume"):
+                                c1, c2 = st.columns([1, 1])
+                                with c1:
+                                    st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+                                    with open(st.session_state["selected_docx_resume"], "rb") as f:
+                                        st.download_button("Download as DOC", f, mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                                with c2:
+                                    st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
+                                    with open(st.session_state["selected_pdf_resume"], "rb") as f:
+                                        st.download_button("Download as PDF", f,  mime='application/pdf')
+
+                            # if st.button("Download this template", key="resume_template_button"):
+                            #     st.switch_page("pages/downloads.py")
+                    float_parent()
 
     def callback(self, direction, ):
         if direction=="next":
@@ -168,6 +194,9 @@ class Reformat():
         elif direction=="previous":
             if st.session_state["selected_idx"]!=0:
                             st.session_state["selected_idx"]-=1
+    @st.dialog(title=" ")                
+    def learn_more_popup(self):
+        st.write('This is a basic functional template with minimal design.')
 
 
     @st.fragment()

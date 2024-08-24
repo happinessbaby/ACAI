@@ -79,8 +79,8 @@ class Download():
             if "selected_docx_resume" in st.session_state:
                 c1, c2 = st.columns([1, 1])
                 with c1:
-                    st.write("Download as Docx")
-                    st.write("⬇")
+                    # st.write("Download as Docx")
+                    # st.write("⬇")
                     # with stylable_container(
                     #     key="custom_download_container",
                     #         css_styles="""{
@@ -110,8 +110,8 @@ class Download():
                             st.info("Something happened, please try again")
         
                 with c2:
-                    st.write("Download as PDF")
-                    st.write("⬇")
+                    # st.write("Download as PDF")
+                    # st.write("⬇")
                     # with stylable_container(
                     #     key="custom_download_container",
                     #     css_styles="""{
