@@ -34,6 +34,8 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ct
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 from annotated_text import annotated_text
+from st_draggable_list import DraggableList
+from streamlit_extras.grid import grid
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
 from utils.async_utils import thread_with_trace, asyncio_run
@@ -702,7 +704,18 @@ class User():
         #     st.session_state.location_input=input_value.split(",")
         # elif input_type=="transferable_skills":
         #     st.session_state.transferable_skills=input_value.split(",")
-
+    @st.dialog("drag to rearrange")
+    def rearrange_skills_popup(self, ):
+        data=[]
+        idx=0
+        for skill in self.skills_set:
+            data.append({"id":skill, "order":idx, "name":skill})
+            idx+=1
+        slist = DraggableList(data, key="skills_rearrange_draggable")
+        if slist:
+            print(slist)
+            st.session_state["profile"]["included_skills"]=[skill["name"] for skill in slist]
+            st.session_state["profile_changed"]=True
 
 
     @st.fragment()
@@ -714,15 +727,43 @@ class User():
             c1, c2=st.columns([1, 1])
             with c1:
                 with st.container(border=True):
-                    st.write("Your skills")
-                    # data=[]
-                    # idx=0
-                    # for skill in self.skills_set:
-                    #     data.append({"id":skill, "order":idx, "name":skill})
-                    #     idx+=1
-                    # slist = DraggableList(data, key="foo")
-                    for idx, skill in enumerate(self.skills_set):
-                        x = st.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                    c3, c4 = st.columns([3, 1])
+                    with c3:
+                        st.write("Your skills")
+                    with c4:
+                        with stylable_container(
+                            key="custon_rearrange_skills_button",
+                            css_styles="""
+                                button {
+                                    background: none;
+                                    border: none;
+                                    color: #ff8247;
+                                    padding: 0;
+                                    cursor: pointer;
+                                    font-size: 12px; 
+                                    text-decoration: none;
+                                }
+                                """,
+                        ):
+                            if st.button("rearrange", key="rearrange_skills_button", ):
+                                self.rearrange_skills_popup()
+
+                    with stylable_container(key="custom_skills_button",
+                    # border-radius: 20px;
+                    # background-color: #4682B4;
+                            css_styles=["""button {
+                                color: black;
+                                background: none;
+                                border: none;
+                                font-size: 8px;
+                                padding: 0;
+                                cursor: pointer;
+                            }""",
+                            ],
+                    ):
+                        my_grid=grid([1, 1, 1])
+                        for idx, skill in enumerate(self.skills_set):
+                            x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
                 st.write("Suggested skills to include")
                 for idx, skill in enumerate(self.generated_skills_set):
@@ -733,19 +774,21 @@ class User():
             try:
                 new_skill = st.session_state.add_skill_custom
                 if new_skill:
-                    self.skills_set.add(new_skill)
-                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
-                    st.session_state["profile_changed"]=True
-                    st.session_state.add_skill_custom=''
+                    # Add only unique items that are not already in the ordered set
+                    if new_skill not in self.skills_set:
+                        self.skills_set.append(new_skill)
+                        st.session_state["profile"]["included_skills"]=self.skills_set
+                        st.session_state["profile_changed"]=True
+                        st.session_state.add_skill_custom=''
             except Exception:
                     pass
             try:
                 name = f"add_skill_{idx}"
                 add_skill = st.session_state[name]
                 if add_skill:
-                    # print('add skill', skill)
-                    self.skills_set.add(skill)
-                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    if add_skill not in self.skills_set:
+                        self.skills_set.append(add_skill)
+                        st.session_state["profile"]["included_skills"]=self.skills_set
                     self.generated_skills_set.remove(skill)
                     st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
                     st.session_state["profile_changed"]=True
@@ -757,11 +800,13 @@ class User():
                 if remove_skill:
                     # print('remove skill', skill)
                     self.skills_set.remove(skill)
-                    st.session_state["profile"]["included_skills"]=list(self.skills_set)
+                    st.session_state["profile"]["included_skills"]=self.skills_set
                     st.session_state["profile_changed"]=True
             except Exception:
                 pass
+
         return get_display
+
 
 
     @st.fragment()
@@ -1359,7 +1404,7 @@ class User():
             with st.expander(label="Skills",):
                 # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
-                self.skills_set= set( st.session_state["profile"]["included_skills"])
+                self.skills_set= st.session_state["profile"]["included_skills"]
                 self.generated_skills_set=set()
                 for skill in suggested_skills:
                     self.generated_skills_set.add(skill["skill"])
