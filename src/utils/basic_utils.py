@@ -58,13 +58,7 @@ from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, 
 from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 
-# Path to the punkt package
-# punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
-# # Check if 'punkt' is already downloaded
-# if not os.path.exists(punkt_path):
-#     nltk.download('punkt')
-# Optional: ensure NLTK is using the right path, though it should automatically pick it up
-nltk.data.path.append('/usr/share/nltk_data')
+
 
 
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
@@ -78,12 +72,19 @@ if STORAGE=="CLOUD":
     base_uri = os.environ["PRODUCTION_BASE_URI"]
     libreoffice_path = os.environ["LIBREOFFICE_PATH"]
     pdftoppm_path=os.environ["PDFTOPPM_PATH"]
+    punkt_path = os.environ["PUNKT_PATH"]
+    # Optional: ensure NLTK is using the right path, though it should automatically pick it up
+    nltk.data.path.append(punkt_path)
 else:
     bucket_name=None
     s3=None
     base_uri = os.environ["BASE_URI"]
     libreoffice_path="libreoffice"
     pdftoppm_path = "pdftoppm"
+    punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+    # Check if 'punkt' is already downloaded
+    if not os.path.exists(punkt_path):
+        nltk.download('punkt')
 
 def convert_to_txt(file, output_path,) -> bool:
 
