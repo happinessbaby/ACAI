@@ -831,74 +831,77 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
 
 
 
-def create_resume_info(resume_path="", preexisting_info_dict={},):
+def create_resume_info(resume_path="", ):
 
-    resume_info_dict={resume_path: preexisting_info_dict}
+    resume_info_dict={ "resume_content":"",
+                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
+                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
+                   "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
     # resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
     resume_content = read_file(resume_path,)
     # Extract resume fields
-    resume_info_dict[resume_path].update({"resume_content":resume_content})
-    special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=5)
-    special_field_group1 = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=5)
-    if special_field_group1:
-        resume_info_dict[resume_path].update(special_field_group1)
-    else:
-        resume_info_dict[resume_path].update({"licenses":[], "awards":[], "certifications":[]})
-    # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
-    if special_field_content:
-        resume_info_dict[resume_path].update(special_field_content)
-    else:
-        resume_info_dict[resume_path].update({"pursuit_jobs":"", "summary_objective":"", "included_skills":[], "hobbies":[]})
-    # resume_info_dict[resume_path].update(field_details)
-    # work_experience = field_details["work_experience"]
-    # if work_experience:
-    #     for i in range(len(work_experience)):
-    #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
-    #         work_experience[i].update({"years_of_experience": years_experience})
-    #     resume_info_dict[resume_path].update({"work_experience": work_experience})
-    contact = asyncio_run(lambda: create_pydantic_parser(resume_content, Contact), timeout=5)
-    resume_info_dict[resume_path].update({"contact":contact})
-    education = asyncio_run(lambda: create_pydantic_parser(resume_content, Education), timeout=5)
-    resume_info_dict[resume_path].update({"education":education})
-    # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
-    # if basic_field_content["work_experience"]:
-    experience = asyncio_run(lambda: create_pydantic_parser(resume_content, Jobs), timeout=5)
-    resume_info_dict[resume_path].update(experience if experience else [])
-    # if special_field_content["skills_section"]:
-    #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
-    #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
-    # else:
-    #     resume_info_dict[resume_path].update({"included_skills": None})
-    # if special_field_content["projects_section"]:
-    projects = asyncio_run(lambda: create_pydantic_parser(resume_content, Projects), timeout=5)
-    resume_info_dict[resume_path].update(projects if projects else [])
-    # else:
-    #     resume_info_dict[resume_path].update({"projects": None})
-    # if special_field_content["qualifications_section"]:
-    qualifications = asyncio_run(lambda: create_pydantic_parser(resume_content, Qualifications), timeout=5)
-    resume_info_dict[resume_path].update(qualifications if qualifications else [])
-    # else:
-    #     resume_info_dict[resume_path].update({"qualifications": None})
-    # licenses = asyncio_run(create_pydantic_parser(resume_content, Licenses))
-    # resume_info_dict[resume_path].update(licenses)
-    # certifications = asyncio_run(create_pydantic_parser(resume_content, Certifications))
-    # resume_info_dict[resume_path].update(certifications)
-    # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
-    # resume_info_dict[resume_path].update(awards)
-    suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
-    resume_info_dict[resume_path].update({"suggested_skills": suggested_skills["skills"] if suggested_skills else []})
-
+    if resume_content:
+        resume_info_dict.update({"resume_content":resume_content})
+        special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=5)
+        special_field_group1 = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=5)
+        if special_field_group1:
+            resume_info_dict.update(special_field_group1)
+        else:
+            resume_info_dict.update({"licenses":[], "awards":[], "certifications":[]})
+        # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
+        if special_field_content:
+            resume_info_dict.update(special_field_content)
+        else:
+            resume_info_dict.update({"pursuit_jobs":"", "summary_objective":"", "included_skills":[], "hobbies":[]})
+        # resume_info_dict[resume_path].update(field_details)
+        # work_experience = field_details["work_experience"]
+        # if work_experience:
+        #     for i in range(len(work_experience)):
+        #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
+        #         work_experience[i].update({"years_of_experience": years_experience})
+        #     resume_info_dict[resume_path].update({"work_experience": work_experience})
+        contact = asyncio_run(lambda: create_pydantic_parser(resume_content, Contact), timeout=5)
+        resume_info_dict.update({"contact":contact})
+        education = asyncio_run(lambda: create_pydantic_parser(resume_content, Education), timeout=5)
+        resume_info_dict.update({"education":education})
+        # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
+        # if basic_field_content["work_experience"]:
+        experience = asyncio_run(lambda: create_pydantic_parser(resume_content, Jobs), timeout=5)
+        resume_info_dict.update(experience if experience else [])
+        # if special_field_content["skills_section"]:
+        #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
+        #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
+        # else:
+        #     resume_info_dict[resume_path].update({"included_skills": None})
+        # if special_field_content["projects_section"]:
+        projects = asyncio_run(lambda: create_pydantic_parser(resume_content, Projects), timeout=5)
+        resume_info_dict.update(projects if projects else [])
+        # else:
+        #     resume_info_dict[resume_path].update({"projects": None})
+        # if special_field_content["qualifications_section"]:
+        qualifications = asyncio_run(lambda: create_pydantic_parser(resume_content, Qualifications), timeout=5)
+        resume_info_dict.update(qualifications if qualifications else [])
+        # else:
+        #     resume_info_dict[resume_path].update({"qualifications": None})
+        # licenses = asyncio_run(create_pydantic_parser(resume_content, Licenses))
+        # resume_info_dict[resume_path].update(licenses)
+        # certifications = asyncio_run(create_pydantic_parser(resume_content, Certifications))
+        # resume_info_dict[resume_path].update(certifications)
+        # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
+        # resume_info_dict[resume_path].update(awards)
+        suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
+        resume_info_dict.update({"suggested_skills": suggested_skills["skills"] if suggested_skills else []})
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
-    return resume_info_dict[resume_path]
+    return resume_info_dict
 
 
 def create_job_posting_info(posting_path="", about_job="", ):
-    # pursuit_info_dict = {"job": -1, "company": -1, "institution": -1, "program": -1}
-    # job_posting = posting_path if posting_path else about_job[:50]
-    job_posting_info_dict = {}
 
-    if (Path(posting_path).is_file()):
+    # job_posting = posting_path if posting_path else about_job[:50]
+    job_posting_info_dict = {"skills":[], "job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
+    if posting_path:
         posting = read_file(posting_path)
         # prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
         #     {text} \n
@@ -912,26 +915,27 @@ def create_job_posting_info(posting_path="", about_job="", ):
         #         {posting}"""
         # job_specification = get_completion(prompt)
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
-    job_posting_info_dict.update({"content": posting})
-    basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10)
-    if basic_info_dict:
-        job_posting_info_dict.update(basic_info_dict)
-    else:
-        basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
-        job_posting_info_dict.update(basic_info_dict)
-    # Research soft and hard skills required
-    job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
-    job_posting_info_dict.update(job_posting_skills if job_posting_skills else {"skills":[]})
-    # Research company
-    company = basic_info_dict["company"]
-    company_description = basic_info_dict["company_description"]
-    if company and not company_description:
-        company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
-                            In 50 words or less, summarize your research result.                 
-                            Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
-        company_description = asyncio_run(lambda: get_web_resources(company_query, engine="agent"))
-        job_posting_info_dict.update({"company_description": company_description})
-    # print(job_posting_info_dict)
+    if posting:
+        job_posting_info_dict.update({"content": posting})
+        basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10)
+        if basic_info_dict:
+            job_posting_info_dict.update(basic_info_dict)
+        else:
+            basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
+            job_posting_info_dict.update(basic_info_dict)
+        # Research soft and hard skills required
+        job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
+        job_posting_info_dict.update(job_posting_skills if job_posting_skills else {"skills":[]})
+        # Research company
+        company = basic_info_dict["company"]
+        company_description = basic_info_dict["company_description"]
+        if company and not company_description:
+            company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
+                                In 50 words or less, summarize your research result.                 
+                                Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
+            company_description = asyncio_run(lambda: get_web_resources(company_query, engine="agent"))
+            job_posting_info_dict.update({"company_description": company_description})
+        # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     # if STORAGE=="LOCAL":
     #     with open(job_posting_info_file, 'a') as json_file:

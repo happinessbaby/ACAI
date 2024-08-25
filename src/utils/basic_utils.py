@@ -297,21 +297,25 @@ def write_file(end_path=None, file_content="", file_path="", mode="w", file_ext=
 
 def read_file(file_path:str, mode="r", ):
     
-    if STORAGE=="LOCAL":
+    file_root = file_path.split("/")[1]
+    if STORAGE=="LOCAL" or file_root=="tmp":
         try:
             with open(file_path, mode) as f:
                 data = f.read()
+                return data
         except Exception as e:
-            raise e
+            print(e)
+            return None
     elif STORAGE=="CLOUD":
         try:
             object = s3.get_object(Bucket=bucket_name, Key=file_path)
             # Read the data and decode it to a string
             data = object['Body'].read().decode('utf-8')
+            return data
         except Exception as e:
-            raise e
-    print(data)
-    return data
+            print(e)
+            return None
+
 
 def move_file(source_file:str, dest_dir:str, ):
 

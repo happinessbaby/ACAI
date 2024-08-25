@@ -491,7 +491,7 @@ class User():
         #creates an empty file
         write_file(end_path, file_content="")
         st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":[], }, 
+                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
