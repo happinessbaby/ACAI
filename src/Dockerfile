@@ -15,14 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # USER acai
 
 WORKDIR /app
+
+COPY src/nltk_data /usr/share/nltk_data
 # Copy requirements.txt into the container
 COPY src/requirements.txt ./
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Download NLTK data to a directory outside the mounted volume
-RUN python -m nltk.downloader -d /usr/share/nltk_data punkt
 
 # # Copy the rest of the application code
 # COPY . .
