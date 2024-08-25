@@ -1005,7 +1005,8 @@ def process_uploads(uploads, save_path,):
         # filename = str(uuid.uuid4())
         # tmp_save_path = os.path.join(save_path, filename+file_ext)
         # end_path =  os.path.join(save_path, filename+'.txt')
-        tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, to_tmp=True)
+        # NOTE: getvalue() returns bytes so need "wb" instead of "w" here
+        tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, mode="wb", to_tmp=True)
         if tmp_save_path:
             print("AAAAAAAAAAAAAAAAAAAAAAA")
             end_path = convert_to_txt(tmp_save_path, to_tmp=True)
