@@ -42,15 +42,14 @@ class Reformat():
             st.session_state["cm"] = CookieManager()
         self.userId = st.session_state.cm.retrieve_userId()
         if not self.userId:
-            st.switch_page("pages/user.py")
-        else:
-            if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(self.userId, lance_users_table)
+            st.switch_page("pages/user.py")      
         self._init_session_states()
         self._init_display()
 
     def _init_session_states(_self, ):
 
+        if "profile" not in st.session_state:
+                st.session_state["profile"]= retrieve_dict_from_table(_self.userId, lance_users_table)
         if "selected_fields" not in st.session_state:
             st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience"]
         if "user_save_path" not in st.session_state:
@@ -75,7 +74,7 @@ class Reformat():
         user_menu(self.userId, page="template")
         progress_bar(1)
         add_vertical_space(8)
-        if  ("formatted_docx_paths" not in st.session_state) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]):
+        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]):
             if self.reformat_templates():
                 print(st.session_state["selected_fields"])
                 self.display_resume_templates()
@@ -124,7 +123,7 @@ class Reformat():
                 c1, c2, c3 = st.columns([1, 20, 1])
                 previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
                 st.session_state["previews_len"] = len(previews)
-                # print(previews)
+                print(previews)
                 if "selected_idx" not in st.session_state:
                     st.session_state["selected_idx"]=0
                 with c1:
