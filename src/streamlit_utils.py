@@ -35,6 +35,13 @@ def nav_to(url):
 
 
 def set_streamlit_page_config_once():
+    hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
     try:
         st.set_page_config(layout="wide")
     except st.errors.StreamlitAPIException as e:

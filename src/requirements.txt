@@ -33,7 +33,7 @@ urllib3==2.0.4
 requests==2.31.0
 python-docx==0.8.11
 python-dotenv==1.0.0
-python-magic==0.4.27
+# python-magic==0.4.27
 python-pptx==0.6.21
 python-xlib==0.33
 pydantic==1.10.9

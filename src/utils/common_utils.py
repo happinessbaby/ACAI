@@ -12,7 +12,7 @@ from utils.langchain_utils import ( create_compression_retriever, create_ensembl
 from langchain.retrievers.web_research import WebResearchRetriever
 from langchain.chains import RetrievalQAWithSourcesChain,  RetrievalQA
 # from langchain_experimental.plan_and_execute import PlanAndExecute, load_agent_executor, load_chat_planner
-from langchain_community.document_transformers import DoctranPropertyExtractor
+# from langchain_community.document_transformers import DoctranPropertyExtractor
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from typing import Any, List, Union, Dict, Optional
 import os
@@ -30,7 +30,7 @@ from unstructured_client import UnstructuredClient
 # from unstructured_client.models.errors import SDKError
 from langchain_community.document_loaders import JSONLoader
 # from linkedin import linkedin, server
-from linkedin_api import Linkedin
+# from linkedin_api import Linkedin
 from time import sleep 
 from selenium import webdriver 
 # from unstructured.partition.html import partition_html
@@ -44,7 +44,7 @@ from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate, StringPromptTemplate
 from utils.async_utils import asyncio_run
-from langchain_core.tools import Tool
+# from langchain_core.tools import Tool
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 # Download the 'punkt' tokenizer models
@@ -1006,8 +1006,11 @@ def process_uploads(uploads, save_path,):
         tmp_save_path = os.path.join(save_path, filename+file_ext)
         end_path =  os.path.join(save_path, filename+'.txt')
         if write_file(tmp_save_path, file_content=uploaded_file.getvalue(),):
+            print("AAAAAAAAAAAAAAAAAAAAAAA")
             if convert_to_txt(tmp_save_path, end_path,):
+                print("BBBBBBBBBBBBBBBBBBBBBBBB")
                 content_safe, content_type, content_topics = check_content(end_path, )
+                print("CCCCCCCCCCCCCCCCCCCCCCCCCCCC")
                 if content_safe is not None:
                     return (content_safe, content_type, content_topics, end_path)
         return None

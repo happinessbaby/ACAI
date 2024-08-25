@@ -104,6 +104,7 @@ def convert_to_txt(file, output_path,) -> bool:
             elif (file_ext==".pptx"):
                 convert_pptx_to_txt(file, output_path)
         elif STORAGE=="CLOUD":
+            print("BBBBBBBBBBBBBBBB")
             loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
             text = loader.load()[0].page_content
             s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
@@ -301,7 +302,7 @@ def write_file(end_path: str, file_content="", file_path="", mode="wb",):
                 s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
             return True
         except Exception as e:
-            print(e)
+            print("AAAAAAAAAA", e)
             return False
 
 def read_file(file_path:str, mode="r", ):
