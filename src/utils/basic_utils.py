@@ -35,7 +35,7 @@ from io import BytesIO
 # import docx2pdf
 from pathlib import Path
 # from PyPDF2 import PdfReader  
-import nltk
+# import nltk
 import PyPDF2
 import subprocess
 import base64
