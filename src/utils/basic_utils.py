@@ -91,24 +91,28 @@ def convert_to_txt(file, output_path,) -> bool:
     """ Converts file to TXT file and move it to destination location. """
     try:
         file_ext = Path(file).suffix
-        if STORAGE=="LOCAL":
-            if (file_ext)=='.txt' and file!=output_path:
+        # if STORAGE=="LOCAL":
+        if (file_ext)=='.txt' and file!=output_path:
+            if STORAGE=="LOCAL":
                 os.rename(file, output_path)
-            elif (file_ext=='.pdf'): 
-                convert_pdf_to_txt(file, output_path)
-            elif (file_ext=='.docx' or file_ext==".odt"):
-                pdf_path = convert_doc_to_pdf(file)
-                convert_pdf_to_txt(pdf_path, output_path)
-            elif (file_ext==".log"):
-                convert_log_to_txt(file, output_path)
-            elif (file_ext==".pptx"):
-                convert_pptx_to_txt(file, output_path)
-        elif STORAGE=="CLOUD":
-            print("BBBBBBBBBBBBBBBB")
-            loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-            text = loader.load()[0].page_content
-            s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
-            print("Successfully converted file in S3 to TXT")
+            elif STORAGE=="CLOUD":
+                # Upload the file to S3
+                s3.upload_file(file, bucket_name, output_path)
+        elif (file_ext=='.pdf'): 
+            convert_pdf_to_txt(file, output_path)
+        elif (file_ext=='.docx' or file_ext==".odt"):
+            pdf_path = convert_doc_to_pdf(file)
+            convert_pdf_to_txt(pdf_path, output_path)
+        # elif (file_ext==".log"):
+        #     convert_log_to_txt(file, output_path)
+        # elif (file_ext==".pptx"):
+        #     convert_pptx_to_txt(file, output_path)
+        # elif STORAGE=="CLOUD":
+        #     print("BBBBBBBBBBBBBBBB")
+        #     loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        #     text = loader.load()[0].page_content
+        #     s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
+        #     print("Successfully converted file in S3 to TXT")
         return True 
     except Exception as e:
         print(e)
@@ -183,9 +187,13 @@ def convert_pdf_to_txt(pdf_file, output_path):
     print(text)
     for page in read_pdf.pages:
         text+=page.extract_text()
-    with open(output_path, 'w') as f:
-        f.write(text)
-        f.close()# Create a PDF reader object
+    if STORAGE=="LOCAL":
+        with open(output_path, 'w') as f:
+            f.write(text)
+            f.close()# Create a PDF reader object
+    elif STORAGE=="CLOUD":
+        # Write the text to S3
+        s3.put_object(Bucket=bucket_name, Key=output_path, Body=text)
 
 
 
@@ -282,28 +290,34 @@ def mk_dirs(paths: List[str],):
                
 
 
-def write_file(end_path: str, file_content="", file_path="", mode="wb",):
+def write_file(end_path: str, file_content="", file_path="", mode="wb", file_ext=".txt", to_tmp=False) -> str:
 
     """ Writes content to file. """
 
-    if STORAGE=="LOCAL":
-        try:
-            with open(end_path, mode) as f:
-                f.write(file_content)
-                return True
-        except Exception as e:
-            print(e)
-            return False
-    elif STORAGE=="CLOUD":
-        try:
-            if file_path:
-                s3.upload_file(file_path, bucket_name, end_path)
-            else:
-                s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
-            return True
-        except Exception as e:
-            print("AAAAAAAAAA", e)
-            return False
+    if to_tmp:
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+            tmp_save_path = temp_file.name
+            temp_file.write(file_content)  # If your text is a string, encode it to bytes
+        return tmp_save_path
+    else:
+        if STORAGE=="LOCAL":
+            try:
+                with open(end_path, mode) as f:
+                    f.write(file_content)
+                    return end_path
+            except Exception as e:
+                print(e)
+                return None
+        elif STORAGE=="CLOUD":
+            try:
+                if file_path:
+                    s3.upload_file(file_path, bucket_name, end_path)
+                else:
+                    s3.put_object(Body=file_content, Bucket=bucket_name, Key=end_path,)
+                return end_path
+            except Exception as e:
+                return None
 
 def read_file(file_path:str, mode="r", ):
     
