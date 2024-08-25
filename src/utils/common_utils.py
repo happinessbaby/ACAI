@@ -1027,12 +1027,12 @@ def process_uploads(uploads, save_path, to_tmp=True):
 
 def process_links(links, save_path,  to_tmp=True):
 
-    end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
-    txt_path= html_to_text(links, save_path=end_path, to_tmp=to_tmp )
+    # end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
+    txt_path= html_to_text(links, to_tmp=to_tmp )
     if txt_path:
-        content_safe, content_type, content_topics = check_content(end_path, )
+        content_safe, content_type, content_topics = check_content(txt_path, )
         if content_safe is not None:
-            return  (content_safe, content_type, content_topics, end_path)
+            return  (content_safe, content_type, content_topics, txt_path)
     return None
   
 
