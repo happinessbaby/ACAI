@@ -231,7 +231,8 @@ def delete_file(file, ) -> bool:
     """ Deletes file. """
     
     try:
-        if STORAGE=="LOCAL":
+        file_root = file.split("/")[1]
+        if STORAGE=="LOCAL" or file_root=="tmp":
             os.remove(file)
         elif STORAGE=="CLOUD":
             s3.delete_object(Bucket=bucket_name, Key=file)
@@ -319,7 +320,8 @@ def read_file(file_path:str, mode="r", ):
 
 def move_file(source_file:str, dest_dir:str, ):
 
-    if STORAGE=="LOCAL":
+    file_root = source_file.split("/")[1]
+    if STORAGE=="LOCAL" or source_file=="tmp":
         os.rename(source_file, dest_dir)
     elif STORAGE=="CLOUD":
         s3.copy_object(
@@ -398,7 +400,7 @@ def retrieve_web_content(link, save_path="test.txt"):
 
     
 # this one is better than the above function 
-def html_to_text(urls:List[str], save_path, ):
+def html_to_text(urls:List[str], save_path=None, to_tmp=False):
 
     """Writes a list of urls' content to txt file. """
     
@@ -408,17 +410,11 @@ def html_to_text(urls:List[str], save_path, ):
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
-        if STORAGE=="LOCAL":            
-            with open(save_path, 'w') as file:
-                file.write(content)
-                file.close()
-                print('Content retrieved and written to file.')
-        elif STORAGE=="S3":
-            s3.put_object(Body=content, Bucket=bucket_name, Key=save_path)
-        return True
+        txt_path= write_file(end_path=save_path, file_content=content, file_ext="txt", to_tmp=to_tmp)
+        return txt_path
     except Exception as e:
         print(e)
-        return False
+        return None
     
 def save_website_as_html(url, filename):
     

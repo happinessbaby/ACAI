@@ -1003,7 +1003,7 @@ def process_inputs(user_input, match_topic=""):
     return user_input
     
 
-def process_uploads(uploads, save_path,):
+def process_uploads(uploads, save_path, to_tmp=True):
 
     for uploaded_file in uploads:
         print('processing uploads')
@@ -1012,10 +1012,10 @@ def process_uploads(uploads, save_path,):
         # tmp_save_path = os.path.join(save_path, filename+file_ext)
         # end_path =  os.path.join(save_path, filename+'.txt')
         # NOTE: getvalue() returns bytes so need "wb" instead of "w" here
-        tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, mode="wb", to_tmp=True)
+        tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, mode="wb", to_tmp=to_tmp)
         if tmp_save_path:
             print("AAAAAAAAAAAAAAAAAAAAAAA")
-            end_path = convert_to_txt(tmp_save_path, to_tmp=True)
+            end_path = convert_to_txt(tmp_save_path, to_tmp=to_tmp)
             if end_path:
                 print("BBBBBBBBBBBBBBBBBBBBBBBB")
                 content_safe, content_type, content_topics = check_content(end_path, )
@@ -1025,10 +1025,11 @@ def process_uploads(uploads, save_path,):
         return None
         
 
-def process_links(links, save_path,  ):
+def process_links(links, save_path,  to_tmp=True):
 
     end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
-    if html_to_text(links, save_path=end_path, ):
+    txt_path= html_to_text(links, save_path=end_path, to_tmp=to_tmp )
+    if txt_path:
         content_safe, content_type, content_topics = check_content(end_path, )
         if content_safe is not None:
             return  (content_safe, content_type, content_topics, end_path)

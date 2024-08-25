@@ -486,11 +486,11 @@ class User():
 
         """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
 
-        filename = str(uuid.uuid4())
-        end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
+        # filename = str(uuid.uuid4())
+        # end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
-        write_file(end_path, file_content="")
-        st.session_state["profile"] = {"user_id": self.userId, "resume_path": end_path, "resume_content":"",
+        # write_file(end_path, file_content="")
+        st.session_state["profile"] = {"user_id": self.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
@@ -1264,7 +1264,7 @@ class User():
                     st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
                     st.session_state.job_description if "job_description" in st.session_state else "",  
                 )
-        st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
+        # st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"user_id": self.userId})
         st.session_state["job_posting_dict"].update({"resume_path": ""})

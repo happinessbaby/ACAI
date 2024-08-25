@@ -328,7 +328,7 @@ class GeneralEvaluation(BaseModel):
 class JobTrackingUsers(BaseModel):
 
     user_id: str
-    posting_path: Optional[str]
+    # posting_path: Optional[str]
     link: Optional[str]
     content: Optional[str]
     skills:Optional[List[Skill]]
