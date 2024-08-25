@@ -4,7 +4,7 @@ import openai
 import os
 import json
 from dotenv import load_dotenv, find_dotenv
-from utils.basic_utils import read_txt
+from utils.basic_utils import read_file
 import tiktoken
 import math
 from tenacity import retry, wait_exponential
@@ -171,7 +171,7 @@ def split_text(text):
 
 def check_content_safety(file=None, text_str=None):
 	if (file!=None):
-		text = read_txt(file)
+		text = read_file(file)
 	elif (text_str!=None):
 		text = text_str
 	try: 

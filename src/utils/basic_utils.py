@@ -86,37 +86,36 @@ else:
     # if not os.path.exists(punkt_path):
     #     nltk.download('punkt')
 
-def convert_to_txt(file, output_path,) -> bool:
+def convert_to_txt(file, output_path, to_tmp=False) -> bool:
 
     """ Converts file to TXT file and move it to destination location. """
     try:
         file_ext = Path(file).suffix
         # if STORAGE=="LOCAL":
-        if (file_ext)=='.txt' and file!=output_path:
-            if STORAGE=="LOCAL":
-                os.rename(file, output_path)
-            elif STORAGE=="CLOUD":
-                # Upload the file to S3
-                s3.upload_file(file, bucket_name, output_path)
-        elif (file_ext=='.pdf'): 
-            convert_pdf_to_txt(file, output_path)
+        # if (file_ext)=='.txt' and file!=output_path:
+        #     if STORAGE=="LOCAL":
+        #         os.rename(file, output_path)
+        #     elif STORAGE=="CLOUD":
+        #         # Upload the file to S3
+        #         s3.upload_file(file, bucket_name, output_path)
+        if (file_ext=='.pdf'): 
+            txt_path = convert_pdf_to_txt(file, output_path, to_tmp)
         elif (file_ext=='.docx' or file_ext==".odt"):
             pdf_path = convert_doc_to_pdf(file)
-            convert_pdf_to_txt(pdf_path, output_path)
+            txt_path = convert_pdf_to_txt(pdf_path, output_path, to_tmp)
         # elif (file_ext==".log"):
         #     convert_log_to_txt(file, output_path)
         # elif (file_ext==".pptx"):
         #     convert_pptx_to_txt(file, output_path)
         # elif STORAGE=="CLOUD":
-        #     print("BBBBBBBBBBBBBBBB")
         #     loader = S3FileLoader(bucket_name, file, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
         #     text = loader.load()[0].page_content
         #     s3.put_object(Body=text, Bucket=bucket_name, Key=output_path)
         #     print("Successfully converted file in S3 to TXT")
-        return True 
+        return txt_path
     except Exception as e:
         print(e)
-        return False
+        return None
 
 def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     #retrieve docx from s3
@@ -171,7 +170,7 @@ def convert_pptx_to_txt(pptx_file, output_path):
         f.close()
  
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
-def convert_pdf_to_txt(pdf_file, output_path):
+def convert_pdf_to_txt(pdf_file, output_path, to_tmp=False):
     # pdf = fitz.open(pdf_file)
     # pages = count_pages(pdf_file)
     # text = f"pages: {pages}"
@@ -184,29 +183,12 @@ def convert_pdf_to_txt(pdf_file, output_path):
     read_pdf = PyPDF2.PdfReader(pdf_file)
     pages = len(read_pdf.pages)
     text = f"pages:{pages}"
-    print(text)
+    # print(text)
     for page in read_pdf.pages:
         text+=page.extract_text()
-    if STORAGE=="LOCAL":
-        with open(output_path, 'w') as f:
-            f.write(text)
-            f.close()# Create a PDF reader object
-    elif STORAGE=="CLOUD":
-        # Write the text to S3
-        s3.put_object(Bucket=bucket_name, Key=output_path, Body=text)
+    save_path = write_file(output_path, text, file_ext=".txt", to_tmp=to_tmp)
 
 
-
-#TODO: needs to find the best docx to txt converter that takes care of special characters best
-# def convert_doc_to_txt(doc_file, output_path):
-#     doc = Document(doc_file)
-#     # text= pypandoc.convert_file(doc_file, to="plain", format=file_ext, outputfile=output_path)
-#     # print(text)
-#     pages = count_pages(doc_file)
-#     with open(output_path, "w") as f:
-#         f.write(f"pages:{pages}")
-#         for paragraph in doc.paragraphs:
-#             f.write(paragraph.text + '\n')
         
 # def convert_odt_to_txt(odt_file, txt_file):
 #     doc = load(odt_file)
@@ -233,22 +215,22 @@ def convert_pdf_to_txt(pdf_file, output_path):
 #         # Upload DOCX to S3
 #         s3.put_object(Body=docx_bytes.getvalue(), Bucket=bucket_name, Key=output_path)
 
-def read_txt(file: str, ) -> str:
+# def read_txt(file: str, ) -> str:
 
-    """ Reads TXT file into string. """
+#     """ Reads TXT file into string. """
 
-    try:
-        if STORAGE=="LOCAL":
-            with open(file, 'r', errors='ignore') as f:
-                text = f.read()
-                return text
-        elif STORAGE=="CLOUD":
-            data = s3.get_object(Bucket=bucket_name, Key=file)
-            contents = data['Body'].read()
-            text = contents.decode("utf-8")
-            return text
-    except Exception as e:
-        raise e
+#     try:
+#         if STORAGE=="LOCAL":
+#             with open(file, 'r', errors='ignore') as f:
+#                 text = f.read()
+#                 return text
+#         elif STORAGE=="CLOUD":
+#             data = s3.get_object(Bucket=bucket_name, Key=file)
+#             contents = data['Body'].read()
+#             text = contents.decode("utf-8")
+#             return text
+#     except Exception as e:
+#         raise e
     
 def delete_file(file, ) -> bool:
     
@@ -292,7 +274,7 @@ def mk_dirs(paths: List[str],):
 
 def write_file(end_path: str, file_content="", file_path="", mode="wb", file_ext=".txt", to_tmp=False) -> str:
 
-    """ Writes content to file. """
+    """ Writes content to file. Returns save path. """
 
     if to_tmp:
         # Create a temporary file

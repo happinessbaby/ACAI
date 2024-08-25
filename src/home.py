@@ -9,7 +9,7 @@ import os
 import uuid
 from backend.career_advisor import ChatController
 # from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import read_txt,delete_file, mk_dirs, write_file, read_file
+from utils.basic_utils import delete_file, mk_dirs, write_file, read_file
 from utils.openai_api import  num_tokens_from_text
 from dotenv import load_dotenv, find_dotenv
 from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs

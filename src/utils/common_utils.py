@@ -5,7 +5,7 @@ from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
 from langchain.agents import load_tools, initialize_agent, AgentExecutor
 from pathlib import Path
-from utils.basic_utils import read_txt, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
+from utils.basic_utils import read_file, convert_to_txt, save_website_as_html, ascrape_playwright, write_file, html_to_text
 from utils.agent_tools import create_search_tools
 from utils.langchain_utils import ( create_compression_retriever, create_ensemble_retriever, generate_multifunction_response, create_babyagi_chain, create_document_tagger, create_input_tagger,retrieve_vectorstore,
                               split_doc, split_doc_file_size, reorder_docs, create_summary_chain, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser)
@@ -804,7 +804,7 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
             if len(related_files)==3:
                 break
             file = str(path)
-            content = read_txt(file)
+            content = read_file(file)
             # print(file, len(content))
             response = get_response(content)
             if (response=="Y"):
@@ -835,7 +835,7 @@ def create_resume_info(resume_path="", preexisting_info_dict={},):
 
     resume_info_dict={resume_path: preexisting_info_dict}
     # resume_info_dict = {resume_path: {"contact": {}, "resume fields": {}, "education": {}, "skills":{}}}
-    resume_content = read_txt(resume_path,)
+    resume_content = read_file(resume_path,)
     # Extract resume fields
     resume_info_dict[resume_path].update({"resume_content":resume_content})
     special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=5)
@@ -899,7 +899,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
     job_posting_info_dict = {}
 
     if (Path(posting_path).is_file()):
-        posting = read_txt(posting_path)
+        posting = read_file(posting_path)
         # prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
         #     {text} \n
         #     Focus on the roles and skills involved for this job. Do not include information irrelevant to this specific position.
@@ -1008,7 +1008,8 @@ def process_uploads(uploads, save_path,):
         tmp_save_path = write_file(tmp_save_path, file_content=uploaded_file.getvalue(), file_ext=file_ext, to_tmp=True)
         if tmp_save_path:
             print("AAAAAAAAAAAAAAAAAAAAAAA")
-            if convert_to_txt(tmp_save_path, end_path,):
+            end_path = convert_to_txt(tmp_save_path, end_path, to_tmp=True)
+            if end_path:
                 print("BBBBBBBBBBBBBBBBBBBBBBBB")
                 content_safe, content_type, content_topics = check_content(end_path, )
                 print("CCCCCCCCCCCCCCCCCCCCCCCCCCCC")
@@ -1025,17 +1026,7 @@ def process_links(links, save_path,  ):
         if content_safe is not None:
             return  (content_safe, content_type, content_topics, end_path)
     return None
-    # if (Path(program_path).is_file()):
-    #     posting = read_txt(program_path)
-    #     prompt_template = """Identity the program, institution then provide a summary in 100 words or less of the following program:
-    #         {text} \n
-    #         Focus on the uniqueness, classes, requirements involved. Do not include information irrelevant to this specific program.
-    #     """
-    #     program_specification = create_summary_chain(program_path, prompt_template, chunk_size=4000)
-    #     pursuit_info_dict2 = extract_pursuit_information(posting)
-    #     for key, value in pursuit_info_dict.items():
-    #         if value == -1:
-    #             pursuit_info_dict[key]=pursuit_info_dict2[key]   
+  
 
     
     

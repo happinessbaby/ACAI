@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from langchain_community.document_transformers import EmbeddingsRedundantFilter, LongContextReorder
 from langchain.retrievers.document_compressors import DocumentCompressorPipeline, EmbeddingsFilter, CohereRerank
 from langchain.retrievers import ContextualCompressionRetriever
-from utils.basic_utils import read_txt, timing, timeout
+from utils.basic_utils import read_file, timing, timeout
 from json import JSONDecodeError
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.document_transformers.openai_functions import create_metadata_tagger
@@ -77,7 +77,7 @@ else:
     s3=None
 
 
-def split_doc(path='./web_data/', path_type='dir', splitter_type = "recursive", chunk_size=200, chunk_overlap=10) -> List[Document]:
+def split_doc(path, path_type='dir', splitter_type = "recursive", chunk_size=200, chunk_overlap=10) -> List[Document]:
 
     """ Splits file or files in directory into different sized chunks with different text splitters.
     
@@ -166,7 +166,7 @@ def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, t
     # 1 byte ~= 1 character, and 1 token ~= 4 characters, so 1 byte ~= 0.25 tokens. Max length is about 4000 tokens for gpt3.5, so if file is less than 15000 bytes, don't need to split. 
     if use_bytes_threshold and  bytes<threshold_bytes:
         docs.extend([Document(
-            page_content = read_txt(path,)
+            page_content = read_file(path,)
         )])
     else:
         docs.extend(split_doc(path, "file", chunk_size=chunk_size, splitter_type=splitter_type))

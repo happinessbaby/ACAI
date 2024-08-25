@@ -2,7 +2,7 @@
 import os
 import openai
 from utils.openai_api import get_completion
-from utils.basic_utils import read_txt, process_json, write_file
+from utils.basic_utils import read_file, process_json, write_file
 from utils.common_utils import (retrieve_or_create_resume_info, retrieve_or_create_job_posting_info,
                                  retrieve_from_db,  search_related_samples)
 from datetime import date
@@ -240,7 +240,7 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     important_keywords = job_posting_dict.get("frequent_words", "")
     soft_skills=job_posting_dict.get("soft_skills", "")
     hard_skills = job_posting_dict.get("hard_skills", "")
-    resume_content = read_txt(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
+    resume_content = read_file(resume_file, storage=STORAGE, bucket_name=bucket_name, s3=s3)
     relevant_hard_skills = research_relevancy_in_resume(resume_content, hard_skills, "hard skills")
     relevant_soft_skills = research_relevancy_in_resume(resume_content, soft_skills, "soft skills")
     relevant_responsibilities = research_relevancy_in_resume(resume_content, duties, "responsibilities")
@@ -263,7 +263,7 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     """
     tmp_filename= Path(save_path).stem+Path(save_path).suffix
     convert_doc_to_txt(save_path,  tmp_filename)
-    cover_letter = read_txt(tmp_filename)
+    cover_letter = read_file(tmp_filename)
 
     prompt_template = ChatPromptTemplate.from_template(prompt)
     # print(prompt_template.messages[0].prompt.input_variables)

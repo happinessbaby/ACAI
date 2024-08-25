@@ -24,7 +24,7 @@ from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from loguru import logger
 from langchain.evaluation import load_evaluator
 from utils.aws_manager import get_aws_session
-from utils.basic_utils import convert_to_txt, read_txt
+from utils.basic_utils import convert_to_txt, read_file
 from utils.openai_api import get_completion
 from tenacity import retry, wait_exponential, stop_after_attempt
 from langchain.globals import set_llm_cache
@@ -565,7 +565,7 @@ class InterviewController():
         # conversation = str(self.interview_memory.chat_memory.messages)
         end_path = os.path.join(log_path, f"{Path(self.logfile).stem}.txt")
         convert_to_txt(self.logfile, end_path)
-        conversation = read_txt(end_path)
+        conversation = read_file(end_path)
         feedback = "MOCK INTERVIEW FEEDBACK:\n"
         feedback += get_completion(f"Extract the positive and negative feedbacks from the following conversation and summarize the feedbacks into a few sentences: {conversation}")
         return feedback

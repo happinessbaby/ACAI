@@ -17,7 +17,7 @@ import langchain
 import faiss
 from loguru import logger
 from langchain.evaluation import load_evaluator
-from utils.basic_utils import convert_to_txt, read_txt
+from utils.basic_utils import convert_to_txt
 from multiprocessing import Process, Queue, Value
 # from backend.upgrade_resume import  create_resume_evaluator_tool, create_resume_rewriter_tool, redesign_resume_template
 # from todo_tmp.customize_document import create_cover_letter_customize_writer_tool, create_personal_statement_customize_writer_tool, create_resume_customize_writer_tool

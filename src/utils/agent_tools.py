@@ -1,6 +1,6 @@
 from langchain.agents import load_tools, initialize_agent, AgentExecutor
 from langchain.agents import AgentType
-from utils.basic_utils import read_txt, convert_to_txt, process_json
+from utils.basic_utils import process_json
 from utils.langchain_utils import ( create_compression_retriever, handle_tool_error,
                               split_doc, retrieve_vectorstore, split_doc_file_size, reorder_docs, create_summary_chain)
 from langchain_openai import ChatOpenAI, OpenAI, OpenAIEmbeddings
