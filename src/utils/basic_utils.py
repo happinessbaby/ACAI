@@ -86,7 +86,7 @@ else:
     # if not os.path.exists(punkt_path):
     #     nltk.download('punkt')
 
-def convert_to_txt(file, output_path, to_tmp=False) -> bool:
+def convert_to_txt(file, output_path=None, to_tmp=False) -> bool:
 
     """ Converts file to TXT file and move it to destination location. """
     try:
@@ -170,15 +170,8 @@ def convert_pptx_to_txt(pptx_file, output_path):
         f.close()
  
 #TODO: needs to find the best pdf to txt converter that takes care of special characters best (such as the dash between dates)
-def convert_pdf_to_txt(pdf_file, output_path, to_tmp=False):
-    # pdf = fitz.open(pdf_file)
-    # pages = count_pages(pdf_file)
-    # text = f"pages: {pages}"
-    # for page in pdf:
-    #     text+=page.get_text() + '\n'
-    # with open(output_path, 'w') as f:
-    #     f.write(text)
-    #     f.close()# Create a PDF reader object
+def convert_pdf_to_txt(pdf_file, output_path=None, to_tmp=False):
+  
     pdf_file = open(pdf_file, 'rb')
     read_pdf = PyPDF2.PdfReader(pdf_file)
     pages = len(read_pdf.pages)
@@ -186,7 +179,8 @@ def convert_pdf_to_txt(pdf_file, output_path, to_tmp=False):
     # print(text)
     for page in read_pdf.pages:
         text+=page.extract_text()
-    save_path = write_file(output_path, text, file_ext=".txt", to_tmp=to_tmp)
+    save_path = write_file(end_path=output_path, file_content=text, file_ext=".txt", to_tmp=to_tmp)
+    return save_path
 
 
         
@@ -272,15 +266,15 @@ def mk_dirs(paths: List[str],):
                
 
 
-def write_file(end_path: str, file_content="", file_path="", mode="wb", file_ext=".txt", to_tmp=False) -> str:
+def write_file(end_path=None, file_content="", file_path="", mode="w", file_ext=".txt", to_tmp=False) -> str:
 
     """ Writes content to file. Returns save path. """
 
     if to_tmp:
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext, mode=mode) as temp_file:
             tmp_save_path = temp_file.name
-            temp_file.write(file_content)  # If your text is a string, encode it to bytes
+            temp_file.write(file_content) 
         return tmp_save_path
     else:
         if STORAGE=="LOCAL":

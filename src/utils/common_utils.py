@@ -1002,13 +1002,13 @@ def process_uploads(uploads, save_path,):
     for uploaded_file in uploads:
         print('processing uploads')
         file_ext = Path(uploaded_file.name).suffix
-        filename = str(uuid.uuid4())
-        tmp_save_path = os.path.join(save_path, filename+file_ext)
-        end_path =  os.path.join(save_path, filename+'.txt')
-        tmp_save_path = write_file(tmp_save_path, file_content=uploaded_file.getvalue(), file_ext=file_ext, to_tmp=True)
+        # filename = str(uuid.uuid4())
+        # tmp_save_path = os.path.join(save_path, filename+file_ext)
+        # end_path =  os.path.join(save_path, filename+'.txt')
+        tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, to_tmp=True)
         if tmp_save_path:
             print("AAAAAAAAAAAAAAAAAAAAAAA")
-            end_path = convert_to_txt(tmp_save_path, end_path, to_tmp=True)
+            end_path = convert_to_txt(tmp_save_path, to_tmp=True)
             if end_path:
                 print("BBBBBBBBBBBBBBBBBBBBBBBB")
                 content_safe, content_type, content_topics = check_content(end_path, )
