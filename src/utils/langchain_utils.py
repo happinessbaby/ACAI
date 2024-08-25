@@ -155,11 +155,11 @@ def split_doc_file_size(path: str, file_type="file", use_bytes_threshold=True, t
         
     """
     
-    if STORAGE=="LOCAL":
-        bytes = os.path.getsize(path)
-    elif STORAGE=="CLOUD":
-        response = s3.head_object(Bucket=bucket_name, Key=path)
-        bytes = response['ContentLength']
+    # if STORAGE=="LOCAL":
+    bytes = os.path.getsize(path)
+    # elif STORAGE=="CLOUD":
+    #     response = s3.head_object(Bucket=bucket_name, Key=path)
+    #     bytes = response['ContentLength']
     print(f"File size is {bytes} bytes")
     docs: List[Document] = []
     # if file is small, don't split
