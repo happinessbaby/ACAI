@@ -900,7 +900,9 @@ def create_resume_info(resume_path="", ):
 def create_job_posting_info(posting_path="", about_job="", ):
 
     # job_posting = posting_path if posting_path else about_job[:50]
-    job_posting_info_dict = {"skills":[], "job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
+    job_posting_info_dict = {"content":"", "skills":[], 
+                             "job":"", "about_job":"", "company":"", "company_description":"",
+                               "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
     if posting_path:
         posting = read_file(posting_path)
         # prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:
