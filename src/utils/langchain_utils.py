@@ -100,16 +100,16 @@ def split_doc(path='./web_data/', path_type='dir', splitter_type = "recursive", 
         a list of LangChain Document
     
     """
-    if STORAGE=="LOCAL":
-        if (path_type=="file"):
-            loader = TextLoader(path)
-        elif (path_type=="dir"):
-            loader = DirectoryLoader(path, glob="*.txt", recursive=True)
-    elif STORAGE=="CLOUD":
-        if (path_type=="file"):
-            loader = S3FileLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
-        elif (path_type=="dir"):
-            loader = S3DirectoryLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+    # if STORAGE=="LOCAL":
+    if (path_type=="file"):
+        loader = TextLoader(path)
+    elif (path_type=="dir"):
+        loader = DirectoryLoader(path, glob="*.txt", recursive=True)
+    # elif STORAGE=="CLOUD":
+    #     if (path_type=="file"):
+    #         loader = S3FileLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+    #     elif (path_type=="dir"):
+    #         loader = S3DirectoryLoader(bucket_name, path, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
     documents = loader.load()
     # Option 1: tiktoken from openai
     if (splitter_type=="tiktoken"):
@@ -518,7 +518,7 @@ def create_input_tagger(schema:Dict[str, Any], user_input:str, llm = ChatOpenAI(
     response = chain.run(user_input)
     return response
 
-def create_document_tagger(schema:Dict[str, Any], doc:Document, llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")) -> Dict[str, Any]:
+def create_document_tagger(schema:Dict[str, Any], doc:Document, llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")) -> Dict[str, Any]:
 
     """ Tags a document according to schema: https://python.langchain.com/docs/integrations/document_transformers/openai_metadata_tagger
 
