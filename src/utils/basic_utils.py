@@ -72,19 +72,19 @@ if STORAGE=="CLOUD":
     base_uri = os.environ["PRODUCTION_BASE_URI"]
     libreoffice_path = os.environ["LIBREOFFICE_PATH"]
     pdftoppm_path=os.environ["PDFTOPPM_PATH"]
-    punkt_path = os.environ["PUNKT_PATH"]
+    # punkt_path = os.environ["PUNKT_PATH"]
     # Optional: ensure NLTK is using the right path, though it should automatically pick it up
-    nltk.data.path.append(punkt_path)
+    # nltk.data.path.append(punkt_path)
 else:
     bucket_name=None
     s3=None
     base_uri = os.environ["BASE_URI"]
     libreoffice_path="libreoffice"
     pdftoppm_path = "pdftoppm"
-    punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
-    # Check if 'punkt' is already downloaded
-    if not os.path.exists(punkt_path):
-        nltk.download('punkt')
+    # punkt_path = os.path.join(nltk.data.path[0], 'tokenizers', 'punkt')
+    # # Check if 'punkt' is already downloaded
+    # if not os.path.exists(punkt_path):
+    #     nltk.download('punkt')
 
 def convert_to_txt(file, output_path,) -> bool:
 
@@ -337,10 +337,20 @@ def count_length(filename, ):
 
 
     # Now you can use the word tokenizer
-    from nltk.tokenize import word_tokenize
+    # from nltk.tokenize import word_tokenize
+    # try:
+    #     content = read_file(filename, )
+    #     words = word_tokenize(content)
+    #     word_count = len(words)
+    #     return word_count
+    # except FileNotFoundError:
+    #     print(f"The file {filename} does not exist.")
+    #     return 0
+
     try:
-        content = read_file(filename, )
-        words = word_tokenize(content)
+        content = read_file(filename)
+        # Split the content into words based on whitespace
+        words = content.split()
         word_count = len(words)
         return word_count
     except FileNotFoundError:

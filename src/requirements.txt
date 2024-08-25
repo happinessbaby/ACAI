@@ -92,7 +92,7 @@ google-auth
 pydantic
 # sagemaker
 requests-aws4auth 
-nltk
+# nltk
 Jinja2   
 selenium
 pyairtable

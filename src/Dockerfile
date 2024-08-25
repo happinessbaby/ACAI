@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY src/nltk_data /usr/share/nltk_data
+# COPY src/nltk_data /usr/share/nltk_data
 # Copy requirements.txt into the container
 COPY src/requirements.txt ./
 
