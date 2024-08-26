@@ -450,6 +450,7 @@ class User():
                             key="user_resume",
                                 accept_multiple_files=False, 
                                 on_change=self.form_callback, 
+                                type=["pdf", "odt", "docx", "txt"],
                                 help="This will become your default resume.")
             add_vertical_space(3)
             _, c1 = st.columns([5, 1])
@@ -833,10 +834,13 @@ class User():
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
-                if x!=-1:
-                    del st.session_state["profile"][field_name][x][field_detail][idx]
-                else:
-                    del st.session_state["profile"][field_name][field_detail][idx]
+                try:
+                    if x!=-1:
+                        del st.session_state["profile"][field_name][x][field_detail][idx]
+                    else:
+                        del st.session_state["profile"][field_name][field_detail][idx]
+                except Exception:
+                    pass
             placeholder.empty()
 
         def move_entry(idx, movement, ):
@@ -936,17 +940,38 @@ class User():
                 st.session_state["profile"][name].append({"description":[],"issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","job_title":"","location":"","start_date":""})
-            elif name=="awards":
+            elif name=="awards" or name=="qualifications":
                 st.session_state["profile"][name].append({"description":[],"title":""})
-            elif name=="projects" or name=="qualifications":
-                st.session_state["profile"][name].append({"description":[],"title":""})
-            
+            elif name=="projects":
+                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","link":"","location":"","start_date":"", "title":""})
+        
         def delete_container(placeholder, idx):
 
             #deletes field container
             # print("deleted", st.session_state["profile"][name][idx])
-            del st.session_state["profile"][name][idx]
-            placeholder.empty()
+            try:
+                del st.session_state["profile"][name][idx]
+                placeholder.empty()
+            except Exception:
+                pass
+        
+        def move_entry(idx, movement, ):
+            if movement=="up":
+                current = st.session_state["profile"][name][idx]
+                try:
+                    prev =  st.session_state["profile"][name][idx-1]
+                    st.session_state["profile"][name][idx-1] = current
+                    st.session_state["profile"][name][idx]=prev
+                except Exception:
+                    pass
+            elif movement=="down":
+                current = st.session_state["profile"][name][idx]
+                try:
+                    nxt =  st.session_state["profile"][name][idx+1]
+                    st.session_state["profile"][name][idx+1] = current
+                    st.session_state["profile"][name][idx]=nxt
+                except Exception:
+                    pass
 
 
         def add_container(idx, value):
@@ -954,12 +979,16 @@ class User():
             # adds field container
             placeholder=st.empty()
             with placeholder.container(border=True):
-                c1, x = st.columns([18, 1])
+                c1, up, down, x = st.columns([18, 1, 1, 1])
                 # with c1:
                 #     st.write(f"**{name} {idx}**")
+                with up:
+                    st.button("**:blue[^]**", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                with down: 
+                    st.button(":grey[⌄]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
                 with x:
-                    st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                if name=="awards" or name=="projects" or name=="qualifications":
+                    st.button("**:red[-]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                if name=="awards" or name=="qualifications":
                     title = value["title"]
                     # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
@@ -979,24 +1008,44 @@ class User():
                     get_display()
                 elif name=="work_experience":
                     job_title = value["job_title"]
-                    company = st.session_state["profile"][name][idx]["company"]
-                    start_date = st.session_state["profile"][name][idx]["start_date"]
-                    end_date = st.session_state["profile"][name][idx]["end_date"]
-                    # descriptions = st.session_state["profile"][name][idx]["description"]
-                    location = st.session_state["profile"][name][idx]["location"]
+                    company = value["company"]
+                    start_date = value["start_date"]
+                    end_date = value["end_date"]
+                    location = value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
                         st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Company", value=company, key=f"experience_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"experience_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
                         st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"experience_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
                     # st.write("Description")
                     get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
                     get_display()
-                
+                elif name=="projects":
+                    project_title = value["title"]
+                    company = value["company"]
+                    start_date = value["start_date"]
+                    end_date = value["end_date"]
+                    # descriptions = st.session_state["profile"][name][idx]["description"]
+                    location = value["location"]
+                    link =value["link"]
+                    location=value["location"]
+                    c1, c2, c3= st.columns([2, 1, 1])
+                    with c1:
+                        st.text_input("Project title", value = project_title, key=f"project_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"project_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                    with c2:
+                        st.text_input("start date", value=start_date, key=f"project_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"project_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                    with c3:
+                        st.text_input("End date", value=end_date, key=f"project_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("Link", value=link, key=f"project_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                    # st.write("Description")
+                    get_display= self.display_field_details("projects", idx, "description", "bullet_points")
+                    get_display()
 
         def callback(idx):
        
@@ -1085,16 +1134,12 @@ class User():
                         if upload:
                             self.job_posting_popup(mode="resume")
                     else:
-                        selection = st.radio(label=" ", options=["with the current job posting", "with a new job posting"],
-                                                key=button_key+"_selection",
-                                    label_visibility="collapsed", 
-                                    index=None, )
-                        if selection == "with the current job posting":
+                        current = st.button("with the currrent job posting", key=button_key+"_current", type="primary")
+                        new = st.button("with a new job posting", key=button_key+"_new", type="primary")
+                        if current:
                             self.tailor_callback(type, field_name, details, )
-                            # make sure the radio is initiated to none every time
-                            del st.session_state[button_key+"_selection"]
                             st.rerun()
-                        elif selection=="with a new job posting":
+                        if new:
                             self.job_posting_popup()
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
@@ -1421,15 +1466,15 @@ class User():
             with st.expander(label="Projects"):
                 get_display=self.display_field_content("projects")
                 get_display()
-            c1, c2=st.columns([1, 1])
-            with c1:
-                with st.expander(label="Certifications", ):
-                    get_display=self.display_field_content("certifications")
-                    get_display()
-            with c2:
-                with st.expander("Awards & Honors"):
-                    get_display=self.display_field_content("awards")
-                    get_display()
+            # c1, c2=st.columns([1, 1])
+            # with c1:
+            with st.expander(label="Certifications", ):
+                get_display=self.display_field_content("certifications")
+                get_display()
+        # with c2:
+            with st.expander("Awards & Honors"):
+                get_display=self.display_field_content("awards")
+                get_display()
             # with c3:
             #     with st.expander("Licenses"):
             #         get_display=self.display_field_content("licenses")
