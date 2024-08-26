@@ -18,7 +18,7 @@ class Job(BaseModel):
         default="", description="the job position, this needs to be a work experience"
         )
     location: Optional[str] = Field(
-        default="remote", description="the location where the candidate worked for this job position"
+        default="", description="the location where the candidate worked for this job position"
     )
     start_date: Optional[str] = Field(
       default="", description = "the start date of this job experinece if available"
@@ -76,12 +76,28 @@ class Education(BaseModel):
     )
 
 class Project(BaseModel):
+    company: Optional[str] = Field(
+        default="", description = "the company under which the project took place in"
+    )
     description: Optional[List[str]] = Field(
         default=[], description = "details about the project, including the roles, accomplishments, metrics, etc. Include all details."
     )
+    end_date: Optional[str] = Field(
+      default="", description = "the end date of the project, if available"
+      )
+    link: Optional[str] = Field(
+        default="", description = "an external link to the project"
+    )
+    location: Optional[str] = Field(
+        default="", description="the location where the took place in"
+    )
+    start_date: Optional[str] = Field(
+      default="", description = "the start date of the project, if available"
+      )
     title: Optional[str] = Field(
         default="", description="the name of the project, can be a personal or work-related project, examples include coding project, art project, construction project, etc."
     )
+
 class Projects(BaseModel):
     projects: List[Project] = Field(
         default=[], description="""content from the projects section of the resume.

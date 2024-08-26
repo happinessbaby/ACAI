@@ -11,6 +11,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import CookieManager
 from multiprocessing import Pool
 from datetime import datetime
+from pathlib import Path
 import streamlit_antd_components as sac
 from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_pdf_viewer import pdf_viewer
@@ -129,10 +130,6 @@ class Reformat():
                 with c1:
                     add_vertical_space(30)
                     prev = st.button("🞀", key="prev_template_button", on_click=self.callback, args=("previous", ))
-                    # if prev:
-                    #     if st.session_state["selected_idx"]!=0:
-                    #         st.session_state["selected_idx"]-=1
-                    #         st.rerun()
                 with c2:
                     with stylable_container(
                         key="container_with_border",
@@ -145,8 +142,8 @@ class Reformat():
                             """,
                     ):
                         pdf_viewer(previews[st.session_state.selected_idx])
-                        # st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
-                        # st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
+                        st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+                        st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
                 with c3:
                     add_vertical_space(30)
                     nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
@@ -174,11 +171,11 @@ class Reformat():
                             with st.popover("Download my resume"):
                                 c1, c2 = st.columns([1, 1])
                                 with c1:
-                                    st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+                                    # st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
                                     with open(st.session_state["selected_docx_resume"], "rb") as f:
                                         st.download_button("Download as DOC", f, mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                                 with c2:
-                                    st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
+                                    # st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
                                     with open(st.session_state["selected_pdf_resume"], "rb") as f:
                                         st.download_button("Download as PDF", f,  mime='application/pdf')
 
@@ -195,7 +192,11 @@ class Reformat():
                             st.session_state["selected_idx"]-=1
     @st.dialog(title=" ")                
     def learn_more_popup(self):
-        st.write('This is a basic functional template with minimal design.')
+        filename = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+        templatename = Path(filename).stem.split("_")
+        template_type, template_num=templatename[0], templatename[1]
+        design = "minimal" if int(template_num)<=5 else "more complicated"
+        st.write(f'This is a {template_type} template with {design} design.')
 
 
     @st.fragment()

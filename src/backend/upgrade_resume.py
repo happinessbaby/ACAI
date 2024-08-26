@@ -457,9 +457,12 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements,):
         {field_name} section: {field_detail} \
         job requirements: {job_requirements} \
 
-        Please provide your reasoning for your ranking process. 
-        For items that are ranked lower with little relevancy to the job requirements, please also suggest some transferable skills that can be included.
-        DO NOT USE ANY TOOLS
+        Please provide your reasoning for your ranking process.  
+        Output in the following format:
+        Reranked section: - <reranked section> \n
+        reason: <your reasoning>
+        DO NOT USE ANY TOOLS.
+
     """
     ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
     return ranked_experience if ranked_experience else "please try again"
@@ -519,7 +522,12 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
 def reformat_resume(template_path, ):
 
     """"Reformats user profile information with a resume template"""
-
+    def split_at_letter_number(s):
+    # Use a regular expression to split at the point where a letter is followed by a digit
+        match = re.match(r"([a-zA-Z]+)(\d+)", s)
+        if match:
+            return match.groups()  # Returns a tuple of the split parts
+        return s  # If no match is found, return the original string
 
     print("reformatting resume")
     try:
@@ -527,6 +535,9 @@ def reformat_resume(template_path, ):
         print(selected_fields)
         info_dict = st.session_state["profile"]
         filename = os.path.basename(template_path)
+        templatex = split_at_letter_number(filename)
+        template_type, template_num = templatex[0], templatex[1]
+        print(template_type, template_num)
         output_dir = st.session_state["users_download_path"]
         end_path = os.path.join(output_dir, filename)
     except Exception:
@@ -593,10 +604,14 @@ def reformat_resume(template_path, ):
         # # Upload the BytesIO object to S3
         # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
         # Write to a temporary file
-        with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+        # Create a temporary file with a custom prefix and suffix
+        fd, end_path = tempfile.mkstemp(prefix=f"{template_type}_{template_num}_", suffix=".docx",)
+        # Write to the temporary file
+        with os.fdopen(fd, 'wb') as temp_file:
+        # with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
             temp_file.write(output_stream.getvalue())
             temp_file.seek(0)  # Reset stream position to the beginning if needed
-            end_path = temp_file.name
+            # end_path = temp_file.name
             print(f"Temporary file created at: {end_path}")
     return end_path
     
