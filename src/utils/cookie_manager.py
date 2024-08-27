@@ -92,6 +92,7 @@ class CookieManager():
                     self.cookies = self.get_all_cookies(x=attempt)
                     if cookie_name in self.cookies:
                         self.cookie = self.get_cookie(cookie_name)
+                        print("retrieved user cookie")
                     else:
                         print(f"Attempt {attempt + 1}: user not logged in, retrying in {delay} seconds...")
                         time.sleep(delay)

@@ -38,26 +38,33 @@ class Reformat():
     
     def __init__(self, ):
 
-        st.session_state["current_page"] = "template"
-        if "cm" not in st.session_state:
-            st.session_state["cm"] = CookieManager()
-        self.userId = st.session_state.cm.retrieve_userId()
-        if not self.userId:
-            st.switch_page("pages/user.py")      
+        # st.session_state["current_page"] = "template"
+        # if "cm" not in st.session_state:
+        #     st.session_state["cm"] = CookieManager()
+        # st.session_state.userId = st.session_state.cm.retrieve_userId()
+        # if not st.session_state.userId:
+        #     st.switch_page("pages/user.py")      
         self._init_session_states()
         self._init_display()
 
     def _init_session_states(_self, ):
 
+        st.session_state["current_page"] = "template"
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        if "userId" not in st.session_state:
+            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+            if not st.session_statep["userId"]:
+                st.switch_page("pages/user.py")
         if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(_self.userId, lance_users_table)
+                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
         if "selected_fields" not in st.session_state:
             st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience"]
         if "user_save_path" not in st.session_state:
             if STORAGE=="CLOUD":
-                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
+                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
             elif STORAGE=="LOCAL":
-                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
+                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], st.session_state.userId, "profile")
             # Get the current time
             now = datetime.now()
             # Format the time as "year-month-day-hour-second"
@@ -72,7 +79,7 @@ class Reformat():
 
         st.markdown(general_button, unsafe_allow_html=True)   
         st.markdown(primary_button, unsafe_allow_html=True )
-        user_menu(self.userId, page="template")
+        user_menu(st.session_state.userId, page="template")
         progress_bar(1)
         add_vertical_space(8)
         if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]):
@@ -228,6 +235,7 @@ class Reformat():
 
 
 if __name__ == '__main__':
+
 
     reformat=Reformat()
     
