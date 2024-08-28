@@ -57,7 +57,7 @@ if STORAGE=="CLOUD":
     login_file = os.environ["S3_LOGIN_FILE_PATH"]
     db_path=os.environ["S3_LANCEDB_PATH"]
     client_secret_json = os.environ["CLOUD_CLIENT_SECRET_JSON"]
-    base_uri = os.environ["PRODUCTION_BASE_URI"]
+    base_uri = os.environ["BASE_URI"]
 elif STORAGE=="LOCAL":
     login_file = os.environ["LOGIN_FILE_PATH"]
     db_path=os.environ["LANCEDB_PATH"]
@@ -241,12 +241,12 @@ class User():
         try:
             # still needs the logout code since the authenticators need to be cleared
             st.session_state.authenticator.logout(location="unrendered")
-            # self.google_signout()
+            self.google_signout()
         except Exception:
             pass
         st.session_state["user_mode"]="signedout"
         st.session_state["userId"] = None
-        time.sleep(5)
+        # time.sleep(5)
         if "redirect_page" in st.session_state:
             st.switch_page(st.session_state.redirect_page)
         else:
@@ -255,18 +255,28 @@ class User():
 
     def sign_in(self, ):
 
-        _, c1, _ = st.columns([1, 1, 1])
+        _, c1, _ = st.columns([3, 2, 3])
         with c1:
             # with st.container(border=True):
                 # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 st.image(st.session_state.logo_path)
-                # self.google_signin()
+                _, g_col= st.columns([1, 3])
+                with g_col:
+                    self.google_signin()
                 # add_vertical_space(1)
                 # sac.divider(label='or',  align='center', color='gray')
-                # st.divider()
+                st.divider()
                 name, authentication_status, username = st.session_state.authenticator.login()
-                placeholder_error = st.empty()
-                signup_col, forgot_password_col, forgot_username_col = st.columns([4, 1, 1])
+                if authentication_status:
+                    # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
+                    st.session_state["user_mode"]="signedin"
+                    st.session_state["userId"] = username
+                    # time.sleep(5)
+                    st.rerun()
+                elif authentication_status==False:
+                    st.error('Username/password is incorrect')
+                # placeholder_error = st.empty()
+                signup_col, forgot_password_col, forgot_username_col = st.columns([2, 1, 1])
                 with signup_col:
                     add_vertical_space(2)
                     sign_up = st.button(label="Sign up", key="signup",  type="primary")
@@ -276,22 +286,14 @@ class User():
                 with forgot_password_col:
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    if st.button(label="forgot my password", key="forgot_password", ):
+                    if st.button(label="forgot password", key="forgot_password", ):
                         self.recover_password_username_popup(type="password")
                 with forgot_username_col:
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    if st.button(label="forgot my username", key="forgot_username",):
+                    if st.button(label="forgot username", key="forgot_username",):
                         self.recover_password_username_popup(type="username")
                 # print(name, authentication_status, username)
-                if authentication_status:
-                    # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
-                    st.session_state["user_mode"]="signedin"
-                    st.session_state["userId"] = username
-                    time.sleep(5)
-                    st.rerun()
-                elif authentication_status==False:
-                    placeholder_error.error('Username/password is incorrect')
             # if st.button("skip log in", ):
             #     st.session_state.userId="test"
             #     st.session_state["mode"]="signedin"
@@ -337,7 +339,8 @@ class User():
                 st.session_state["credentials"] = credentials
                 st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
                 st.session_state["user_mode"]="signedin"
-                time.sleep(5)
+                st.session_state["userId"]=user_info.get("name")
+                # time.sleep(5)
                 st.rerun()
             except Exception as e:
                 pass
@@ -384,7 +387,7 @@ class User():
                     st.session_state["user_mode"]="signedin"
                     st.session_state["userId"] = username
                     st.success("User registered successfully. Redirecting...")
-                    time.sleep(5)
+                    # time.sleep(5)
                     st.rerun()
             except RegisterError as e:
                 if e.message=="Password does not meet criteria":
@@ -1383,16 +1386,16 @@ class User():
                 self.save_session_profile()
 
         # general evaluation column
-        with eval_col:
-            float_container= st.container()
-            with float_container:
-                self.display_general_evaluation(float_container)
-                self.evaluation_callback()
+        # with eval_col:
+        #     float_container= st.container()
+        #     with float_container:
+        #         self.display_general_evaluation(float_container)
+        #         self.evaluation_callback()
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
-                with st.expander(label="Contact", ):
+                with st.expander(label="Contact", expanded=True, icon=":material/contacts:"):
                     name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
@@ -1422,7 +1425,7 @@ class User():
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
-                with st.expander(label="Education"):
+                with st.expander(label="Education", expanded=True, icon=":material/school:"):
                     degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
@@ -1442,7 +1445,7 @@ class User():
                     st.markdown("Course works")
                     display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
                     display_detail()
-            with st.expander(label="Summary Objective",):
+            with st.expander(label="Summary Objective", expanded=True, icon=":material/summarize:"):
                 pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                 if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1453,12 +1456,12 @@ class User():
                     st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
                     self.display_field_analysis(type="text", field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
-            with st.expander(label="Work Experience",):
+            with st.expander(label="Work Experience",expanded=True, icon=":material/work_history:"):
                 # if st.session_state["profile"]["work_experience"]:
                 #     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
-            with st.expander(label="Skills",):
+            with st.expander(label="Skills",expanded=True, icon=":material/widgets:"):
                 # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= st.session_state["profile"]["included_skills"]
@@ -1469,22 +1472,22 @@ class User():
                 get_display()
             # c1, c2 = st.columns([1, 1])
             # with c1:
-            with st.expander(label="Professional Accomplihsment"):
+            with st.expander(label="Professional Accomplishment", expanded=True, icon=":material/commit:"):
                 st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
                                 label="learn more")
                 get_display=self.display_field_content("qualifications")
                 get_display()
             # with c2:
-            with st.expander(label="Projects"):
+            with st.expander(label="Projects", expanded=True, icon=":material/perm_media:"):
                 get_display=self.display_field_content("projects")
                 get_display()
             # c1, c2=st.columns([1, 1])
             # with c1:
-            with st.expander(label="Certifications", ):
+            with st.expander(label="Certifications", expanded=True, icon=":material/license:"):
                 get_display=self.display_field_content("certifications")
                 get_display()
         # with c2:
-            with st.expander("Awards & Honors"):
+            with st.expander("Awards & Honors", expanded=True, icon=":material/workspace_premium:"):
                 get_display=self.display_field_content("awards")
                 get_display()
             # with c3:
@@ -1666,9 +1669,10 @@ class User():
 
 
 
-    @st.fragment(run_every=5)
+    @st.fragment(run_every=3)
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
+            print('profile changed, saving user changes')
             save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
             st.session_state["profile_changed"]=False
 

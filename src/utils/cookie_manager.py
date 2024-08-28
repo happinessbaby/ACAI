@@ -76,10 +76,12 @@ class CookieManager():
 
     def delete_cookie(self, key="deleteCookie"):
         
+    
         if not self.cookies:
             self.cookies = self.get_all_cookies(x="x")
         if cookie_name in self.cookies:
             self.cookie_manager.delete(cookie_name, key)
+            print("successfully deleted cookie")
         self.userId = None
         self.cookie=None
         
