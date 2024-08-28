@@ -54,7 +54,7 @@ class Reformat():
             st.session_state["cm"] = CookieManager()
         if "userId" not in st.session_state:
             st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
-            if not st.session_statep["userId"]:
+            if not st.session_state["userId"]:
                 st.switch_page("pages/user.py")
         if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
