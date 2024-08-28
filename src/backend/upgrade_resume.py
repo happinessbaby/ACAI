@@ -272,7 +272,7 @@ def analyze_resume_type(resume_content, ):
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None):
 
-    print('start tailoring....')
+    print(f'start tailoring....{field_name}')
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     resume_content= resume_dict["resume_content"]
@@ -280,8 +280,9 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     if not job_requirements:
         job_requirements = concat_skills(required_skills)
     company_description = job_posting_dict["company_description"]
-    if field_name=="included_skillls":
-        tailored_skills = asyncio_run(lambda: tailor_skills(job_requirements, details))
+    if field_name=="included_skills":
+        required_skills = job_posting_dict["skills"]
+        tailored_skills = asyncio_run(lambda: tailor_skills(required_skills, details))
         if tailored_skills:
             tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
             if tailored_skills_dict:    
@@ -321,7 +322,8 @@ async def tailor_skills(required_skills, my_skills,):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
-    required_skills_str = concat_skills(required_skills)
+    # required_skills_str = concat_skills(required_skills)
+    # my_skills_str = concat_skills(my_skills)
     # my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
     # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
     # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
@@ -366,8 +368,8 @@ async def tailor_skills(required_skills, my_skills,):
                                     # relevant_soft_skills = relevant_soft_skills, 
                                     #          relevant_hard_skills = relevant_hard_skills, 
                                             # relevant_skills = relevant_skills,
-                                            required_skills = required_skills_str,
-                                            my_skills = my_skills,
+                                            required_skills = str(required_skills),
+                                            my_skills = str(my_skills),
     )
     tailored_skills = await llm.ainvoke(message)
     return tailored_skills
