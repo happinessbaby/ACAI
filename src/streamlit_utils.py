@@ -1,13 +1,11 @@
 import time
-from streamlit_modal import Modal
 import os
 import extra_streamlit_components as stx
 # Note that you can also import these from streamlit directly
-from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit_antd_components as sac
+# import streamlit_antd_components as sac
 import pandas as pd
 import uuid
 import streamlit.components.v1 as components
