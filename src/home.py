@@ -91,29 +91,28 @@ class Main():
 
     
     def __init__(self):
-
-
-        if "cm" not in st.session_state:
-            st.session_state["cm"] = CookieManager()
-        self.userId = st.session_state.cm.retrieve_userId()
-        # if self.userId:
-        #     if "user_mode" not in st.session_state:
-        #         st.session_state["user_mode"]="signedin" 
-        #     st.session_state["user_profile_dict"]=retrieve_dict_from_table(self.userId)
-        if "sessionId" not in st.session_state:
-            st.session_state["sessionId"] = str(uuid.uuid4())
-            print(f"Session: {st.session_state.sessionId}")
+        
         self._init_session_states()
         # self._create_chatbot()
         self._init_display()
 
         
 
-    @st.cache_data()
+    # @st.cache_data()
     def _init_session_states(_self,):
 
-        """ Initializes Streamlit session states. """
+    #     """ Initializes Streamlit session states. """
 
+        st.session_state["current_page"] = "home"
+        # NOTE: userId is retrieved from browser cookie
+        if "cm" not in st.session_state:
+            st.session_state["cm"] = CookieManager()
+        if "userId" not in st.session_state:
+            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+        # for chatbot
+        if "sessionId" not in st.session_state:
+            st.session_state["sessionId"] = str(uuid.uuid4())
+            print(f"Session: {st.session_state.sessionId}")
         # try:
         #     st.session_state["users"]
         # except Exception:
@@ -392,89 +391,89 @@ class Main():
 
 
 
-    @st.dialog(" ", )
-    def resume_form_popup(self, resume_required=True, job_required = False, ):
+    # @st.dialog(" ", )
+    # def resume_form_popup(self, resume_required=True, job_required = False, ):
         
-        """ Form popup for resume help"""
+    #     """ Form popup for resume help"""
 
-        add_vertical_space(2)
-        if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
-            st.session_state.conti_disabled=True
-        else:
-            st.session_state.conti_disabled=False
-        if "resume_path" not in st.session_state:
-            if resume_required:
-                st.session_state.resume_checkmark=":red[(required)]"
-            else:
-                st.session_state.resume_checkmark="(optional)"
-        if (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
-            if job_required or "job_required" in st.session_state:
-                st.session_state.job_posting_checkmark=":red[(required)]"
-            else:
-                st.session_state.job_posting_checkmark="(optional)"
-        if job_required or "job_required" in st.session_state:
-            st.session_state.expanded=True
-        else:
-            st.session_state.expanded=False
+    #     add_vertical_space(2)
+    #     if ("resume_path" not in st.session_state and resume_required) or (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) and (job_required or "job_required" in st.session_state)):
+    #         st.session_state.conti_disabled=True
+    #     else:
+    #         st.session_state.conti_disabled=False
+    #     if "resume_path" not in st.session_state:
+    #         if resume_required:
+    #             st.session_state.resume_checkmark=":red[(required)]"
+    #         else:
+    #             st.session_state.resume_checkmark="(optional)"
+    #     if (("job_posting_path" not in st.session_state and "job_description" not in st.session_state) or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
+    #         if job_required or "job_required" in st.session_state:
+    #             st.session_state.job_posting_checkmark=":red[(required)]"
+    #         else:
+    #             st.session_state.job_posting_checkmark="(optional)"
+    #     if job_required or "job_required" in st.session_state:
+    #         st.session_state.expanded=True
+    #     else:
+    #         st.session_state.expanded=False
 
-        if "job_required" in st.session_state:
-            st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
-        elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
-            st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
-        else:
-            st.info("Your resume will be evaluated and tailored to the job posting")
-        skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.form_callback)
-        with st.expander(f"Add a job posting for tailoring {st.session_state.job_posting_checkmark}", expanded=st.session_state.expanded):
-            job_posting = st.radio(f" ", 
-                                key="job_posting_radio", options=["job description", "job posting link"], 
-                                index = 1 if "job_description"  not in st.session_state else 0
-                                )
-            if job_posting=="job posting link":
-                job_posting_link = st.text_input(label="Job posting link",
-                                                key="job_posting", 
-                                                on_change=self.form_callback,
-                                                    # disabled=st.session_state.job_posting_disabled
-                                                    )
-            elif job_posting=="job description":
-                job_description = st.text_area("Job description", 
-                                            key="job_descriptionx", 
-                                            value=st.session_state.job_description if "job_description" in st.session_state else "",
-                                                on_change=self.form_callback, 
-                                                #  disabled=st.session_state.job_description_disabled
-                                                )
-        c1, separator, c2=st.columns([5, 1, 3])
-        with c1:
-            resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
-                                    key="resume",
-                                    type=["pdf","odt", "docx","txt"], 
-                                    on_change=self.form_callback,
-                                    # disabled=st.session_state.resume_disabled,
-                                    )
-            if resume: 
-                self.process([resume],"resume" )
-        with separator:
-            add_vertical_space(5)
-            st.write("or")
-        with c2:
-            add_vertical_space(5)
-            if self.userId:
-                if st.session_state["user_profile_dict"]:
-                    st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
-                else:
-                    st.session_state["redirect_page"]="home.py"
-                    st.session_state["user_mode"] = "display_profile"
-                    st.page_link("pages/user.py", label="create my default resume", )       
-            else:
-                st.write("Login to use or create a default resume")
-                if st.button("login", type="primary"):
-                    st.session_state["redirect_page"]="home.py"
-                    st.switch_page("pages/user.py")
-        if st.button(label="next",
-                           key="next_button", 
-                           disabled=st.session_state.conti_disabled, 
-                          ):
-            st.session_state["resume help"]=True
-            st.rerun()
+    #     if "job_required" in st.session_state:
+    #         st.info("AI will tailor your resume to a job posting. Please provide either a link or complete job description")
+    #     elif ("job_posting_path" not in st.session_state and "job_description" not in st.session_state or ("job_description" in st.session_state and st.session_state["job_description"]==None)):
+    #         st.info("AI will evaluate your resume only. If you want your resume tailored also, please provide a job posting")
+    #     else:
+    #         st.info("Your resume will be evaluated and tailored to the job posting")
+    #     skip_evaluation = st.checkbox("skip evaluation", key="skip_evaluation", on_change=self.form_callback)
+    #     with st.expander(f"Add a job posting for tailoring {st.session_state.job_posting_checkmark}", expanded=st.session_state.expanded):
+    #         job_posting = st.radio(f" ", 
+    #                             key="job_posting_radio", options=["job description", "job posting link"], 
+    #                             index = 1 if "job_description"  not in st.session_state else 0
+    #                             )
+    #         if job_posting=="job posting link":
+    #             job_posting_link = st.text_input(label="Job posting link",
+    #                                             key="job_posting", 
+    #                                             on_change=self.form_callback,
+    #                                                 # disabled=st.session_state.job_posting_disabled
+    #                                                 )
+    #         elif job_posting=="job description":
+    #             job_description = st.text_area("Job description", 
+    #                                         key="job_descriptionx", 
+    #                                         value=st.session_state.job_description if "job_description" in st.session_state else "",
+    #                                             on_change=self.form_callback, 
+    #                                             #  disabled=st.session_state.job_description_disabled
+    #                                             )
+    #     c1, separator, c2=st.columns([5, 1, 3])
+    #     with c1:
+    #         resume= st.file_uploader(label=f"Upload your most recent resume {st.session_state.resume_checkmark}", 
+    #                                 key="resume",
+    #                                 type=["pdf","odt", "docx","txt"], 
+    #                                 on_change=self.form_callback,
+    #                                 # disabled=st.session_state.resume_disabled,
+    #                                 )
+    #         if resume: 
+    #             self.process([resume],"resume" )
+    #     with separator:
+    #         add_vertical_space(5)
+    #         st.write("or")
+    #     with c2:
+    #         add_vertical_space(5)
+    #         if self.userId:
+    #             if st.session_state["user_profile_dict"]:
+    #                 st.checkbox("use my default resume", key="default_resume_checkbox", on_change=self.form_callback)
+    #             else:
+    #                 st.session_state["redirect_page"]="home.py"
+    #                 st.session_state["user_mode"] = "display_profile"
+    #                 st.page_link("pages/user.py", label="create my default resume", )       
+    #         else:
+    #             st.write("Login to use or create a default resume")
+    #             if st.button("login", type="primary"):
+    #                 st.session_state["redirect_page"]="home.py"
+    #                 st.switch_page("pages/user.py")
+    #     if st.button(label="next",
+    #                        key="next_button", 
+    #                        disabled=st.session_state.conti_disabled, 
+    #                       ):
+    #         st.session_state["resume help"]=True
+    #         st.rerun()
 
 
     # def skip_evaluation_callback(self, ):
@@ -487,40 +486,40 @@ class Main():
 
 
     # @st.fragment
-    def process_selection(self, ):
+    # def process_selection(self, ):
 
-        # Generate resume and job posting dictionaries
-        posting_q=None
-        resume_q=None
-        if "default_resume_checkbox" in st.session_state and st.session_state["default_resume_checkbox"]:
-            st.session_state["resume_path_final"] = st.session_state["user_profile_dict"]["resume_path"]
-        else:
-            st.session_state["resume_path_final"]=st.session_state["resume_path"]
-        if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
-            st.session_state["evaluation"]=True
-        resume_q = queue.Queue()
-        resume_t= threading.Thread(target=retrieve_or_create_resume_info, 
-                                args=(st.session_state.resume_path_final, resume_q, ),
-                                daemon=True)
-        resume_t.start()
-        if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
-            st.session_state["tailoring"]=True
-            posting_q = queue.Queue()
-            posting_t=threading.Thread(
-                target = retrieve_or_create_job_posting_info, 
-                args = (
-                st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
-                 st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
-                 posting_q),
-                 daemon=True,
-            )
-            posting_t.start()
-        if resume_q:
-            resume_t.join()
-            st.session_state["resume_dict"]=resume_q.get()
-        if posting_q:
-            posting_t.join()
-            st.session_state["job_posting_dict"] = posting_q.get()
+    #     # Generate resume and job posting dictionaries
+    #     posting_q=None
+    #     resume_q=None
+    #     if "default_resume_checkbox" in st.session_state and st.session_state["default_resume_checkbox"]:
+    #         st.session_state["resume_path_final"] = st.session_state["user_profile_dict"]["resume_path"]
+    #     else:
+    #         st.session_state["resume_path_final"]=st.session_state["resume_path"]
+    #     if "skip_evaluation" not in st.session_state or st.session_state["skip_evaluation"]==False:
+    #         st.session_state["evaluation"]=True
+    #     resume_q = queue.Queue()
+    #     resume_t= threading.Thread(target=retrieve_or_create_resume_info, 
+    #                             args=(st.session_state.resume_path_final, resume_q, ),
+    #                             daemon=True)
+    #     resume_t.start()
+    #     if ("job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link") or  ("job_description" in st.session_state and st.session_state.job_posting_radio=="job description"):
+    #         st.session_state["tailoring"]=True
+    #         posting_q = queue.Queue()
+    #         posting_t=threading.Thread(
+    #             target = retrieve_or_create_job_posting_info, 
+    #             args = (
+    #             st.session_state.job_posting_path if "job_posting_path" in st.session_state and st.session_state.job_posting_radio=="job posting link" else "",
+    #              st.session_state.job_description if "job_description" in st.session_state and st.session_state.job_posting_radio=="job description" else "",  
+    #              posting_q),
+    #              daemon=True,
+    #         )
+    #         posting_t.start()
+    #     if resume_q:
+    #         resume_t.join()
+    #         st.session_state["resume_dict"]=resume_q.get()
+    #     if posting_q:
+    #         posting_t.join()
+    #         st.session_state["job_posting_dict"] = posting_q.get()
 
                 
 
@@ -663,93 +662,93 @@ class Main():
 
 
  
-    def form_callback(self):
+    # def form_callback(self):
 
-        """ Processes form information after form submission. """
-        # try:
-        #     selected=st.session_state.type_selectionx
-        #     if selected:
-        #         # st.session_state.cl_type_checkmark="✅"
-        #         st.session_state["type_selection"]=selected
-        # except Exception:
-        #     pass
-        try:
-            resume=st.session_state.resume
-            if resume:
-                self.process([resume],"resume" )
-        except Exception:
-            pass
-        try:
-            job_posting=st.session_state.job_posting
-            if job_posting:
-                # st.session_state.job_posting=""
-                self.process(job_posting, "job_posting")
-        except Exception:
-            pass
-        try:
-            job_description=st.session_state.job_descriptionx
-            if job_description:
-               self.process(job_description, "job_description")
-        except Exception:
-            pass
-        try: 
-            skip_eval = st.session_state["skip_evaluation"]
-            if skip_eval:
-                st.session_state["job_required"]=True
-            else:
-                if "job_required" in st.session_state:
-                    del st.session_state["job_required"]
-        except Exception:
-            pass
-        # try:
-        #     use_default = st.session_state["default_resume_checkbox"]
-        #     if use_default:
-        #         st.session_state["use_default_resume"]=True 
-        # except Exception:
-        #     pass
+    #     """ Processes form information after form submission. """
+    #     # try:
+    #     #     selected=st.session_state.type_selectionx
+    #     #     if selected:
+    #     #         # st.session_state.cl_type_checkmark="✅"
+    #     #         st.session_state["type_selection"]=selected
+    #     # except Exception:
+    #     #     pass
+    #     try:
+    #         resume=st.session_state.resume
+    #         if resume:
+    #             self.process([resume],"resume" )
+    #     except Exception:
+    #         pass
+    #     try:
+    #         job_posting=st.session_state.job_posting
+    #         if job_posting:
+    #             # st.session_state.job_posting=""
+    #             self.process(job_posting, "job_posting")
+    #     except Exception:
+    #         pass
+    #     try:
+    #         job_description=st.session_state.job_descriptionx
+    #         if job_description:
+    #            self.process(job_description, "job_description")
+    #     except Exception:
+    #         pass
+    #     try: 
+    #         skip_eval = st.session_state["skip_evaluation"]
+    #         if skip_eval:
+    #             st.session_state["job_required"]=True
+    #         else:
+    #             if "job_required" in st.session_state:
+    #                 del st.session_state["job_required"]
+    #     except Exception:
+    #         pass
+    #     # try:
+    #     #     use_default = st.session_state["default_resume_checkbox"]
+    #     #     if use_default:
+    #     #         st.session_state["use_default_resume"]=True 
+    #     # except Exception:
+    #     #     pass
 
-        # try:
-        #     pursuit_job=st.session_state.pursuit_job
-        #     if pursuit_job:
-        #         st.session_state.pursuit_job=""
-        #         self.process_uploads(job_posting, "job_posting")
-        # except Exception:
-        #     pass
-        # try:
-        #     # files = st.session_state.files 
-        #     file_key = f"files_{str(st.session_state.file_counter)}"
-        #     files = st.session_state[file_key]
-        #     if files:
-        #         self.process_uploads(files, "files")
-        #         st.session_state["file_counter"] += 1
-        #         # st.session_state.files=""
-        # except Exception:
-        #     pass
-        # try:
-        #     links = st.session_state.links
-        #     if links:
-        #         self.process_uploads(links, "links")
-        #         st.session_state.links=""
-        # except Exception:
-        #     pass
-        # try:
-        #     about_job = st.session_state.aboutJob
-        #     if about_job:
-        #         self.new_chat.update_entities(f"about_job:{about_job} /n"+"~~~~", '~~~~')
-        #         st.session_state.aboutJob=""
-        #         st.toast("successfully submitted")
-        # except Exception:
-        #     pass
+    #     # try:
+    #     #     pursuit_job=st.session_state.pursuit_job
+    #     #     if pursuit_job:
+    #     #         st.session_state.pursuit_job=""
+    #     #         self.process_uploads(job_posting, "job_posting")
+    #     # except Exception:
+    #     #     pass
+    #     # try:
+    #     #     # files = st.session_state.files 
+    #     #     file_key = f"files_{str(st.session_state.file_counter)}"
+    #     #     files = st.session_state[file_key]
+    #     #     if files:
+    #     #         self.process_uploads(files, "files")
+    #     #         st.session_state["file_counter"] += 1
+    #     #         # st.session_state.files=""
+    #     # except Exception:
+    #     #     pass
+    #     # try:
+    #     #     links = st.session_state.links
+    #     #     if links:
+    #     #         self.process_uploads(links, "links")
+    #     #         st.session_state.links=""
+    #     # except Exception:
+    #     #     pass
+    #     # try:
+    #     #     about_job = st.session_state.aboutJob
+    #     #     if about_job:
+    #     #         self.new_chat.update_entities(f"about_job:{about_job} /n"+"~~~~", '~~~~')
+    #     #         st.session_state.aboutJob=""
+    #     #         st.toast("successfully submitted")
+    #     # except Exception:
+    #     #     pass
 
-        ## Passes the previous user question to the agent one more time after user uploads form
-        # try:
-        #     # print(f"QUESTION INPUT: {st.session_state.questionInput}")
-        #     if st.session_state.questionInput!="":
-        #         st.session_state.input = st.session_state.questionInput
-        #         self.question_callback(self.callback_done, append_question=False)
-        # # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
-        # except AttributeError:    
-        #    pass
+    #     ## Passes the previous user question to the agent one more time after user uploads form
+    #     # try:
+    #     #     # print(f"QUESTION INPUT: {st.session_state.questionInput}")
+    #     #     if st.session_state.questionInput!="":
+    #     #         st.session_state.input = st.session_state.questionInput
+    #     #         self.question_callback(self.callback_done, append_question=False)
+    #     # # 'Chat' object has no attribute 'question': exception occurs when user has not asked a question, in this case, pass
+    #     # except AttributeError:    
+    #     #    pass
 
 
 
@@ -761,50 +760,50 @@ class Main():
 
 
 
-    def process(self, uploads: Any, upload_type: str) -> None:
+    # def process(self, uploads: Any, upload_type: str) -> None:
 
-        """Processes user uploads including converting all format to txt, checking content safety, content type, and content topics. 
+    #     """Processes user uploads including converting all format to txt, checking content safety, content type, and content topics. 
 
-        Args:
+    #     Args:
             
-            uploads: files or links saved when user uploads on Streamlit
+    #         uploads: files or links saved when user uploads on Streamlit
             
-            upload_type: "files" or "links"
+    #         upload_type: "files" or "links"
     
-        """
+    #     """
 
-        if upload_type=="resume":
-            result = process_uploads(uploads, st.session_state.save_path, st.session_state.sessionId)
-            if result is not None:
-                content_safe, content_type, content_topics, end_path = result
-                if content_safe and content_type=="resume":
-                    st.session_state["resume_path"]= end_path
-                    st.session_state.resume_checkmark="✅"
-                    # st.session_state["resume_dict"] = retrieve_or_create_resume_info(resume_path=end_path, )
-                else:
-                    # st.session_state.resume_checkmark=":red[*]"
-                    st.info("Please upload your resume here")
-            else:
-                st.info("Please upload your resume here")
-        elif upload_type=="job_posting":
-            result = process_links(uploads, st.session_state.save_path, st.session_state.sessionId)
-            if result is not None:
-                content_safe, content_type, content_topics, end_path = result
-                if content_safe and content_type=="job posting":
-                    st.session_state["job_posting_path"]=end_path
-                    st.session_state.job_posting_checkmark="✅"
-                else:
-                    # st.session_state.job_posting_checkmark=":red[*]"
-                    st.info("Please upload your job posting link here")
-            else:
-                st.info("That didn't work. Please try pasting the content in job description instead.")
-        elif upload_type=="job_description":
-            result = process_inputs(uploads, match_topic="job posting or job description")
-            if result is not None:
-                st.session_state.job_posting_checkmark="✅"
-                st.session_state["job_description"] = uploads  
-            else:
-                st.info("Please share a job description here")
+    #     if upload_type=="resume":
+    #         result = process_uploads(uploads, st.session_state.save_path, st.session_state.sessionId)
+    #         if result is not None:
+    #             content_safe, content_type, content_topics, end_path = result
+    #             if content_safe and content_type=="resume":
+    #                 st.session_state["resume_path"]= end_path
+    #                 st.session_state.resume_checkmark="✅"
+    #                 # st.session_state["resume_dict"] = retrieve_or_create_resume_info(resume_path=end_path, )
+    #             else:
+    #                 # st.session_state.resume_checkmark=":red[*]"
+    #                 st.info("Please upload your resume here")
+    #         else:
+    #             st.info("Please upload your resume here")
+    #     elif upload_type=="job_posting":
+    #         result = process_links(uploads, st.session_state.save_path, st.session_state.sessionId)
+    #         if result is not None:
+    #             content_safe, content_type, content_topics, end_path = result
+    #             if content_safe and content_type=="job posting":
+    #                 st.session_state["job_posting_path"]=end_path
+    #                 st.session_state.job_posting_checkmark="✅"
+    #             else:
+    #                 # st.session_state.job_posting_checkmark=":red[*]"
+    #                 st.info("Please upload your job posting link here")
+    #         else:
+    #             st.info("That didn't work. Please try pasting the content in job description instead.")
+    #     elif upload_type=="job_description":
+    #         result = process_inputs(uploads, match_topic="job posting or job description")
+    #         if result is not None:
+    #             st.session_state.job_posting_checkmark="✅"
+    #             st.session_state["job_description"] = uploads  
+    #         else:
+    #             st.info("Please share a job description here")
 
         
 
