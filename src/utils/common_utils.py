@@ -1014,12 +1014,9 @@ def process_uploads(uploads, save_path, to_tmp=True):
         # NOTE: getvalue() returns bytes so need "wb" instead of "w" here
         tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, mode="wb", to_tmp=to_tmp)
         if tmp_save_path:
-            print("AAAAAAAAAAAAAAAAAAAAAAA")
             end_path = convert_to_txt(tmp_save_path, to_tmp=to_tmp)
             if end_path:
-                print("BBBBBBBBBBBBBBBBBBBBBBBB")
                 content_safe, content_type, content_topics = check_content(end_path, )
-                print("CCCCCCCCCCCCCCCCCCCCCCCCCCCC")
                 if content_safe is not None:
                     return (content_safe, content_type, content_topics, end_path)
         return None

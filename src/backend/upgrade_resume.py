@@ -60,7 +60,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
         resume_file = resume_dict["resume_path"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
-        word_count = count_length(resume_file)
+        word_count = count_length(content=resume_content)
         st.session_state.evaluation.update({"word_count": word_count})
         # pattern = r'pages:(\d+)'
         # # Search for the pattern in the text (I added page number when writing the file to txt)

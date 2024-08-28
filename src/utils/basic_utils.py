@@ -330,7 +330,7 @@ def move_file(source_file:str, dest_dir:str, ):
             CopySource={'Bucket': bucket_name, 'Key': source_file}
         )
 
-def count_length(filename, ):
+def count_length(filename="", content="" ):
 
 
     # Now you can use the word tokenizer
@@ -345,7 +345,8 @@ def count_length(filename, ):
     #     return 0
 
     try:
-        content = read_file(filename)
+        if filename:
+            content = read_file(filename)
         # Split the content into words based on whitespace
         words = content.split()
         word_count = len(words)
