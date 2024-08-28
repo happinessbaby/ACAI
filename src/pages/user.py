@@ -98,21 +98,30 @@ class User():
     def __init__(self, ):
 
 
+        # if "cm" not in st.session_state:
+        #     st.session_state["cm"] = CookieManager()
+        # if "userId" not in st.session_state:
+        #     st.session_state.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+        #     st.session_state["userId"]=st.session_state.userId
+        self._init_session_states()
+        self._init_display()
+
+
+    # @st.cache_data()
+    def _init_session_states(_self, ):
+
         # set current page for progress bar
         st.session_state["current_page"] = "profile"
         # NOTE: userId is retrieved from browser cookie
         if "cm" not in st.session_state:
             st.session_state["cm"] = CookieManager()
-        self.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
-        time.sleep(3)
-        self._init_session_states()
-        self._init_display()
-
-    # @st.cache_data()
-    def _init_session_states(_self, ):
-
+        if "userId" not in st.session_state:
+            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+            # st.session_state["userId"]=_st.session_state.userId
 
         # Open users login file
+        if "logo_path" not in st.session_state:
+            st.session_state["logo_path"]="./resources/logo_acareerai.png"
         if "authenticator" not in st.session_state:
             with open(login_file) as file:
                 st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -129,24 +138,24 @@ class User():
         #     except JSONDecodeError:
         #         raise 
             
-
-        if _self.userId is not None:
+        if st.session_state["userId"] is not None:
+        # if _st.session_state.userId is not None:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(_self.userId, lance_users_table)
+                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
                 # scheduler = BackgroundScheduler()
                 # scheduler.add_job(_self.save_session_profile, 'interval', seconds=5, )
                 # scheduler.start()
             if "evaluation" not in st.session_state:
-                st.session_state["evaluation"] = retrieve_dict_from_table(_self.userId, lance_eval_table)
+                st.session_state["evaluation"] = retrieve_dict_from_table(st.session_state.userId, lance_eval_table)
             if "tracker" not in st.session_state:
-                st.session_state["tracker"] = retrieve_dict_from_table(_self.userId, lance_tracker_table)
+                st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
-                    st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], _self.userId, "profile")
+                    st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
                 elif STORAGE=="LOCAL":
-                    st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], _self.userId, "profile")
+                    st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], st.session_state.userId, "profile")
                 # Get the current time
                 now = datetime.now()
                 # Format the time as "year-month-day-hour-second"
@@ -176,7 +185,7 @@ class User():
             st.session_state["user_mode"]="reset"
             self.reset_password(token, username)
         if st.session_state.user_mode!="signedout" and st.session_state.user_mode!="reset":
-            user_menu(self.userId, page="profile")
+            user_menu(st.session_state.userId, page="profile")
             # st.logo("./resources/logo_acareerai.png")
         if st.session_state.user_mode=="signup":
             print("signing up")
@@ -236,6 +245,7 @@ class User():
         except Exception:
             pass
         st.session_state["user_mode"]="signedout"
+        st.session_state["userId"] = None
         time.sleep(5)
         if "redirect_page" in st.session_state:
             st.switch_page(st.session_state.redirect_page)
@@ -243,14 +253,13 @@ class User():
             st.rerun()
 
 
-
     def sign_in(self, ):
 
         _, c1, _ = st.columns([1, 1, 1])
         with c1:
-            with st.container(border=True):
+            # with st.container(border=True):
                 # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
-                st.image("./resources/logo_acareerai.png")
+                st.image(st.session_state.logo_path)
                 # self.google_signin()
                 # add_vertical_space(1)
                 # sac.divider(label='or',  align='center', color='gray')
@@ -278,12 +287,13 @@ class User():
                 if authentication_status:
                     # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
                     st.session_state["user_mode"]="signedin"
+                    st.session_state["userId"] = username
                     time.sleep(5)
                     st.rerun()
                 elif authentication_status==False:
                     placeholder_error.error('Username/password is incorrect')
             # if st.button("skip log in", ):
-            #     self.userId="test"
+            #     st.session_state.userId="test"
             #     st.session_state["mode"]="signedin"
 
     @st.dialog(title=" ")
@@ -371,7 +381,8 @@ class User():
                     with open(login_file, 'w') as file:
                         yaml.dump(st.session_state.config, file, default_flow_style=False)
                     # if self.save_password( username, name, password, email):
-                    st.session_state["user_mode"]="signedout"
+                    st.session_state["user_mode"]="signedin"
+                    st.session_state["userId"] = username
                     st.success("User registered successfully. Redirecting...")
                     time.sleep(5)
                     st.rerun()
@@ -398,8 +409,9 @@ class User():
                             # Update the user's password in the database
                             self.save_password(new_password, username)
                             st.success("Password has been reset successfully! Redirecting...")
+                            st.session_state["user_mode"]="signedin"
+                            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
                             time.sleep(5)
-                            st.session_state["user_mode"]="signedout"
                             nav_to("/user")                              
                         else:
                             st.error("Passwords do not match.")
@@ -471,11 +483,11 @@ class User():
         # create generated dict from resume
         resume_dict = create_resume_info(st.session_state.user_resume_path,)
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
-        resume_dict.update({"user_id": self.userId}) 
+        resume_dict.update({"user_id": st.session_state.userId}) 
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
-        save_user_changes(self.userId, resume_dict, ResumeUsers, lance_users_table)
+        save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
         # delete any old profile instance
         try:
             del st.session_state["profile"]
@@ -491,12 +503,12 @@ class User():
         # end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
         # write_file(end_path, file_content="")
-        st.session_state["profile"] = {"user_id": self.userId, "resume_path": "", "resume_content":"",
+        st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(self.userId, st.session_state.profile, ResumeUsers, lance_users_table) 
+        save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table) 
         # delete any old profile instance
         try:
             del st.session_state["profile"]
@@ -554,8 +566,8 @@ class User():
 
     # def test_clear(self):
         
-    #     vectorstore = retrieve_vectorstore("elasticsearch", index_name=self.userId)
-    #     record_manager=create_record_manager(self.userId)
+    #     vectorstore = retrieve_vectorstore("elasticsearch", index_name=st.session_state.userId)
+    #     record_manager=create_record_manager(st.session_state.userId)
     #     print(f"record manager keys: {record_manager.list_keys()}")
     #     clear_index(record_manager, vectorstore)
     #     print(f"record manager keys: {record_manager.list_keys()}")
@@ -578,45 +590,45 @@ class User():
 
         # try:
         #     st.session_state["self_description"] = st.session_state.self_descriptionx
-        #     st.session_state["users"][self.userId]["self_description"] = st.session_state.self_description
+        #     st.session_state["users"][st.session_state.userId]["self_description"] = st.session_state.self_description
         # except AttributeError:
         #     pass
         # try:
         #     st.session_state["career_goals"] = st.session_state.career_goalsx
-        #     st.session_state["users"][self.userId]["career_goals"] = st.session_state.career_goals
+        #     st.session_state["users"][st.session_state.userId]["career_goals"] = st.session_state.career_goals
         # except AttributeError:
         #     pass
         # try:
         #     st.session_state["job_level"] = st.session_state.job_levelx
-        #     st.session_state["users"][self.userId]["job_level"] = st.session_state.job_level
+        #     st.session_state["users"][st.session_state.userId]["job_level"] = st.session_state.job_level
         # except AttributeError:
         #     pass
         # try:
         #     st.session_state["min_pay"] = st.session_state.min_payx
-        #     st.session_state["users"][self.userId]["mininum_pay"] = st.session_state.min_pay
+        #     st.session_state["users"][st.session_state.userId]["mininum_pay"] = st.session_state.min_pay
         # except AttributeError:
         #     pass
         # try:
         #     st.session_state["pay_type"] = st.session_state.pay_typex
-        #     st.session_state["users"][self.userId]["pay_type"] = st.session_state.pay_type
+        #     st.session_state["users"][st.session_state.userId]["pay_type"] = st.session_state.pay_type
         # except AttributeError:
         #     pass
         
         # try:
         #     st.session_state["career_switch"] = st.session_state.career_switchx
-        #     st.session_state["users"][self.userId]["career_switch"] = st.session_state.career_switch
+        #     st.session_state["users"][st.session_state.userId]["career_switch"] = st.session_state.career_switch
         # except AttributeError:
         #     pass
         # try:
         #     transferable_skills = st.session_state.transferable_skillsx
         #     self.process("transferable_skills", transferable_skills)
-        #     st.session_state["users"][self.userId]["transferable_skills"] = st.session_state.transferable_skills
+        #     st.session_state["users"][st.session_state.userId]["transferable_skills"] = st.session_state.transferable_skills
         # except AttributeError:
         #     pass
         # try:
         #     location_input = st.session_state.location_inputx
         #     self.process("location_input", location_input)
-        #     st.session_state["users"][self.userId]["location_input"] = st.session_state.location_input
+        #     st.session_state["users"][st.session_state.userId]["location_input"] = st.session_state.location_input
         # except AttributeError:
         #     pass
         try:
@@ -1287,7 +1299,7 @@ class User():
             #     download_path=asyncio_run(lambda: generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], ))
             #     if download_path:
             #         st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
-            #         save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+            #         save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
             #         with open(download_path, "rb") as file:
             #             file_content = file.read()
             #         st.download_button(
@@ -1311,12 +1323,12 @@ class User():
                 )
         # st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
-        st.session_state["job_posting_dict"].update({"user_id": self.userId})
+        st.session_state["job_posting_dict"].update({"user_id": st.session_state.userId})
         st.session_state["job_posting_dict"].update({"resume_path": ""})
         st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
         st.session_state["job_posting_dict"].update({"status": ""})
         st.session_state["job_posting_dict"].update({"time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
-        save_user_changes(self.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+        save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
 
 
     
@@ -1522,9 +1534,9 @@ class User():
         try:
             finished = st.session_state["evaluation"]["finished"]
             if finished and st.session_state["eval_rerun_timer"]:
-                st.session_state["evaluation"].update({"user_id":self.userId})
+                st.session_state["evaluation"].update({"user_id":st.session_state.userId})
                 st.session_state["eval_rerun_timer"]=None
-                save_user_changes(self.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
+                save_user_changes(st.session_state.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
                 st.rerun()      
         except Exception:
             finished=False
@@ -1610,7 +1622,7 @@ class User():
                         # delete previous evaluation states
                         try:
                             # remove evaluation from lance table and old evaluation from session
-                            delete_user_from_table(self.userId, lance_eval_table)
+                            delete_user_from_table(st.session_state.userId, lance_eval_table)
                             del st.session_state["evaluation"]
                             del st.session_state["init_eval"]
                         except Exception:
@@ -1657,7 +1669,7 @@ class User():
     @st.fragment(run_every=5)
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
-            save_user_changes(self.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+            save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
             st.session_state["profile_changed"]=False
 
 
@@ -1672,8 +1684,8 @@ class User():
         c1, _, c2 = st.columns([1, 1, 1])
         with c2:
             if st.button("yes, I'll upload a new resume", type="primary", ):
-                delete_user_from_table(self.userId, lance_users_table)
-                delete_user_from_table(self.userId, lance_eval_table)
+                delete_user_from_table(st.session_state.userId, lance_users_table)
+                delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 try:
                     del st.session_state["profile"]
@@ -1697,7 +1709,7 @@ class User():
 
 
 if __name__ == '__main__':
-
-        user=User()
+    
+    user=User()
     
 

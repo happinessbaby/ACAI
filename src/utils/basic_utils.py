@@ -567,9 +567,9 @@ def send_recovery_email(to_email, type, subject="Recover your password/username"
     to_email = to_email.split("@")
     # print(to_email)
     msg['Subject'] = subject
-    msg['From'] = Address("aCareerAi", "yueqipeng2021", "gmail.com")
+    msg['From'] = Address("aCareerAi", "contact", "acareerai.com")
     msg['To'] = (
-                Address(username, "yueqipeng2021", "gmail.com"),
+                Address(username, "contact", "acareerai.com"),
                 Address(username, to_email[0], to_email[1])
                  )
     if type=="username":
