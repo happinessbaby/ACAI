@@ -1135,7 +1135,7 @@ class User():
                         button {
                             background: none;
                             border: none;
-                            color: #2d2e29;
+                            color: #ff8247;
                             padding: 0;
                             cursor: pointer;
                             font-size: 12px; /* Adjust as needed */

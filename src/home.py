@@ -40,9 +40,9 @@ from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_utils import user_menu, set_streamlit_page_config_once
 from css.streamlit_css import tabs
 import multiprocessing
-import streamlit as st
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import ChatMessage
+import streamlit as st
 
 set_streamlit_page_config_once()
 

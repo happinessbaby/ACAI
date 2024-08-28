@@ -74,6 +74,21 @@ primary_button3="""
             </style>
             """
 
+primary_button4= """
+         <style>.element-container:has(.primary-button4) + div button {
+            background: none;
+            border: none;
+            color: #47ff5a;
+            padding: 0;
+            cursor: pointer;
+            font-size: 12px; /* Adjust as needed */
+            text-decoration: none;
+            }
+             .element-container:has(.primary-button4) + div button:hover {
+               text-decoration: underline;
+            }
+            </style>
+            """
 
 tabs= """
 <style>
