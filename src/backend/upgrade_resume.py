@@ -282,7 +282,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     company_description = job_posting_dict["company_description"]
     if field_name=="included_skills":
         required_skills = job_posting_dict["skills"]
-        tailored_skills = asyncio_run(lambda: tailor_skills(required_skills, details))
+        tailored_skills = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
         if tailored_skills:
             tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
             if tailored_skills_dict:    
@@ -293,7 +293,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
             st.session_state[f"tailored_{field_name}"] = "please try again"
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
-        response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title))
+        response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
         if response:
             tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
             if tailored_objective_dict:
