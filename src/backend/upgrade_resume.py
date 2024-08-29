@@ -57,7 +57,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
     resume_content = resume_dict["resume_content"]
     if type=="general":
         st.session_state["evaluation"] = {"finished":False}
-        resume_file = resume_dict["resume_path"]
+        # resume_file = resume_dict["resume_path"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
         # Evaluate resume length
         word_count = count_length(content=resume_content)
@@ -105,7 +105,8 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
         # summary_objective = resume_dict["summary_objective"]
         if details:
             readability_checker(type, details)
-            evaluated_summary = analyze_summary_objective(resume_content)
+            summary=resume_dict["summary_objective"]
+            evaluated_summary = analyze_summary_objective(resume_content, summary)
             st.session_state["evaluated_summary_objective"]=evaluated_summary
 
     # if resume_fields["projects"]!=-1:
@@ -138,7 +139,7 @@ def analyze_field_content(field_content, field_type):
         field content list: {field_content}  \
 
         DO NOT USE ANY TOOLS. """
-        response = asyncio_run(lambda: generate_multifunction_response(star_prompt, create_search_tools("google", 1)))
+        response = asyncio_run(lambda: generate_multifunction_response(star_prompt, create_search_tools("google", 1)), timeout=10)
         return response
     elif field_type=="projects":
         """Summary of the project
@@ -152,9 +153,9 @@ def analyze_field_content(field_content, field_type):
             Further questions to examine in the future"""
         
 
-def analyze_summary_objective(resume_content, ):
+def analyze_summary_objective(resume_content, summary):
     
-    summary_query = f"""Given the resume content below, please analyze the summary objective section based on the following criteria:
+    summary_query = f"""Given the resume content and summary objective section below, please analyze the summary objective section based on the following criteria:
 
     1. Is it about two to three sentences long? \n
 
@@ -162,15 +163,17 @@ def analyze_summary_objective(resume_content, ):
     
     2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
 
-    Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. 
+    Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. Include any suggestions if needed.
 
     DO NOT USE ANY TOOLS!
 
     resume content: {resume_content}
+
+    summary objective section: {summary}
     
     """
 
-    summary_resp = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)))
+    summary_resp = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)), timeout=10)
     return summary_resp
 
 
@@ -266,9 +269,12 @@ def analyze_resume_type(resume_content, ):
       Note a resume can be mix of chronological and functional type.
 
     """
-    response=asyncio_run(lambda: create_smartllm_chain(query_type, n_ideas=1))
-    type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType))
-    return type_dict["type"]
+    response=asyncio_run(lambda: create_smartllm_chain(query_type, n_ideas=1), timeout=10)
+    if response:
+        type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType), timoue=5)
+        return type_dict["type"]
+    else:
+        return ""
 
 def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None):
 
@@ -627,7 +633,7 @@ def readability_checker(field_name, w):
             # coleman_liau_index=ts.coleman_liau_index(w),
             # dale_chall_readability_score=ts.dale_chall_readability_score(w),
             # linsear_write_formula=ts.linsear_write_formula(w),
-            gunning_fog=ts.gunning_fog(w),
+            # gunning_fog=ts.gunning_fog(w),
             # word_count=ts.lexicon_count(w),
             # difficult_words=ts.difficult_words(w),
             # text_standard=ts.text_standard(w),

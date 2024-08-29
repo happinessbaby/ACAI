@@ -210,7 +210,7 @@ def retrieve_dict_from_table(userId, tablename):
         #         except IndexError as e:
         #             print(e)
         #             pass
-        print(f"Retrieved {tablename} dict from lancedb", table_dict)
+        print(f"Retrieved {tablename} dict from lancedb", )
         return table_dict if tablename==lance_tracker_table else table_dict[0]
     else:
         return None

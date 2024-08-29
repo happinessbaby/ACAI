@@ -1,6 +1,6 @@
 from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
-import extra_streamlit_components as stx
+# import extra_streamlit_components as stx
 from pathlib import Path
 import random
 import time
@@ -21,7 +21,6 @@ import openai
 import json
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import time
-from utils.cookie_manager import CookieManager
 # from utils.aws_manager import get_client, request_aws4auth
 # from st_multimodal_chatinput import multimodal_chatinput
 # from streamlit_datalist import stDatalist
@@ -105,10 +104,10 @@ class Main():
 
         st.session_state["current_page"] = "home"
         # NOTE: userId is retrieved from browser cookie
-        if "cm" not in st.session_state:
-            st.session_state["cm"] = CookieManager()
-        if "userId" not in st.session_state:
-            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+        # if "cm" not in st.session_state:
+        #     st.session_state["cm"] = CookieManager()
+        # if "userId" not in st.session_state:
+        #     st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
         # for chatbot
         if "sessionId" not in st.session_state:
             st.session_state["sessionId"] = str(uuid.uuid4())

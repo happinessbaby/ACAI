@@ -8,7 +8,7 @@ from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_m
 from streamlit_float import *
 from st_pages import get_pages, get_script_run_ctx 
 from streamlit_extras.add_vertical_space import add_vertical_space
-from utils.cookie_manager import CookieManager
+from utils.cookie_manager import retrieve_cookie
 from multiprocessing import Pool
 from datetime import datetime
 from pathlib import Path
@@ -50,10 +50,11 @@ class Reformat():
     def _init_session_states(_self, ):
 
         st.session_state["current_page"] = "template"
-        if "cm" not in st.session_state:
-            st.session_state["cm"] = CookieManager()
+        # if "cm" not in st.session_state:
+        #     st.session_state["cm"] = CookieManager()
+        # if "userId" not in st.session_state:
         if "userId" not in st.session_state:
-            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+            st.session_state["userId"] = retrieve_cookie()
             if not st.session_state["userId"]:
                 st.switch_page("pages/user.py")
         if "profile" not in st.session_state:

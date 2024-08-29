@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-11-jre \
     fonts-dejavu \
     poppler-utils \
-    libmagic1 \
+    # libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a user to avoid running as root
