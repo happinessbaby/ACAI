@@ -1,6 +1,6 @@
 import time
 import os
-import extra_streamlit_components as stx
+# import extra_streamlit_components as stx
 # Note that you can also import these from streamlit directly
 from streamlit_extras.stylable_container import stylable_container
 import plotly.express as px
@@ -48,7 +48,7 @@ def nav_to(url):
     st.write(nav_script, unsafe_allow_html=True)
 
 
-            
+@st.fragment()         
 def user_menu(userId, page, ):
     _, c1 = st.columns([10, 1])
     with c1:
@@ -87,7 +87,7 @@ def user_menu(userId, page, ):
                 #         st.session_state["user_mode"] = "delete_profile"
                 #         st.switch_page("pages/user.py")
 
-
+@st.fragment()
 def progress_bar(page):
 
     _, c, _ = st.columns([1, 3, 1])
@@ -304,12 +304,45 @@ def language_radar(data_list):
     )
     return fig
 
-def readability_indicator(data):
+def readability_indicator(data, average_score=21):
 
     # print(data)
     df = pd.DataFrame(list(data.items()), columns=['Metric', 'Score'])
-    fig = px.bar(df, x='Metric', y='Score', title="readability stats",
-            labels={"Score": "Score Value", "Metric": "Text Metric"})
+    # fig = px.bar(df, x='Metric', y='Score', title="readability stats",
+    #         labels={"Score": "Score Value", "Metric": "Text Metric"})
+    # return fig
+    # Create the scatter plot with dots
+    fig = px.scatter(df, x='Metric', y='Score', title="Readability Stats",
+                    labels={"Score": "Score Value", "Metric": "Text Metric"},
+                    text='Score')
+
+    # Add a horizontal line for the average score
+    fig.add_shape(
+        go.layout.Shape(
+            type='line',
+           x0=-0.5,  # Start position of the line (before the first x-axis tick)
+            x1=len(df) - 0.5,  # End position of the line (after the last x-axis tick)
+            y0=average_score,       # y-coordinate (average score)
+            y1=average_score,       # y-coordinate (average score)
+            line=dict(
+                color='red',
+                width=2,
+                dash='dash'
+            ),
+        )
+    )
+
+    # Add a label for the average line
+    fig.add_annotation(
+        x=len(df) - 0.5, 
+        y=average_score,
+        text=f'Average Score: {average_score:.2f}',
+        showarrow=True,
+        arrowhead=2
+    )
+
+    # Show the plot
+    fig.update_traces(textposition='top center')  # Position text labels
     return fig
 
 

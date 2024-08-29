@@ -6,7 +6,7 @@ from streamlit_authenticator.utilities import RegisterError
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import CookieManager
+from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user
 import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
@@ -113,19 +113,21 @@ class User():
         # set current page for progress bar
         st.session_state["current_page"] = "profile"
         # NOTE: userId is retrieved from browser cookie
-        if "cm" not in st.session_state:
-            st.session_state["cm"] = CookieManager()
+        # if "cm" not in st.session_state:
+        #     st.session_state["cm"] = CookieManager()
         if "userId" not in st.session_state:
-            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+            st.session_state["userId"] = retrieve_cookie()
+            # st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
             # st.session_state["userId"]=_st.session_state.userId
+
 
         # Open users login file
         if "logo_path" not in st.session_state:
             st.session_state["logo_path"]="./resources/logo_acareerai.png"
-        if "authenticator" not in st.session_state:
-            with open(login_file) as file:
-                st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
-            st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
+        # if "authenticator" not in st.session_state:
+        #     with open(login_file) as file:
+        #         st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
+        #     st.session_state["authenticator"] = stauth.Authenticate( st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'], st.session_state.config['preauthorized'] )
         # Open users profile file
         # with open(user_profile_file, 'r') as file:
         #     try:
@@ -231,16 +233,17 @@ class User():
 
 
     
-
+    @st.fragment()
     def sign_out(self, ):
 
         print('signing out')
         #NOTE: can't get authenticator logout to delete cookies so manually doing it with the cookie manager wrapper class
         # also needs to manually delete cookies for google login case
-        st.session_state.cm.delete_cookie()
+        # st.session_state.cm.delete_cookie()
+        delete_cookie()
         try:
             # still needs the logout code since the authenticators need to be cleared
-            st.session_state.authenticator.logout(location="unrendered")
+            # st.session_state.authenticator.logout(location="unrendered")
             self.google_signout()
         except Exception:
             pass
@@ -252,7 +255,7 @@ class User():
         else:
             st.rerun()
 
-
+    @st.fragment()
     def sign_in(self, ):
 
         _, c1, _ = st.columns([3, 2, 3])
@@ -266,15 +269,31 @@ class User():
                 # add_vertical_space(1)
                 # sac.divider(label='or',  align='center', color='gray')
                 st.divider()
-                name, authentication_status, username = st.session_state.authenticator.login()
-                if authentication_status:
-                    # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
-                    st.session_state["user_mode"]="signedin"
-                    st.session_state["userId"] = username
-                    # time.sleep(5)
-                    st.rerun()
-                elif authentication_status==False:
-                    st.error('Username/password is incorrect')
+                st.subheader("Log in")
+                with st.form(key="login_form", clear_on_submit=True, ):
+                    username=st.text_input("Email", )
+                    password=st.text_input("Password", type="password")
+                    submit = st.form_submit_button("login", )
+                    if submit:
+                        username= authenticate(username, password)
+                        if username:
+                            st.session_state["user_mode"]="signedin"
+                            st.session_state["userId"]=username
+                            print("signing in")
+                            st.rerun()
+                        else:
+                            st.error('Wrong username/password.')
+
+
+                # name, authentication_status, username = st.session_state.authenticator.login()
+                # if authentication_status:
+                #     # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
+                #     st.session_state["user_mode"]="signedin"
+                #     st.session_state["userId"] = username
+                #     # time.sleep(5)
+                #     st.rerun()
+                # elif authentication_status==False:
+                #     st.error('Username/password is incorrect')
                 # placeholder_error = st.empty()
                 signup_col, forgot_password_col, forgot_username_col = st.columns([2, 1, 1])
                 with signup_col:
@@ -372,30 +391,68 @@ class User():
         else:
             print("No user is signed in")
 
+    @st.fragment()
     def sign_up(self,):
 
         print("inside signing up")
         _, c, _ = st.columns([1, 1, 1])
         with c:
-            try:
-                authenticator = st.session_state.authenticator
-                email, username, name= authenticator.register_user(pre_authorization=False)
-                if email:
-                    with open(login_file, 'w') as file:
-                        yaml.dump(st.session_state.config, file, default_flow_style=False)
-                    # if self.save_password( username, name, password, email):
-                    st.session_state["user_mode"]="signedin"
-                    st.session_state["userId"] = username
-                    st.success("User registered successfully. Redirecting...")
-                    # time.sleep(5)
-                    st.rerun()
-            except RegisterError as e:
-                if e.message=="Password does not meet criteria":
-                    st.warning("""Password must:
-                    Contain at least one lowercase letter, at least one uppercase letter, at least one digit, at least one special character and between 8 and 20 characters in length""")
-                else:
-                    st.warning(e)
-
+            st.subheader("Register")
+            with st.container(border=True):
+                # if "signup_error_msg" in st.session_state and ""
+                # if "signup_email" in st.session_state 
+                #     st.session_state.signup_disabled=False
+                # else:
+                #     st.session_state.signup_disabled=True
+                st.session_state["signup_disabled"]=False
+                # with st.form("sign_up_form"):
+                first_name=st.text_input("First name (optional)", key="signup_first_name", )
+                last_name = st.text_input("Last name (optional)", key="signup_last_name")
+                email = st.text_input("Email", key="signup_email", on_change=check_user)
+                password=st.text_input("Password", type="password", key="signup_password", on_change=check_user, )
+                confirm_password = st.text_input("Confirm password", type="password", key="signup_password_confirm", )
+                if password and confirm_password and password!=confirm_password:
+                    st.error("Passwords don't match")
+                    st.session_state.signup_disabled=True
+                if "signup_error_msg" in st.session_state:
+                    if st.session_state.signup_error_msg == "email exists":
+                        st.error("Email already exists. Please log in.")
+                    elif st.session_state.signup_error_msg == "email invalid":
+                        st.error("Please use a valid email. ")
+                    elif st.session_state.signup_error_msg == "password length":
+                        st.error("Password must be greater than 6 characters")
+                    del st.session_state["signup_error_msg"]
+                    st.session_state.signup_disabled=True
+                if not st.session_state.signup_email or not st.session_state.signup_password or not st.session_state.signup_password_confirm:
+                    st.session_state.signup_disabled=True
+                submit = st.button("sign up", key="signup_submit_button", disabled=st.session_state.signup_disabled)
+                if submit:
+                    if add_user(email, password, first_name, last_name):
+                        st.session_state["user_mode"]="signedin"
+                        st.session_state["userId"] = email
+                        st.success("User registered successfully. Redirecting...")
+                        # time.sleep(5)
+                        st.rerun()
+        # with c:
+        #     try:
+        #         authenticator = st.session_state.authenticator
+        #         email, username, name= authenticator.register_user(pre_authorization=False)
+        #         if email:
+        #             with open(login_file, 'w') as file:
+        #                 yaml.dump(st.session_state.config, file, default_flow_style=False)
+        #             # if self.save_password( username, name, password, email):
+        #             st.session_state["user_mode"]="signedin"
+        #             st.session_state["userId"] = username
+        #             st.success("User registered successfully. Redirecting...")
+        #             # time.sleep(5)
+        #             st.rerun()
+        #     except RegisterError as e:
+        #         if e.message=="Password does not meet criteria":
+        #             st.warning("""Password must:
+        #             Contain at least one lowercase letter, at least one uppercase letter, at least one digit, at least one special character and between 8 and 20 characters in length""")
+        #         else:
+        #             st.warning(e)
+    @st.fragment()
     def reset_password(self, token, username):
     
         _, c, _ = st.columns([1, 1, 1])

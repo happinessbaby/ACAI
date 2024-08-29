@@ -50,7 +50,7 @@ toml==0.10.2
 geopy==2.4.0
 httpx-oauth
 streamlit-authenticator
-extra-streamlit-components
+# extra-streamlit-components
 localstoragePy
 # hydralit-components
 streamlit-datalist
@@ -108,3 +108,4 @@ streamlit-nested-layout
 streamlit-pdf-viewer
 st-annotated-text
 streamlit-draggable-list
+streamlit-cookies-manager
