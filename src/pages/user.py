@@ -691,9 +691,9 @@ class User():
                 if content_safe and content_type=="resume":
                     st.session_state["user_resume_path"]= end_path
                 else:
-                    st.info("Please upload your resume")
+                    st.warning("Please upload your resume")
             else:
-                st.info("That didn't work, please try again.")         
+                st.warning("That didn't work, please try again.")         
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.users_upload_path, )
             if result is not None:
@@ -702,13 +702,14 @@ class User():
                     st.session_state["job_posting_path"]=end_path
                     st.session_state["posting_link"]=input_value
                 else:
-                    st.info("Please upload a job posting link")
+                    #NOTE: the warnings for job posting are not showing in dialog, despite creating empty containers 
+                    st.warning("That didn't work. Please try pasting the content of job description")
             else:
                 result = process_inputs(input_value, match_topic="job posting or job description")
                 if result is not None:
                     st.session_state["job_description"] = input_value
                 else:
-                    st.info("That didn't work. Please try pasting the content of job description")
+                    st.warning("Please upload a job posting")
         # elif input_type=="job_description":
         #     result = process_inputs(input_value, match_topic="job posting or job description")
         #     if result is not None:
@@ -720,7 +721,7 @@ class User():
         #     st.session_state.location_input=input_value.split(",")
         # elif input_type=="transferable_skills":
         #     st.session_state.transferable_skills=input_value.split(",")
-    @st.dialog("drag to rearrange")
+    @st.dialog("Drag to rearrange")
     def rearrange_skills_popup(self, ):
         data=[]
         idx=0
@@ -1223,7 +1224,22 @@ class User():
                         else:
                             button_key=f"tailor_again_{field_name}_button"
                         tailoring = st.session_state[f"tailored_{field_name}"]
-                        if field_name=="summary_objective":
+                        if field_name=="included_skills":
+                            if tailoring!="please try again":
+                                irrelevant_skills = ", ".join(tailoring["irrelevant_skills"])
+                                relevant_skills = ", ".join(tailoring["relevant_skills"])
+                                additional_skills= ", ".join(tailoring["additional_skills"])
+                                st.write("**Here are some tailoring suggestions")
+                                st.write(f"**Irrelevant skills**:{irrelevant_skills}")
+                                st.write(f"**Relevant skills**:{relevant_skills}")
+                                st.write(f"**Additional skills**:{additional_skills}")
+                                c1, c2 = st.columns([2, 1])
+                                with c2:
+                                    if st.button("rearrange my skills", key="rearrange_skills_button2", ):
+                                        self.rearrange_skills_popup()
+                            else:
+                                st.write(tailoring)
+                        elif field_name=="summary_objective":
                             if tailoring!="please try again":
                                 # split sentence into words and punctuations
                                 text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
@@ -1280,6 +1296,7 @@ class User():
         #     if selection:
         #         st.session_state["job_posting_dict"] = past_jobs[past_jobs.index(selection)]
         #         st.session_state["preselection"] = True
+        st.session_state["job_error_placeholder"]=st.empty()
         job_description = st.text_area("job posting link or job description", 
                                         key="job_postingx", 
                                         placeholder="Pleasae paste a job posting link or a job description here",
@@ -1470,6 +1487,7 @@ class User():
                     self.generated_skills_set.add(skill["skill"])
                 get_display=self.display_skills()
                 get_display()
+                self.display_field_analysis(type="text", field_name="included_skills", details=st.session_state["profile"]["included_skills"])
             # c1, c2 = st.columns([1, 1])
             # with c1:
             with st.expander(label="Professional Accomplishment", expanded=True, icon=":material/commit:"):
