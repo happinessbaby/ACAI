@@ -1,16 +1,14 @@
 import lancedb
 from lancedb.embeddings import EmbeddingFunctionRegistry
-from lancedb.embeddings import get_registry
-from lancedb.pydantic import LanceModel, Vector
+# from lancedb.embeddings import get_registry
+# from lancedb.pydantic import LanceModel, Vector
 import os
 import numpy as np
 import pyarrow as pa
 from typing import List, Dict, Optional, get_args, get_origin, Set
-import json
-from utils.async_utils import asyncio_run
 from dotenv import load_dotenv, find_dotenv
-from utils.aws_manager import get_session_token
-from utils.dynamodb_utils import init_dynamodb_table
+# from utils.aws_manager import get_session_token
+# from utils.dynamodb_utils import init_dynamodb_table
 import lance
 
 _ = load_dotenv(find_dotenv()) # read local .env file

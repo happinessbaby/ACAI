@@ -11,23 +11,22 @@ from langchain_openai import ChatOpenAI
 import os
 from pathlib import Path
 from typing import Any, Union
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings, OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
-from utils.langchain_utils import retrieve_vectorstore, CustomOutputParser, CustomPromptTemplate, merge_faiss_vectorstore
+from utils.langchain_utils import retrieve_vectorstore, merge_faiss_vectorstore
 # from langchain.prompts import BaseChatPromptTemplate
-from langchain.agents import AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from langchain.agents import AgentExecutor
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
-from langchain.agents import AgentExecutor, ZeroShotAgent, create_openai_tools_agent, create_openai_functions_agent, create_tool_calling_agent
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.callbacks import FileCallbackHandler
 from langchain.agents.openai_functions_agent.agent_token_buffer_memory import AgentTokenBufferMemory
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
+# from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from loguru import logger
-from langchain.evaluation import load_evaluator
+# from langchain.evaluation import load_evaluator
 from utils.aws_manager import get_aws_session
 from utils.basic_utils import convert_to_txt, read_file
 from utils.openai_api import get_completion
 from tenacity import retry, wait_exponential, stop_after_attempt
-from langchain.globals import set_llm_cache
 from utils.agent_tools import create_vs_retriever_tools, generateQATool
 from langchain_community.chat_message_histories import ChatMessageHistory, DynamoDBChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
@@ -36,14 +35,9 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from operator import itemgetter
 
 from dotenv import load_dotenv, find_dotenv
-from langchain_community.callbacks import get_openai_callback
-from langchain_community.docstore import InMemoryDocstore
-from langchain_community.tools import ReadFileTool
-from langchain_core.callbacks import StdOutCallbackHandler
 from langchain_core.exceptions import OutputParserException
-from langchain_core.messages import SystemMessage, messages_from_dict, messages_to_dict
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
-from langchain_core.tools import Tool
+from langchain_core.prompts import ChatPromptTemplate
+
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 
