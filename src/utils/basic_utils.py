@@ -69,7 +69,7 @@ STORAGE = os.environ["STORAGE"]
 if STORAGE=="CLOUD":
     bucket_name = os.environ["BUCKET_NAME"]
     s3 = get_client('s3')
-    base_uri = os.environ["PRODUCTION_BASE_URI"]
+    base_uri = os.environ["BASE_URI"]
     libreoffice_path = os.environ["LIBREOFFICE_PATH"]
     pdftoppm_path=os.environ["PDFTOPPM_PATH"]
     # punkt_path = os.environ["PUNKT_PATH"]
@@ -561,7 +561,7 @@ async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
     return results 
 
 
-def send_recovery_email(to_email, type, subject="Recover your password/username", password=None, username=None, ):
+def send_recovery_email(to_email, subject="Recover your password", password=None, username=None, ):
 
     # Create the base text message.
     msg = EmailMessage()
@@ -570,23 +570,23 @@ def send_recovery_email(to_email, type, subject="Recover your password/username"
     msg['Subject'] = subject
     msg['From'] = Address("aCareerAi", "contact", "acareerai.com")
     msg['To'] = (
-                Address(username, "contact", "acareerai.com"),
-                Address(username, to_email[0], to_email[1])
+                Address(" ", "contact", "acareerai.com"),
+                Address(" ", to_email[0], to_email[1])
                  )
-    if type=="username":
-        msg.set_content(f"""\
-            Your Username is:
-                        {username}
+    # if type=="username":
+    #     msg.set_content(f"""\
+    #         Your Username is:
+    #                     {username}
 
-        """)
-    elif type=="password":
-        token = str(uuid.uuid4())
-        link = base_uri+f"""/user?token={token}&username={username}"""
-        msg.set_content(f"""\
-            Please follow the link to reset your passsword:
-                        {link}
+    #     """)
+    # elif type=="password":
+    token = str(uuid.uuid4())
+    link = base_uri+f"""/user?token={token}&username={to_email}"""
+    msg.set_content(f"""\
+        Please follow the link to reset your passsword:
+                    {link}
 
-        """)
+    """)
 
     msg.add_alternative(f"""\
         <!DOCTYPE html>

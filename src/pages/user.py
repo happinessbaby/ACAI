@@ -6,7 +6,7 @@ from streamlit_authenticator.utilities import RegisterError
 import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user
+from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password
 import time
 from datetime import datetime, timedelta, date
 from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
@@ -260,7 +260,8 @@ class User():
 
         _, c1, _ = st.columns([3, 2, 3])
         with c1:
-            # with st.container(border=True):
+            signin_placeholder=st.empty()
+            with signin_placeholder.container(border=True):
                 # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 st.image(st.session_state.logo_path)
                 _, g_col= st.columns([1, 3])
@@ -280,6 +281,7 @@ class User():
                             st.session_state["user_mode"]="signedin"
                             st.session_state["userId"]=username
                             print("signing in")
+                            signin_placeholder.empty()
                             st.rerun()
                         else:
                             st.error('Wrong username/password.')
@@ -295,7 +297,7 @@ class User():
                 # elif authentication_status==False:
                 #     st.error('Username/password is incorrect')
                 # placeholder_error = st.empty()
-                signup_col, forgot_password_col, forgot_username_col = st.columns([2, 1, 1])
+                signup_col, forgot_password_col= st.columns([3, 1])
                 with signup_col:
                     add_vertical_space(2)
                     sign_up = st.button(label="Sign up", key="signup",  type="primary")
@@ -306,31 +308,41 @@ class User():
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     if st.button(label="forgot password", key="forgot_password", ):
-                        self.recover_password_username_popup(type="password")
-                with forgot_username_col:
-                    st.markdown(primary_button3, unsafe_allow_html=True)
-                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    if st.button(label="forgot username", key="forgot_username",):
-                        self.recover_password_username_popup(type="username")
+                        self.recover_password_popup()
+                # with forgot_username_col:
+                #     st.markdown(primary_button3, unsafe_allow_html=True)
+                #     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                #     if st.button(label="forgot username", key="forgot_username",):
+                #         self.recover_password_username_popup(type="username")
                 # print(name, authentication_status, username)
             # if st.button("skip log in", ):
             #     st.session_state.userId="test"
             #     st.session_state["mode"]="signedin"
 
     @st.dialog(title=" ")
-    def recover_password_username_popup(self, type):
+    def recover_password_popup(self):
 
         add_vertical_space(1)
-        try:
-            username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
-            if username:
-                if send_recovery_email(email, type, username=username, ):
+        st.session_state['recover_disabled']=False
+        # username, email = st.session_state.authenticator.forgot_username(fields={"Form name": "", "Email":"Please provide the email associated with your account"})
+        email = st.text_input("Please provide the email associated with your account", key="recover_password_email", on_change=check_user)
+        if not st.session_state.recover_password_email:
+            st.session_state.recover_disabled=True
+        if "recover_error_msg" in st.session_state: 
+            if  st.session_state["recover_error_msg"]=="email not exists":
+                st.error("Email does not exists")
+                st.session_state.recover_disabled=True   
+            elif st.session_state["recover_error_msg"]=="email invalid":
+                st.error("Please provide a valid email")
+                st.session_state.recover_disabled=True   
+            del st.session_state["recover_error_msg"]
+        submit = st.button("next", key="recover_password_submit_button", disabled=st.session_state.recover_disabled, )
+        if submit:
+            if "recover_password" in st.session_state:
+                if send_recovery_email(st.session_state.recover_password_email, ):
                     st.success('Please check your email')
-            elif username== False:
-                st.error('Email not found')
-        except Exception as e:
-            print(e)
-            st.error("something went wrong, please try again.")
+            else:
+                st.error("something went wrong, please try again.")
 
 
     def google_signin(self,):
@@ -356,9 +368,9 @@ class User():
                 # st.session_state["google_auth_code"] = auth_code
                 # st.session_state["user_info"] = user_info
                 st.session_state["credentials"] = credentials
-                st.session_state.cm.set_cookie(user_info.get("email"), user_info.get("name"),)
+                save_cookie(user_info.get("email"))
                 st.session_state["user_mode"]="signedin"
-                st.session_state["userId"]=user_info.get("name")
+                st.session_state["userId"]=user_info.get("email")
                 # time.sleep(5)
                 st.rerun()
             except Exception as e:
@@ -397,42 +409,45 @@ class User():
         print("inside signing up")
         _, c, _ = st.columns([1, 1, 1])
         with c:
-            st.subheader("Register")
-            with st.container(border=True):
-                # if "signup_error_msg" in st.session_state and ""
-                # if "signup_email" in st.session_state 
-                #     st.session_state.signup_disabled=False
-                # else:
-                #     st.session_state.signup_disabled=True
-                st.session_state["signup_disabled"]=False
-                # with st.form("sign_up_form"):
-                first_name=st.text_input("First name (optional)", key="signup_first_name", )
-                last_name = st.text_input("Last name (optional)", key="signup_last_name")
-                email = st.text_input("Email", key="signup_email", on_change=check_user)
-                password=st.text_input("Password", type="password", key="signup_password", on_change=check_user, )
-                confirm_password = st.text_input("Confirm password", type="password", key="signup_password_confirm", )
-                if password and confirm_password and password!=confirm_password:
-                    st.error("Passwords don't match")
-                    st.session_state.signup_disabled=True
-                if "signup_error_msg" in st.session_state:
-                    if st.session_state.signup_error_msg == "email exists":
-                        st.error("Email already exists. Please log in.")
-                    elif st.session_state.signup_error_msg == "email invalid":
-                        st.error("Please use a valid email. ")
-                    elif st.session_state.signup_error_msg == "password length":
-                        st.error("Password must be greater than 6 characters")
-                    del st.session_state["signup_error_msg"]
-                    st.session_state.signup_disabled=True
-                if not st.session_state.signup_email or not st.session_state.signup_password or not st.session_state.signup_password_confirm:
-                    st.session_state.signup_disabled=True
-                submit = st.button("sign up", key="signup_submit_button", disabled=st.session_state.signup_disabled)
-                if submit:
-                    if add_user(email, password, first_name, last_name):
-                        st.session_state["user_mode"]="signedin"
-                        st.session_state["userId"] = email
-                        st.success("User registered successfully. Redirecting...")
-                        # time.sleep(5)
-                        st.rerun()
+            signup_placeholder=st.empty()
+            with signup_placeholder.container():
+                st.subheader("Register")
+                with st.container(border=True):
+                    # if "signup_error_msg" in st.session_state and ""
+                    # if "signup_email" in st.session_state 
+                    #     st.session_state.signup_disabled=False
+                    # else:
+                    #     st.session_state.signup_disabled=True
+                    st.session_state["signup_disabled"]=False
+                    # with st.form("sign_up_form"):
+                    first_name=st.text_input("First name (optional)", key="signup_first_name", )
+                    last_name = st.text_input("Last name (optional)", key="signup_last_name")
+                    email = st.text_input("Email", key="signup_email", on_change=check_user)
+                    password=st.text_input("Password", type="password", key="signup_password", on_change=check_user, )
+                    confirm_password = st.text_input("Confirm password", type="password", key="signup_password_confirm", )
+                    if password and confirm_password and password!=confirm_password:
+                        st.error("Passwords don't match")
+                        st.session_state.signup_disabled=True
+                    if "signup_error_msg" in st.session_state:
+                        if st.session_state.signup_error_msg == "email exists":
+                            st.error("Email already exists. Please log in.")
+                        elif st.session_state.signup_error_msg == "email invalid":
+                            st.error("Please provide a valid email. ")
+                        elif st.session_state.signup_error_msg == "password length":
+                            st.error("Password must be greater than 6 characters")
+                        del st.session_state["signup_error_msg"]
+                        st.session_state.signup_disabled=True
+                    if not st.session_state.signup_email or not st.session_state.signup_password or not st.session_state.signup_password_confirm:
+                        st.session_state.signup_disabled=True
+                    submit = st.button("sign up", key="signup_submit_button", disabled=st.session_state.signup_disabled)
+                    if submit:
+                        if add_user(email, password, first_name, last_name):
+                            st.session_state["user_mode"]="signedin"
+                            st.session_state["userId"] = email
+                            # st.success("User registered successfully. Redirecting...")
+                            signup_placeholder.empty()
+                            # time.sleep(5)
+                            st.rerun()
         # with c:
         #     try:
         #         authenticator = st.session_state.authenticator
@@ -455,7 +470,7 @@ class User():
     @st.fragment()
     def reset_password(self, token, username):
     
-        _, c, _ = st.columns([1, 1, 1])
+        _, c, _ = st.columns([3, 2, 3])
         with c:
             if self.verify_token(token):
                 with st.form(key="password_reset_form"):
@@ -467,10 +482,11 @@ class User():
                     if st.form_submit_button("Reset Password"):
                         if new_password == confirm_password:
                             # Update the user's password in the database
-                            self.save_password(new_password, username)
+                            # self.save_password(new_password, username)
+                            change_password(username, new_password)
                             st.success("Password has been reset successfully! Redirecting...")
                             st.session_state["user_mode"]="signedin"
-                            st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
+                            st.session_state["userId"] = username
                             time.sleep(5)
                             nav_to("/user")                              
                         else:
@@ -480,24 +496,24 @@ class User():
  
                 
 
-    def save_password(self, password, username, filename=login_file):
+    # def save_password(self, password, username, filename=login_file):
 
-        try:
-            with open(filename, 'r') as file:
-                credentials = yaml.safe_load(file)
-                # Add the new user's details to the dictionary
-            # credentials['credentials']['usernames'][username] = {
-            #     'email': email,
-            #     'name': name,
-            #     'password': password
-            # }  
-            credentials['credentials']['usernames'][username]['password']=password
-            with open(filename, 'w') as file:
-                yaml.dump(credentials, file)
-            print("successfully saved password")
-            # return True
-        except Exception as e:
-            raise e
+    #     try:
+    #         with open(filename, 'r') as file:
+    #             credentials = yaml.safe_load(file)
+    #             # Add the new user's details to the dictionary
+    #         # credentials['credentials']['usernames'][username] = {
+    #         #     'email': email,
+    #         #     'name': name,
+    #         #     'password': password
+    #         # }  
+    #         credentials['credentials']['usernames'][username]['password']=password
+    #         with open(filename, 'w') as file:
+    #             yaml.dump(credentials, file)
+    #         print("successfully saved password")
+    #         # return True
+    #     except Exception as e:
+    #         raise e
 
 
     def verify_token(self, token):
@@ -511,31 +527,50 @@ class User():
 
         _, c, _ = st.columns([1, 1, 1])
         with c:
-            st.title("Let's get started with your resume")
-            if "user_resume_path" in st.session_state:
-                st.session_state.resume_disabled = False
-            else:
-                st.session_state.resume_disabled = True
-            st.markdown("#")
-            # c1, _, c2 = st.columns([5, 1, 3])
-            resume = st.file_uploader(label="Upload your resume",
-                            key="user_resume",
-                                accept_multiple_files=False, 
-                                on_change=self.form_callback, 
-                                type=["pdf", "odt", "docx", "txt"],
-                                help="This will become your default resume.")
-            add_vertical_space(3)
-            _, c1 = st.columns([5, 1])
-            with c1:
-                # st.markdown(general_button, unsafe_allow_html=True)
-                # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                st.button(label="Submit", disabled=st.session_state.resume_disabled, on_click=self.initialize_resume_callback)
-                if st.button(label="I'll do it later", type="primary", ):
-                    # delete any old resume saved in session state
-                    if "user_resume_path" in st.session_state:
-                        del st.session_state["user_resume_path"]
-                    self.create_empty_profile() 
-                    st.rerun()
+            resume_placeholder=st.empty()
+            with resume_placeholder.container():
+                st.title("Let's get started with your resume")
+                if "user_resume_path" in st.session_state:
+                    st.session_state.resume_disabled = False
+                else:
+                    st.session_state.resume_disabled = True
+                st.markdown("#")
+                # c1, _, c2 = st.columns([5, 1, 3])
+                resume = st.file_uploader(label="Upload your resume",
+                                key="user_resume",
+                                    accept_multiple_files=False, 
+                                    on_change=self.form_callback, 
+                                    type=["pdf", "odt", "docx", "txt"],
+                                    help="This will become your default resume.")
+                add_vertical_space(3)
+                _, c1 = st.columns([5, 1])
+                with c1:
+                    # st.markdown(general_button, unsafe_allow_html=True)
+                    # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
+                    if st.button(label="Submit", disabled=st.session_state.resume_disabled, ):
+                         # create generated dict from resume
+                        resume_placeholder.empty()
+                        resume_dict = create_resume_info(st.session_state.user_resume_path,)
+                        resume_dict.update({"resume_path":st.session_state.user_resume_path})
+                        resume_dict.update({"user_id": st.session_state.userId}) 
+                        # save resume dict into session's profile
+                        st.session_state["profile"] = resume_dict
+                        # save resume/profile into lancedb table
+                        save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
+                        # delete any old profile instance
+                        try:
+                            del st.session_state["profile"]
+                        except Exception:
+                            pass
+                        print("Successfully added user to lancedb table")
+                        st.rerun()
+                    if st.button(label="I'll do it later", type="primary", ):
+                        resume_placeholder.empty()
+                        # delete any old resume saved in session state
+                        if "user_resume_path" in st.session_state:
+                            del st.session_state["user_resume_path"]
+                        self.create_empty_profile() 
+                        st.rerun()
 
     def initialize_resume_callback(self, ):
 
