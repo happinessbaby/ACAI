@@ -273,10 +273,10 @@ class User():
                     if submit:
                         username= authenticate(username, password)
                         if username:
+                            signin_placeholder.empty()
                             st.session_state["user_mode"]="signedin"
                             st.session_state["userId"]=username
                             print("signing in")
-                            signin_placeholder.empty()
                             st.rerun()
                         else:
                             st.error('Wrong username/password.')
@@ -1499,7 +1499,7 @@ class User():
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
-                with st.expander(label="Contact", expanded=True, icon=":material/contacts:"):
+                with st.expander(label="Contact", expanded=False, icon=":material/contacts:"):
                     name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
@@ -1529,7 +1529,7 @@ class User():
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
-                with st.expander(label="Education", expanded=True, icon=":material/school:"):
+                with st.expander(label="Education", expanded=False, icon=":material/school:"):
                     degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
@@ -1549,7 +1549,7 @@ class User():
                     st.markdown("Course works")
                     display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
                     display_detail()
-            with st.expander(label="Summary Objective", expanded=True, icon=":material/summarize:"):
+            with st.expander(label="Summary Objective", expanded=False, icon=":material/summarize:"):
                 pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                 if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1560,12 +1560,12 @@ class User():
                     st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
                     self.display_field_analysis(type="text", field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
-            with st.expander(label="Work Experience",expanded=True, icon=":material/work_history:"):
+            with st.expander(label="Work Experience",expanded=False, icon=":material/work_history:"):
                 # if st.session_state["profile"]["work_experience"]:
                 #     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
-            with st.expander(label="Skills",expanded=True, icon=":material/widgets:"):
+            with st.expander(label="Skills",expanded=False, icon=":material/widgets:"):
                 # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= st.session_state["profile"]["included_skills"]
@@ -1577,22 +1577,22 @@ class User():
                 self.display_field_analysis(type="text", field_name="included_skills", details=st.session_state["profile"]["included_skills"])
             # c1, c2 = st.columns([1, 1])
             # with c1:
-            with st.expander(label="Professional Accomplishment", expanded=True, icon=":material/commit:"):
+            with st.expander(label="Professional Accomplishment", expanded=False, icon=":material/commit:"):
                 st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
                                 label="learn more")
                 get_display=self.display_field_content("qualifications")
                 get_display()
             # with c2:
-            with st.expander(label="Projects", expanded=True, icon=":material/perm_media:"):
+            with st.expander(label="Projects", expanded=False, icon=":material/perm_media:"):
                 get_display=self.display_field_content("projects")
                 get_display()
             # c1, c2=st.columns([1, 1])
             # with c1:
-            with st.expander(label="Certifications", expanded=True, icon=":material/license:"):
+            with st.expander(label="Certifications", expanded=False, icon=":material/license:"):
                 get_display=self.display_field_content("certifications")
                 get_display()
         # with c2:
-            with st.expander("Awards & Honors", expanded=True, icon=":material/workspace_premium:"):
+            with st.expander("Awards & Honors", expanded=False, icon=":material/workspace_premium:"):
                 get_display=self.display_field_content("awards")
                 get_display()
             # with c3:
@@ -1774,7 +1774,7 @@ class User():
 
 
 
-    @st.fragment(run_every=3)
+    @st.fragment(run_every=1)
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             print('profile changed, saving user changes')
