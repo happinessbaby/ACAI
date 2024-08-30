@@ -9,6 +9,11 @@ import streamlit as st
 # from streamlit_cookies_controller import CookieController
 from utils.aws_manager import get_client
 from streamlit_cookies_manager import EncryptedCookieManager
+from streamlit_utils import set_streamlit_page_config_once
+import streamlit as st
+
+
+set_streamlit_page_config_once()
 
 
 from dotenv import load_dotenv, find_dotenv
@@ -17,13 +22,14 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 cookie_name = os.environ["COOKIE_NAME"]
 cookie_key=os.environ["COOKIE_KEY"]
+cookie_password = os.environ["COOKIE_PASSWORD"]
 # controller = CookieController(key='cookies')
 cookies = EncryptedCookieManager(
     # This prefix will get added to all your cookie names.
     # This way you can run your app on Streamlit Cloud without cookie name clashes with other apps.
     prefix=cookie_name,
     # You should really setup a long COOKIES_PASSWORD secret if you're running on Streamlit Cloud.
-    password="XXX",
+    password=cookie_password,
 )
 
 if not cookies.ready():
@@ -168,8 +174,7 @@ def add_user(username, password, first_name=None, last_name=None):
             # Upload the JSON string to S3
             s3.put_object(Bucket=bucket_name, Key=login_file, Body=json_data)
         # controller.set(f'{cookie_name}_username',username, max_age=8*60*60)
-        cookies["username"] = username
-        cookies.save()
+        save_cookie(username)
             # controller.set(f'{cookie_name}_password',password, max_age=8*60*60)
         print(f"Successfully set cookie: {username}")
         return True
@@ -195,7 +200,34 @@ def check_user():
             st.session_state["signup_error_msg"]= "password length"
     except Exception:
         pass
+    try:
+        email=st.session_state.recover_password_email
+        if email not in USERS:
+            print("email does not exists")
+            st.session_state["recover_error_msg"]="email not exists"
+        if "@" not in email:
+            print('email invalid')
+            st.session_state["recover_error_msg"]="email invalid"   
+        else:
+            user_password = USERS.get(email, {}).get('password', '')
+            st.session_state["recover_password"]=user_password
+    except Exception:
+        pass
 
+def change_password(username, new_password):
+
+    try:
+        USERS[username].update({"password":new_password})
+        return True
+    except Exception:
+        return False
+
+        
+
+def save_cookie(username):
+
+    cookies[cookie_key] = username
+    cookies.save()
 
 def authenticate(username, password):
     # usern = st.session_state.username
@@ -208,8 +240,7 @@ def authenticate(username, password):
         if user_password == password:       
             # Save to cookie.
             # controller.set(f'{cookie_name}_username',username, max_age=8*60*60)
-            cookies["username"] = username
-            cookies.save()
+            save_cookie(username)
             # controller.set(f'{cookie_name}_password',password, max_age=8*60*60)
             print(f"Successfully set cookie: {username}")
             # ss.login_ok = True
@@ -226,7 +257,7 @@ def retrieve_cookie():
     # # Get cookie username and password if there is.
     # cookie_username = controller.get(f'{cookie_name}_username')
     # cookie_password = controller.get(f'{cookie_name}_password')
-    cookie_username = cookies.get("username")
+    cookie_username = cookies.get(cookie_key)
     if cookie_username:
         # st.session_state.login_ok = True
         # st.session_state.username = cookie_username
@@ -242,6 +273,6 @@ def retrieve_cookie():
 def delete_cookie():
     # controller.remove(f'{cookie_name}_username')
     # unset username in cookies
-    cookies['username'] = ""
+    cookies[cookie_key] = ""
     cookies.save()
     print("Successfully removed cookie")
