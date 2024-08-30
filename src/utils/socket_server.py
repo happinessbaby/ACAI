@@ -8,7 +8,7 @@ from google.cloud import speech
 from google.cloud.speech_v1 import types
 from utils.async_utils import asyncio_run
 from google.oauth2 import service_account
-import functools
+# import functools
 
 
 

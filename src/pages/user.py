@@ -1,33 +1,28 @@
 from streamlit_extras.add_vertical_space import add_vertical_space
-import yaml
-from yaml.loader import SafeLoader
-import streamlit_authenticator as stauth
-from streamlit_authenticator.utilities import RegisterError
 import os
-from google.oauth2 import id_token
+# from google.oauth2 import id_token
 from google.auth.transport import requests
 from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password
 import time
-from datetime import datetime, timedelta, date
-from utils.lancedb_utils import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
+from datetime import datetime
+from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
-from utils.common_utils import  create_profile_summary, process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
+from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, write_file
 from typing import Any, List
-import uuid
-from streamlit_js_eval import get_geolocation
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
-from utils.aws_manager import get_client
+# import uuid
+# from streamlit_js_eval import get_geolocation
+# from geopy.geocoders import Nominatim
+# from geopy.exc import GeocoderTimedOut
+# from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-import webbrowser
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
-from backend.upgrade_resume import tailor_resume, evaluate_resume,  readability_checker
-from backend.generate_cover_letter import generate_basic_cover_letter
+from backend.upgrade_resume import tailor_resume, evaluate_resume
+# from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx

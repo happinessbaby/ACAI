@@ -3,15 +3,14 @@ import os
 import openai
 from utils.openai_api import get_completion
 from utils.basic_utils import read_file, process_json, write_file
-from utils.common_utils import (retrieve_or_create_resume_info, retrieve_or_create_job_posting_info,
-                                 retrieve_from_db,  search_related_samples)
+from utils.common_utils import (retrieve_or_create_resume_info, retrieve_or_create_job_posting_info)
 from datetime import date
 from pathlib import Path
 import json
 from json import JSONDecodeError
 from typing import List
-from utils.langchain_utils import create_summary_chain, generate_multifunction_response, handle_tool_error
-from utils.agent_tools import create_search_tools, create_sample_tools
+from utils.langchain_utils import andle_tool_error
+# from utils.agent_tools import create_search_tools, create_sample_tools
 from docxtpl import DocxTemplate	
 from docx import Document
 from datetime import datetime
@@ -19,8 +18,8 @@ from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
 from dotenv import load_dotenv, find_dotenv
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_core.tools import Tool, tool
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import Tool
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 _ = load_dotenv(find_dotenv()) # read local .env file

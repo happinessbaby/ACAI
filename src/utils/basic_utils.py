@@ -11,8 +11,7 @@ from urllib.request import Request, urlopen
 import uuid
 from pptx import Presentation
 from typing import Any, List, Union, Dict
-from docxtpl import DocxTemplate
-import asyncio
+# from docxtpl import DocxTemplate
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 import collections.abc, functools
@@ -31,7 +30,7 @@ from docx import Document
 import tempfile
 # from odf import text, teletype
 # from odf.opendocument import load
-from io import BytesIO
+# from io import BytesIO
 # import docx2pdf
 from pathlib import Path
 # from PyPDF2 import PdfReader  
@@ -39,22 +38,18 @@ from pathlib import Path
 import PyPDF2
 import subprocess
 import base64
-import boto3
 # import aspose.words as aw
 import glob
 from jinja2 import Template
 from botocore.exceptions import ClientError
-import pypandoc
-import shutil
-from pdf2image import convert_from_bytes
+# from pdf2image import convert_from_bytes
 from utils.aws_manager import get_client, get_resource
 import smtplib
 from email.message import EmailMessage
 from email.headerregistry import Address
-from email.utils import make_msgid
-    
+# from email.utils import make_msgid
 from dotenv import load_dotenv, find_dotenv
-from langchain_community.document_loaders import AsyncHtmlLoader, S3FileLoader, UnstructuredURLLoader
+from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers import Html2TextTransformer
 
 _ = load_dotenv(find_dotenv()) # read local .env 

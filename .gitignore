@@ -195,4 +195,5 @@ src/backend/cover_letter_samples/
 src/backend/resume_samples/
 src/interview_component
 src/results/
+src/record_manager_cache.sql
 

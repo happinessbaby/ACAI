@@ -1,24 +1,13 @@
-from streamlit_chat import message
+# from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
 # import extra_streamlit_components as stx
-from pathlib import Path
-import random
 import time
-import openai
-import os
 import uuid
-from backend.career_advisor import ChatController
+# from backend.career_advisor import ChatController
 # from callbacks.capturing_callback_handler import playback_callbacks
-from utils.basic_utils import delete_file, mk_dirs, write_file, read_file
-from utils.openai_api import  num_tokens_from_text
+# from utils.basic_utils import delete_file, mk_dirs, write_file, read_file
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  generate_tip_of_the_day, shorten_content, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info, process_uploads, process_links, process_inputs
-import re
-from typing import Any, List, Union
-import multiprocessing as mp
-from utils.langchain_utils import update_vectorstore
-import openai
-import json
+# from utils.common_utils import  generate_tip_of_the_day, shorten_content
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import time
 # from utils.aws_manager import get_client, request_aws4auth
@@ -29,17 +18,7 @@ import re
 # from st_click_detector import click_detector
 # from st_clickable_images import clickable_images
 # from streamlit_simple_gallery import ImageGallery
-from streamlit_image_select import image_select
-from utils.aws_manager import get_aws_session,  get_client
-from json.decoder import JSONDecodeError
-from stqdm import stqdm
-import threading
-import queue
-from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_utils import user_menu, set_streamlit_page_config_once
-from css.streamlit_css import tabs
-import multiprocessing
-from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import ChatMessage
 import streamlit as st
 
@@ -67,19 +46,17 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 #     ]
 # )
 
-STORAGE = os.environ['STORAGE']
-bucket_name = os.environ['BUCKET_NAME']
-user_vs_name = os.environ["USER_CHAT_VS_NAME"]
-openai.api_key = os.environ['OPENAI_API_KEY']
-max_token_count = os.environ['MAX_TOKEN_COUNT']
-user_profile_file=os.environ["USER_PROFILE_FILE"]
-message_key = {
-"PK": os.environ["PK"],
-"SK": os.environ["SK"],
-}
-topic = "jobs"
-resume_options = ["evaluate my resume", "redesign my resume with a new template", "tailor my resume to a job posting"]
-interview_options=["phone interview", "panel interview"]
+# STORAGE = os.environ['STORAGE']
+# bucket_name = os.environ['BUCKET_NAME']
+# user_vs_name = os.environ["USER_CHAT_VS_NAME"]
+# openai.api_key = os.environ['OPENAI_API_KEY']
+# max_token_count = os.environ['MAX_TOKEN_COUNT']
+# user_profile_file=os.environ["USER_PROFILE_FILE"]
+# message_key = {
+# "PK": os.environ["PK"],
+# "SK": os.environ["SK"],
+# }
+# topic = "jobs"
 st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 
 

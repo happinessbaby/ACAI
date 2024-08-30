@@ -1,5 +1,3 @@
-import boto3
-import os
 from typing import List, Union
 from boto3.dynamodb.conditions import Key, Attr
 from utils.aws_manager import get_client, get_resource
