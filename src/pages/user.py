@@ -1473,7 +1473,7 @@ class User():
 
     
 
-
+    @st.fragment()
     def display_profile(self,):
 
         """Displays interactive user profile UI"""

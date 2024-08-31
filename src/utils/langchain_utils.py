@@ -14,7 +14,7 @@ import os
 from langchain.chains import ( RetrievalQA, RetrievalQAWithSourcesChain, TransformChain, StuffDocumentsChain,  create_tagging_chain, create_tagging_chain_pydantic, 
                                ReduceDocumentsChain, MapReduceDocumentsChain, create_extraction_chain, LLMMathChain,
                               create_extraction_chain_pydantic,  LLMChain)
-import redis
+# import redis
 # import json
 from typing import List, Union, Any, Optional, Dict
 import re
@@ -62,9 +62,9 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 openai.api_key = os.environ["OPENAI_API_KEY"]
 aws_access_key_id=os.environ["AWS_SERVER_PUBLIC_KEY"]
 aws_secret_access_key=os.environ["AWS_SERVER_SECRET_KEY"]
-redis_password=os.getenv('REDIS_PASSWORD')
-redis_url = f"redis://:{redis_password}@localhost:6379"
-redis_client = redis.Redis.from_url(redis_url)
+# redis_password=os.getenv('REDIS_PASSWORD')
+# redis_url = f"redis://:{redis_password}@localhost:6379"
+# redis_client = redis.Redis.from_url(redis_url)
 
 
 STORAGE = os.environ["STORAGE"]
@@ -747,11 +747,11 @@ def create_vectorstore(vs_type: str, index_name: str, file="", file_type="file",
             db=FAISS.from_documents(docs, embeddings)
             db.save_local(index_name)
             print("Succesfully created Faiss vector store.")
-        elif (vs_type=="redis"):
-            db = Redis.from_documents(
-                docs, embeddings, redis_url=redis_url, index_name=index_name
-            )
-            print("Successfully created Redis vector store.")
+        # elif (vs_type=="redis"):
+        #     db = Redis.from_documents(
+        #         docs, embeddings, redis_url=redis_url, index_name=index_name
+        #     )
+        #     print("Successfully created Redis vector store.")
                 # db=create_redis_index(docs, embeddings, index_name, source)
         elif (vs_type=="lancedb"):
             table = create_lancedb_table()
@@ -829,15 +829,15 @@ def retrieve_vectorstore(vs_type:str, index_name:str, embeddings = OpenAIEmbeddi
         
     """
 
-    if vs_type=="redis":
-        try:
-            rds = Redis.from_existing_index(
-            embeddings, redis_url=redis_url, index_name=index_name
-            )
-            return rds
-        except Exception as e:
-            return None
-    elif vs_type=="faiss":
+    # if vs_type=="redis":
+    #     try:
+    #         rds = Redis.from_existing_index(
+    #         embeddings, redis_url=redis_url, index_name=index_name
+    #         )
+    #         return rds
+    #     except Exception as e:
+    #         return None
+    if vs_type=="faiss":
         try:
             db = FAISS.load_local(index_name, embeddings, allow_dangerous_deserialization=True)
             return db
@@ -904,11 +904,11 @@ def update_vectorstore(end_path: str, vs_path:str, index_name: str, record_name=
 
 
 
-def drop_redis_index(index_name: str) -> None:
+# def drop_redis_index(index_name: str) -> None:
 
-    """ Drops the redis vector store with index name. """
+#     """ Drops the redis vector store with index name. """
 
-    print(Redis.drop_index(index_name, delete_documents=True, redis_url=redis_url))
+#     print(Redis.drop_index(index_name, delete_documents=True, redis_url=redis_url))
 
 
 

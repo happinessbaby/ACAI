@@ -1,8 +1,8 @@
 import streamlit as st
-from streamlit_chat import message
+# from streamlit_chat import message
 from streamlit_extras.add_vertical_space import add_vertical_space
-from pathlib import Path
-import random
+# from pathlib import Path
+# import random
 import time
 import openai
 import os
@@ -32,7 +32,6 @@ import json
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
-from utils.cookie_manager import CookieManager
 from utils.aws_manager import get_client
 import pywinctl as pwc
 from interview_component import my_component
@@ -54,7 +53,7 @@ import nest_asyncio
 import websocket
 from utils.whisper_stt import whisper_stt
 from streamlit_utils import nav_to
-from langchain_community.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
+# from langchain_community.tools import ElevenLabsText2SpeechTool, GoogleCloudTextToSpeechTool
 
 
 _ = load_dotenv(find_dotenv()) # read local .env file
