@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu \
     # poppler-utils \
     # libmagic1 \
-    fonts-dejavu \
     nginx \
     certbot \
     python3-certbot-nginx \
@@ -40,10 +39,10 @@ EXPOSE 443
 EXPOSE 80
 
 # Run Certbot to obtain SSL certificates (this step may require manual intervention)
-RUN certbot --nginx -d acareerai.com --non-interactive --agree-tos -m contact@acareerai.com --redirect
+# RUN certbot --nginx -d acareerai.com --non-interactive --agree-tos -m contact@acareerai.com --redirect
 
 # Restart Nginx to apply the new configuration
-RUN service nginx restart
+# RUN service nginx restart
 
 # Healthcheck to ensure the app is running
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
