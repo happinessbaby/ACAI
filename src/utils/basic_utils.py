@@ -13,7 +13,7 @@ from pptx import Presentation
 from typing import Any, List, Union, Dict
 # from docxtpl import DocxTemplate
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
+# from playwright.async_api import async_playwright
 import collections.abc, functools
 from functools import wraps
 from time import time
@@ -525,35 +525,35 @@ def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[
     print(f"Succesfully written {field_name} to {res_path}.")
 
 # source code: https://github.com/trancethehuman/entities-extraction-web-scraper/blob/main/scrape.py
-async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
-    """
-    An asynchronous Python function that uses Playwright to scrape
-    content from a given URL, extracting specified HTML tags and removing unwanted tags and unnecessary
-    lines.
-    """
-    print("Started scraping...")
-    results = ""
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        try:
-            page = await browser.new_page()
-            await page.goto(url)
-            page_source = await page.content()
+# async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
+#     """
+#     An asynchronous Python function that uses Playwright to scrape
+#     content from a given URL, extracting specified HTML tags and removing unwanted tags and unnecessary
+#     lines.
+#     """
+#     print("Started scraping...")
+#     results = ""
+#     async with async_playwright() as p:
+#         browser = await p.chromium.launch(headless=True)
+#         try:
+#             page = await browser.new_page()
+#             await page.goto(url)
+#             page_source = await page.content()
 
-            # results = remove_unessesary_lines(extract_tags(remove_unwanted_tags(
-            #     page_source), tags))
-            text = remove_unwanted_tags(
-                page_source).get_text()
-            lines = (line.strip() for line in text.splitlines())
-            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-            results = "\n".join(chunk for chunk in chunks if chunk)
-            print(results)
-            print("Content scraped")
-        except Exception as e:
-            results = f"Error: {e}"
-        await browser.close()
-    # return page_source
-    return results 
+#             # results = remove_unessesary_lines(extract_tags(remove_unwanted_tags(
+#             #     page_source), tags))
+#             text = remove_unwanted_tags(
+#                 page_source).get_text()
+#             lines = (line.strip() for line in text.splitlines())
+#             chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+#             results = "\n".join(chunk for chunk in chunks if chunk)
+#             print(results)
+#             print("Content scraped")
+#         except Exception as e:
+#             results = f"Error: {e}"
+#         await browser.close()
+#     # return page_source
+#     return results 
 
 
 def send_recovery_email(to_email, subject="Recover your password", password=None, username=None, ):

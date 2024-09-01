@@ -33,7 +33,7 @@ import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 import re
 from utils.aws_manager import get_client
-import pywinctl as pwc
+# import pywinctl as pwc
 from interview_component import my_component
 from google.cloud import texttospeech
 # from pydub import AudioSegment
