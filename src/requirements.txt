@@ -25,9 +25,9 @@ st-pages==0.4.4
 docxtpl==0.16.7
 langchain_experimental==0.0.29
 langchain_community
-playwright==1.38.0
-SQLAlchemy==2.0.22
-spacy==3.5.4
+# playwright==1.38.0
+# SQLAlchemy==2.0.22
+# spacy==3.5.4
 tokenizers==0.13.3
 urllib3==2.0.4
 requests==2.31.0
@@ -40,7 +40,7 @@ python-xlib==0.33
 bs4
 beautifulsoup4==4.12.2
 loguru==0.7.0
-pynput==1.7.6
+# pynput==1.7.6
 PyYAML
 # st-click-detector
 # st_clickable_images
@@ -56,24 +56,24 @@ localstoragePy
 opensearch-py
 requests-aws4auth
 lancedb
-pywinctl
-streamlit-audiorec
+# pywinctl
+# streamlit-audiorec
 streamlit-mic-recorder
 # streamlit-bokeh-events
-apify-client
+# apify-client
 unstructured_client
 jq
-python-linkedin
-schedule
+# python-linkedin
+# schedule
 langchain_openai
 # st_btn_select
 odfpy
 python-dateutil
 
 #below are checked to be included
-docx2pdf
+# docx2pdf
 PyPDF2
-stqdm
+# stqdm
 plotly==5.22.0
 streamlit-antd-components
 textstat
@@ -94,14 +94,14 @@ requests-aws4auth
 # nltk
 Jinja2   
 selenium
-pyairtable
-linkedin_api
-streamlit-image-select
-pdf2image
+# pyairtable
+# linkedin_api
+# streamlit-image-select
+# pdf2image
 pyjwt
 s3fs
 streamlit_float
-streamlit_js_eval
+# streamlit_js_eval
 streamlit-extras
 streamlit-nested-layout
 streamlit-pdf-viewer
