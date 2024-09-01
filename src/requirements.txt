@@ -37,8 +37,8 @@ python-dotenv==1.0.0
 python-pptx==0.6.21
 python-xlib==0.33
 # feast==0.31.1
-bs4
-beautifulsoup4==4.12.2
+# bs4
+# beautifulsoup4==4.12.2
 loguru==0.7.0
 # pynput==1.7.6
 PyYAML
@@ -53,7 +53,7 @@ httpx-oauth
 localstoragePy
 # hydralit-components
 # streamlit-datalist
-opensearch-py
+# opensearch-py
 requests-aws4auth
 lancedb
 # pywinctl
