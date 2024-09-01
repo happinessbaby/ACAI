@@ -12,7 +12,7 @@ import uuid
 from pptx import Presentation
 from typing import Any, List, Union, Dict
 # from docxtpl import DocxTemplate
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 # from playwright.async_api import async_playwright
 import collections.abc, functools
 from functools import wraps
@@ -374,25 +374,25 @@ def markdown_table_to_dict(markdown_table):
 
     return result
 
-class AppURLopener(urllib.request.FancyURLopener):
-    version = "Mozilla/5.0"
+# class AppURLopener(urllib.request.FancyURLopener):
+#     version = "Mozilla/5.0"
 
-def retrieve_web_content(link, save_path="test.txt"):
+# def retrieve_web_content(link, save_path="test.txt"):
 
-    req = Request(
-        url=link, 
-        headers={'User-Agent': 'Mozilla/5.0'}
-    )
-    try: 
-        webpage=str(urllib.request.urlopen(link).read())
-    except Exception: 
-        # webpage = urlopen(req).read()
-        opener = AppURLopener()
-        webpage = opener.open(link)
-    soup = bs4.BeautifulSoup(webpage, features="lxml")
+#     req = Request(
+#         url=link, 
+#         headers={'User-Agent': 'Mozilla/5.0'}
+#     )
+#     try: 
+#         webpage=str(urllib.request.urlopen(link).read())
+#     except Exception: 
+#         # webpage = urlopen(req).read()
+#         opener = AppURLopener()
+#         webpage = opener.open(link)
+#     soup = bs4.BeautifulSoup(webpage, features="lxml")
 
-    content = soup.get_text()
-    print(content)
+#     content = soup.get_text()
+#     print(content)
 
     
 # this one is better than the above function 
@@ -608,63 +608,63 @@ def send_recovery_email(to_email, subject="Recover your password", password=None
         print(f"Failed to send email: {e}")
         return False
 
-def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]) -> BeautifulSoup:
-    """
-    This removes unwanted HTML tags from the given HTML content.
-    """
-    soup = BeautifulSoup(html_content, 'html.parser')
+# def remove_unwanted_tags(html_content, unwanted_tags=["script", "style"]) -> BeautifulSoup:
+#     """
+#     This removes unwanted HTML tags from the given HTML content.
+#     """
+#     soup = BeautifulSoup(html_content, 'html.parser')
 
-    for tag in unwanted_tags:
-        for element in soup.find_all(tag):
-            element.decompose()
+#     for tag in unwanted_tags:
+#         for element in soup.find_all(tag):
+#             element.decompose()
 
-    return soup
-
-
-def extract_tags(html_content, tags: list[str]):
-    """
-    This takes in HTML content and a list of tags, and returns a string
-    containing the text content of all elements with those tags, along with their href attribute if the
-    tag is an "a" tag.
-    """
-    soup = BeautifulSoup(html_content, 'html.parser')
-    text_parts = []
-
-    for tag in tags:
-        elements = soup.find_all(tag)
-        for element in elements:
-            # If the tag is a link (a tag), append its href as well
-            if tag == "a":
-                href = element.get('href')
-                if href:
-                    text_parts.append(f"{element.get_text()} ({href})")
-                else:
-                    text_parts.append(element.get_text())
-            else:
-                text_parts.append(element.get_text())
-
-    return ' '.join(text_parts)
+#     return soup
 
 
-def remove_unessesary_lines(content):
-    # Split content into lines
-    lines = content.split("\n")
+# def extract_tags(html_content, tags: list[str]):
+#     """
+#     This takes in HTML content and a list of tags, and returns a string
+#     containing the text content of all elements with those tags, along with their href attribute if the
+#     tag is an "a" tag.
+#     """
+#     soup = BeautifulSoup(html_content, 'html.parser')
+#     text_parts = []
 
-    # Strip whitespace for each line
-    stripped_lines = [line.strip() for line in lines]
+#     for tag in tags:
+#         elements = soup.find_all(tag)
+#         for element in elements:
+#             # If the tag is a link (a tag), append its href as well
+#             if tag == "a":
+#                 href = element.get('href')
+#                 if href:
+#                     text_parts.append(f"{element.get_text()} ({href})")
+#                 else:
+#                     text_parts.append(element.get_text())
+#             else:
+#                 text_parts.append(element.get_text())
 
-    # Filter out empty lines
-    non_empty_lines = [line for line in stripped_lines if line]
+#     return ' '.join(text_parts)
 
-    # Remove duplicated lines (while preserving order)
-    seen = set()
-    deduped_lines = [line for line in non_empty_lines if not (
-        line in seen or seen.add(line))]
 
-    # Join the cleaned lines without any separators (remove newlines)
-    cleaned_content = " ".join(deduped_lines)
+# def remove_unessesary_lines(content):
+#     # Split content into lines
+#     lines = content.split("\n")
 
-    return cleaned_content  
+#     # Strip whitespace for each line
+#     stripped_lines = [line.strip() for line in lines]
+
+#     # Filter out empty lines
+#     non_empty_lines = [line for line in stripped_lines if line]
+
+#     # Remove duplicated lines (while preserving order)
+#     seen = set()
+#     deduped_lines = [line for line in non_empty_lines if not (
+#         line in seen or seen.add(line))]
+
+#     # Join the cleaned lines without any separators (remove newlines)
+#     cleaned_content = " ".join(deduped_lines)
+
+#     return cleaned_content  
 
 def process_json(json_str: str) -> str:
 
@@ -672,27 +672,27 @@ def process_json(json_str: str) -> str:
 
     return json_str.strip("'<>() ").replace(" ", "").__str__().replace("'", '"')
 
-def read_text_boxes(file_path):
-    doc = Document(file_path)
-    text_boxes = []
-    for shape in doc.inline_shapes:
-        if shape.type == 1:  # 1 is the type for text boxes
-            print("text box text")
-            text_box_text = []
-            for paragraph in shape._inline.graphic.graphicData.textBody.p:
-                text_box_text.append(paragraph.text)
-            text_boxes.append('\n'.join(text_box_text))
-    return text_boxes
+# def read_text_boxes(file_path):
+#     doc = Document(file_path)
+#     text_boxes = []
+#     for shape in doc.inline_shapes:
+#         if shape.type == 1:  # 1 is the type for text boxes
+#             print("text box text")
+#             text_box_text = []
+#             for paragraph in shape._inline.graphic.graphicData.textBody.p:
+#                 text_box_text.append(paragraph.text)
+#             text_boxes.append('\n'.join(text_box_text))
+#     return text_boxes
 
-def render_template(template_str, context):
-    template = Template(template_str)
-    return template.render(context)
+# def render_template(template_str, context):
+#     template = Template(template_str)
+#     return template.render(context)
 
-def save_rendered_content(rendered_contents, output_file_path):
-    doc = Document()
-    for content in rendered_contents:
-        doc.add_paragraph(content)
-    doc.save(output_file_path)
+# def save_rendered_content(rendered_contents, output_file_path):
+#     doc = Document()
+#     for content in rendered_contents:
+#         doc.add_paragraph(content)
+#     doc.save(output_file_path)
 
 class memoized(object):
 
