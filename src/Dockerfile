@@ -9,7 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu \
     # poppler-utils \
     # libmagic1 \
-    apt-get install -y nginx certbot python3-certbot-nginx \
+    fonts-dejavu \
+    nginx \
+    certbot \
+    python3-certbot-nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a user to avoid running as root
