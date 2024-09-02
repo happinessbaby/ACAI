@@ -1,5 +1,6 @@
 import time
 import os
+from dataclasses import dataclass
 # import extra_streamlit_components as stx
 # Note that you can also import these from streamlit directly
 from streamlit_extras.stylable_container import stylable_container
@@ -10,8 +11,8 @@ import pandas as pd
 import uuid
 import streamlit.components.v1 as components
 import base64
-from streamlit_extras.add_vertical_space import add_vertical_space
-from css.streamlit_css import primary_button2
+# from streamlit_extras.add_vertical_space import add_vertical_space
+# from css.streamlit_css import primary_button2
 import streamlit as st
 
 
@@ -35,11 +36,22 @@ def set_streamlit_page_config_once():
 
 set_streamlit_page_config_once()
 
-@st.dialog(" ", )
-def loading(text, container=st.empty(), interval=5):  
-    with container.container():
-        with st.spinner(text):
-            time.sleep(interval)
+
+@dataclass
+class Progress:
+    progress: int = 0
+
+    def increment(self, step=1):
+        self.progress += step
+
+
+
+# def loading_bar(text, p, container=st.empty(),):  
+#     my_bar = container.progress(0, text="Operation in progress. Please wait...")
+#     while p.progress < 100:
+#         my_bar.progress(p.progress, text=f"{text}: {p.progress}%")
+#         time.sleep(0.1)
+
 
 def nav_to(url):
     nav_script = """

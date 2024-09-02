@@ -3,7 +3,7 @@ import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from utils.basic_utils import count_length
 from utils.common_utils import search_related_samples,  extract_similar_jobs
-from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser
+from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
 from docxtpl import DocxTemplate	
@@ -18,6 +18,7 @@ import tempfile
 import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate
 from utils.async_utils import asyncio_run
+import time as time
 import streamlit as st
 
 
@@ -50,7 +51,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
 
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
@@ -101,11 +102,20 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
             evaluated_work= analyze_field_content(details, "work experience")
             st.session_state["evaluated_work_experience"]=evaluated_work
     elif type=="summary_objective":
+        for _ in range(5):
+            # Perform some processing (e.g., tailoring a resume)
+            time.sleep(0.1)  # Simulate time-consuming task
+            p.increment(10)  # Update progress in steps of 10%
+            loading_func(p.progress)
         # summary_objective = resume_dict["summary_objective"]
         if details:
             readability_checker(type, details)
+            p.increment(20)  # Update progress in steps of 10%
+            loading_func(p.progress)
             summary=resume_dict["summary_objective"]
             evaluated_summary = analyze_summary_objective(resume_content, summary)
+            p.increment(30)  # Update progress in steps of 10%
+            loading_func(p.progress)
             st.session_state["evaluated_summary_objective"]=evaluated_summary
 
     # if resume_fields["projects"]!=-1:
@@ -275,9 +285,15 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None, p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
+    for _ in range(5):
+        # Perform some processing (e.g., tailoring a resume)
+        time.sleep(0.1)  # Simulate time-consuming task
+        p.increment(10)  # Update progress in steps of 10%
+        loading_func(p.progress)
+
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     resume_content= resume_dict["resume_content"]
@@ -288,11 +304,17 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         elif about_job:
             job_requirements = about_job
     company_description = job_posting_dict["company_description"]
+    p.increment(10)  # Update progress 
+    loading_func(p.progress)
     if field_name=="included_skills":
         required_skills = job_posting_dict["skills"]
         tailored_skills = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
+        p.increment(30)  # Update progress 
+        loading_func(p.progress)
         if tailored_skills:
             tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
+            p.increment(10)  # Update progress 
+            loading_func(p.progress)
             if tailored_skills_dict:    
                 st.session_state[f"tailored_{field_name}"]=tailored_skills_dict
             else:
@@ -302,8 +324,13 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
+        p.increment(30)  # Update progress 
+        loading_func(p.progress)
         if response:
+            # print("RESPONSE", response.content)
             tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
+            p.increment(10)  # Update progress 
+            loading_func(p.progress)
             if tailored_objective_dict:
                 st.session_state[f"tailored_{field_name}"]=tailored_objective_dict
             else:
@@ -312,8 +339,8 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         else:
             st.session_state[f"tailored_{field_name}"]="please try again"
     if type=="bullet_points":
-        print("bullet point details", details)
-        tailored_experience = tailor_bullet_points(field_name, details, job_requirements,)
+        # print("bullet point details", details)
+        tailored_experience = tailor_bullet_points(field_name, details, job_requirements, p, loading_func, )
         st.session_state[f"tailored_{field_name}"]= tailored_experience
     # return st.session_state.tailor_dict
 
@@ -452,12 +479,12 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
     # print(prompt_template.messages[0].prompt.input_variables)
     message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
     response = await llm.ainvoke(message)
-    print(response)
+    # print(response)
     return response
 
 
 
-def tailor_bullet_points(field_name, field_detail,  job_requirements,):
+def tailor_bullet_points(field_name, field_detail,  job_requirements, p, loading_func, ):
 
     """ Evaluates relevancy and ranks most important roles"""
 
@@ -469,13 +496,23 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements,):
 
         Please provide your reasoning for your ranking process.  
         Output in the following format:
-        Reranked section: - <reranked section> \n
+        Reranked section: - <reranked section verbatim without reasoning> \n
         reason: <your reasoning>
         DO NOT USE ANY TOOLS.
 
     """
-    ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
-    return ranked_experience if ranked_experience else "please try again"
+    ranked_list=[]
+    ranked = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
+    p.increment(30)  # Update progress 
+    loading_func(p.progress)
+    if ranked:
+        template="""Look for Reranked section and list the details verbatim in the order that they appear. {ranked}"""
+        query_dict = {"ranked":ranked}
+        ranked_list = asyncio_run(lambda: create_comma_separated_list_parser(input_variables=["ranked"], base_template=template, query_dict=query_dict), timeout=5)
+        p.increment(10)  # Update progress 
+        loading_func(p.progress)
+    ranked_dict = {"ranked":ranked, "ranked_list":ranked_list}
+    return ranked_dict
 
 
 

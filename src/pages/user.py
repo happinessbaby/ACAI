@@ -19,7 +19,7 @@ from typing import Any, List
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from backend.generate_cover_letter import generate_basic_cover_letter
@@ -32,6 +32,7 @@ from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
 import requests
+from threading import Thread
 # from apscheduler.schedulers.background import BackgroundScheduler
 from utils.async_utils import thread_with_trace, asyncio_run
 import re
@@ -788,7 +789,7 @@ class User():
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                     st.session_state["posting_link"]=input_value
-                    st.session_state["tailoring_field"]=st.session_state.tailoring_fieldx
+                    # st.session_state["tailoring_field"]=st.session_state.tailoring_fieldx
                     self.initialize_job_posting_callback()
                 else:
                     #NOTE: the warnings for job posting are not showing in dialog, despite creating empty containers 
@@ -797,6 +798,7 @@ class User():
                 result = process_inputs(input_value, match_topic="job posting or job description")
                 if result is not None:
                     st.session_state["job_description"] = input_value
+                    self.initialize_job_posting_callback()
                 else:
                     st.warning("Please upload a job posting")
         # elif input_type=="job_description":
@@ -1216,9 +1218,19 @@ class User():
 
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
 
-        def display_tailor_options(popover_label="tailor"):
-            st.markdown(primary_button2, unsafe_allow_html=True)
-            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+        def apply_changes():
+
+            if field_name=="summary_objective":
+                st.session_state["profile"]["summary_objective"]="".join(end_list)
+                st.session_state["profile_changed"]=True
+            elif type=="bullet_points":
+                st.session_state["profile"][field_name][idx]["description"]=tailoring["ranked_list"]
+                st.session_state["profile_changed"]=True
+
+
+        def display_tailor_options(popover_label="tailor", container=st.empty()):
+            # st.markdown(primary_button2, unsafe_allow_html=True)
+            # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             with stylable_container(
                     key=button_key,
                     css_styles="""
@@ -1233,27 +1245,29 @@ class User():
                         }
                         """,
                 ):
-                with st.popover(popover_label):
-                    if "job_posting_dict" not in st.session_state:
+                if "job_posting_dict" not in st.session_state:
+                    with container.popover(popover_label):
                         upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
                         if upload:
-                            self.job_posting_popup(mode="resume")
-                            st.session_state["tailoring_fieldx"]=field_name
+                            self.job_posting_popup(mode="resume", field_name=field_name, )
+                else:
+                    if field_name==st.session_state["tailoring_field"] and  f"tailored_{field_name}" not in st.session_state:
+                        self.tailor_callback(type, field_name, details, container)
+                        st.rerun()
                     else:
-                        if field_name==st.session_state["tailoring_field"] and  f"tailored_{field_name}" not in st.session_state:
-                            # self.tailor_callback(type, field_name, details, )
-                            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
-                            st.rerun()
-                        else:
-                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary")
-                            new = st.button("with a new job posting", key=button_key+"_new", type="primary")
-                            if current:
-                                # self.tailor_callback(type, field_name, details, )
-                                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
-                                st.rerun()
-                            if new:
-                                self.job_posting_popup()
+                        with st.popover(popover_label):
+                            # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
+                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, container, ))
+                            new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
+                            # if current:
+                            #     # self.tailor_callback(type, field_name, details, )
+                            #     tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
+                            if new_upload:
+                                self.job_posting_popup(mode="resume", field_name=field_name)
         with c1:
+            st.markdown(primary_button2, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            eval_container=st.empty()
             if f"evaluated_{field_name}" in st.session_state:
                 if idx:
                     popover_key=f"eval_{field_name}_popover_{idx}"
@@ -1273,7 +1287,7 @@ class User():
                         }
                         """,
                 ):
-                    with st.popover("evaluate"):
+                    with eval_container.popover("evaluate"):
                             if idx:
                                 button_key=f"eval_again_{field_name}_button_{idx}"
                             else:
@@ -1285,16 +1299,19 @@ class User():
                             st.write(evaluation)
                             st.markdown(primary_button2, unsafe_allow_html=True)
                             st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                            st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, ), )
+                            st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
             else:
                 if idx:
                     button_key=f"eval_{field_name}_button_{idx}"
                 else:
                     button_key=f"eval_{field_name}_button"
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                evaluate = st.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details), )
+                # st.markdown(primary_button2, unsafe_allow_html=True)
+                # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                evaluate = eval_container.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
         with c2:
+            st.markdown(primary_button2, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            tailor_container=st.empty()
             if f"tailored_{field_name}" in st.session_state:
                 if idx:
                     popover_key=f"tailor_{field_name}_popover_{idx}"
@@ -1314,7 +1331,7 @@ class User():
                         }
                         """,
                 ):
-                    with st.popover("tailor"):
+                    with tailor_container.popover("tailor"):
                         if idx:
                             button_key=f"tailor_again_{field_name}_button_{idx}"
                         else:
@@ -1353,30 +1370,33 @@ class User():
                                             break                 
                                 text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
                                 end_list = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
-                                print(text_list)
+                                # print(text_list)
                                 annotated_text(text_list)
                                 if st.button("apply changes"):
-                                    st.session_state["profile"]["objective_summary"]="".join(end_list)
-                                    st.rerun()
+                                    st.session_state["profile"]["summary_objective"]="".join(end_list)
+                                    st.session_state["profile_changed"]=True
+                                    # st.rerun()
                             else:
                                 st.write(tailoring)
-                        else:
-                            st.write(tailoring)
+                        elif type=="bullet_points":
+                            st.write(tailoring["ranked"])
+                        if tailoring!="please try again":
+                            st.button("apply changes", on_click=apply_changes, )          
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        display_tailor_options(popover_label="tailor again")
+                        display_tailor_options(popover_label="tailor again", container=tailor_container)
                         # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
                 if idx:
                     button_key=f"tailor_{field_name}_button_{idx}"
                 else:
                     button_key=f"tailor_{field_name}_button"
-                display_tailor_options(popover_label="tailor")
+                display_tailor_options(popover_label="tailor", container=tailor_container)
      
           
 
     @st.dialog("Job posting")   
-    def job_posting_popup(self, mode="resume"):
+    def job_posting_popup(self, mode="resume", field_name="",):
 
         """ Opens a popup for adding a job posting """
 
@@ -1411,8 +1431,13 @@ class User():
                                         label_visibility="collapsed",
                                             )
         if job_description:
-            self.form_callback()
-            st.rerun()
+            # self.form_callback()
+            if mode=="resume":
+                with st.spinner("Processing..."):
+                    self.form_callback()
+                if "job_posting_dict" in st.session_state:
+                    st.session_state["tailoring_field"]=field_name
+                    st.rerun()
         # st.session_state["info_container"]=st.empty()
         # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
         #     # if "preselection" not in st.session_state:
@@ -1455,28 +1480,37 @@ class User():
 
 
     
-    # def tailor_callback(self, type=None, field_name=None, field_details=None):
+    def tailor_callback(self, type=None, field_name=None, field_details=None, container=None):
       
-    #     if "job_posting_dict" in st.session_state and field_name:
-    #         # starts specific field tailoring
-    #         tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details,)
-    #     else:
-
-    #         # initialize a job posting popup 
-    #         if field_name:
-    #             st.session_state["tailoring_field"]=field_name
-    #         if field_details:
-    #             st.session_state["tailoring_details"]=field_details
-    #         self.job_posting_popup()
+        if "job_posting_dict" in st.session_state and field_name:
+            # starts specific field tailoring
+            p=Progress()
+            my_bar = container.progress(0, text=None)
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Tailoring: {progress}%"))
+            # Ensure the progress bar reaches 100% after the function is complete
+            # p.progress = 100
+            my_bar.progress(100, text="Tailoring Complete!")
+        # else:
+            # initialize a job posting popup 
+            # if field_name:
+            #     st.session_state["tailoring_field"]=field_name
+            # if field_details:
+            #     st.session_state["tailoring_details"]=field_details
+            # self.job_posting_popup()
             
    
 
 
-    def evaluation_callback(self, field_name=None, details=None,):
+    def evaluation_callback(self, field_name=None, details=None, container=None):
 
         if field_name:
             # starts specific evaluation of a field
-            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details )
+            p=Progress()
+             # Create a progress bar
+            my_bar = container.progress(0, text=None)
+            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
+            # Ensure the progress bar reaches 100% after the function is complete
+            my_bar.progress(100, text="Evaluation Complete!")
         else:
             # start general evaluation if there's no saved evaluation 
             if "init_eval" not in st.session_state and st.session_state["evaluation"] is None:
@@ -1504,13 +1538,15 @@ class User():
                  pass
             else:
                 self.save_session_profile()
+            # self.display_general_evaluation()
+            # self.evaluation_callback()
 
         # general evaluation column
         # with eval_col:
-        #     float_container= st.container()
-        #     with float_container:
-        #         self.display_general_evaluation(float_container)
-        #         self.evaluation_callback()
+            # float_container= st.container()
+            # with float_container:
+            #     self.display_general_evaluation(float_container)
+            #     self.evaluation_callback()
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
@@ -1649,7 +1685,7 @@ class User():
 
     
     @st.fragment(run_every=st.session_state["eval_rerun_timer"])
-    def display_general_evaluation(self, container):
+    def display_general_evaluation(self,):
 
         """ Displays the general evaluation result of the profile """
 
@@ -1666,108 +1702,121 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-
-            with st.popover("My profile report ✨"):
-                c1, c2=st.columns([1, 1])
-                with c1:
-                    st.write("**Length**")
-                    try:
-                        length=st.session_state["evaluation"]["word_count"]
-                        # pages=st.session_state["evaluation"]["page_count"]
-                        fig = length_chart(int(length))
-                        st.plotly_chart(fig, 
-                                        # use_container_width=True
-                                        )
-                    except Exception:
-                        if finished is False:
-                            st.write("Evaluating...")
-                with c2:
-                    st.write("**Formatting**")
-                    try:
-                        add_vertical_space(3)
-                        ideal_type = st.session_state["evaluation"]["ideal_type"]
-                        st.write("The ideal type for your resume is:")
-                        if ideal_type=="chronological":
-                            st.header(":green[Chronological]")
-                        elif ideal_type=="functional":
-                            st.header(":blue[Functional]")
-                        # resume_type=st.session_state["evaluation"]["resume_type"]
-                        # if ideal_type==resume_type:
-                        #     st.subheader(":green[Good]")
-                        #     st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
-                        # else:
-                        #     st.subheader(":red[Mismatch]")
-                        #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
-                        if not st.session_state["eval_rerun_timer"]:
-                            add_vertical_space(1)
-                            if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
-                                self.resume_type_popup()
-                            # add_vertical_space(1)
-                            # if st.button("Explore template options", key="resume_template_explore_button"):
-                            #     self.explore_template_popup()
-                    except Exception:
-                        if finished is False:
-                            st.write("Evaluating...")
-                st.write("**Language**")
-                try:
-                    categories=["syntax", "diction", "tone", "coherence"]
-                    language_data=[]
-                    for category in categories:
-                        language_data.append({category:st.session_state["evaluation"][category]})
-                    fig = language_radar(language_data)
-                    st.plotly_chart(fig)
-                    # st.scatter_chart(df)
-                except Exception:
-                    if finished is False:
-                        st.write("Evaluating...")
-                # st.write("**How does your resume compare to others?**")
-                # try:
-                #     section_names = ["objective", "work_experience", "skillsets"]
-                #     comparison_data = []
-                #     for section in section_names:
-                #         comparison_data.append({section:st.session_state["evaluation"][section]})
-                #     fig = comparison_chart(comparison_data)
-                #     st.plotly_chart(fig)
-                # except Exception:
-                #     if finished is False:
-                #         st.write("Evaluating...")
-                st.write("**Impression**")
-                try:
-                    impression = st.session_state["evaluation"]["impression"]
-                    st.write(impression)
-                except Exception:
-                    if finished is False:
-                        st.write("Evaluating...")
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                if st.button("evaluate again", key=f"eval_button", ):
-                    # if button_name=="evaluate again ✨":
-                        # container.empty()
-                        # delete previous evaluation states
+            with stylable_container(
+                    key="profile_report_custum_popover",
+                    css_styles="""
+                        button {
+                            background: none;
+                            border: none;
+                            color: #ff8247;
+                            padding: 0;
+                            cursor: pointer;
+                            font-size: 12px; /* Adjust as needed */
+                            text-decoration: none;
+                        }
+                        """,
+                ):
+                with st.popover("See my profile report"):
+                    c1, c2=st.columns([1, 1])
+                    with c1:
+                        st.write("**Length**")
                         try:
-                            # remove evaluation from lance table and old evaluation from session
-                            delete_user_from_table(st.session_state.userId, lance_eval_table)
-                            del st.session_state["evaluation"]
-                            del st.session_state["init_eval"]
+                            length=st.session_state["evaluation"]["word_count"]
+                            # pages=st.session_state["evaluation"]["page_count"]
+                            fig = length_chart(int(length))
+                            st.plotly_chart(fig, 
+                                            # use_container_width=True
+                                            )
                         except Exception:
-                            pass
-                        finally:
-                            # reset evaluation rerun timer
-                            st.session_state["eval_rerun_timer"]=3
-                            st.rerun()
-                    # elif button_name=="stop evaluation":s
-                    #     try:
-                    #         # kill the evaluation thread 
-                    #         self.eval_thread.kill()
-                    #         self.eval_thread.join()
-                    #     except Exception as e:
-                    #         print(e)
-                    #         pass
-                    #     finally:
-                    #         # stop timer and finished evaluation
-                    #         st.session_state["eval_rerun_timer"] = None
-                    #         st.session_state["finished_eval"] = True
-                    #         st.rerun()
+                            if finished is False:
+                                st.write("Evaluating...")
+                    with c2:
+                        st.write("**Formatting**")
+                        try:
+                            add_vertical_space(3)
+                            ideal_type = st.session_state["evaluation"]["ideal_type"]
+                            st.write("The ideal type for your resume is:")
+                            if ideal_type=="chronological":
+                                st.header(":green[Chronological]")
+                            elif ideal_type=="functional":
+                                st.header(":blue[Functional]")
+                            # resume_type=st.session_state["evaluation"]["resume_type"]
+                            # if ideal_type==resume_type:
+                            #     st.subheader(":green[Good]")
+                            #     st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
+                            # else:
+                            #     st.subheader(":red[Mismatch]")
+                            #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
+                            if not st.session_state["eval_rerun_timer"]:
+                                add_vertical_space(1)
+                                if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
+                                    self.resume_type_popup()
+                                # add_vertical_space(1)
+                                # if st.button("Explore template options", key="resume_template_explore_button"):
+                                #     self.explore_template_popup()
+                        except Exception:
+                            if finished is False:
+                                st.write("Evaluating...")
+                    st.write("**Language**")
+                    try:
+                        categories=["syntax", "diction", "tone", "coherence"]
+                        language_data=[]
+                        for category in categories:
+                            language_data.append({category:st.session_state["evaluation"][category]})
+                        fig = language_radar(language_data)
+                        st.plotly_chart(fig)
+                        # st.scatter_chart(df)
+                    except Exception:
+                        if finished is False:
+                            st.write("Evaluating...")
+                    # st.write("**How does your resume compare to others?**")
+                    # try:
+                    #     section_names = ["objective", "work_experience", "skillsets"]
+                    #     comparison_data = []
+                    #     for section in section_names:
+                    #         comparison_data.append({section:st.session_state["evaluation"][section]})
+                    #     fig = comparison_chart(comparison_data)
+                    #     st.plotly_chart(fig)
+                    # except Exception:
+                    #     if finished is False:
+                    #         st.write("Evaluating...")
+                    st.write("**Impression**")
+                    try:
+                        impression = st.session_state["evaluation"]["impression"]
+                        st.write(impression)
+                    except Exception:
+                        if finished is False:
+                            st.write("Evaluating...")
+                    st.markdown(primary_button2, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                    if st.button("Evaluate again", key=f"eval_button", ):
+                        # if button_name=="evaluate again ✨":
+                            # container.empty()
+                            # delete previous evaluation states
+                            try:
+                                # remove evaluation from lance table and old evaluation from session
+                                delete_user_from_table(st.session_state.userId, lance_eval_table)
+                                del st.session_state["evaluation"]
+                                del st.session_state["init_eval"]
+                            except Exception:
+                                pass
+                            finally:
+                                # reset evaluation rerun timer
+                                st.session_state["eval_rerun_timer"]=3
+                                st.rerun()
+                        # elif button_name=="stop evaluation":s
+                        #     try:
+                        #         # kill the evaluation thread 
+                        #         self.eval_thread.kill()
+                        #         self.eval_thread.join()
+                        #     except Exception as e:
+                        #         print(e)
+                        #         pass
+                        #     finally:
+                        #         # stop timer and finished evaluation
+                        #         st.session_state["eval_rerun_timer"] = None
+                        #         st.session_state["finished_eval"] = True
+                        #         st.rerun()
 
 
     @st.dialog(" ")
