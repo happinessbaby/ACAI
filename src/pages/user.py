@@ -788,6 +788,8 @@ class User():
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                     st.session_state["posting_link"]=input_value
+                    st.session_state["tailoring_field"]=st.session_state.tailoring_fieldx
+                    self.initialize_job_posting_callback()
                 else:
                     #NOTE: the warnings for job posting are not showing in dialog, despite creating empty containers 
                     st.warning("That didn't work. Please try pasting the content of job description")
@@ -1236,14 +1238,21 @@ class User():
                         upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
                         if upload:
                             self.job_posting_popup(mode="resume")
+                            st.session_state["tailoring_fieldx"]=field_name
                     else:
-                        current = st.button("with the currrent job posting", key=button_key+"_current", type="primary")
-                        new = st.button("with a new job posting", key=button_key+"_new", type="primary")
-                        if current:
-                            self.tailor_callback(type, field_name, details, )
+                        if field_name==st.session_state["tailoring_field"] and  f"tailored_{field_name}" not in st.session_state:
+                            # self.tailor_callback(type, field_name, details, )
+                            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
                             st.rerun()
-                        if new:
-                            self.job_posting_popup()
+                        else:
+                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary")
+                            new = st.button("with a new job posting", key=button_key+"_new", type="primary")
+                            if current:
+                                # self.tailor_callback(type, field_name, details, )
+                                tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
+                                st.rerun()
+                            if new:
+                                self.job_posting_popup()
         with c1:
             if f"evaluated_{field_name}" in st.session_state:
                 if idx:
@@ -1343,8 +1352,12 @@ class User():
                                                 text_list[x]=""
                                             break                 
                                 text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
+                                end_list = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 print(text_list)
                                 annotated_text(text_list)
+                                if st.button("apply changes"):
+                                    st.session_state["profile"]["objective_summary"]="".join(end_list)
+                                    st.rerun()
                             else:
                                 st.write(tailoring)
                         else:
@@ -1383,14 +1396,6 @@ class User():
         #     if selection:
         #         st.session_state["job_posting_dict"] = past_jobs[past_jobs.index(selection)]
         #         st.session_state["preselection"] = True
-        st.session_state["job_error_placeholder"]=st.empty()
-        job_description = st.text_area("job posting link or job description", 
-                                        key="job_postingx", 
-                                        placeholder="Pleasae paste a job posting link or a job description here",
-                                        on_change=self.form_callback, 
-                                        label_visibility="collapsed",
-                                            )
-        # st.session_state["info_container"]=st.empty()
         if mode=="resume":
             freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
                     help = "This will make your tailoring changes a session copy so you can edit without losing the original profile",
@@ -1398,29 +1403,40 @@ class User():
                     horizontal=True,)
             if freeze:
                 st.session_state["freeze"]=True
-        if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
-            # if "preselection" not in st.session_state:
-            self.initialize_job_posting_callback()
-            # starts field tailoring if called to tailor a field
-            # if mode=="cover_letter":
-            #     download_path=asyncio_run(lambda: generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], ))
-            #     if download_path:
-            #         st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
-            #         save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
-            #         with open(download_path, "rb") as file:
-            #             file_content = file.read()
-            #         st.download_button(
-            #             label="Download your cover letter",
-            #             data=file_content,
-            #             file_name="cover_letter.docx",  # Specify the default name for the downloaded file
-            #             mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                    # )
-            # starts cover letter generation if called to generate cover letter
-                # automatic_download(download_path)
-            # elif mode=="resume" and "tailoring_field" in st.session_state:
-                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
-                # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
+        # st.session_state["job_error_placeholder"]=st.empty()
+        job_description = st.text_area("job posting link or job description", 
+                                        key="job_postingx", 
+                                        placeholder="Pleasae paste a job posting link or a job description here",
+                                        # on_change=self.form_callback, 
+                                        label_visibility="collapsed",
+                                            )
+        if job_description:
+            self.form_callback()
             st.rerun()
+        # st.session_state["info_container"]=st.empty()
+        # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
+        #     # if "preselection" not in st.session_state:
+        #     self.initialize_job_posting_callback()
+        #     # starts field tailoring if called to tailor a field
+        #     # if mode=="cover_letter":
+        #     #     download_path=asyncio_run(lambda: generate_basic_cover_letter(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["users_download_path"], ))
+        #     #     if download_path:
+        #     #         st.session_state["job_posting_dict"].update({"cover_letter_path": download_path})
+        #     #         save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+        #     #         with open(download_path, "rb") as file:
+        #     #             file_content = file.read()
+        #     #         st.download_button(
+        #     #             label="Download your cover letter",
+        #     #             data=file_content,
+        #     #             file_name="cover_letter.docx",  # Specify the default name for the downloaded file
+        #     #             mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        #             # )
+        #     # starts cover letter generation if called to generate cover letter
+        #         # automatic_download(download_path)
+        #     # elif mode=="resume" and "tailoring_field" in st.session_state:
+        #         # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
+        #         # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
+        #     st.rerun()
 
     def initialize_job_posting_callback(self, ):
 
@@ -1439,19 +1455,19 @@ class User():
 
 
     
-    def tailor_callback(self, type=None, field_name=None, field_details=None):
+    # def tailor_callback(self, type=None, field_name=None, field_details=None):
       
-        if "job_posting_dict" in st.session_state and field_name:
-            # starts specific field tailoring
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details,)
-        else:
+    #     if "job_posting_dict" in st.session_state and field_name:
+    #         # starts specific field tailoring
+    #         tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details,)
+    #     else:
 
-            # initialize a job posting popup 
-            if field_name:
-                st.session_state["tailoring_field"]=field_name
-            if field_details:
-                st.session_state["tailoring_details"]=field_details
-            self.job_posting_popup()
+    #         # initialize a job posting popup 
+    #         if field_name:
+    #             st.session_state["tailoring_field"]=field_name
+    #         if field_details:
+    #             st.session_state["tailoring_details"]=field_details
+    #         self.job_posting_popup()
             
    
 

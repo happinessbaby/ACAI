@@ -281,9 +281,12 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     resume_content= resume_dict["resume_content"]
-    job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
+    job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     if not job_requirements:
-        job_requirements = concat_skills(required_skills)
+        if required_skills:
+            job_requirements = concat_skills(required_skills)
+        elif about_job:
+            job_requirements = about_job
     company_description = job_posting_dict["company_description"]
     if field_name=="included_skills":
         required_skills = job_posting_dict["skills"]
