@@ -1228,7 +1228,7 @@ class User():
                 st.session_state["profile_changed"]=True
 
 
-        def display_tailor_options(popover_label="tailor", container=st.empty()):
+        def display_tailor_options(container):
             # st.markdown(primary_button2, unsafe_allow_html=True)
             # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             with stylable_container(
@@ -1246,7 +1246,7 @@ class User():
                         """,
                 ):
                 if "job_posting_dict" not in st.session_state:
-                    with container.popover(popover_label):
+                    with container.popover("tailor"):
                         upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
                         if upload:
                             self.job_posting_popup(mode="resume", field_name=field_name, )
@@ -1255,7 +1255,7 @@ class User():
                         self.tailor_callback(type, field_name, details, container)
                         st.rerun()
                     else:
-                        with st.popover(popover_label):
+                        with container.popover("tailor"):
                             # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
                             current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, container, ))
                             new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
@@ -1372,26 +1372,28 @@ class User():
                                 end_list = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
                                 annotated_text(text_list)
-                                if st.button("apply changes"):
-                                    st.session_state["profile"]["summary_objective"]="".join(end_list)
-                                    st.session_state["profile_changed"]=True
                                     # st.rerun()
                             else:
                                 st.write(tailoring)
                         elif type=="bullet_points":
                             st.write(tailoring["ranked"])
                         if tailoring!="please try again":
-                            st.button("apply changes", on_click=apply_changes, )          
+                            st.button("apply changes", on_click=apply_changes, key=button_key+"_change")          
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        display_tailor_options(popover_label="tailor again", container=tailor_container)
+                        with st.popover("tailor again"):
+                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, tailor_container, ))
+                            new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
+                            if new_upload:
+                                self.job_posting_popup(mode="resume", field_name=field_name)
+                        # display_tailor_options(popover_label="tailor again", container=tailor_container)
                         # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
                 if idx:
                     button_key=f"tailor_{field_name}_button_{idx}"
                 else:
                     button_key=f"tailor_{field_name}_button"
-                display_tailor_options(popover_label="tailor", container=tailor_container)
+                display_tailor_options(container=tailor_container)
      
           
 
