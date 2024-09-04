@@ -584,7 +584,7 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
-async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini")):
+async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -600,6 +600,7 @@ async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-
         ("human", "{content}"),
             ]
         )
+    
     runnable = prompt | llm.with_structured_output(schema=schema)
     response = await runnable.ainvoke({"content": content})
     response_dict = response.dict()

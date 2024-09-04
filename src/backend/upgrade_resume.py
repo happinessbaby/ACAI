@@ -3,10 +3,11 @@ import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from utils.basic_utils import count_length
 from utils.common_utils import search_related_samples,  extract_similar_jobs
-from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser
+from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
 from docxtpl import DocxTemplate	
+from operator import itemgetter
 # from docx import Document
 # from docx.shared import Inches
 import re
@@ -16,8 +17,11 @@ from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
 import textstat as ts
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate,  PromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
 from utils.async_utils import asyncio_run
+import time as time
 import streamlit as st
 
 
@@ -50,7 +54,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
 
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
@@ -94,35 +98,32 @@ def evaluate_resume(resume_dict={},  type="general", details=None) -> Dict[str, 
         st.session_state.evaluation["impression"]= impression
         st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
-    if type=="work_experience":
+    if details:
+        for _ in range(5):
+            # Perform some processing (e.g., tailoring a resume)
+            time.sleep(0.1)  # Simulate time-consuming task
+            p.increment(10)  # Update progress in steps of 10%
+            loading_func(p.progress)
         # work_experience= resume_dict["work_experience"]
-        if details:
-            readability_checker(type, details)
-            evaluated_work= analyze_field_content(details, "work experience")
-            st.session_state["evaluated_work_experience"]=evaluated_work
-    elif type=="summary_objective":
-        # summary_objective = resume_dict["summary_objective"]
-        if details:
-            readability_checker(type, details)
-            summary=resume_dict["summary_objective"]
-            evaluated_summary = analyze_summary_objective(resume_content, summary)
-            st.session_state["evaluated_summary_objective"]=evaluated_summary
-
-    # if resume_fields["projects"]!=-1:
-    #     evaluted_project = analyze_field_content(resume_dict["projects"])
-    # if resume_fields["professional accomplishment"]!=-1:
-    #     evaluted_accomplishment = analyze_field_content(resume_dict["professional accomplishment"])
-    # in_depth_view = ""
-    # return evaluation_dict
+        readability_checker(type, details)
+        p.increment(20) 
+        loading_func(p.progress)
+        evaluation= analyze_field_content(details, type, resume_content)
+        p.increment(30)  
+        loading_func(p.progress)
+        st.session_state[f"evaluated_{type}"]=evaluation
+    else:
+        st.session_state[f"evaluated_{type}"]="Please fill out the content"
 
 
 
 
-def analyze_field_content(field_content, field_type):
+
+def analyze_field_content(field_content, field_type, resume_content):
 
     """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
 
-    if field_type=="work experience":
+    if field_type=="work_experience":
             #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
         star_prompt = f"""
             You're provided with the {field_type} of the resume. Your task is to assess how well written the bullet points are according to the guideline below. 
@@ -150,30 +151,28 @@ def analyze_field_content(field_content, field_type):
             The limitations of your project
             Conclusions and/pr recommendations
             Further questions to examine in the future"""
+    elif field_type=="summary_objective":
+    
+        summary_query = f"""Given the resume content and summary objective section below, please analyze the summary objective section based on the following criteria:
+
+        1. Is it about two to three sentences long? \n
+
+        2. Is it succinct and well-crafted? \n
         
+        2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
 
-def analyze_summary_objective(resume_content, summary):
-    
-    summary_query = f"""Given the resume content and summary objective section below, please analyze the summary objective section based on the following criteria:
+        Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. Include any suggestions if needed.
 
-    1. Is it about two to three sentences long? \n
+        DO NOT USE ANY TOOLS!
 
-    2. Is it succinct and well-crafted? \n
-    
-    2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
+        resume content: {resume_content}
 
-    Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. Include any suggestions if needed.
+        summary objective section: {field_content}
+        
+        """
 
-    DO NOT USE ANY TOOLS!
-
-    resume content: {resume_content}
-
-    summary objective section: {summary}
-    
-    """
-
-    summary_resp = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)), timeout=10)
-    return summary_resp
+        summary_resp = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)), timeout=10)
+        return summary_resp
 
 
     
@@ -275,43 +274,69 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None, p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
+    for _ in range(5):
+        # Perform some processing (e.g., tailoring a resume)
+        time.sleep(0.1)  # Simulate time-consuming task
+        p.increment(10)  # Update progress in steps of 10%
+        loading_func(p.progress)
+
     about_job = job_posting_dict["about_job"]
     required_skills = job_posting_dict["skills"] 
     resume_content= resume_dict["resume_content"]
-    job_requirements = ", ".join(job_posting_dict["qualifications"]) + ", ".join(job_posting_dict["responsibilities"])
+    job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     if not job_requirements:
-        job_requirements = concat_skills(required_skills)
+        if required_skills:
+            job_requirements = concat_skills(required_skills)
+        elif about_job:
+            job_requirements = about_job
     company_description = job_posting_dict["company_description"]
+    p.increment(10)  # Update progress 
+    loading_func(p.progress)
     if field_name=="included_skills":
         required_skills = job_posting_dict["skills"]
-        tailored_skills = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
-        if tailored_skills:
-            tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
-            if tailored_skills_dict:    
-                st.session_state[f"tailored_{field_name}"]=tailored_skills_dict
-            else:
-                st.session_state[f"tailored_{field_name}"]="please try again"
-        else:
-            st.session_state[f"tailored_{field_name}"] = "please try again"
+        response = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
+        p.increment(30)  # Update progress 
+        loading_func(p.progress)
+        # if tailored_skills:
+        #     tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
+        #     p.increment(10)  # Update progress 
+        #     loading_func(p.progress)
+        #     if tailored_skills_dict:    
+        #         st.session_state[f"tailored_{field_name}"]=tailored_skills_dict
+        #     else:
+        #         st.session_state[f"tailored_{field_name}"]="please try again"
+        # else:
+        #     st.session_state[f"tailored_{field_name}"] = "please try again"
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
-        if response:
-            tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
-            if tailored_objective_dict:
-                st.session_state[f"tailored_{field_name}"]=tailored_objective_dict
-            else:
-                print("PYDANTIC FAILED FOR TAILORING OBJECTIVE")
-                st.session_state[f"tailored_{field_name}"]="please try again"
-        else:
-            st.session_state[f"tailored_{field_name}"]="please try again"
+        p.increment(30)  # Update progress 
+        loading_func(p.progress)
+        # if response:
+        #     # print("RESPONSE", response.content)
+        #     tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
+        #     p.increment(10)  # Update progress 
+        #     loading_func(p.progress)
+        #     if tailored_objective_dict:
+        #         st.session_state[f"tailored_{field_name}"]=tailored_objective_dict
+        #     else:
+        #         print("PYDANTIC FAILED FOR TAILORING OBJECTIVE")
+        #         st.session_state[f"tailored_{field_name}"]="please try again"
+        # else:
+        #     st.session_state[f"tailored_{field_name}"]="please try again"
     if type=="bullet_points":
-        print("bullet point details", details)
-        tailored_experience = tailor_bullet_points(field_name, details, job_requirements,)
-        st.session_state[f"tailored_{field_name}"]= tailored_experience
+        # print("bullet point details", details)
+        response = tailor_bullet_points(field_name, details, job_requirements, p, loading_func, )
+    if response:
+        if not isinstance(response, dict):
+            st.session_state[f"tailored_{field_name}"]=response.dict()
+        else:
+            st.session_state[f"tailored_{field_name}"]=response
+    else:
+        st.session_state[f"tailored_{field_name}"]="please try again"
     # return st.session_state.tailor_dict
 
 
@@ -327,6 +352,8 @@ async def tailor_skills(required_skills, my_skills,):
 
     """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
   
+    print("required skills", required_skills)
+    print("my_skills", my_skills)
     # required_skills_str = concat_skills(required_skills)
     # my_skills_str = concat_skills(my_skills)
     # my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
@@ -369,55 +396,41 @@ async def tailor_skills(required_skills, my_skills,):
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication and Python skills. Python is the additional skill that may raise the chance of the candidate getting the job offer. \
 
     prompt_template = ChatPromptTemplate.from_template(skills_prompt)
-    message= prompt_template.format_messages(
-                                    # relevant_soft_skills = relevant_soft_skills, 
-                                    #          relevant_hard_skills = relevant_hard_skills, 
-                                            # relevant_skills = relevant_skills,
-                                            required_skills = str(required_skills),
-                                            my_skills = str(my_skills),
-    )
-    tailored_skills = await llm.ainvoke(message)
-    return tailored_skills
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{content}"),
+            ]
+        )
+    model_parser = prompt | llm.with_structured_output(schema=TailoredSkills)
+    generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough()} 
+                     | prompt_template
+                     | model_parser)
+    response = await generator.ainvoke({"my_skills":my_skills, "required_skills":required_skills})
+    print(response)
+    # message= prompt_template.format_messages(
+    #                                 # relevant_soft_skills = relevant_soft_skills, 
+    #                                 #          relevant_hard_skills = relevant_hard_skills, 
+    #                                         # relevant_skills = relevant_skills,
+    #                                         required_skills = str(required_skills),
+    #                                         my_skills = str(my_skills),
+    # )
+    # tailored_skills = await llm.ainvoke(message)
+    return response
 
 
 async def tailor_objective(job_requirements, my_objective, resume_content, job_title):
 
-    # prompt = f""" Your task is to find relevant information in the resume content that can be matched to the job requirements in a job posting. 
 
-    # The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
-
-    # Other type of relevant information can be indirect, such as  
-     
-    #   resume content: {resume_content} \n
-
-    # job requirements: {job_requirements} \n
-
-    # Please output your answer as a comma separated list where any relevant information is listed as words or phrases.  """
-    # commonality = asyncio_run(create_smartllm_chain(prompt, n_ideas=1), timeout=10)
-    # if commonality:
-    #     prompt = f""" Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
-        
-    #     You are provided withs a resume objective, the job title, and a list of words and phrases that 
-    #         resume's objective/summary: {my_objective} \n
-            
-    #         job title: {job_title} \n
-
-    #         list of things the job posting and resume share: {commonality}
-
-    #         Please follow the following format and make sure all replacements are unique:
-
-    #         1. Replaced_words: <the phrase/words to be replaced> ; Substitution: <the substitution for the phrase/words>
-
-    #     DO NOT USE ANY TOOLS and make sure all the words/phrases to be replaced come from the resume's objective/summary. 
-        
-    #     """
-
-            
-    #         # about job/company: {company_description} \
-    #     tailored_objective = asyncio_run(generate_multifunction_response(prompt, create_search_tools("google", 1)), timeout=10)
-    #     if tailored_objective:
-    #     # tailored_objective = generate_multifunction_response(prompt, create_search_tools("google", 1), )
-    #         tailored_objective_dict = asyncio_run(create_pydantic_parser(tailored_objective, Replacements), timeout=5)
     template_string = """ 
     
     Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
@@ -440,21 +453,45 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
         resume objective: {my_objective} 
 
-        Please follow the following format and the relevant information from Step 1 to make appropriate changes to the resume objective. Make sure all replacements are unique and use the following format as your output:
+        Please follow the following format and the relevant information from Step 1 to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and use the following format as your output:
 
         1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
 
     """
+    # model_parser = llm | StrOutputParser()
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples')
+        ("human", "{content}"),
+            ]
+        )
+    model_parser = prompt |  llm.with_structured_output(schema=Replacements)
     prompt_template = ChatPromptTemplate.from_template(template_string)
-    # print(prompt_template.messages[0].prompt.input_variables)
-    message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
-    response = await llm.ainvoke(message)
+    generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough(), "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()} 
+                     | prompt_template
+                     | model_parser)
+    response = await generator.ainvoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
     print(response)
+    # response = asyncio_run(lambda:create_pydantic_parser(content={"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective}, schema=Replacements, previous_chain=generator), timeout=20)
+    # print(response)
+    # print(prompt_template.messages[0].prompt.input_variables)
+    # message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
+    # response = await llm.ainvoke(message)
+    # print(response)
     return response
 
 
 
-def tailor_bullet_points(field_name, field_detail,  job_requirements,):
+def tailor_bullet_points(field_name, field_detail,  job_requirements, p, loading_func, ):
 
     """ Evaluates relevancy and ranks most important roles"""
 
@@ -466,13 +503,21 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements,):
 
         Please provide your reasoning for your ranking process.  
         Output in the following format:
-        Reranked section: - <reranked section> \n
+        Reranked section: - <reranked section verbatim without reasoning> \n
         reason: <your reasoning>
         DO NOT USE ANY TOOLS.
 
     """
-    ranked_experience = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
-    return ranked_experience if ranked_experience else "please try again"
+    ranked_list=[]
+    ranked = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
+    loading_func(p.progress)
+    if ranked:
+        template="""Look for Reranked section and list the details verbatim in the order that they appear. {ranked}"""
+        query_dict = {"ranked":ranked}
+        ranked_list = asyncio_run(lambda: create_comma_separated_list_parser(input_variables=["ranked"], base_template=template, query_dict=query_dict), timeout=5)
+        loading_func(p.progress)
+    ranked_dict = {"ranked":ranked, "ranked_list":ranked_list}
+    return ranked_dict
 
 
 

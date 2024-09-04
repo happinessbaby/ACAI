@@ -529,7 +529,7 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
 
 
 
-def research_skills(content: str,  content_type: str, n_ideas=2, llm=ChatOpenAI()):
+def research_skills(content: str,  content_type: str, n_ideas=2, ):
 
     """ Finds soft skills and hard skills in a resume or job posting. 
     As some resume do not have a skills section and some job postings do not list them, this function also infers some skills. """
