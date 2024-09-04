@@ -597,7 +597,7 @@ class User():
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
-                   "pursuit_jobs":"", "summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
+                   "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table) 
         # delete any old profile instance
@@ -1500,7 +1500,7 @@ class User():
             #     st.session_state["tailoring_details"]=field_details
             # self.job_posting_popup()
             
-   
+
 
 
     def evaluation_callback(self, field_name=None, details=None, container=None):
@@ -1532,7 +1532,6 @@ class User():
 
         # self.save_session_profile()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
-        _, menu_col, _ = st.columns([3, 1, 3])   
         with fields_col:
              # save session profile periodically unless user freezes their profile
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
@@ -1544,16 +1543,14 @@ class User():
             # self.evaluation_callback()
 
         # general evaluation column
-        # with eval_col:
-            # float_container= st.container()
-            # with float_container:
-            #     self.display_general_evaluation(float_container)
-            #     self.evaluation_callback()
+        with eval_col:
+            self.display_general_evaluation()
+            self.evaluation_callback()
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
             with c1:
-                with st.expander(label="Contact", expanded=False, icon=":material/contacts:"):
+                with st.expander(label="Contact", icon=":material/contacts:"):
                     name = st.session_state["profile"]["contact"]["name"]
                     if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
                         st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
@@ -1583,7 +1580,7 @@ class User():
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
-                with st.expander(label="Education", expanded=False, icon=":material/school:"):
+                with st.expander(label="Education", icon=":material/school:"):
                     degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
@@ -1593,17 +1590,17 @@ class User():
                         st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
                         st.session_state["profile_changed"] = True
                     grad_year = st.session_state["profile"]["education"]["graduation_year"]
-                    if st.text_input("Graduation year", value=grad_year, key="profile_grad_year", placeholder="Graduation year", label_visibility="collapsed")!=grad_year:
+                    if st.text_input("Graduation date", value=grad_year, key="profile_grad_year", placeholder="Graduation year", label_visibility="collapsed", help="Do not include a date of graduation if it has been more than 10 years ago")!=grad_year:
                         st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
                         st.session_state["profile_changed"] = True
                     gpa = st.session_state["profile"]["education"]["gpa"]
-                    if st.text_input("GPA", value=gpa, key="profile_gpa", placeholder="GPA", label_visibility="collapsed")!=gpa:
+                    if st.text_input("GPA", value=gpa, key="profile_gpa", placeholder="GPA", label_visibility="collapsed", help="Only include your GPA if it's above 3.5")!=gpa:
                         st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
                         st.session_state["profile_changed"] = True
                     st.markdown("Course works")
                     display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
                     display_detail()
-            with st.expander(label="Summary Objective", expanded=False, icon=":material/summarize:"):
+            with st.expander(label="Summary Objective", icon=":material/summarize:"):
                 pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                 if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                     st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1614,12 +1611,12 @@ class User():
                     st.session_state["profile_changed"] = True
                 if st.session_state["profile"]["summary_objective"]:
                     self.display_field_analysis(type="text", field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
-            with st.expander(label="Work Experience",expanded=False, icon=":material/work_history:"):
+            with st.expander(label="Work Experience", icon=":material/work_history:"):
                 # if st.session_state["profile"]["work_experience"]:
                 #     self.display_field_analysis("work_experience")
                 get_display=self.display_field_content("work_experience")
                 get_display()
-            with st.expander(label="Skills",expanded=False, icon=":material/widgets:"):
+            with st.expander(label="Skills",icon=":material/widgets:"):
                 # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= st.session_state["profile"]["included_skills"]
@@ -1631,22 +1628,22 @@ class User():
                 self.display_field_analysis(type="text", field_name="included_skills", details=st.session_state["profile"]["included_skills"])
             # c1, c2 = st.columns([1, 1])
             # with c1:
-            with st.expander(label="Professional Accomplishment", expanded=False, icon=":material/commit:"):
+            with st.expander(label="Professional Accomplishment", icon=":material/commit:"):
                 st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
                                 label="learn more")
                 get_display=self.display_field_content("qualifications")
                 get_display()
             # with c2:
-            with st.expander(label="Projects", expanded=False, icon=":material/perm_media:"):
+            with st.expander(label="Projects", icon=":material/perm_media:"):
                 get_display=self.display_field_content("projects")
                 get_display()
             # c1, c2=st.columns([1, 1])
             # with c1:
-            with st.expander(label="Certifications", expanded=False, icon=":material/license:"):
+            with st.expander(label="Certifications",  icon=":material/license:"):
                 get_display=self.display_field_content("certifications")
                 get_display()
         # with c2:
-            with st.expander("Awards & Honors", expanded=False, icon=":material/workspace_premium:"):
+            with st.expander("Awards & Honors", icon=":material/workspace_premium:"):
                 get_display=self.display_field_content("awards")
                 get_display()
             # with c3:
@@ -1658,31 +1655,21 @@ class User():
             # st.button("+ custom field", on_click=self.add_custom_field, args=(placeholder, ))
             st.divider()
         # the menu container
-        with menu_col:
-            with stylable_container(key="custom_button1_profile1",
-                            # border-radius: 20px;
-                            # background-color: #4682B4;
-                        css_styles=["""button {
-                            color: white;
-                            background-color: #ff8247;
-                        }""",
-                        # """{
-                        #     border: 1px solid rgba(49, 51, 63, 0.2);
-                        #     border-radius: 0.5rem;
-                        #     padding: calc(1em - 1px)
-                        # }
-                        # """
-                        ],
-                ):
-                # st.button("Set as default", key="profile_save_button", on_click=save_user_changes, args=(st.session_state.profile, ResumeUsers, lance_users_table), use_container_width=True)
-                if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
-                    # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
-                    self.delete_profile_popup()
-                # if st.button("Upload a new job posting", key="new_posting_button", use_container_width=True):
-                #     self.job_posting_popup(mode="resume")
-                # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
-                #     # NOTE:cannot be in callback because job_posting_popup is a dialog
-                #     self.job_posting_popup(mode="cover_letter")
+            _, menu_col, _ = st.columns([2, 1, 2])   
+            with menu_col:
+                with stylable_container(key="custom_button1_profile1",
+                            css_styles=["""button {
+                                color: white;
+                                background-color: #ff8247;
+                            }""",
+                            ],
+                    ):
+                    if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
+                        # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
+                        self.delete_profile_popup()
+                    # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
+                    #     # NOTE:cannot be in callback because job_posting_popup is a dialog
+                    #     self.job_posting_popup(mode="cover_letter")
    
 
     
@@ -1704,69 +1691,83 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-            with stylable_container(
-                    key="profile_report_custum_popover",
-                    css_styles="""
-                        button {
-                            background: none;
-                            border: none;
-                            color: #ff8247;
-                            padding: 0;
-                            cursor: pointer;
-                            font-size: 12px; /* Adjust as needed */
-                            text-decoration: none;
-                        }
-                        """,
-                ):
-                with st.popover("See my profile report"):
-                    c1, c2=st.columns([1, 1])
-                    with c1:
-                        st.write("**Length**")
-                        try:
-                            length=st.session_state["evaluation"]["word_count"]
-                            # pages=st.session_state["evaluation"]["page_count"]
-                            fig = length_chart(int(length))
-                            st.plotly_chart(fig, 
-                                            # use_container_width=True
-                                            )
-                        except Exception:
-                            if finished is False:
-                                st.write("Evaluating...")
-                    with c2:
-                        st.write("**Formatting**")
-                        try:
-                            add_vertical_space(3)
-                            ideal_type = st.session_state["evaluation"]["ideal_type"]
-                            st.write("The ideal type for your resume is:")
-                            if ideal_type=="chronological":
-                                st.header(":green[Chronological]")
-                            elif ideal_type=="functional":
-                                st.header(":blue[Functional]")
-                            # resume_type=st.session_state["evaluation"]["resume_type"]
-                            # if ideal_type==resume_type:
-                            #     st.subheader(":green[Good]")
-                            #     st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
-                            # else:
-                            #     st.subheader(":red[Mismatch]")
-                            #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
-                            if not st.session_state["eval_rerun_timer"]:
-                                add_vertical_space(1)
-                                if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
-                                    self.resume_type_popup()
-                                # add_vertical_space(1)
-                                # if st.button("Explore template options", key="resume_template_explore_button"):
-                                #     self.explore_template_popup()
-                        except Exception:
-                            if finished is False:
-                                st.write("Evaluating...")
+            # with stylable_container(
+            #         key="profile_report_custum_popover",
+            #         css_styles="""
+            #             button {
+            #                 background: none;
+            #                 border: none;
+            #                 color: #ff8247;
+            #                 padding: 0;
+            #                 cursor: pointer;
+            #                 font-size: 12px; /* Adjust as needed */
+            #                 text-decoration: none;
+            #             }
+            #             """,
+            #     ):
+            #     with st.popover("See my profile report"):
+                    # c1, c2=st.columns([1, 1])
+                    # with c1:
+                    st.write("**Length**")
+                    try:
+                        length=int(st.session_state["evaluation"]["word_count"])
+                        # st.write("Your resume length is: ")
+                        if length<300:
+                            st.subheader(":red[too short]")
+                        elif length>=300 and length<450:
+                            st.subheader(":green[good]")
+                        elif length>=450 and length<=600:
+                            st.subheader(":green[great]")
+                        elif length>600 and length<800:
+                            st.subheader(":blue[good]")
+                        else:
+                            st.subheader(":red[too long]")
+                        # pages=st.session_state["evaluation"]["page_count"]
+                        # fig = length_chart(int(length))
+                        # st.plotly_chart(fig, 
+                        #                 # use_container_width=True
+                        #                 )
+                    except Exception:
+                        if finished is False:
+                            st.write("Evaluating...")
+                # with c2: 
+                    st.divider()
+                    st.write("**Formatting**")
+                    try:
+                        # add_vertical_space(1)
+                        ideal_type = st.session_state["evaluation"]["ideal_type"]
+                        st.write("The ideal type for your resume is:")
+                        if ideal_type=="chronological":
+                            st.subheader(":green[chronological]")
+                        elif ideal_type=="functional":
+                            st.subheader(":blue[functional]")
+                        # resume_type=st.session_state["evaluation"]["resume_type"]
+                        # if ideal_type==resume_type:
+                        #     st.subheader(":green[Good]")
+                        #     st.write(f"The best type of resume for you is **{ideal_type}** and your resume is also **{resume_type}**")
+                        # else:
+                        #     st.subheader(":red[Mismatch]")
+                        #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
+                        if not st.session_state["eval_rerun_timer"]:
+                            add_vertical_space(1)
+                            if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
+                                self.resume_type_popup()
+                            # add_vertical_space(1)
+                            # if st.button("Explore template options", key="resume_template_explore_button"):
+                            #     self.explore_template_popup()
+                    except Exception:
+                        if finished is False:
+                            st.write("Evaluating...")
+                    st.divider()
                     st.write("**Language**")
                     try:
-                        categories=["syntax", "diction", "tone", "coherence"]
+                        categories=["syntax", "tone", "readability"]
                         language_data=[]
                         for category in categories:
                             language_data.append({category:st.session_state["evaluation"][category]})
-                        fig = language_radar(language_data)
-                        st.plotly_chart(fig)
+                        with st.container():
+                            fig = language_radar(language_data)
+                            st.plotly_chart(fig, use_container_width=True)
                         # st.scatter_chart(df)
                     except Exception:
                         if finished is False:
@@ -1782,13 +1783,13 @@ class User():
                     # except Exception:
                     #     if finished is False:
                     #         st.write("Evaluating...")
-                    st.write("**Impression**")
-                    try:
-                        impression = st.session_state["evaluation"]["impression"]
-                        st.write(impression)
-                    except Exception:
-                        if finished is False:
-                            st.write("Evaluating...")
+                    # st.write("**Impression**")
+                    # try:
+                    #     impression = st.session_state["evaluation"]["impression"]
+                    #     st.write(impression)
+                    # except Exception:
+                    #     if finished is False:
+                    #         st.write("Evaluating...")
                     st.markdown(primary_button2, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                     if st.button("Evaluate again", key=f"eval_button", ):

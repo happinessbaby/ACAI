@@ -221,8 +221,12 @@ class SpecialResumeFields(BaseModel):
         default= "", description="""the possible job(s) that the candidate is pursuing. Usually this is found in the summary or objective section of the resume. 
         If there are many, separate each by a comma."""
     )
+    industry: Optional[str] = Field(
+        default="", description="""the industry the candidate wants to work in, 
+        it should be one of the following: [hr, designer, information-technology,teacher, advocate, business-development,healthcare,fitness, agriculture, bpo, sales, consultant, public-relations, healthcare, arts,digital-media, banking, finance, accountant,apparel, engineering, chef, aviation, automobile]"""
+    )
     summary_objective: Optional[str] = Field(
-        default = "", description="the summary or objective section of the resume"
+        default = "", description="the summary or objective section of the resume, please include the entire section"
     )
     included_skills: Optional[List[str]] = Field(
         default=[], description=" all the skills and skillsets listed in the resume, most like there's a section dedicated to this"
@@ -330,11 +334,12 @@ class GeneralEvaluation(BaseModel):
     # page_count: Optional[int]
     ideal_type: Optional[str]
     # resume_type: Optional[str]
-    impression: Optional[str]
-    syntax: Language
-    diction: Language
-    tone: Language
-    coherence: Language
+    # impression: Optional[str]
+    syntax: Optional[Language]
+    # diction: Language
+    tone: Optional[Language]
+    readability:Optional[Language]
+    # coherence: Language
     # objective: Comparison
     # work_experience: Comparison
     # skillsets: Comparison
@@ -384,6 +389,7 @@ class ResumeUsers(BaseModel):
     # gpa:Optional[str]
     # coursework: Optional[List[str]]
     pursuit_jobs: Optional[str]
+    industry: Optional[str]
     summary_objective: Optional[str]
     included_skills: Optional[List[str]]
     # skills_section: Optional[str]

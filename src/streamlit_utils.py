@@ -314,6 +314,11 @@ def language_radar(data_list):
             )
         ),
     )
+    # Adjust the figure size
+    fig.update_layout(
+        width=400,  # Set the width of the plot
+        height=400  # Set the height of the plot
+    )
     return fig
 
 def readability_indicator(data, average_score=21):
