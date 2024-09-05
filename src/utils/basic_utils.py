@@ -5,9 +5,9 @@ from pathlib import Path
 import uuid
 import markdown
 import csv
-import bs4
-import urllib.request
-from urllib.request import Request, urlopen
+# import bs4
+# import urllib.request
+# from urllib.request import Request, urlopen
 import uuid
 from pptx import Presentation
 from typing import Any, List, Union, Dict
@@ -40,7 +40,7 @@ import subprocess
 import base64
 # import aspose.words as aw
 import glob
-from jinja2 import Template
+# from jinja2 import Template
 from botocore.exceptions import ClientError
 # from pdf2image import convert_from_bytes
 from utils.aws_manager import get_client, get_resource

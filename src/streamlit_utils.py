@@ -19,6 +19,42 @@ import streamlit as st
 # pages = get_pages("")
 # ctx = get_script_run_ctx()
 
+
+def hide_streamlit_icons():
+
+    hide_streamlit_style = """
+                <style>
+                div[data-testid="stToolbar"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stDecoration"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stStatusWidget"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                #MainMenu {
+                visibility: hidden;
+                height: 0%;
+                }
+                header {
+                visibility: hidden;
+                height: 0%;
+                }
+                footer {
+                visibility: hidden;
+                height: 0%;
+                }
+                </style>
+                """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+    
 def set_streamlit_page_config_once():
     # hide_streamlit_style = """
     #         <style>
@@ -313,6 +349,11 @@ def language_radar(data_list):
                 ticktext=[axis_labels[val] for val in axis_labels.keys()]  # Set the labels
             )
         ),
+    )
+    # Adjust the figure size
+    fig.update_layout(
+        width=400,  # Set the width of the plot
+        height=400  # Set the height of the plot
     )
     return fig
 

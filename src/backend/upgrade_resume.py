@@ -62,6 +62,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
         st.session_state["evaluation"] = {"finished":False}
         # resume_file = resume_dict["resume_path"]
         pursuit_jobs=resume_dict["pursuit_jobs"]
+        industry = resume_dict["industry"]
         # Evaluate resume length
         word_count = count_length(content=resume_content)
         st.session_state.evaluation.update({"word_count": word_count})
@@ -80,9 +81,9 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
         # resume_type= analyze_resume_type(resume_content,)
         # st.session_state.evaluation.update({"resume_type": resume_type})
         # st.session_state.evaluation.update(type_dict)
-        categories=["syntax", "diction", "tone", "coherence"]
+        categories=["syntax", "tone", "readability"]
         for category in categories:
-            category_dict = analyze_language(resume_content, category)
+            category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
             st.session_state.evaluation.update({category:category_dict})
         # section_names = ["objective", "work_experience", "skillsets"]
         # field_names = ["summary_objective", "work_experience", "included_skills"]
@@ -94,8 +95,8 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
         #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
         #     st.session_state.evaluation.update({section_name:comparison_dict})
         # Generate overall impression
-        impression = generate_impression(resume_content, pursuit_jobs)
-        st.session_state.evaluation["impression"]= impression
+        # impression = generate_impression(resume_content, pursuit_jobs)
+        # st.session_state.evaluation["impression"]= impression
         st.session_state.evaluation["finished"]=True
     # Evaluates specific field  content
     if details:
@@ -105,7 +106,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
             p.increment(10)  # Update progress in steps of 10%
             loading_func(p.progress)
         # work_experience= resume_dict["work_experience"]
-        readability_checker(type, details)
+        st.session_state[f"{type}_readability"] = readability_checker(resume_content)
         p.increment(20) 
         loading_func(p.progress)
         evaluation= analyze_field_content(details, type, resume_content)
@@ -209,17 +210,69 @@ s
         comparison_dict = asyncio_run(lambda:create_pydantic_parser(comparison_resp, Comparison), timeout=5)
     return comparison_dict
 
-def analyze_language(resume_content, category):
+async def analyze_language(resume_content, category, industry):
 
-    """"""
-    query_language=f"""Assess the {category} of the resume based on how a resume's {category} should be. Output the following metrics: ["bad", "good", "great"] and provide your reasoning. Your reasoning should be about a sentence long.
-    resume: {resume_content}
-    """
+    """ Analyzes the resume for its language aspects including tone, diction, syntax, etc. """
+
+
     language_dict= {"rating":"", "reason":""}
-    language_resp = asyncio_run(lambda: create_smartllm_chain(query_language, n_ideas=1), timeout=5)
-    if language_resp:
-        language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
-    return language_dict
+    if category=="tone" or category=="syntax":
+        query_language="""Assess the {category} of the resume. 
+
+        If you're asked to assess the syntax, look for power verbs, an active voice, and word phrasing that are most appropriate for a resume. Remember complete sentences are not necessary for resume, and short and impactful statements are usually better. 
+
+        If you're asked to assess the tone, generally there should be a formal and respectful tone, but not too stiff or distant. Slang, jargon, humor, and negativity are not good signs.
+        
+        Output the following metrics: ["bad", "good", "great"] and provide your reasoning. Your reasoning should be about a sentence long.
+
+        resume: {resume_content}
+         """
+        prompt_template = ChatPromptTemplate.from_template(query_language)
+        prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                "You are an expert extraction algorithm. "
+                "Only extract relevant information from the text. "
+                "If you do not know the value of an attribute asked to extract, "
+                "return null for the attribute's value.",
+            ),
+            # Please see the how-to about improving performance with
+            # reference examples.
+            # MessagesPlaceholder('examples'),
+            ("human", "{content}"),
+                ]
+            )
+        model_parser = prompt | llm.with_structured_output(schema=Language)
+        generator =     ({"resume_content":RunnablePassthrough(), "category":RunnablePassthrough()} 
+                        | prompt_template
+                        | model_parser)
+        language_dict = await generator.ainvoke({"resume_content":resume_content, "category":category})
+        # language_resp = asyncio_run(lambda: create_smartllm_chain(query_language, n_ideas=1), timeout=5)
+        # if language_resp:
+        #     language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
+    elif category=="readability":
+        score= readability_checker(resume_content).get("flesch_kincaid_grade", None)
+        readability_dict = {"advocate":20, "fitness":19.5, "public-relations":18.8, "healthcare":18.8, "arts":18.1, "digital-media":18.1, "banking":18, "information-technology":17.9, "finance":17.5, "hr":17.4, "accountant":17.3, "business-development":17.2, "bpo":17.2, "apparel":17.2, "teacher":17, "agriculture":16.5, "engineering":16.4, "consultant":16, "designer":16.3, "aviation":16.3, "automobile":15, "sales":14.8, "chef":14.7}
+        avg_score = readability_dict.get(industry, 17)
+        if score:
+            if score<=avg_score:
+                if avg_score-score<5:
+                    language_dict={"rating":"great", "reason":""}
+                elif 5<=avg_score-score<10:
+                    language_dict={"rating":"good", "reason":""}
+                else:
+                    language_dict={"rating":"bad", "reason":"Consider lengthening your phrases <br> and adding more multi-syllable words"}
+            else:
+                if score-avg_score<5:
+                    language_dict={"rating":"great", "reason":""}
+                elif 5<=score-avg_score<10:
+                    language_dict={"rating":"good", "reason":""}
+                else:
+                    language_dict={"rating":"bad", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
+        else:
+            language_dict={"rating":"", "reason":""}
+    return language_dict if isinstance(language_dict, dict) else language_dict.dict()
 
 
 def generate_impression(resume_content, jobs):
@@ -300,33 +353,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         response = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
         p.increment(30)  # Update progress 
         loading_func(p.progress)
-        # if tailored_skills:
-        #     tailored_skills_dict = asyncio_run(lambda: create_pydantic_parser(tailored_skills.content, TailoredSkills), timeout=5)
-        #     p.increment(10)  # Update progress 
-        #     loading_func(p.progress)
-        #     if tailored_skills_dict:    
-        #         st.session_state[f"tailored_{field_name}"]=tailored_skills_dict
-        #     else:
-        #         st.session_state[f"tailored_{field_name}"]="please try again"
-        # else:
-        #     st.session_state[f"tailored_{field_name}"] = "please try again"
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
         p.increment(30)  # Update progress 
         loading_func(p.progress)
-        # if response:
-        #     # print("RESPONSE", response.content)
-        #     tailored_objective_dict = asyncio_run(lambda: create_pydantic_parser(response.content, Replacements), timeout=5)
-        #     p.increment(10)  # Update progress 
-        #     loading_func(p.progress)
-        #     if tailored_objective_dict:
-        #         st.session_state[f"tailored_{field_name}"]=tailored_objective_dict
-        #     else:
-        #         print("PYDANTIC FAILED FOR TAILORING OBJECTIVE")
-        #         st.session_state[f"tailored_{field_name}"]="please try again"
-        # else:
-        #     st.session_state[f"tailored_{field_name}"]="please try again"
     if type=="bullet_points":
         # print("bullet point details", details)
         response = tailor_bullet_points(field_name, details, job_requirements, p, loading_func, )
@@ -668,7 +699,7 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-def readability_checker(field_name, w):
+def readability_checker(w):
     stats = dict(
             # flesch_reading_ease=ts.flesch_reading_ease(w),
             # smog_index = ts.smog_index(w),
@@ -685,7 +716,7 @@ def readability_checker(field_name, w):
             # syllable_count=ts.syllable_count(w),
             # reading_time=ts.reading_time(w)
     )
-    st.session_state[f"{field_name}_readability"]=stats
+    return stats
     
 
 
