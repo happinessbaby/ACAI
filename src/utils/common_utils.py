@@ -828,7 +828,7 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
 
 
 
-def create_resume_info(resume_path="", ):
+def create_resume_info(resume_path, q, ):
 
     resume_info_dict={ "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
@@ -891,10 +891,11 @@ def create_resume_info(resume_path="", ):
         resume_info_dict.update({"suggested_skills": suggested_skills["skills"] if suggested_skills else []})
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
+    q.put(resume_info_dict)
     return resume_info_dict
 
 
-def create_job_posting_info(posting_path="", about_job="", ):
+def create_job_posting_info(posting_path, about_job, q, ):
 
     # job_posting = posting_path if posting_path else about_job[:50]
     job_posting_info_dict = {"content":"", "skills":[], 
@@ -944,7 +945,7 @@ def create_job_posting_info(posting_path="", about_job="", ):
     #     json_data = json.dumps(job_posting_info_dict, indent=4)
     #     # Upload the JSON string to S3
     #     s3.put_object(Bucket=bucket_name, Key=job_posting_info_file, Body=json_data)
-
+    q.put(job_posting_info_dict)
     return job_posting_info_dict
 
 def retrieve_or_create_resume_info(resume_path, q=None, ):
@@ -1011,7 +1012,10 @@ def process_uploads(uploads, save_path, to_tmp=True):
         # NOTE: getvalue() returns bytes so need "wb" instead of "w" here
         tmp_save_path = write_file(file_content=uploaded_file.getvalue(), file_ext=file_ext, mode="wb", to_tmp=to_tmp)
         if tmp_save_path:
-            end_path = convert_to_txt(tmp_save_path, to_tmp=to_tmp)
+            if file_ext!=".txt":
+                end_path = convert_to_txt(tmp_save_path, to_tmp=to_tmp)
+            else:
+                end_path=tmp_save_path
             if end_path:
                 content_safe, content_type, content_topics = check_content(end_path, )
                 if content_safe is not None:

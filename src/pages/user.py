@@ -63,7 +63,10 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
-placeholder=st.empty()
+_, c, _= st.columns([3, 1, 3])
+with c:
+    add_vertical_space(20)
+    center_placeholder=st.empty()
 # initialize float feature/capability
 # float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -115,8 +118,6 @@ class User():
             st.session_state["userId"] = retrieve_cookie()
             # st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
             # st.session_state["userId"]=_st.session_state.userId
-
-
         # Open users login file
         if "logo_path" not in st.session_state:
             st.session_state["logo_path"]="./resources/logo_acareerai.png"
@@ -531,40 +532,33 @@ class User():
                 else:
                     st.session_state.resume_disabled = True
                 st.markdown("#")
-                # c1, _, c2 = st.columns([5, 1, 3])
                 resume = st.file_uploader(label="Upload your resume",
                                 key="user_resume",
                                     accept_multiple_files=False, 
-                                    on_change=self.form_callback, 
+                                    # on_change=self.form_callback, 
                                     type=["pdf", "odt", "docx", "txt"],
-                                    help="This will become your default resume.")
-                add_vertical_space(3)
-                _, c1 = st.columns([5, 1])
-                with c1:
-                    # st.markdown(general_button, unsafe_allow_html=True)
-                    # st.markdown('<span class="general-button"></span>', unsafe_allow_html=True)
-                    if st.button(label="Submit", disabled=st.session_state.resume_disabled, ):
-                         # create generated dict from resume
-                        resume_placeholder.empty()
-                        resume_dict = create_resume_info(st.session_state.user_resume_path,)
-                        resume_dict.update({"resume_path":st.session_state.user_resume_path})
-                        resume_dict.update({"user_id": st.session_state.userId}) 
-                        # save resume dict into session's profile
-                        st.session_state["profile"] = resume_dict
-                        # save resume/profile into lancedb table
-                        save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
-                        # delete any old profile instance
-                        try:
-                            del st.session_state["profile"]
-                        except Exception:
-                            pass
-                        print("Successfully added user to lancedb table")
-                        st.rerun()
-                    if st.button(label="I'll do it later", type="primary", ):
-                        resume_placeholder.empty()
-                        # delete any old resume saved in session state
+                                    help="This will become your profile")
+                _, c2 = st.columns([3, 1])
+                with c2:
+                    add_vertical_space(2)
+                    skip= st.button(label="I'll do it later", type="primary", )
+            if resume:
+                    resume_placeholder.empty()
+                    with center_placeholder.container():
+                        with st.spinner("Processing..."):
+                            self.form_callback()
                         if "user_resume_path" in st.session_state:
-                            del st.session_state["user_resume_path"]
+                            with st.spinner("Creating your profile..."):
+                                self.initialize_resume_callback()
+                                st.rerun()
+            if skip:
+                resume_placeholder.empty()
+                # delete any old resume saved in session state
+                if "user_resume_path" in st.session_state:
+                    del st.session_state["user_resume_path"]
+                with center_placeholder.container():
+                    with st.spinner("Loading your profile..."):
+                        time.sleep(1)
                         self.create_empty_profile() 
                         st.rerun()
 
@@ -572,19 +566,19 @@ class User():
 
         """Saves user resume to a lancedb table"""
         # create generated dict from resume
-        resume_dict = create_resume_info(st.session_state.user_resume_path,)
+        q = queue.Queue()
+        t = threading.Thread(target=create_resume_info, args=(st.session_state.user_resume_path, q, ), daemon=True)
+        t.start()
+        t.join()
+        resume_dict = q.get()
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
         resume_dict.update({"user_id": st.session_state.userId}) 
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
         save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
-        # delete any old profile instance
-        try:
-            del st.session_state["profile"]
-        except Exception:
-            pass
         print("Successfully added user to lancedb table")
+
                  
     def create_empty_profile(self):
 
@@ -599,12 +593,9 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table) 
-        # delete any old profile instance
-        try:
-            del st.session_state["profile"]
-        except Exception:
-            pass
+        save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+        # prevent evaluation when profile is empty 
+        st.session_state["init_eval"]=False
 
     # def about_future(self):
 
@@ -853,7 +844,7 @@ class User():
                                 }
                                 """,
                         ):
-                            if st.button("rearrange", key="rearrange_skills_button", ):
+                            if st.button("Rearrange", key="rearrange_skills_button", ):
                                 self.rearrange_skills_popup()
 
                     with stylable_container(key="custom_skills_button",
@@ -1265,49 +1256,51 @@ class User():
                             if new_upload:
                                 self.job_posting_popup(mode="resume", field_name=field_name)
         with c1:
-            st.markdown(primary_button2, unsafe_allow_html=True)
-            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-            eval_container=st.empty()
-            if f"evaluated_{field_name}" in st.session_state:
-                if idx:
-                    popover_key=f"eval_{field_name}_popover_{idx}"
+            # NOTE: Skills section doesn't have evaluate option
+            if field_name!="included_skills":
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                eval_container=st.empty()
+                if f"evaluated_{field_name}" in st.session_state:
+                    if idx:
+                        popover_key=f"eval_{field_name}_popover_{idx}"
+                    else:
+                        popover_key = f"eval_{field_name}_popover"
+                    with stylable_container(
+                        key=popover_key,
+                        css_styles="""
+                            button {
+                                background: none;
+                                border: none;
+                                color: #ff8247;
+                                padding: 0;
+                                cursor: pointer;
+                                font-size: 12px; 
+                                text-decoration: none;
+                            }
+                            """,
+                    ):
+                        with eval_container.popover("evaluate"):
+                                if idx:
+                                    button_key=f"eval_again_{field_name}_button_{idx}"
+                                else:
+                                    button_key=f"eval_again_{field_name}_button"
+                                if f"{field_name}_readability" in st.session_state:
+                                    fig = readability_indicator(st.session_state[f"{field_name}_readability"])
+                                    st.plotly_chart(fig)
+                                evaluation = st.session_state[f"evaluated_{field_name}"]
+                                st.write(evaluation)
+                                st.markdown(primary_button2, unsafe_allow_html=True)
+                                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                                st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
                 else:
-                    popover_key = f"eval_{field_name}_popover"
-                with stylable_container(
-                    key=popover_key,
-                    css_styles="""
-                        button {
-                            background: none;
-                            border: none;
-                            color: #ff8247;
-                            padding: 0;
-                            cursor: pointer;
-                            font-size: 12px; 
-                            text-decoration: none;
-                        }
-                        """,
-                ):
-                    with eval_container.popover("evaluate"):
-                            if idx:
-                                button_key=f"eval_again_{field_name}_button_{idx}"
-                            else:
-                                button_key=f"eval_again_{field_name}_button"
-                            if f"{field_name}_readability" in st.session_state:
-                                fig = readability_indicator(st.session_state[f"{field_name}_readability"])
-                                st.plotly_chart(fig)
-                            evaluation = st.session_state[f"evaluated_{field_name}"]
-                            st.write(evaluation)
-                            st.markdown(primary_button2, unsafe_allow_html=True)
-                            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                            st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
-            else:
-                if idx:
-                    button_key=f"eval_{field_name}_button_{idx}"
-                else:
-                    button_key=f"eval_{field_name}_button"
-                # st.markdown(primary_button2, unsafe_allow_html=True)
-                # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                evaluate = eval_container.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
+                    if idx:
+                        button_key=f"eval_{field_name}_button_{idx}"
+                    else:
+                        button_key=f"eval_{field_name}_button"
+                    # st.markdown(primary_button2, unsafe_allow_html=True)
+                    # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                    evaluate = eval_container.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
         with c2:
             st.markdown(primary_button2, unsafe_allow_html=True)
             st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
@@ -1467,10 +1460,17 @@ class User():
 
     def initialize_job_posting_callback(self, ):
 
-        st.session_state["job_posting_dict"] = create_job_posting_info(
-                    st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
-                    st.session_state.job_description if "job_description" in st.session_state else "",  
-                )
+        q=queue.Queue()
+        job_posting_path =  st.session_state.job_posting_path if "job_posting_path" in st.session_state else ""
+        job_description=    st.session_state.job_description if "job_description" in st.session_state else "" 
+        t = threading.Thread(target=create_job_posting_info, args=(job_posting_path, job_description, q, ), daemon=True)
+        t.start()
+        t.join()
+        st.session_state["job_posting_dict"]=q.get()
+        # st.session_state["job_posting_dict"] = create_job_posting_info(
+        #             st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
+        #             st.session_state.job_description if "job_description" in st.session_state else "",  
+        #         )
         # st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"user_id": st.session_state.userId})
@@ -1517,7 +1517,7 @@ class User():
             # start general evaluation if there's no saved evaluation 
             if "init_eval" not in st.session_state and st.session_state["evaluation"] is None:
                 # evaluate_resume(st.session_state["profile"], "general")
-                self.eval_thread = thread_with_trace(target=evaluate_resume, args=(st.session_state["profile"], "general", ))
+                self.eval_thread = threading.Thread(target=evaluate_resume, args=(st.session_state["profile"], "general", ), daemon=True)
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
                 st.session_state["init_eval"]=True
@@ -1544,8 +1544,9 @@ class User():
 
         # general evaluation column
         with eval_col:
-            self.display_general_evaluation()
-            self.evaluation_callback()
+            if st.session_state["profile"]["resume_content"]!="":
+                self.display_general_evaluation()
+                self.evaluation_callback()
         # the main profile column
         with profile_col:
             c1, c2 = st.columns([1, 1])
@@ -1625,7 +1626,8 @@ class User():
                     self.generated_skills_set.add(skill["skill"])
                 get_display=self.display_skills()
                 get_display()
-                self.display_field_analysis(type="text", field_name="included_skills", details=st.session_state["profile"]["included_skills"])
+                if st.session_state["profile"]["included_skills"]:
+                    self.display_field_analysis(type="text", field_name="included_skills", details=st.session_state["profile"]["included_skills"])
             # c1, c2 = st.columns([1, 1])
             # with c1:
             with st.expander(label="Professional Accomplishment", icon=":material/commit:"):

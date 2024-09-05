@@ -254,7 +254,7 @@ async def analyze_language(resume_content, category, industry):
     elif category=="readability":
         score= readability_checker(resume_content)["flesch_kincaid_grade"]
         readability_dict = {"advocate":20, "fitness":19.5, "public-relations":18.8, "healthcare":18.8, "arts":18.1, "digital-media":18.1, "banking":18, "information-technology":17.9, "finance":17.5, "hr":17.4, "accountant":17.3, "business-development":17.2, "bpo":17.2, "apparel":17.2, "teacher":17, "agriculture":16.5, "engineering":16.4, "consultant":16, "designer":16.3, "aviation":16.3, "automobile":15, "sales":14.8, "chef":14.7}
-        avg_score = readability_dict[industry]
+        avg_score = readability_dict.get(industry, 17)
         if score<=avg_score:
             if avg_score-score<5:
                 language_dict={"rating":"great", "reason":""}
