@@ -18,11 +18,12 @@ import re
 # from st_click_detector import click_detector
 # from st_clickable_images import clickable_images
 # from streamlit_simple_gallery import ImageGallery
-from streamlit_utils import user_menu, set_streamlit_page_config_once
+from streamlit_utils import user_menu, set_streamlit_page_config_once, hide_streamlit_icons
 from langchain_core.messages import ChatMessage
 import streamlit as st
 
 set_streamlit_page_config_once()
+hide_streamlit_icons()
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 

@@ -92,7 +92,7 @@ pydantic
 # sagemaker
 requests-aws4auth 
 # nltk
-Jinja2   
+# Jinja2   
 selenium
 # pyairtable
 # linkedin_api

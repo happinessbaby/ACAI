@@ -19,7 +19,7 @@ from typing import Any, List
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from backend.generate_cover_letter import generate_basic_cover_letter
@@ -44,6 +44,7 @@ import streamlit as st
 
 
 set_streamlit_page_config_once()
+hide_streamlit_icons()
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -1286,10 +1287,12 @@ class User():
                                 else:
                                     button_key=f"eval_again_{field_name}_button"
                                 if f"{field_name}_readability" in st.session_state:
-                                    fig = readability_indicator(st.session_state[f"{field_name}_readability"])
-                                    st.plotly_chart(fig)
+                                    if st.session_state[f"{field_name}_readability"]:
+                                        fig = readability_indicator(st.session_state[f"{field_name}_readability"])
+                                        st.plotly_chart(fig)
                                 evaluation = st.session_state[f"evaluated_{field_name}"]
-                                st.write(evaluation)
+                                if evaluation:
+                                    st.write(evaluation)
                                 st.markdown(primary_button2, unsafe_allow_html=True)
                                 st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                                 st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
@@ -1371,7 +1374,8 @@ class User():
                         elif type=="bullet_points":
                             st.write(tailoring["ranked"])
                         if tailoring!="please try again":
-                            st.button("apply changes", on_click=apply_changes, key=button_key+"_change")          
+                            st.button("apply changes", on_click=apply_changes, key=button_key+"_apply")     
+                            st.button("revert changes", on_click=apply_changes, key=button_key+"_revert")     
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                         with st.popover("tailor again"):
@@ -1707,9 +1711,10 @@ class User():
             #             }
             #             """,
             #     ):
-            #     with st.popover("See my profile report"):
+                with st.expander("Show my profile report"):
                     # c1, c2=st.columns([1, 1])
                     # with c1:
+                    st.divider()
                     st.write("**Length**")
                     try:
                         length=int(st.session_state["evaluation"]["word_count"])
@@ -1770,6 +1775,9 @@ class User():
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True)
+                            st.write("Tone: keep a formal and respectful tone, avoid using humor, jargons, and slang")
+                            st.write("Syntax: use power verbs and an active voice")
+                            st.write("Readability: vary your sentence lengths and word syllables")
                         # st.scatter_chart(df)
                     except Exception:
                         if finished is False:

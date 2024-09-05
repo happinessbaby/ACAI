@@ -106,7 +106,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
             p.increment(10)  # Update progress in steps of 10%
             loading_func(p.progress)
         # work_experience= resume_dict["work_experience"]
-        readability_checker(type, details)
+        st.session_state[f"{type}_readability"] = readability_checker(resume_content)
         p.increment(20) 
         loading_func(p.progress)
         evaluation= analyze_field_content(details, type, resume_content)
@@ -252,23 +252,26 @@ async def analyze_language(resume_content, category, industry):
         # if language_resp:
         #     language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
     elif category=="readability":
-        score= readability_checker(resume_content)["flesch_kincaid_grade"]
+        score= readability_checker(resume_content).get("flesch_kincaid_grade", None)
         readability_dict = {"advocate":20, "fitness":19.5, "public-relations":18.8, "healthcare":18.8, "arts":18.1, "digital-media":18.1, "banking":18, "information-technology":17.9, "finance":17.5, "hr":17.4, "accountant":17.3, "business-development":17.2, "bpo":17.2, "apparel":17.2, "teacher":17, "agriculture":16.5, "engineering":16.4, "consultant":16, "designer":16.3, "aviation":16.3, "automobile":15, "sales":14.8, "chef":14.7}
         avg_score = readability_dict.get(industry, 17)
-        if score<=avg_score:
-            if avg_score-score<5:
-                language_dict={"rating":"great", "reason":""}
-            elif 5<=avg_score-score<10:
-                language_dict={"rating":"good", "reason":""}
+        if score:
+            if score<=avg_score:
+                if avg_score-score<5:
+                    language_dict={"rating":"great", "reason":""}
+                elif 5<=avg_score-score<10:
+                    language_dict={"rating":"good", "reason":""}
+                else:
+                    language_dict={"rating":"bad", "reason":"Consider lengthening your phrases <br> and adding more multi-syllable words"}
             else:
-                language_dict={"rating":"bad", "reason":"Consider lengthening your phrases <br> and adding more multi-syllable words"}
+                if score-avg_score<5:
+                    language_dict={"rating":"great", "reason":""}
+                elif 5<=score-avg_score<10:
+                    language_dict={"rating":"good", "reason":""}
+                else:
+                    language_dict={"rating":"bad", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
         else:
-            if score-avg_score<5:
-                language_dict={"rating":"great", "reason":""}
-            elif 5<=score-avg_score<10:
-                language_dict={"rating":"good", "reason":""}
-            else:
-                language_dict={"rating":"bad", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
+            language_dict={"rating":"", "reason":""}
     return language_dict if isinstance(language_dict, dict) else language_dict.dict()
 
 
