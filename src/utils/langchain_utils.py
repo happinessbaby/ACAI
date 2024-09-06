@@ -630,7 +630,7 @@ async def create_comma_separated_list_parser(input_variables, base_template, que
         partial_variables={"format_instructions": format_instructions},
     )
 
-    model = ChatOpenAI(temperature=0)
+    model = ChatOpenAI(temperature=0, model="gpt-4o-mini")
     chain = prompt | model | output_parser
     response = await chain.ainvoke(query_dict)
     print(response)

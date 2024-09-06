@@ -812,10 +812,15 @@ class User():
             data.append({"id":skill, "order":idx, "name":skill})
             idx+=1
         slist = DraggableList(data, key="skills_rearrange_draggable")
-        if slist:
-            print(slist)
-            st.session_state["profile"]["included_skills"]=[skill["name"] for skill in slist]
-            st.session_state["profile_changed"]=True
+        _, c = st.columns([3, 1])
+        with c:
+            if st.button("confirm", key="confirm_rearrange_skills_button"):
+            # if slist:
+            #     print(slist)
+                st.session_state["profile"]["included_skills"]=[skill["name"] for skill in slist]
+                st.session_state["profile_changed"]=True
+                st.rerun()
+        
 
 
     @st.fragment()
@@ -845,8 +850,9 @@ class User():
                                 }
                                 """,
                         ):
-                            if st.button("Rearrange", key="rearrange_skills_button", ):
-                                self.rearrange_skills_popup()
+                            if self.skills_set:
+                                if st.button("Rearrange", key="rearrange_skills_button", ):
+                                    self.rearrange_skills_popup()
 
                     with stylable_container(key="custom_skills_button",
                     # border-radius: 20px;
@@ -1203,7 +1209,7 @@ class User():
             
         return get_display
 
-    @st.fragment()
+    # @st.fragment()
     def display_field_analysis(self, type, field_name, details, idx=None):
 
         """ Displays the field-specific analysis UI """
@@ -1213,11 +1219,22 @@ class User():
         def apply_changes():
 
             if field_name=="summary_objective":
-                st.session_state["profile"]["summary_objective"]="".join(end_list)
+                st.session_state["old_summary"]=st.session_state["profile"]["summary_objective"]
+                st.session_state["profile"]["summary_objective"]="".join(st.session_state["new_summary"])
                 st.session_state["profile_changed"]=True
+            elif field_name=="included_skills":
+                st.session_state["included_skills"]
             elif type=="bullet_points":
                 st.session_state["profile"][field_name][idx]["description"]=tailoring["ranked_list"]
                 st.session_state["profile_changed"]=True
+
+
+
+        def revert_changes():
+            if field_name=="summary_objective":
+                st.session_state["profile"]["summary_objective"]=st.session_state["old_summary"]
+                st.session_state["profile_changed"]=True
+
 
 
         def display_tailor_options(container):
@@ -1238,7 +1255,7 @@ class User():
                         """,
                 ):
                 if "job_posting_dict" not in st.session_state:
-                    with container.popover("tailor"):
+                    with container.popover("Tailor"):
                         upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
                         if upload:
                             self.job_posting_popup(mode="resume", field_name=field_name, )
@@ -1247,7 +1264,7 @@ class User():
                         self.tailor_callback(type, field_name, details, container)
                         st.rerun()
                     else:
-                        with container.popover("tailor"):
+                        with container.popover("Tailor"):
                             # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
                             current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, container, ))
                             new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
@@ -1281,7 +1298,7 @@ class User():
                             }
                             """,
                     ):
-                        with eval_container.popover("evaluate"):
+                        with eval_container.popover("Evaluate"):
                                 if idx:
                                     button_key=f"eval_again_{field_name}_button_{idx}"
                                 else:
@@ -1295,7 +1312,7 @@ class User():
                                     st.write(evaluation)
                                 st.markdown(primary_button2, unsafe_allow_html=True)
                                 st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                                st.button("evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
+                                st.button("Evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
                 else:
                     if idx:
                         button_key=f"eval_{field_name}_button_{idx}"
@@ -1303,7 +1320,7 @@ class User():
                         button_key=f"eval_{field_name}_button"
                     # st.markdown(primary_button2, unsafe_allow_html=True)
                     # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    evaluate = eval_container.button("evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
+                    evaluate = eval_container.button("Evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
         with c2:
             st.markdown(primary_button2, unsafe_allow_html=True)
             st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
@@ -1327,7 +1344,7 @@ class User():
                         }
                         """,
                 ):
-                    with tailor_container.popover("tailor"):
+                    with tailor_container.popover("Tailor"):
                         if idx:
                             button_key=f"tailor_again_{field_name}_button_{idx}"
                         else:
@@ -1344,7 +1361,7 @@ class User():
                                 st.write(f"**Additional skills**:{additional_skills}")
                                 c1, c2 = st.columns([2, 1])
                                 with c2:
-                                    if st.button("rearrange my skills", key="rearrange_skills_button2", ):
+                                    if st.button("Rearrange my skills", key="rearrange_skills_button2", ):
                                         self.rearrange_skills_popup()
                             else:
                                 st.write(tailoring)
@@ -1360,12 +1377,12 @@ class User():
                                         substring = " ".join(text_list[i:i+j])
                                         if substring in replaced_words:
                                             idx = replaced_words.index(substring)
-                                            text_list[i] = (substitutions[idx], substring)
+                                            text_list[i] = (substitutions[idx]+" ", substring)
                                             for x in range(i+1, i+j):
                                                 text_list[x]=""
                                             break                 
                                 text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
-                                end_list = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
+                                st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
                                 annotated_text(text_list)
                                     # st.rerun()
@@ -1374,11 +1391,14 @@ class User():
                         elif type=="bullet_points":
                             st.write(tailoring["ranked"])
                         if tailoring!="please try again":
-                            st.button("apply changes", on_click=apply_changes, key=button_key+"_apply")     
-                            st.button("revert changes", on_click=apply_changes, key=button_key+"_revert")     
+                            _, c = st.columns([3,1])
+                            with c:
+                                st.button("apply changes", on_click=apply_changes, key=button_key+"_apply")  
+                                if "old_summary" in st.session_state: 
+                                    st.button("revert changes", on_click=revert_changes, key=button_key+"_revert", type="primary")     
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        with st.popover("tailor again"):
+                        with st.popover("Tailor again"):
                             current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, tailor_container, ))
                             new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
                             if new_upload:
@@ -1581,7 +1601,7 @@ class User():
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
                         st.session_state["profile_changed"] = True
                     website = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, each separated by a comma", label_visibility="collapsed")!=website:
+                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=website:
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
@@ -1711,7 +1731,7 @@ class User():
             #             }
             #             """,
             #     ):
-                with st.expander("Show my profile report"):
+                with st.expander("Show my profile report", expanded=True):
                     # c1, c2=st.columns([1, 1])
                     # with c1:
                     st.divider()
