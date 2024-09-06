@@ -579,16 +579,14 @@ def calculate_graduation_years(graduation_year:str) -> int:
     print(f"Successfully calculated years since graduation: {years}")
     return years
 
-#NOTE: are transferable skills equal to soft skilll? if so, this is unnecessary
-def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
+
+async def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
 
     """ Researches transferable skills that are not overlapped in the skills dictionary between a resume and a job posting. 
 
     This provides a deeper dive into the experience, project sections of the resume for cases where there's little to no overlapping in skills.  """
 
-    query = f""" You are an expert resume advisor that helps a candidate match to a job. 
-    
-     You are given a job description along with some of the candidate's resume content.
+    query = """ 
      
      Your task is to come up with a list of tranferable skills that the candidate can include from the job description.
      
@@ -596,17 +594,13 @@ def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI(
 
     resume content: {resume_content} \n
         
-    If the candidate already has a particular skill listed in the job description, then it is not a transferable skill. 
-    
-    A transferable skill is an ability or expertise which may be carried from one industry or role to another industry or role.
-    
-    Please be honest with your answer and provide your reasoning.   
-    
-    Do not use any tools! """
+    If the candidate already has a particular skill listed in the job description, then it should not be listed again. """
 
-    response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
-    print(f"Successfully generated transferable skills: {response}")
-    return response
+    return await create_comma_separated_list_parser(query, input_variables=["job_description", "resume_content"], query_dict={"job_description":job_description, "resume_content":resume_content})
+
+    # response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
+    # print(f"Successfully generated transferable skills: {response}")
+    # return response
     
 
 

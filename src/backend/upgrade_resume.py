@@ -7,7 +7,7 @@ from utils.langchain_utils import  generate_multifunction_response, create_smart
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
 from docxtpl import DocxTemplate	
-from operator import itemgetter
+# from operator import itemgetter
 # from docx import Document
 # from docx.shared import Inches
 import re
@@ -156,11 +156,11 @@ def analyze_field_content(field_content, field_type, resume_content):
     
         summary_query = f"""Given the resume content and summary objective section below, please analyze the summary objective section based on the following criteria:
 
-        1. Is it about two to three sentences long? \n
-
-        2. Is it succinct and well-crafted? \n
+        1. Is it succinct and well-crafted? \
         
-        2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience, or communicate the candidate's career goals effectively? \n
+        2. Does it highlight the qualifications of the candidate, such as their valuable skills and experience? \
+        
+        3. Does it communicate the candidate's career goals effectively? \
 
         Your final output should be about 50-100 words long summarizing how the summary/objective section of the resume met or did not meet the criteria. Include any suggestions if needed.
 
@@ -472,24 +472,43 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
     The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
 
-    Other type of relevant information which can be induced based on skills and work experience should also be included.
+    Other type of relevant information can be induced based on skills and work experience for example.
     
     resume content: {resume_content} \n
 
     job requirements: {job_requirements} \n
 
-    Step 2:  you are provided withs a resume objective and the job title, if available.
+
+
+    """
+    # Step 2:  you are provided withs a resume objective and the job title, if available.
+
+    #     job title: {job_title} \n
+
+    #     resume objective: {my_objective} 
+
+    #     Please follow the following format and the relevant information from Step 1 to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and DO NOT make changes based on arbitrary choice of wording.
+        
+    #     Always follow relevant information from Step 1 to make relevant changes. 
+
+    #     1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
+
+    template_string2= """ you are provided withs a resume objective and the job title, if available.
 
         job title: {job_title} \n
 
         resume objective: {my_objective} 
 
-        Please follow the following format and the relevant information from Step 1 to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and use the following format as your output:
+        relevant information from a job posting: {relevant_information}
+
+        Please follow the following format and the relevant information from a job posting with to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and DO NOT make changes based on arbitrary choice of wording.
+        
+        Always follow relevant information you're provided to make relevant changes. 
 
         1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
 
     """
-    # model_parser = llm | StrOutputParser()
+    model_parser1 = llm | StrOutputParser()
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -507,8 +526,14 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
         )
     model_parser = prompt |  llm.with_structured_output(schema=Replacements)
     prompt_template = ChatPromptTemplate.from_template(template_string)
-    generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough(), "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()} 
+    prompt_template2 = ChatPromptTemplate.from_template(template_string2)
+    # generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough(), "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()} 
+    #                  | prompt_template
+    #                  | model_parser)
+    generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough()} 
                      | prompt_template
+                     | {"relevant_information":model_parser1, "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()}
+                     | prompt_template2
                      | model_parser)
     response = await generator.ainvoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
     print(response)
