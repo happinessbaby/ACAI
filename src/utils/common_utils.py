@@ -580,11 +580,9 @@ def calculate_graduation_years(graduation_year:str) -> int:
     return years
 
 
-async def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
+async def suggest_transferable_skills(resume_content, job_description, ):
 
-    """ Researches transferable skills that are not overlapped in the skills dictionary between a resume and a job posting. 
-
-    This provides a deeper dive into the experience, project sections of the resume for cases where there's little to no overlapping in skills.  """
+    """ Researches transferable skills in the resume according to a job description  """
 
     query = """ 
      
@@ -596,7 +594,7 @@ async def analyze_transferable_skills(resume_content, job_description, llm=ChatO
         
     If the candidate already has a particular skill listed in the job description, then it should not be listed again. """
 
-    return await create_comma_separated_list_parser(query, input_variables=["job_description", "resume_content"], query_dict={"job_description":job_description, "resume_content":resume_content})
+    return await create_comma_separated_list_parser(base_template=query, input_variables=["job_description", "resume_content"], query_dict={"job_description":job_description, "resume_content":resume_content})
 
     # response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
     # print(f"Successfully generated transferable skills: {response}")
@@ -605,6 +603,8 @@ async def analyze_transferable_skills(resume_content, job_description, llm=ChatO
 
 
 async def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
+
+    """Extracts from a list of jobs similar jobs to the desired job title provided """
 
     #NOTE: this query benefits a lot from examples
     
