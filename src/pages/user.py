@@ -369,9 +369,11 @@ class User():
                 save_cookie(user_info.get("email"))
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=user_info.get("email")
+                st.query_params.clear()
                 # time.sleep(5)
                 st.rerun()
             except Exception as e:
+                print(e)
                 pass
         else:
             st.markdown(google_button, unsafe_allow_html=True)
@@ -393,6 +395,7 @@ class User():
             revoke_token_url = "https://accounts.google.com/o/oauth2/revoke?token=" + credentials.token
             response = requests.get(revoke_token_url)
             if response.status_code == 200:
+                st.query_params.clear()
                 print("Successfully signed out")
                 # Clear session state
                 del st.session_state["credentials"]
@@ -773,7 +776,9 @@ class User():
                 else:
                     st.warning("Please upload your resume")
             else:
-                st.warning("That didn't work, please try again.")         
+                st.warning("That didn't work, please try again.") 
+                time.sleep(2)   
+                st.rerun()     
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.users_upload_path, )
             if result is not None:
@@ -1783,7 +1788,7 @@ class User():
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True)
-                            st.write("Tone: keep a formal and respectful tone, avoid using humor, jargons, and slang")
+                            st.write("Tone: keep a formal and respectful tone")
                             st.write("Syntax: use power verbs and an active voice")
                             st.write("Readability: vary your sentence lengths and word syllables")
                         # st.scatter_chart(df)

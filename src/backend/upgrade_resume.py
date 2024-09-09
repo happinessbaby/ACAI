@@ -59,45 +59,49 @@ def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=Non
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
     if type=="general":
-        st.session_state["evaluation"] = {"finished":False}
-        # resume_file = resume_dict["resume_path"]
-        pursuit_jobs=resume_dict["pursuit_jobs"]
-        industry = resume_dict["industry"]
-        # Evaluate resume length
-        word_count = count_length(content=resume_content)
-        st.session_state.evaluation.update({"word_count": word_count})
-        # pattern = r'pages:(\d+)'
-        # # Search for the pattern in the text (I added page number when writing the file to txt)
-        # match = re.search(pattern, resume_content)
-        # # If a match is found, extract and return the number
-        # if match:
-        #     page_num = match.group(1)
-        # else:
-        #     page_num = 0
-        # st.session_state.evaluation.update({"page_count": int(page_num)})
-        # Research and analyze resume type
-        ideal_type = research_resume_type(resume_dict=resume_dict, )
-        st.session_state.evaluation.update({"ideal_type": ideal_type})
-        # resume_type= analyze_resume_type(resume_content,)
-        # st.session_state.evaluation.update({"resume_type": resume_type})
-        # st.session_state.evaluation.update(type_dict)
-        categories=["syntax", "tone", "readability"]
-        for category in categories:
-            category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
-            st.session_state.evaluation.update({category:category_dict})
-        # section_names = ["objective", "work_experience", "skillsets"]
-        # field_names = ["summary_objective", "work_experience", "included_skills"]
-        # field_map = dict(zip(field_names, section_names))
-        # related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
-        # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-        # for field_name, section_name in field_map.items():
-        #     # for category in categories:
-        #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
-        #     st.session_state.evaluation.update({section_name:comparison_dict})
-        # Generate overall impression
-        # impression = generate_impression(resume_content, pursuit_jobs)
-        # st.session_state.evaluation["impression"]= impression
-        st.session_state.evaluation["finished"]=True
+        try:
+            st.session_state["evaluation"] = {"finished":False}
+            # resume_file = resume_dict["resume_path"]
+            pursuit_jobs=resume_dict["pursuit_jobs"]
+            industry = resume_dict["industry"]
+            # Evaluate resume length
+            word_count = count_length(content=resume_content)
+            st.session_state.evaluation.update({"word_count": word_count})
+            # pattern = r'pages:(\d+)'
+            # # Search for the pattern in the text (I added page number when writing the file to txt)
+            # match = re.search(pattern, resume_content)
+            # # If a match is found, extract and return the number
+            # if match:
+            #     page_num = match.group(1)
+            # else:
+            #     page_num = 0
+            # st.session_state.evaluation.update({"page_count": int(page_num)})
+            # Research and analyze resume type
+            ideal_type = research_resume_type(resume_dict=resume_dict, )
+            st.session_state.evaluation.update({"ideal_type": ideal_type})
+            # resume_type= analyze_resume_type(resume_content,)
+            # st.session_state.evaluation.update({"resume_type": resume_type})
+            # st.session_state.evaluation.update(type_dict)
+            categories=["syntax", "tone", "readability"]
+            for category in categories:
+                category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
+                st.session_state.evaluation.update({category:category_dict})
+            # section_names = ["objective", "work_experience", "skillsets"]
+            # field_names = ["summary_objective", "work_experience", "included_skills"]
+            # field_map = dict(zip(field_names, section_names))
+            # related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
+            # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+            # for field_name, section_name in field_map.items():
+            #     # for category in categories:
+            #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
+            #     st.session_state.evaluation.update({section_name:comparison_dict})
+            # Generate overall impression
+            # impression = generate_impression(resume_content, pursuit_jobs)
+            # st.session_state.evaluation["impression"]= impression
+            st.session_state.evaluation["finished"]=True
+        #NOTE: sometimes user may refresh page and this abruptly ends the session so st.session_state["evaluation"] becomes a Nonetype
+        except AttributeError:
+            pass
     # Evaluates specific field  content
     if details:
         for _ in range(5):
