@@ -918,15 +918,15 @@ def create_job_posting_info(posting_path, about_job, q, ):
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     if posting:
         job_posting_info_dict.update({"content": posting})
-        basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10, max_retry=1)
+        basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10, max_try=1)
         if basic_info_dict:
             job_posting_info_dict.update(basic_info_dict)
         else:
             basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
             job_posting_info_dict.update(basic_info_dict)
         # Research soft and hard skills required
-        job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_retry=1)
-        job_posting_info_dict.update(job_posting_skills if job_posting_skills else {"skills":[]})
+        job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_try=1)
+        job_posting_info_dict.update({"skills":job_posting_skills} if job_posting_skills else {"skills":[]})
         # Research company
         company = basic_info_dict["company"]
         company_description = basic_info_dict["company_description"]

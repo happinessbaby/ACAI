@@ -56,6 +56,16 @@ else:
 
 def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=None, loading_func=None) -> Dict[str, str]:
 
+
+    def insert_break_character(text, char='<br>', interval=5):
+
+        """ Breaks display of annotation on plots into new lines to fit container width"""
+
+        words = text.split()  # Split the text into a list of words
+        for i in range(interval, len(words), interval):
+            words.insert(i, char)  # Insert the special character every 5 words
+        return ' '.join(words)  # Join the words back into a single string
+
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
     if type=="general":
@@ -85,7 +95,11 @@ def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=Non
             categories=["syntax", "tone", "readability"]
             for category in categories:
                 category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
-                st.session_state.evaluation.update({category:category_dict})
+                if category_dict:
+                    if  category=="syntax" or category=="tone":
+                        if category_dict["reason"]:
+                           category_dict["reason"]= insert_break_character(category_dict["reason"])
+                    st.session_state.evaluation.update({category:category_dict})
             # section_names = ["objective", "work_experience", "skillsets"]
             # field_names = ["summary_objective", "work_experience", "included_skills"]
             # field_map = dict(zip(field_names, section_names))
@@ -349,7 +363,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     if not job_requirements:
         if required_skills:
-            job_requirements = concat_skills(required_skills)
+            job_requirements = required_skills
         elif about_job:
             job_requirements = about_job
     company_description = job_posting_dict["company_description"]
@@ -388,12 +402,12 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
 
 
 
-def concat_skills(skills_list, skills_str=""):
-    for s in skills_list:
-        skill = s["skill"] 
-        example = s["example"]
-        skills_str+="(skill: " +skill + ", example: "+ example + ")"
-    return skills_str
+# def concat_skills(skills_list, skills_str=""):
+#     for s in skills_list:
+#         skill = s["skill"] 
+#         example = s["example"]
+#         skills_str+="(skill: " +skill + ", example: "+ example + ")"
+#     return skills_str
 
 async def tailor_skills(required_skills, my_skills, resume_content, job_requirements):
 

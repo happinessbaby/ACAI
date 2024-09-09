@@ -67,7 +67,14 @@ lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 _, c, _= st.columns([3, 1, 3])
 with c:
     add_vertical_space(20)
-    center_placeholder=st.empty()
+    spinner_placeholder=st.empty()
+_, c1, _ = st.columns([3, 2, 3])
+with c1:
+    signin_placeholder=st.empty()
+_, c2, _ = st.columns([1, 1, 1, ])
+with c2:
+    resume_placeholder=st.empty()
+
 # initialize float feature/capability
 # float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -231,7 +238,7 @@ class User():
 
 
     
-    @st.fragment()
+    # @st.fragment()
     def sign_out(self, ):
 
         print('signing out')
@@ -253,12 +260,12 @@ class User():
         else:
             st.rerun()
 
-    @st.fragment()
+    # @st.fragment()
     def sign_in(self, ):
 
-        _, c1, _ = st.columns([3, 2, 3])
-        with c1:
-            signin_placeholder=st.empty()
+        # _, c1, _ = st.columns([3, 2, 3])
+        # with c1:
+            # signin_placeholder=st.empty()
             with signin_placeholder.container(border=True):
                 # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 st.image(st.session_state.logo_path)
@@ -273,16 +280,16 @@ class User():
                     username=st.text_input("Email", )
                     password=st.text_input("Password", type="password")
                     submit = st.form_submit_button("login", )
-                    if submit:
-                        username= authenticate(username, password)
-                        if username:
-                            signin_placeholder.empty()
-                            st.session_state["user_mode"]="signedin"
-                            st.session_state["userId"]=username
-                            print("signing in")
-                            st.rerun()
-                        else:
-                            st.error('Wrong username/password.')
+            if submit:
+                signin_placeholder.empty()
+                username= authenticate(username, password)
+                if username:
+                    st.session_state["user_mode"]="signedin"
+                    st.session_state["userId"]=username
+                    print("signing in")
+                    st.rerun()
+                else:
+                    st.error('Wrong username/password.')
 
 
                 # name, authentication_status, username = st.session_state.authenticator.login()
@@ -374,7 +381,8 @@ class User():
                 st.rerun()
             except Exception as e:
                 print(e)
-                pass
+                st.query_params.clear()
+                st.rerun()
         else:
             st.markdown(google_button, unsafe_allow_html=True)
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
@@ -526,9 +534,9 @@ class User():
     
     def initialize_resume(self):
 
-        _, c, _ = st.columns([1, 1, 1])
-        with c:
-            resume_placeholder=st.empty()
+        # _, c, _ = st.columns([1, 1, 1])
+        # with c:
+        #     resume_placeholder=st.empty()
             with resume_placeholder.container():
                 st.title("Let's get started with your resume")
                 if "user_resume_path" in st.session_state:
@@ -548,7 +556,7 @@ class User():
                     skip= st.button(label="I'll do it later", type="primary", )
             if resume:
                     resume_placeholder.empty()
-                    with center_placeholder.container():
+                    with spinner_placeholder.container():
                         with st.spinner("Processing..."):
                             self.form_callback()
                         if "user_resume_path" in st.session_state:
@@ -560,7 +568,7 @@ class User():
                 # delete any old resume saved in session state
                 if "user_resume_path" in st.session_state:
                     del st.session_state["user_resume_path"]
-                with center_placeholder.container():
+                with spinner_placeholder.container():
                     with st.spinner("Loading your profile..."):
                         time.sleep(1)
                         self.create_empty_profile() 

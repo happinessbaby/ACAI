@@ -350,7 +350,7 @@ class JobTrackingUsers(BaseModel):
     # posting_path: Optional[str]
     link: Optional[str]
     content: Optional[str]
-    skills:Optional[List[Skill]]
+    skills:Optional[List[str]]
     job: Optional[str] 
     about_job: Optional[str]
     company: Optional[str] 
