@@ -2,7 +2,7 @@ import os
 import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from utils.basic_utils import count_length
-from utils.common_utils import search_related_samples,  extract_similar_jobs
+from utils.common_utils import search_related_samples,  extract_similar_jobs, suggest_transferable_skills
 from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
@@ -11,7 +11,7 @@ from docxtpl import DocxTemplate
 # from docx import Document
 # from docx.shared import Inches
 import re
-from utils.pydantic_schema import ResumeType, Comparison, TailoredSkills, Replacements, Language
+from utils.pydantic_schema import ResumeType, Comparison, SkillsRelevancy, Replacements, Language
 from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
@@ -54,50 +54,68 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=None, loading_func=None) -> Dict[str, str]:
+
+
+    def insert_break_character(text, char='<br>', interval=5):
+
+        """ Breaks display of annotation on plots into new lines to fit container width"""
+
+        words = text.split()  # Split the text into a list of words
+        for i in range(interval, len(words), interval):
+            words.insert(i, char)  # Insert the special character every 5 words
+        return ' '.join(words)  # Join the words back into a single string
 
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
     if type=="general":
-        st.session_state["evaluation"] = {"finished":False}
-        # resume_file = resume_dict["resume_path"]
-        pursuit_jobs=resume_dict["pursuit_jobs"]
-        industry = resume_dict["industry"]
-        # Evaluate resume length
-        word_count = count_length(content=resume_content)
-        st.session_state.evaluation.update({"word_count": word_count})
-        # pattern = r'pages:(\d+)'
-        # # Search for the pattern in the text (I added page number when writing the file to txt)
-        # match = re.search(pattern, resume_content)
-        # # If a match is found, extract and return the number
-        # if match:
-        #     page_num = match.group(1)
-        # else:
-        #     page_num = 0
-        # st.session_state.evaluation.update({"page_count": int(page_num)})
-        # Research and analyze resume type
-        ideal_type = research_resume_type(resume_dict=resume_dict, )
-        st.session_state.evaluation.update({"ideal_type": ideal_type})
-        # resume_type= analyze_resume_type(resume_content,)
-        # st.session_state.evaluation.update({"resume_type": resume_type})
-        # st.session_state.evaluation.update(type_dict)
-        categories=["syntax", "tone", "readability"]
-        for category in categories:
-            category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
-            st.session_state.evaluation.update({category:category_dict})
-        # section_names = ["objective", "work_experience", "skillsets"]
-        # field_names = ["summary_objective", "work_experience", "included_skills"]
-        # field_map = dict(zip(field_names, section_names))
-        # related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
-        # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
-        # for field_name, section_name in field_map.items():
-        #     # for category in categories:
-        #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
-        #     st.session_state.evaluation.update({section_name:comparison_dict})
-        # Generate overall impression
-        # impression = generate_impression(resume_content, pursuit_jobs)
-        # st.session_state.evaluation["impression"]= impression
-        st.session_state.evaluation["finished"]=True
+        try:
+            st.session_state["evaluation"] = {"finished":False}
+            # resume_file = resume_dict["resume_path"]
+            pursuit_jobs=resume_dict["pursuit_jobs"]
+            industry = resume_dict["industry"]
+            # Evaluate resume length
+            word_count = count_length(content=resume_content)
+            st.session_state.evaluation.update({"word_count": word_count})
+            # pattern = r'pages:(\d+)'
+            # # Search for the pattern in the text (I added page number when writing the file to txt)
+            # match = re.search(pattern, resume_content)
+            # # If a match is found, extract and return the number
+            # if match:
+            #     page_num = match.group(1)
+            # else:
+            #     page_num = 0
+            # st.session_state.evaluation.update({"page_count": int(page_num)})
+            # Research and analyze resume type
+            ideal_type = research_resume_type(resume_dict=resume_dict, )
+            st.session_state.evaluation.update({"ideal_type": ideal_type})
+            # resume_type= analyze_resume_type(resume_content,)
+            # st.session_state.evaluation.update({"resume_type": resume_type})
+            # st.session_state.evaluation.update(type_dict)
+            categories=["syntax", "tone", "readability"]
+            for category in categories:
+                category_dict = asyncio_run(lambda: analyze_language(resume_content, category, industry), timeout=10)
+                if category_dict:
+                    if  category=="syntax" or category=="tone":
+                        if category_dict["reason"]:
+                           category_dict["reason"]= insert_break_character(category_dict["reason"])
+                    st.session_state.evaluation.update({category:category_dict})
+            # section_names = ["objective", "work_experience", "skillsets"]
+            # field_names = ["summary_objective", "work_experience", "included_skills"]
+            # field_map = dict(zip(field_names, section_names))
+            # related_samples = search_related_samples(pursuit_jobs, resume_samples_path)
+            # sample_tools, tool_names = create_sample_tools(related_samples, "resume")
+            # for field_name, section_name in field_map.items():
+            #     # for category in categories:
+            #     comparison_dict = analyze_via_comparison(resume_dict[field_name], section_name,  sample_tools, tool_names)
+            #     st.session_state.evaluation.update({section_name:comparison_dict})
+            # Generate overall impression
+            # impression = generate_impression(resume_content, pursuit_jobs)
+            # st.session_state.evaluation["impression"]= impression
+            st.session_state.evaluation["finished"]=True
+        #NOTE: sometimes user may refresh page and this abruptly ends the session so st.session_state["evaluation"] becomes a Nonetype
+        except AttributeError:
+            pass
     # Evaluates specific field  content
     if details:
         for _ in range(5):
@@ -106,13 +124,13 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
             p.increment(10)  # Update progress in steps of 10%
             loading_func(p.progress)
         # work_experience= resume_dict["work_experience"]
-        st.session_state[f"{type}_readability"] = readability_checker(resume_content)
+        st.session_state[f"readability_{type}_{idx}"] = readability_checker(resume_content)
         p.increment(20) 
         loading_func(p.progress)
         evaluation= analyze_field_content(details, type, resume_content)
         p.increment(30)  
         loading_func(p.progress)
-        st.session_state[f"evaluated_{type}"]=evaluation
+        st.session_state[f"evaluated_{type}_{idx}"]=evaluation
     else:
         st.session_state[f"evaluated_{type}"]="Please fill out the content"
 
@@ -122,7 +140,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
 
 def analyze_field_content(field_content, field_type, resume_content):
 
-    """ Evalutes the bullet points of experience, accomplishments, and projects section of resume"""
+    """ Evalutes the bullet points sections of resume"""
 
     if field_type=="work_experience":
             #   Your task is to generate 2 to 4 bullet points following the guideline below for a list of content in the {field_type} of the resume.
@@ -181,7 +199,7 @@ def analyze_field_content(field_content, field_type, resume_content):
 
 def analyze_via_comparison(field_content, field_name,  sample_tools, tool_names):
 
-    """Analyzes overall resume by comparing to other samples"""
+    """Analyzes overall resume by comparing to other sample resume """
 
     # NOTE: document comparison benefits from a clear and simple prompt. 
 
@@ -277,6 +295,8 @@ async def analyze_language(resume_content, category, industry):
 
 def generate_impression(resume_content, jobs):
 
+    """ Generates an overall impression of the resume according to some qualifiable metrics. """
+
     #NOTE: this prompt uses self-reflective thinking by answering questions
     query_impression= f""" You are provided with a candidate's resume along with a list of jobs they are seeking. 
     
@@ -303,6 +323,8 @@ def generate_impression(resume_content, jobs):
 
 def analyze_resume_type(resume_content, ):
 
+    """Categorizes the resume as either functional or chronological"""
+
     query_type = f"""Your task is to provide an assessment of a resume delimited by {delimiter} characters. 
 
     resume: {delimiter}{resume_content}{delimiter} \n
@@ -327,11 +349,10 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", details=None, p=None, loading_func=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", idx=-1, details=None, p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
     for _ in range(5):
-        # Perform some processing (e.g., tailoring a resume)
         time.sleep(0.1)  # Simulate time-consuming task
         p.increment(10)  # Update progress in steps of 10%
         loading_func(p.progress)
@@ -342,7 +363,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     if not job_requirements:
         if required_skills:
-            job_requirements = concat_skills(required_skills)
+            job_requirements = required_skills
         elif about_job:
             job_requirements = about_job
     company_description = job_posting_dict["company_description"]
@@ -350,51 +371,49 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
     loading_func(p.progress)
     if field_name=="included_skills":
         required_skills = job_posting_dict["skills"]
-        response = asyncio_run(lambda: tailor_skills(required_skills, details), timeout=10)
-        p.increment(30)  # Update progress 
+        response = asyncio_run(lambda: tailor_skills(required_skills, details, resume_content, job_requirements,), timeout=10)
+        response_dict=response.dict() if response else {}
+        p.increment(20)  # Update progress 
+        loading_func(p.progress)
+        transferable_skills = asyncio_run(lambda:suggest_transferable_skills(resume_content, job_requirements), timeout=5)
+        if transferable_skills:
+            response_dict.update({"transferable_skills":transferable_skills})
+        p.increment(10)  # Update progress 
         loading_func(p.progress)
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
+        response_dict=response.dict() if response else {}
         p.increment(30)  # Update progress 
         loading_func(p.progress)
     if type=="bullet_points":
         # print("bullet point details", details)
-        response = tailor_bullet_points(field_name, details, job_requirements, p, loading_func, )
-    if response:
-        if not isinstance(response, dict):
-            st.session_state[f"tailored_{field_name}"]=response.dict()
+        if len(details)>1:
+            response_dict = tailor_bullet_points(field_name, details, job_requirements, )
+            p.increment(30)  # Update progress 
+            loading_func(p.progress)
         else:
-            st.session_state[f"tailored_{field_name}"]=response
+            response_dict = "please add more bullet points first"
+    if response_dict:
+        st.session_state[f"tailored_{field_name}_{idx}"]=response_dict
     else:
-        st.session_state[f"tailored_{field_name}"]="please try again"
+        st.session_state[f"tailored_{field_name}_{idx}"]="please try again"
     # return st.session_state.tailor_dict
 
 
 
-def concat_skills(skills_list, skills_str=""):
-    for s in skills_list:
-        skill = s["skill"] 
-        example = s["example"]
-        skills_str+="(skill: " +skill + ", example: "+ example + ")"
-    return skills_str
+# def concat_skills(skills_list, skills_str=""):
+#     for s in skills_list:
+#         skill = s["skill"] 
+#         example = s["example"]
+#         skills_str+="(skill: " +skill + ", example: "+ example + ")"
+#     return skills_str
 
-async def tailor_skills(required_skills, my_skills,):
+async def tailor_skills(required_skills, my_skills, resume_content, job_requirements):
 
-    """ Creates a cleaned, tailored, reranked skills section according to the skills required in a job description"""
+    """ Creates a list of relevant skills, irrelevant skills, and transferable skills according to the skills required in a job description"""
   
-    print("required skills", required_skills)
-    print("my_skills", my_skills)
-    # required_skills_str = concat_skills(required_skills)
-    # my_skills_str = concat_skills(my_skills)
-    # my_skills_str = my_skills if my_skills!="" else concat_skills(resume_skills)
-    # relevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "relevant", n_ideas=2)
-    # irrelevant_skills = research_relevancy_in_resume(my_skills_section, required_skills_str, "skills", "irrelevant", n_ideas=2)
-        # Relevancy report for hard skills: {relevant_hard_skills} \
-        # Relevancy report for soft skills: {relevant_soft_skills} \  
-        # Your job is to polish and rank the skills section of the resume according to the relevancy list.
-        # The relevancy report is generated based on what skills in the resume are most relevant to a job description.
-        # Relevancy report for skills: {relevant_skills} \
+    
     skills_prompt = """ Your task is to compare the skills section of the resume and skills required in the job description. 
     
     You are given two core pieces of information below: the skills in a resume and the skills wanted in a job description.
@@ -405,23 +424,23 @@ async def tailor_skills(required_skills, my_skills,):
 
     Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job description. 
     
-    These are skills that are in the resume that do not align with the requirement of the job description. Remember a lot of skills are transferable so don't discount them.
+    These are skills that are in the resume that do not align with the requirement of the job description. Remember some skills are transferable so they are still relevant.
     
     Step 2: Make a list of skills in the resume that are most relevant to the skills wanted in the job description. 
 
-    These may have the exact same names, or they are skills that are technically related. Remember to list the skills only from the resume. 
-
-    Step 3: Make a list of skills that are in the job description that can be added to the resumes. 
-    
-    These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
+    These may have the exact same names, or they are skills that are technically related. 
     
     Use the following format:
         Step 1: <step 1 reasoning>
         Step 2: <step 2 reasoning>
-        Step 3: <step 3 reasoning>
 
-    PLEASE MAKE SURE YOU REASON THROUGH EACH STEP AND PROVIDE YOUR REASONING. 
+    Make sure lists from both steps include only skills from the resume, and provide your reasoning too.
+
     """
+    # Step 3: Make a list of skills that are in the job description that can be added to the resumes. 
+        # Step 3: <step 3 reasoning>
+    
+    # These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills but not SQL skill. SQL is the irrelevant skill in the resume since it's not in the job description.\
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills too. Communication is the relevant skill that exists in both the resume and job description. \
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication and Python skills. Python is the additional skill that may raise the chance of the candidate getting the job offer. \
@@ -442,24 +461,18 @@ async def tailor_skills(required_skills, my_skills,):
         ("human", "{content}"),
             ]
         )
-    model_parser = prompt | llm.with_structured_output(schema=TailoredSkills)
+    model_parser = prompt | llm.with_structured_output(schema=SkillsRelevancy)
     generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough()} 
                      | prompt_template
                      | model_parser)
     response = await generator.ainvoke({"my_skills":my_skills, "required_skills":required_skills})
-    print(response)
-    # message= prompt_template.format_messages(
-    #                                 # relevant_soft_skills = relevant_soft_skills, 
-    #                                 #          relevant_hard_skills = relevant_hard_skills, 
-    #                                         # relevant_skills = relevant_skills,
-    #                                         required_skills = str(required_skills),
-    #                                         my_skills = str(my_skills),
-    # )
-    # tailored_skills = await llm.ainvoke(message)
+    # print(response)
     return response
 
 
 async def tailor_objective(job_requirements, my_objective, resume_content, job_title):
+
+    """ Generates replacements for words and phrases in the summary objective section according to the job description"""
 
 
     template_string = """ 
@@ -493,7 +506,7 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
     #     1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
 
-    template_string2= """ you are provided withs a resume objective and the job title, if available.
+    template_string2= """ You are provided withs a resume objective and the job title, if available.
 
         job title: {job_title} \n
 
@@ -547,9 +560,9 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
 
 
-def tailor_bullet_points(field_name, field_detail,  job_requirements, p, loading_func, ):
+def tailor_bullet_points(field_name, field_detail,  job_requirements, ):
 
-    """ Evaluates relevancy and ranks most important roles"""
+    """ Ranks the bullet points according to relevancy to the job description. Outputs a dictionary of ranked section with reasoning (for display) along with a the ranked section as a comma separated list (for applying changes)."""
 
     rank_prompt = f"""Please rank content of the {field_name} section of the resume with respective to the job requirements.
         For example, if a candidate has experience in SQL and SQL is also a skill required in the job, then this experience should be ranked higher on the list.
@@ -564,15 +577,16 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements, p, loading
         DO NOT USE ANY TOOLS.
 
     """
-    ranked_list=[]
+    ranked_dict={}
     ranked = asyncio_run(lambda: generate_multifunction_response(rank_prompt, create_search_tools("google", 1), ), timeout=10)
-    loading_func(p.progress)
     if ranked:
+        ranked_dict.update({"ranked":ranked})
         template="""Look for Reranked section and list the details verbatim in the order that they appear. {ranked}"""
-        query_dict = {"ranked":ranked}
-        ranked_list = asyncio_run(lambda: create_comma_separated_list_parser(input_variables=["ranked"], base_template=template, query_dict=query_dict), timeout=5)
-        loading_func(p.progress)
-    ranked_dict = {"ranked":ranked, "ranked_list":ranked_list}
+        # query_dict = {"ranked":ranked}
+        ranked_list = asyncio_run(lambda: create_comma_separated_list_parser(input_variables=["ranked"], base_template=template, query_dict=ranked_dict), timeout=5)
+        if ranked_list:
+            ranked_dict.update({"ranked_list":ranked_list})
+    # ranked_dict = {"ranked":ranked, "ranked_list":ranked_list}
     return ranked_dict
 
 
@@ -590,7 +604,7 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
 
         Returns:
         
-            type of resume: functional, chronological, or students
+            type of resume: functional or chronological
             
     """
 
@@ -724,11 +738,14 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-def readability_checker(w):
+def readability_checker(content):
+
+    """ Checks the content readability"""
+
     stats = dict(
             # flesch_reading_ease=ts.flesch_reading_ease(w),
             # smog_index = ts.smog_index(w),
-            flesch_kincaid_grade=ts.flesch_kincaid_grade(w),
+            flesch_kincaid_grade=ts.flesch_kincaid_grade(content),
             # automated_readability_index=ts.automated_readability_index(w),
             # coleman_liau_index=ts.coleman_liau_index(w),
             # dale_chall_readability_score=ts.dale_chall_readability_score(w),

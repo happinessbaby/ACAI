@@ -529,21 +529,28 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
 
 
 
-def research_skills(content: str,  content_type: str, n_ideas=2, ):
+async def research_skills(content: str,  content_type: str, ):
 
     """ Finds soft skills and hard skills in a resume or job posting. 
     As some resume do not have a skills section and some job postings do not list them, this function also infers some skills. """
 
-    query = f"""Extract the soft and hard skills from the {content_type}.
+    # query = f"""Extract the soft and hard skills from the {content_type}.
+    # Soft skills examples are problem-solving, communication, time management, etc.
+    # Hard skills are specific for an industry or a job. They are usually techincal.
+    # Please draw all your answers from the content:
+    # content: {content}
+    # """
+    # content=asyncio_run(lambda: create_smartllm_chain(query, n_ideas=n_ideas), timeout=10, max_try=1)
+    # if content:
+        # response = asyncio_run(lambda: create_pydantic_parser(content, Skills), timeout=5)
+    query = """Extract the soft and hard skills from the {content_type}.
     Soft skills examples are problem-solving, communication, time management, etc.
     Hard skills are specific for an industry or a job. They are usually techincal.
-    Please draw all your answers from the content and provide examples if available:
+    Please draw all your answers from the content:
     content: {content}
     """
-    content=asyncio_run(lambda: create_smartllm_chain(query, n_ideas=n_ideas), timeout=5)
-    if content:
-        response = asyncio_run(lambda: create_pydantic_parser(content, Skills), timeout=5)
-    return response if content else None
+    return await create_comma_separated_list_parser(input_variables=["content_type", "content"], base_template=query, query_dict={"content_type":content_type, "content":content})
+
 
 
 def researches_posting_keywords():
@@ -580,11 +587,9 @@ def calculate_graduation_years(graduation_year:str) -> int:
     return years
 
 
-async def analyze_transferable_skills(resume_content, job_description, llm=ChatOpenAI()):
+async def suggest_transferable_skills(resume_content, job_description, ):
 
-    """ Researches transferable skills that are not overlapped in the skills dictionary between a resume and a job posting. 
-
-    This provides a deeper dive into the experience, project sections of the resume for cases where there's little to no overlapping in skills.  """
+    """ Researches transferable skills in the resume according to a job description  """
 
     query = """ 
      
@@ -596,7 +601,7 @@ async def analyze_transferable_skills(resume_content, job_description, llm=ChatO
         
     If the candidate already has a particular skill listed in the job description, then it should not be listed again. """
 
-    return await create_comma_separated_list_parser(query, input_variables=["job_description", "resume_content"], query_dict={"job_description":job_description, "resume_content":resume_content})
+    return await create_comma_separated_list_parser(base_template=query, input_variables=["job_description", "resume_content"], query_dict={"job_description":job_description, "resume_content":resume_content})
 
     # response=generate_multifunction_response(query, create_search_tools("google", 1), early_stopping=True)
     # print(f"Successfully generated transferable skills: {response}")
@@ -605,6 +610,8 @@ async def analyze_transferable_skills(resume_content, job_description, llm=ChatO
 
 
 async def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
+
+    """Extracts from a list of jobs similar jobs to the desired job title provided """
 
     #NOTE: this query benefits a lot from examples
     
@@ -834,8 +841,8 @@ def create_resume_info(resume_path, q, ):
     # Extract resume fields
     if resume_content:
         resume_info_dict.update({"resume_content":resume_content})
-        special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=5)
-        special_field_group1 = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=5)
+        special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=10, max_try=1)
+        special_field_group1 = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=1, max_try=1)
         if special_field_group1:
             resume_info_dict.update(special_field_group1)
         else:
@@ -858,7 +865,7 @@ def create_resume_info(resume_path, q, ):
         resume_info_dict.update({"education":education})
         # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
         # if basic_field_content["work_experience"]:
-        experience = asyncio_run(lambda: create_pydantic_parser(resume_content, Jobs), timeout=5)
+        experience = asyncio_run(lambda: create_pydantic_parser(resume_content, Jobs), timeout=10, max_try=1)
         resume_info_dict.update(experience if experience else [])
         # if special_field_content["skills_section"]:
         #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
@@ -866,12 +873,12 @@ def create_resume_info(resume_path, q, ):
         # else:
         #     resume_info_dict[resume_path].update({"included_skills": None})
         # if special_field_content["projects_section"]:
-        projects = asyncio_run(lambda: create_pydantic_parser(resume_content, Projects), timeout=5)
+        projects = asyncio_run(lambda: create_pydantic_parser(resume_content, Projects), timeout=10, max_try=1)
         resume_info_dict.update(projects if projects else [])
         # else:
         #     resume_info_dict[resume_path].update({"projects": None})
         # if special_field_content["qualifications_section"]:
-        qualifications = asyncio_run(lambda: create_pydantic_parser(resume_content, Qualifications), timeout=5)
+        qualifications = asyncio_run(lambda: create_pydantic_parser(resume_content, Qualifications), timeout=10, max_try=1)
         resume_info_dict.update(qualifications if qualifications else [])
         # else:
         #     resume_info_dict[resume_path].update({"qualifications": None})
@@ -881,8 +888,8 @@ def create_resume_info(resume_path, q, ):
         # resume_info_dict[resume_path].update(certifications)
         # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
         # resume_info_dict[resume_path].update(awards)
-        suggested_skills= research_skills(resume_content, "resume", n_ideas=1)
-        resume_info_dict.update({"suggested_skills": suggested_skills["skills"] if suggested_skills else []})
+        suggested_skills= asyncio_run(lambda: research_skills(resume_content, "resume"), timeout=1, max_try=1)
+        resume_info_dict.update({"suggested_skills": suggested_skills if suggested_skills else []})
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
     q.put(resume_info_dict)
@@ -911,15 +918,15 @@ def create_job_posting_info(posting_path, about_job, q, ):
         # job_posting_info_dict[job_posting].update({"summary": job_specification})
     if posting:
         job_posting_info_dict.update({"content": posting})
-        basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10)
+        basic_info_dict = asyncio_run(lambda: create_pydantic_parser(posting, Keywords), timeout=10, max_try=1)
         if basic_info_dict:
             job_posting_info_dict.update(basic_info_dict)
         else:
             basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
             job_posting_info_dict.update(basic_info_dict)
         # Research soft and hard skills required
-        job_posting_skills = research_skills(posting, "job posting", n_ideas=1)
-        job_posting_info_dict.update(job_posting_skills if job_posting_skills else {"skills":[]})
+        job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_try=1)
+        job_posting_info_dict.update({"skills":job_posting_skills} if job_posting_skills else {"skills":[]})
         # Research company
         company = basic_info_dict["company"]
         company_description = basic_info_dict["company_description"]

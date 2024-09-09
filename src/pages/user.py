@@ -67,7 +67,14 @@ lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 _, c, _= st.columns([3, 1, 3])
 with c:
     add_vertical_space(20)
-    center_placeholder=st.empty()
+    spinner_placeholder=st.empty()
+_, c1, _ = st.columns([3, 2, 3])
+with c1:
+    signin_placeholder=st.empty()
+_, c2, _ = st.columns([1, 1, 1, ])
+with c2:
+    resume_placeholder=st.empty()
+
 # initialize float feature/capability
 # float_init()
 # store = FeatureStore("./my_feature_repo/")
@@ -231,7 +238,7 @@ class User():
 
 
     
-    @st.fragment()
+    # @st.fragment()
     def sign_out(self, ):
 
         print('signing out')
@@ -253,12 +260,12 @@ class User():
         else:
             st.rerun()
 
-    @st.fragment()
+    # @st.fragment()
     def sign_in(self, ):
 
-        _, c1, _ = st.columns([3, 2, 3])
-        with c1:
-            signin_placeholder=st.empty()
+        # _, c1, _ = st.columns([3, 2, 3])
+        # with c1:
+            # signin_placeholder=st.empty()
             with signin_placeholder.container(border=True):
                 # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
                 st.image(st.session_state.logo_path)
@@ -273,16 +280,16 @@ class User():
                     username=st.text_input("Email", )
                     password=st.text_input("Password", type="password")
                     submit = st.form_submit_button("login", )
-                    if submit:
-                        username= authenticate(username, password)
-                        if username:
-                            signin_placeholder.empty()
-                            st.session_state["user_mode"]="signedin"
-                            st.session_state["userId"]=username
-                            print("signing in")
-                            st.rerun()
-                        else:
-                            st.error('Wrong username/password.')
+            if submit:
+                signin_placeholder.empty()
+                username= authenticate(username, password)
+                if username:
+                    st.session_state["user_mode"]="signedin"
+                    st.session_state["userId"]=username
+                    print("signing in")
+                    st.rerun()
+                else:
+                    st.error('Wrong username/password.')
 
 
                 # name, authentication_status, username = st.session_state.authenticator.login()
@@ -369,10 +376,13 @@ class User():
                 save_cookie(user_info.get("email"))
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=user_info.get("email")
+                st.query_params.clear()
                 # time.sleep(5)
                 st.rerun()
             except Exception as e:
-                pass
+                print(e)
+                st.query_params.clear()
+                st.rerun()
         else:
             st.markdown(google_button, unsafe_allow_html=True)
             st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
@@ -393,6 +403,7 @@ class User():
             revoke_token_url = "https://accounts.google.com/o/oauth2/revoke?token=" + credentials.token
             response = requests.get(revoke_token_url)
             if response.status_code == 200:
+                st.query_params.clear()
                 print("Successfully signed out")
                 # Clear session state
                 del st.session_state["credentials"]
@@ -523,9 +534,9 @@ class User():
     
     def initialize_resume(self):
 
-        _, c, _ = st.columns([1, 1, 1])
-        with c:
-            resume_placeholder=st.empty()
+        # _, c, _ = st.columns([1, 1, 1])
+        # with c:
+        #     resume_placeholder=st.empty()
             with resume_placeholder.container():
                 st.title("Let's get started with your resume")
                 if "user_resume_path" in st.session_state:
@@ -545,7 +556,7 @@ class User():
                     skip= st.button(label="I'll do it later", type="primary", )
             if resume:
                     resume_placeholder.empty()
-                    with center_placeholder.container():
+                    with spinner_placeholder.container():
                         with st.spinner("Processing..."):
                             self.form_callback()
                         if "user_resume_path" in st.session_state:
@@ -557,7 +568,7 @@ class User():
                 # delete any old resume saved in session state
                 if "user_resume_path" in st.session_state:
                     del st.session_state["user_resume_path"]
-                with center_placeholder.container():
+                with spinner_placeholder.container():
                     with st.spinner("Loading your profile..."):
                         time.sleep(1)
                         self.create_empty_profile() 
@@ -773,7 +784,9 @@ class User():
                 else:
                     st.warning("Please upload your resume")
             else:
-                st.warning("That didn't work, please try again.")         
+                st.warning("That didn't work, please try again.") 
+                time.sleep(2)   
+                st.rerun()     
         elif input_type=="job_posting":
             result = process_links(input_value, st.session_state.users_upload_path, )
             if result is not None:
@@ -834,10 +847,10 @@ class User():
                 with st.container(border=True):
                     c3, c4 = st.columns([3, 1])
                     with c3:
-                        st.write("Your skills")
+                        st.write("**Your skills**")
                     with c4:
                         with stylable_container(
-                            key="custon_rearrange_skills_button",
+                            key="custom_rearrange_skills_button",
                             css_styles="""
                                 button {
                                     background: none;
@@ -871,10 +884,10 @@ class User():
                         for idx, skill in enumerate(self.skills_set):
                             x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
-                st.write("Suggested skills to include")
+                st.write("Suggested skills to include:")
                 for idx, skill in enumerate(self.generated_skills_set):
                     y = st.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-                st.text_input("Add a skill", key="add_skill_custom", on_change=skills_callback, args=("", "", ))
+                st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ))
             
         def skills_callback(idx, skill):
             try:
@@ -933,7 +946,7 @@ class User():
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
             if x!=-1 and len(field_list)>0:
-                details = ". ".join(st.session_state["profile"][field_name][x][field_detail])
+                details = st.session_state["profile"][field_name][x][field_detail]
                 # print("BBBBB", details)
                 self.display_field_analysis(type, field_name, details=details, idx=x)
 
@@ -1210,9 +1223,9 @@ class User():
         return get_display
 
     # @st.fragment()
-    def display_field_analysis(self, type, field_name, details, idx=None):
+    def display_field_analysis(self, type, field_name, details, idx=-1):
 
-        """ Displays the field-specific analysis UI """
+        """ Displays the field-specific analysis UI including evaluation and tailoring """
 
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
 
@@ -1222,10 +1235,9 @@ class User():
                 st.session_state["old_summary"]=st.session_state["profile"]["summary_objective"]
                 st.session_state["profile"]["summary_objective"]="".join(st.session_state["new_summary"])
                 st.session_state["profile_changed"]=True
-            elif field_name=="included_skills":
-                st.session_state["included_skills"]
             elif type=="bullet_points":
-                st.session_state["profile"][field_name][idx]["description"]=tailoring["ranked_list"]
+                st.session_state[f"old_{field_name}_{idx}"] = st.session_state["profile"][field_name][idx]["description"]
+                st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"new_{field_name}_{idx}"]
                 st.session_state["profile_changed"]=True
 
 
@@ -1234,6 +1246,9 @@ class User():
             if field_name=="summary_objective":
                 st.session_state["profile"]["summary_objective"]=st.session_state["old_summary"]
                 st.session_state["profile_changed"]=True
+            elif type=="bullet_points":
+                st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
+                st.session_state["profile_changed"]=True
 
 
 
@@ -1241,7 +1256,7 @@ class User():
             # st.markdown(primary_button2, unsafe_allow_html=True)
             # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             with stylable_container(
-                    key=button_key,
+                    key=f"tailor_{field_name}_{idx}_popover",
                     css_styles="""
                         button {
                             background: none;
@@ -1256,36 +1271,32 @@ class User():
                 ):
                 if "job_posting_dict" not in st.session_state:
                     with container.popover("Tailor"):
-                        upload = st.button("Please upload a job posting first", type="primary", key=button_key+"_upload")
+                        upload = st.button("Please upload a job posting first", type="primary", key=f"tailor_{field_name}_{idx}_upload")
                         if upload:
-                            self.job_posting_popup(mode="resume", field_name=field_name, )
+                            self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx, )
                 else:
-                    if field_name==st.session_state["tailoring_field"] and  f"tailored_{field_name}" not in st.session_state:
-                        self.tailor_callback(type, field_name, details, container)
+                    if field_name==st.session_state["tailoring_field"] and idx==st.session_state["tailoring_field_idx"] and  f"tailored_{field_name}_{idx}" not in st.session_state:
+                        self.tailor_callback(type, field_name, idx, details, container)
                         st.rerun()
                     else:
                         with container.popover("Tailor"):
                             # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
-                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, container, ))
-                            new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
+                            current = st.button("with the currrent job posting", key=f"tailor_{field_name}_{idx}_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, container, ))
+                            new_upload = st.button("with a new job posting", key=f"tailor_{field_name}_{idx}_new", type="primary",)
                             # if current:
                             #     # self.tailor_callback(type, field_name, details, )
                             #     tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
                             if new_upload:
-                                self.job_posting_popup(mode="resume", field_name=field_name)
+                                self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
         with c1:
             # NOTE: Skills section doesn't have evaluate option
+            st.markdown(primary_button2, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             if field_name!="included_skills":
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                 eval_container=st.empty()
-                if f"evaluated_{field_name}" in st.session_state:
-                    if idx:
-                        popover_key=f"eval_{field_name}_popover_{idx}"
-                    else:
-                        popover_key = f"eval_{field_name}_popover"
+                if f"evaluated_{field_name}_{idx}" in st.session_state:
                     with stylable_container(
-                        key=popover_key,
+                        key= f"eval_{field_name}_{idx}_popover",
                         css_styles="""
                             button {
                                 background: none;
@@ -1299,39 +1310,25 @@ class User():
                             """,
                     ):
                         with eval_container.popover("Evaluate"):
-                                if idx:
-                                    button_key=f"eval_again_{field_name}_button_{idx}"
-                                else:
-                                    button_key=f"eval_again_{field_name}_button"
-                                if f"{field_name}_readability" in st.session_state:
-                                    if st.session_state[f"{field_name}_readability"]:
-                                        fig = readability_indicator(st.session_state[f"{field_name}_readability"])
+                                if f"readability_{field_name}_{idx}" in st.session_state:
+                                    if st.session_state[f"readability_{field_name}_{idx}"]:
+                                        fig = readability_indicator(st.session_state[f"readability_{field_name}_{idx}"])
                                         st.plotly_chart(fig)
-                                evaluation = st.session_state[f"evaluated_{field_name}"]
+                                evaluation = st.session_state[f"evaluated_{field_name}_{idx}"]
                                 if evaluation:
                                     st.write(evaluation)
                                 st.markdown(primary_button2, unsafe_allow_html=True)
                                 st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                                st.button("Evaluate again", key=button_key,  on_click=self.evaluation_callback, args=(field_name, details, eval_container, ), )
+                                st.button("Evaluate again", key=f"eval_again_{field_name}_button_{idx}",  on_click=self.evaluation_callback, args=(field_name, idx, details, eval_container, ), )
                 else:
-                    if idx:
-                        button_key=f"eval_{field_name}_button_{idx}"
-                    else:
-                        button_key=f"eval_{field_name}_button"
-                    # st.markdown(primary_button2, unsafe_allow_html=True)
-                    # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    evaluate = eval_container.button("Evaluate",  key=button_key, on_click=self.evaluation_callback, args=(field_name, details, eval_container,), )
+                    evaluate = eval_container.button("Evaluate",  key=f"eval_{field_name}_button_{idx}", on_click=self.evaluation_callback, args=(field_name, idx,  details, eval_container,), )
         with c2:
             st.markdown(primary_button2, unsafe_allow_html=True)
             st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             tailor_container=st.empty()
-            if f"tailored_{field_name}" in st.session_state:
-                if idx:
-                    popover_key=f"tailor_{field_name}_popover_{idx}"
-                else:
-                    popover_key = f"tailor_{field_name}_popover"
+            if f"tailored_{field_name}_{idx}" in st.session_state:
                 with stylable_container(
-                    key=popover_key,
+                    key=f"tailor_{field_name}_popover_{idx}",
                     css_styles="""
                         button {
                             background: none;
@@ -1345,24 +1342,21 @@ class User():
                         """,
                 ):
                     with tailor_container.popover("Tailor"):
-                        if idx:
-                            button_key=f"tailor_again_{field_name}_button_{idx}"
-                        else:
-                            button_key=f"tailor_again_{field_name}_button"
-                        tailoring = st.session_state[f"tailored_{field_name}"]
+                        tailoring = st.session_state[f"tailored_{field_name}_{idx}"]
                         if field_name=="included_skills":
                             if tailoring!="please try again":
-                                irrelevant_skills = ", ".join(tailoring["irrelevant_skills"])
-                                relevant_skills = ", ".join(tailoring["relevant_skills"])
-                                additional_skills= ", ".join(tailoring["additional_skills"])
-                                st.write("**Here are some tailoring suggestions")
-                                st.write(f"**Irrelevant skills**:{irrelevant_skills}")
-                                st.write(f"**Relevant skills**:{relevant_skills}")
-                                st.write(f"**Additional skills**:{additional_skills}")
-                                c1, c2 = st.columns([2, 1])
-                                with c2:
-                                    if st.button("Rearrange my skills", key="rearrange_skills_button2", ):
-                                        self.rearrange_skills_popup()
+                                irrelevant_skills = ", ".join(tailoring.get("irrelevant skills", ""))
+                                relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
+                                transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
+                                st.write("Here are some tailoring suggestions")
+                                st.write(f"**Skills that can be ranked higher**: {relevant_skills}")
+                                st.write(f"**Skills that can be removed**: {irrelevant_skills}")
+                                st.write(f"**Skills that can be added**: {transferable_skills}")
+                                st.write("Rearrange and edit your skills for maximum resume-job alignment")
+                                # c1, c2 = st.columns([2, 1])
+                                # with c2:
+                                #     if st.button("Rearrange my skills", key="rearrange_skills_button2", ):
+                                #         self.rearrange_skills_popup()
                             else:
                                 st.write(tailoring)
                         elif field_name=="summary_objective":
@@ -1385,37 +1379,43 @@ class User():
                                 st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
                                 annotated_text(text_list)
+                                _, c = st.columns([3,1])
+                                with c:
+                                    st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
+                                    if "old_summary" in st.session_state: 
+                                        st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")     
                                     # st.rerun()
                             else:
                                 st.write(tailoring)
                         elif type=="bullet_points":
-                            st.write(tailoring["ranked"])
-                        if tailoring!="please try again":
-                            _, c = st.columns([3,1])
-                            with c:
-                                st.button("apply changes", on_click=apply_changes, key=button_key+"_apply")  
-                                if "old_summary" in st.session_state: 
-                                    st.button("revert changes", on_click=revert_changes, key=button_key+"_revert", type="primary")     
+                            if tailoring!="please try again" and tailoring!="please add more bullet points first":
+                                st.write(tailoring["ranked"])
+                                if tailoring.get("ranked_list", ""):
+                                    st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
+                                    _, c = st.columns([3,1])
+                                    with c:
+                                        st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
+                                        if f"old_{field_name}_{idx}" in st.session_state: 
+                                            st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
+                            else:
+                                st.write(tailoring)   
+        
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                         with st.popover("Tailor again"):
-                            current = st.button("with the currrent job posting", key=button_key+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, details, tailor_container, ))
-                            new_upload = st.button("with a new job posting", key=button_key+"_new", type="primary",)
+                            current = st.button("with the currrent job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container, ))
+                            new_upload = st.button("with a new job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_new", type="primary",)
                             if new_upload:
-                                self.job_posting_popup(mode="resume", field_name=field_name)
+                                self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
                         # display_tailor_options(popover_label="tailor again", container=tailor_container)
                         # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
-                if idx:
-                    button_key=f"tailor_{field_name}_button_{idx}"
-                else:
-                    button_key=f"tailor_{field_name}_button"
                 display_tailor_options(container=tailor_container)
      
           
 
     @st.dialog("Job posting")   
-    def job_posting_popup(self, mode="resume", field_name="",):
+    def job_posting_popup(self, mode="resume", field_name="", field_idx=-1):
 
         """ Opens a popup for adding a job posting """
 
@@ -1456,6 +1456,7 @@ class User():
                     self.form_callback()
                 if "job_posting_dict" in st.session_state:
                     st.session_state["tailoring_field"]=field_name
+                    st.session_state["tailoring_field_idx"]=field_idx
                     st.rerun()
         # st.session_state["info_container"]=st.empty()
         # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
@@ -1506,13 +1507,13 @@ class User():
 
 
     
-    def tailor_callback(self, type=None, field_name=None, field_details=None, container=None):
+    def tailor_callback(self, type=None, field_name=None, idx=-1, field_details=None, container=None):
       
         if "job_posting_dict" in st.session_state and field_name:
             # starts specific field tailoring
             p=Progress()
             my_bar = container.progress(0, text=None)
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, field_details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Tailoring: {progress}%"))
+            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, idx, field_details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Tailoring: {progress}%"))
             # Ensure the progress bar reaches 100% after the function is complete
             # p.progress = 100
             my_bar.progress(100, text="Tailoring Complete!")
@@ -1527,14 +1528,14 @@ class User():
 
 
 
-    def evaluation_callback(self, field_name=None, details=None, container=None):
+    def evaluation_callback(self, field_name=None, idx=-1, details=None, container=None):
 
         if field_name:
             # starts specific evaluation of a field
             p=Progress()
              # Create a progress bar
             my_bar = container.progress(0, text=None)
-            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
+            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, idx=idx, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
             # Ensure the progress bar reaches 100% after the function is complete
             my_bar.progress(100, text="Evaluation Complete!")
         else:
@@ -1795,7 +1796,7 @@ class User():
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True)
-                            st.write("Tone: keep a formal and respectful tone, avoid using humor, jargons, and slang")
+                            st.write("Tone: keep a formal and respectful tone")
                             st.write("Syntax: use power verbs and an active voice")
                             st.write("Readability: vary your sentence lengths and word syllables")
                         # st.scatter_chart(df)

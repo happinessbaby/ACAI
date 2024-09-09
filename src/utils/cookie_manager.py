@@ -256,8 +256,9 @@ def retrieve_cookie():
     # # Get cookie username and password if there is.
     # cookie_username = controller.get(f'{cookie_name}_username')
     # cookie_password = controller.get(f'{cookie_name}_password')
-    cookie_username = cookies.get(cookie_key)
-    if cookie_username:
+    if cookie_key in cookies.keys() and str(cookies[cookie_key]):
+        cookie_username = cookies.get(cookie_key)
+    # if cookie_username:
         # st.session_state.login_ok = True
         # st.session_state.username = cookie_username
         # st.session_state.password = cookie_password
@@ -273,5 +274,5 @@ def delete_cookie():
     # controller.remove(f'{cookie_name}_username')
     # unset username in cookies
     cookies[cookie_key] = ""
-    cookies.save()
+    # cookies.save()
     print("Successfully removed cookie")

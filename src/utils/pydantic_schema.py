@@ -304,16 +304,14 @@ class ResumeType(BaseModel):
         default="", description="type of resume, should be functional, chronological, or mixed "
     )
 
-class TailoredSkills(BaseModel):
+class SkillsRelevancy(BaseModel):
     irrelevant_skills:Optional[List[str]] = Field(
         default=[], description="irrelevant skills, usually found in Step 1, these are skills that can be excluded from the resume"
     )
     relevant_skills: Optional[List[str]] = Field(
         default=[], description="relevant skills, usually found in Step 2, these are skills in the resume that are also in the job description "
     )
-    additional_skills:Optional[List[str]] = Field(
-        default=[], description="usually found in Step 3, these are skills that can be added on to the resume"
-    )
+ 
 
 class Replacement(BaseModel):
     replaced_words: Optional[str] = Field(
@@ -352,7 +350,7 @@ class JobTrackingUsers(BaseModel):
     # posting_path: Optional[str]
     link: Optional[str]
     content: Optional[str]
-    skills:Optional[List[Skill]]
+    skills:Optional[List[str]]
     job: Optional[str] 
     about_job: Optional[str]
     company: Optional[str] 
