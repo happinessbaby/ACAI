@@ -306,10 +306,13 @@ class ResumeType(BaseModel):
 
 class SkillsRelevancy(BaseModel):
     irrelevant_skills:Optional[List[str]] = Field(
-        default=[], description="irrelevant skills, usually found in Step 1, these are skills that can be excluded from the resume"
+        default=[], description="irrelevant skills, found in content labeled in Step 1, these are skills that can be excluded from the resume"
     )
     relevant_skills: Optional[List[str]] = Field(
-        default=[], description="relevant skills, usually found in Step 2, these are skills in the resume that are also in the job description "
+        default=[], description="relevant skills, found in content labeled in Step 2, these are skills in the resume that are also in the job description "
+    )
+    transferable_skills: Optional[List[str]] = Field(
+        default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
     )
  
 

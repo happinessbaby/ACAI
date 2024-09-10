@@ -375,11 +375,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         response_dict=response.dict() if response else {}
         p.increment(20)  # Update progress 
         loading_func(p.progress)
-        transferable_skills = asyncio_run(lambda:suggest_transferable_skills(resume_content, job_requirements), timeout=5)
-        if transferable_skills:
-            response_dict.update({"transferable_skills":transferable_skills})
-        p.increment(10)  # Update progress 
-        loading_func(p.progress)
+        # transferable_skills = asyncio_run(lambda:suggest_transferable_skills(resume_content, job_requirements), timeout=5)
+        # if transferable_skills:
+        #     response_dict.update({"transferable_skills":transferable_skills})
+        # p.increment(10)  # Update progress 
+        # loading_func(p.progress)
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
         response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=20, max_try=1)
@@ -429,22 +429,22 @@ async def tailor_skills(required_skills, my_skills, job_requirement, ):
 
     Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job description and job requirements.
     
-    These are skills that are in the resume that do not align with the requirement of the job description. Remember some skills are transferable so they are still relevant.
+    These are skills that are in the resume that do not align with the requirement of the job description. 
     
     Step 2: Make a list of skills in the resume that are most relevant to the skills wanted in the job description. 
 
-    These may have the exact same names, or they are skills that are technically related. 
-    
+    These are usally skills that exist in both the resume and job posting. 
+
+    Step 3: Make a list of skills that are in the job description that can be added to the resumes. These are usually transferable skills, but can also be other technical skills. 
+
     Use the following format:
         Step 1: <step 1 reasoning>
         Step 2: <step 2 reasoning>
+        Step 3: <step 3 reasoning>
 
-    Make sure lists from both steps include only skills from the resume, and provide your reasoning too.
+    Make sure lists from both steps include only skills from the resume, and provide your reasoning.
 
     """
-    # Step 3: Make a list of skills that are in the job description that can be added to the resumes. 
-        # Step 3: <step 3 reasoning>
-    
     # These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills but not SQL skill. SQL is the irrelevant skill in the resume since it's not in the job description.\
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills too. Communication is the relevant skill that exists in both the resume and job description. \

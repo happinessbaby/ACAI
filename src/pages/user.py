@@ -1223,6 +1223,15 @@ class User():
         """ Displays the field-specific analysis UI including evaluation and tailoring """
 
 
+        def join_with_punctuation(sublist):
+            # Function to join words while avoiding extra spaces before punctuation
+            result = ""
+            for idx, word in enumerate(sublist):
+                if idx > 0 and not re.match(r'[^\w\s]', word):  # Check if word is not punctuation
+                    result += " "  # Add space only if the next word is not punctuation
+                result += word
+            return result.strip()
+
         def apply_changes():
 
             if field_name=="summary_objective":
@@ -1243,6 +1252,21 @@ class User():
             elif type=="bullet_points":
                 st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
                 st.session_state["profile_changed"]=True
+
+        def create_annotations(text_list, replaced_words, substitutions):
+
+            # replace replacements with annotation
+            for i in range(len(text_list)):
+                for j in range(1, len(text_list)-i+1):
+                    # substring = " ".join(text_list[i:i+j]).strip()
+                    substring = join_with_punctuation(text_list[i:i+j])
+                    if substring in replaced_words:
+                        idx = replaced_words.index(substring)
+                        text_list[i] = (substitutions[idx]+" ", substring)
+                        for x in range(i+1, i+j):
+                            text_list[x]=""
+                        break                 
+            return text_list
 
 
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
@@ -1324,17 +1348,8 @@ class User():
                                 text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
                                 replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
                                 substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
-                                # replace replacements with annotation
-                                for i in range(len(text_list)):
-                                    for j in range(1, len(text_list)-i+1):
-                                        substring = " ".join(text_list[i:i+j])
-                                        if substring in replaced_words:
-                                            idx = replaced_words.index(substring)
-                                            text_list[i] = (substitutions[idx]+" ", substring)
-                                            for x in range(i+1, i+j):
-                                                text_list[x]=""
-                                            break                 
-                                text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
+                                text_list = create_annotations(text_list, replaced_words, substitutions)     
+                                text_list =  [text + " " if not isinstance(text, tuple) and not re.match(r'[^\w\s]', text) else text for text in text_list if text != ""]
                                 st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
                                 annotated_text(text_list)
