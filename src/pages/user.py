@@ -553,26 +553,24 @@ class User():
                 _, c2 = st.columns([3, 1])
                 with c2:
                     add_vertical_space(2)
-                    skip= st.button(label="I'll do it later", type="primary", )
-            if resume:
-                    resume_placeholder.empty()
-                    with spinner_placeholder.container():
-                        with st.spinner("Processing..."):
-                            self.form_callback()
-                        if "user_resume_path" in st.session_state:
-                            with st.spinner("Creating your profile..."):
-                                self.initialize_resume_callback()
-                                st.rerun()
+                    skip= st.button(label="I'll do it later", type="primary", key="skip_resume_button" )
             if skip:
                 resume_placeholder.empty()
-                # delete any old resume saved in session state
-                if "user_resume_path" in st.session_state:
-                    del st.session_state["user_resume_path"]
                 with spinner_placeholder.container():
                     with st.spinner("Loading your profile..."):
                         time.sleep(1)
                         self.create_empty_profile() 
                         st.rerun()
+            if resume:
+                resume_placeholder.empty()
+                with spinner_placeholder.container():
+                    with st.spinner("Processing..."):
+                        # self.form_callback()
+                        self.process(resume, "resume")
+                    if "user_resume_path" in st.session_state:
+                        with st.spinner("Creating your profile..."):
+                            self.initialize_resume_callback()
+                            st.rerun()
 
     def initialize_resume_callback(self, ):
 
@@ -589,6 +587,7 @@ class User():
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
         save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
+        self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
                  
@@ -606,6 +605,8 @@ class User():
                    "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+         # delete any old resume saved in session state
+        self.delete_session_states(["user_resume_path"])
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
 
@@ -679,75 +680,66 @@ class User():
     #         # Retry after a short delay
     #         return self.get_address(latitude, longitude)
         
-    def form_callback(self,):
+    # def form_callback(self,):
 
 
-        # try:
-        #     st.session_state["self_description"] = st.session_state.self_descriptionx
-        #     st.session_state["users"][st.session_state.userId]["self_description"] = st.session_state.self_description
-        # except AttributeError:
-        #     pass
-        # try:
-        #     st.session_state["career_goals"] = st.session_state.career_goalsx
-        #     st.session_state["users"][st.session_state.userId]["career_goals"] = st.session_state.career_goals
-        # except AttributeError:
-        #     pass
-        # try:
-        #     st.session_state["job_level"] = st.session_state.job_levelx
-        #     st.session_state["users"][st.session_state.userId]["job_level"] = st.session_state.job_level
-        # except AttributeError:
-        #     pass
-        # try:
-        #     st.session_state["min_pay"] = st.session_state.min_payx
-        #     st.session_state["users"][st.session_state.userId]["mininum_pay"] = st.session_state.min_pay
-        # except AttributeError:
-        #     pass
-        # try:
-        #     st.session_state["pay_type"] = st.session_state.pay_typex
-        #     st.session_state["users"][st.session_state.userId]["pay_type"] = st.session_state.pay_type
-        # except AttributeError:
-        #     pass
+    #     # try:
+    #     #     st.session_state["self_description"] = st.session_state.self_descriptionx
+    #     #     st.session_state["users"][st.session_state.userId]["self_description"] = st.session_state.self_description
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     st.session_state["career_goals"] = st.session_state.career_goalsx
+    #     #     st.session_state["users"][st.session_state.userId]["career_goals"] = st.session_state.career_goals
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     st.session_state["job_level"] = st.session_state.job_levelx
+    #     #     st.session_state["users"][st.session_state.userId]["job_level"] = st.session_state.job_level
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     st.session_state["min_pay"] = st.session_state.min_payx
+    #     #     st.session_state["users"][st.session_state.userId]["mininum_pay"] = st.session_state.min_pay
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     st.session_state["pay_type"] = st.session_state.pay_typex
+    #     #     st.session_state["users"][st.session_state.userId]["pay_type"] = st.session_state.pay_type
+    #     # except AttributeError:
+    #     #     pass
         
-        # try:
-        #     st.session_state["career_switch"] = st.session_state.career_switchx
-        #     st.session_state["users"][st.session_state.userId]["career_switch"] = st.session_state.career_switch
-        # except AttributeError:
-        #     pass
-        # try:
-        #     transferable_skills = st.session_state.transferable_skillsx
-        #     self.process("transferable_skills", transferable_skills)
-        #     st.session_state["users"][st.session_state.userId]["transferable_skills"] = st.session_state.transferable_skills
-        # except AttributeError:
-        #     pass
-        # try:
-        #     location_input = st.session_state.location_inputx
-        #     self.process("location_input", location_input)
-        #     st.session_state["users"][st.session_state.userId]["location_input"] = st.session_state.location_input
-        # except AttributeError:
-        #     pass
-        try:
-            # delete old instance of user_resume_path
-            try:
-                del st.session_state["user_resume_path"]
-            except Exception:
-                pass
-            resume = st.session_state.user_resume
-            if resume:
-                self.process([resume], "resume", )
-        except AttributeError:
-            pass
-        try:
-            try:
-                del st.session_state["job_posting_path"]
-                del st.session_state["job_description"]
-                # del st.session_state["preselection"]
-            except Exception:
-                pass
-            posting = st.session_state.job_postingx
-            if posting:
-                self.process(posting, "job_posting",)
-        except AttributeError:
-            pass
+    #     # try:
+    #     #     st.session_state["career_switch"] = st.session_state.career_switchx
+    #     #     st.session_state["users"][st.session_state.userId]["career_switch"] = st.session_state.career_switch
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     transferable_skills = st.session_state.transferable_skillsx
+    #     #     self.process("transferable_skills", transferable_skills)
+    #     #     st.session_state["users"][st.session_state.userId]["transferable_skills"] = st.session_state.transferable_skills
+    #     # except AttributeError:
+    #     #     pass
+    #     # try:
+    #     #     location_input = st.session_state.location_inputx
+    #     #     self.process("location_input", location_input)
+    #     #     st.session_state["users"][st.session_state.userId]["location_input"] = st.session_state.location_input
+    #     # except AttributeError:
+    #     #     pass
+    #     try:
+    #         # delete old instance of user_resume_path
+    #         resume = st.session_state.user_resume
+    #         if resume:
+    #             self.process([resume], "resume", )
+    #     except AttributeError:
+    #         pass
+    #     try:
+    #         posting = st.session_state.job_postingx
+    #         if posting:
+    #             self.process(posting, "job_posting",)
+    #     except AttributeError:
+    #         pass
+    #     self.delete_session_states(["user_resume_path", "job_posting_path", "job_description"])
         # try:
         #     try:
         #         del st.session_state["job_posting_path"]
@@ -783,29 +775,32 @@ class User():
                     st.session_state["user_resume_path"]= end_path
                 else:
                     st.warning("Please upload your resume")
+                    time.sleep(2)
+                    st.rerun()
             else:
                 st.warning("That didn't work, please try again.") 
                 time.sleep(2)   
                 st.rerun()     
         elif input_type=="job_posting":
-            result = process_links(input_value, st.session_state.users_upload_path, )
-            if result is not None:
-                content_safe, content_type, content_topics, end_path = result
-                if content_safe and content_type=="job posting":
+            topic, safe = process_inputs(input_value, )
+            if topic=="job description" and safe:
+                st.session_state["job_description"] = input_value
+                self.initialize_job_posting_callback()
+            elif topic=="url" and safe:
+                end_path = process_links(input_value, st.session_state.users_upload_path, )
+                if end_path is not None:
+                    # content_safe, content_type, content_topics, end_path = result
+                    # if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                     st.session_state["posting_link"]=input_value
-                    # st.session_state["tailoring_field"]=st.session_state.tailoring_fieldx
                     self.initialize_job_posting_callback()
                 else:
                     #NOTE: the warnings for job posting are not showing in dialog, despite creating empty containers 
                     st.warning("That didn't work. Please try pasting the content of job description")
             else:
-                result = process_inputs(input_value, match_topic="job posting or job description")
-                if result is not None:
-                    st.session_state["job_description"] = input_value
-                    self.initialize_job_posting_callback()
-                else:
-                    st.warning("Please upload a job posting")
+                st.warning("That didn't work. Please try again")
+                    
+
         # elif input_type=="job_description":
         #     result = process_inputs(input_value, match_topic="job posting or job description")
         #     if result is not None:
@@ -1227,7 +1222,6 @@ class User():
 
         """ Displays the field-specific analysis UI including evaluation and tailoring """
 
-        _, c0, c1, c2 = st.columns([5, 1, 1, 1])
 
         def apply_changes():
 
@@ -1251,50 +1245,14 @@ class User():
                 st.session_state["profile_changed"]=True
 
 
-
-        def display_tailor_options(container):
-            # st.markdown(primary_button2, unsafe_allow_html=True)
-            # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-            with stylable_container(
-                    key=f"tailor_{field_name}_{idx}_popover",
-                    css_styles="""
-                        button {
-                            background: none;
-                            border: none;
-                            color: #ff8247;
-                            padding: 0;
-                            cursor: pointer;
-                            font-size: 12px; /* Adjust as needed */
-                            text-decoration: none;
-                        }
-                        """,
-                ):
-                if "job_posting_dict" not in st.session_state:
-                    with container.popover("Tailor"):
-                        upload = st.button("Please upload a job posting first", type="primary", key=f"tailor_{field_name}_{idx}_upload")
-                        if upload:
-                            self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx, )
-                else:
-                    if field_name==st.session_state["tailoring_field"] and idx==st.session_state["tailoring_field_idx"] and  f"tailored_{field_name}_{idx}" not in st.session_state:
-                        self.tailor_callback(type, field_name, idx, details, container)
-                        st.rerun()
-                    else:
-                        with container.popover("Tailor"):
-                            # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
-                            current = st.button("with the currrent job posting", key=f"tailor_{field_name}_{idx}_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, container, ))
-                            new_upload = st.button("with a new job posting", key=f"tailor_{field_name}_{idx}_new", type="primary",)
-                            # if current:
-                            #     # self.tailor_callback(type, field_name, details, )
-                            #     tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, details,)
-                            if new_upload:
-                                self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
+        _, c0, c1, c2 = st.columns([5, 1, 1, 1])
         with c1:
-            # NOTE: Skills section doesn't have evaluate option
             st.markdown(primary_button2, unsafe_allow_html=True)
             st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            # NOTE: Skills section doesn't have evaluate option
             if field_name!="included_skills":
                 eval_container=st.empty()
-                if f"evaluated_{field_name}_{idx}" in st.session_state:
+                if f"evaluated_{field_name}_{idx}" in st.session_state or f"readability_{field_name}_{idx}" in st.session_state:
                     with stylable_container(
                         key= f"eval_{field_name}_{idx}_popover",
                         css_styles="""
@@ -1310,16 +1268,17 @@ class User():
                             """,
                     ):
                         with eval_container.popover("Evaluate"):
-                                if f"readability_{field_name}_{idx}" in st.session_state:
-                                    if st.session_state[f"readability_{field_name}_{idx}"]:
-                                        fig = readability_indicator(st.session_state[f"readability_{field_name}_{idx}"])
-                                        st.plotly_chart(fig)
-                                evaluation = st.session_state[f"evaluated_{field_name}_{idx}"]
-                                if evaluation:
-                                    st.write(evaluation)
-                                st.markdown(primary_button2, unsafe_allow_html=True)
-                                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                                st.button("Evaluate again", key=f"eval_again_{field_name}_button_{idx}",  on_click=self.evaluation_callback, args=(field_name, idx, details, eval_container, ), )
+                            # if f"readability_{field_name}_{idx}" in st.session_state:
+                            if st.session_state[f"readability_{field_name}_{idx}"]:
+                                fig = readability_indicator(st.session_state[f"readability_{field_name}_{idx}"])
+                                st.plotly_chart(fig)
+                            if st.session_state[f"evaluated_{field_name}_{idx}"]:
+                                st.write(st.session_state[f"evaluated_{field_name}_{idx}"])
+                            if not st.session_state[f"readability_{field_name}_{idx}"] and not st.session_state[f"evaluated_{field_name}_{idx}"]:
+                                st.write("please try again")
+                            st.markdown(primary_button2, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                            st.button("Evaluate again", key=f"eval_again_{field_name}_button_{idx}",  on_click=self.evaluation_callback, args=(field_name, idx, details, eval_container, ), )
                 else:
                     evaluate = eval_container.button("Evaluate",  key=f"eval_{field_name}_button_{idx}", on_click=self.evaluation_callback, args=(field_name, idx,  details, eval_container,), )
         with c2:
@@ -1381,9 +1340,10 @@ class User():
                                 annotated_text(text_list)
                                 _, c = st.columns([3,1])
                                 with c:
+                                    #NOTE: in the future can apply and revert one by one
                                     st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
                                     if "old_summary" in st.session_state: 
-                                        st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")     
+                                        st.button("     revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")     
                                     # st.rerun()
                             else:
                                 st.write(tailoring)
@@ -1391,27 +1351,56 @@ class User():
                             if tailoring!="please try again" and tailoring!="please add more bullet points first":
                                 st.write(tailoring["ranked"])
                                 if tailoring.get("ranked_list", ""):
-                                    st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
-                                    _, c = st.columns([3,1])
-                                    with c:
-                                        st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
-                                        if f"old_{field_name}_{idx}" in st.session_state: 
-                                            st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
+                                    st.write(tailoring["ranked_list"])
+                                #     st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
+                                #     _, c = st.columns([3,1])
+                                #     with c:
+                                #         st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
+                                #         if f"old_{field_name}_{idx}" in st.session_state: 
+                                #             st.button("revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
                             else:
                                 st.write(tailoring)   
         
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                         with st.popover("Tailor again"):
-                            current = st.button("with the currrent job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container, ))
+                            current = st.button("with the currrent job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container,))
                             new_upload = st.button("with a new job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_new", type="primary",)
                             if new_upload:
                                 self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
                         # display_tailor_options(popover_label="tailor again", container=tailor_container)
                         # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
-                display_tailor_options(container=tailor_container)
-     
+                with stylable_container(
+                    key=f"tailor_{field_name}_{idx}_popover",
+                    css_styles="""
+                        button {
+                            background: none;
+                            border: none;
+                            color: #ff8247;
+                            padding: 0;
+                            cursor: pointer;
+                            font-size: 12px; /* Adjust as needed */
+                            text-decoration: none;
+                        }
+                        """,
+                ):
+                    if "job_posting_dict" not in st.session_state:
+                        with tailor_container.popover("Tailor"):
+                            upload = st.button("Please upload a job posting first", type="primary", key=f"tailor_{field_name}_{idx}_upload")
+                            if upload:
+                                self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx, )
+                    else:
+                        if field_name==st.session_state["tailoring_field"] and idx==st.session_state[f"tailoring_field_idx"]:
+                            self.tailor_callback(type, field_name, idx, details, tailor_container)
+                            st.rerun()
+                        else:
+                            with tailor_container.popover("Tailor"):
+                                current = st.button("with the currrent job posting", key=f"tailor_{field_name}_{idx}_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container,))
+                                new_upload = st.button("with a new job posting", key=f"tailor_{field_name}_{idx}_new", type="primary",)
+                                if new_upload:
+                                    self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
+        
           
 
     @st.dialog("Job posting")   
@@ -1442,18 +1431,19 @@ class User():
                     horizontal=True,)
             if freeze:
                 st.session_state["freeze"]=True
-        # st.session_state["job_error_placeholder"]=st.empty()
-        job_description = st.text_area("job posting link or job description", 
+        job_posting = st.text_area("job posting link or job description", 
                                         key="job_postingx", 
                                         placeholder="Pleasae paste a job posting link or a job description here",
                                         # on_change=self.form_callback, 
                                         label_visibility="collapsed",
                                             )
-        if job_description:
+        if job_posting:
             # self.form_callback()
             if mode=="resume":
                 with st.spinner("Processing..."):
-                    self.form_callback()
+                    # self.form_callback()
+                    # self.delete_session_states(["job_postingx"])
+                    self.process(job_posting, "job_posting")
                 if "job_posting_dict" in st.session_state:
                     st.session_state["tailoring_field"]=field_name
                     st.session_state["tailoring_field_idx"]=field_idx
@@ -1504,6 +1494,7 @@ class User():
         st.session_state["job_posting_dict"].update({"status": ""})
         st.session_state["job_posting_dict"].update({"time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
         save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+        self.delete_session_states(["job_posting_path", "job_description"])
 
 
     
@@ -1513,18 +1504,18 @@ class User():
             # starts specific field tailoring
             p=Progress()
             my_bar = container.progress(0, text=None)
-            tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, idx, field_details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Tailoring: {progress}%"))
+            response_dict=tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], type, field_name, idx, field_details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Tailoring: {progress}%"))
+            if response_dict:
+                print(f"successfully tailored {field_name}")
+                st.session_state[f"tailored_{field_name}_{idx}"]=response_dict
+            else:
+                print(f"failed to tailor {field_name}")
+                st.session_state[f"tailored_{field_name}_{idx}"]="please try again"
+
             # Ensure the progress bar reaches 100% after the function is complete
             # p.progress = 100
             my_bar.progress(100, text="Tailoring Complete!")
-        # else:
-            # initialize a job posting popup 
-            # if field_name:
-            #     st.session_state["tailoring_field"]=field_name
-            # if field_details:
-            #     st.session_state["tailoring_details"]=field_details
-            # self.job_posting_popup()
-            
+
 
 
 
@@ -1535,8 +1526,16 @@ class User():
             p=Progress()
              # Create a progress bar
             my_bar = container.progress(0, text=None)
-            evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, idx=idx, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
+            readability_dict, evaluation = evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, idx=idx, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
             # Ensure the progress bar reaches 100% after the function is complete
+            if readability_dict:
+                st.session_state[f"readability_{field_name}_{idx}"]=readability_dict
+            else:
+                st.session_state[f"readability_{field_name}_{idx}"]=None
+            if evaluation:
+                st.session_state[f"evaluated_{field_name}_{idx}"]=evaluation
+            else:
+                st.session_state[f"evaluated_{field_name}_{idx}"]=None
             my_bar.progress(100, text="Evaluation Complete!")
         else:
             # start general evaluation if there's no saved evaluation 
@@ -1826,18 +1825,12 @@ class User():
                     if st.button("Evaluate again", key=f"eval_button", ):
                         # if button_name=="evaluate again ✨":
                             # container.empty()
-                            # delete previous evaluation states
-                            try:
-                                # remove evaluation from lance table and old evaluation from session
-                                delete_user_from_table(st.session_state.userId, lance_eval_table)
-                                del st.session_state["evaluation"]
-                                del st.session_state["init_eval"]
-                            except Exception:
-                                pass
-                            finally:
-                                # reset evaluation rerun timer
-                                st.session_state["eval_rerun_timer"]=3
-                                st.rerun()
+                            # remove evaluation from lance table and old evaluation from session
+                            delete_user_from_table(st.session_state.userId, lance_eval_table)
+                            self.delete_session_states(["evaluation","init_eval"])
+                            # reset evaluation rerun timer
+                            st.session_state["eval_rerun_timer"]=3
+                            st.rerun()
                         # elif button_name=="stop evaluation":s
                         #     try:
                         #         # kill the evaluation thread 
@@ -1895,15 +1888,15 @@ class User():
                 delete_user_from_table(st.session_state.userId, lance_users_table)
                 delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
-                try:
-                    del st.session_state["profile"]
-                    del st.session_state["evaluation"]
-                    del st.session_state["init_eval"]
-                except Exception:
-                    pass
+                self.delete_session_states(["profile", "evaluation", "init_eval"])
                 st.rerun()
     
-      
+    def delete_session_states(self, names:List[str])->None:
+        for name in names:
+            try:
+                del st.session_state[name]
+            except Exception:
+                pass
     # def get_current_page(self, ):
     #     try:
     #         current_page = pages[ctx.page_script_hash]

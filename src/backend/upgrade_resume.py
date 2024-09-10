@@ -117,22 +117,27 @@ def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=Non
         except AttributeError:
             pass
     # Evaluates specific field  content
-    if details:
-        for _ in range(5):
-            # Perform some processing (e.g., tailoring a resume)
-            time.sleep(0.1)  # Simulate time-consuming task
-            p.increment(10)  # Update progress in steps of 10%
-            loading_func(p.progress)
-        # work_experience= resume_dict["work_experience"]
-        st.session_state[f"readability_{type}_{idx}"] = readability_checker(resume_content)
-        p.increment(20) 
-        loading_func(p.progress)
-        evaluation= analyze_field_content(details, type, resume_content)
-        p.increment(30)  
-        loading_func(p.progress)
-        st.session_state[f"evaluated_{type}_{idx}"]=evaluation
     else:
-        st.session_state[f"evaluated_{type}"]="Please fill out the content"
+        readability_dict, evaluation ={},  None
+        if details:
+            for _ in range(5):
+                # Perform some processing (e.g., tailoring a resume)
+                time.sleep(0.1)  # Simulate time-consuming task
+                p.increment(10)  # Update progress in steps of 10%
+                loading_func(p.progress)
+            # work_experience= resume_dict["work_experience"]
+            # st.session_state[f"readability_{type}_{idx}"] = readability_checker(resume_content)
+            readability_dict = readability_checker(resume_content)
+            p.increment(20) 
+            loading_func(p.progress)
+            evaluation= analyze_field_content(details, type, resume_content)
+            p.increment(30)  
+            loading_func(p.progress)
+        return readability_dict, evaluation
+        # st.session_state[f"evaluated_{type}_{idx}"]=evaluation
+    # else:
+    #     # st.session_state[f"evaluated_{type}"]="Please fill out the content"
+    #     eval_dict="Please fill out the content"
 
 
 
@@ -358,20 +363,15 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         loading_func(p.progress)
 
     about_job = job_posting_dict["about_job"]
-    required_skills = job_posting_dict["skills"] 
+    job_skills = job_posting_dict["skills"] 
     resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
-    if not job_requirements:
-        if required_skills:
-            job_requirements = required_skills
-        elif about_job:
-            job_requirements = about_job
-    company_description = job_posting_dict["company_description"]
+    job_requirements = about_job if not job_requirements else job_requirements
+    # company_description = job_posting_dict["company_description"]
     p.increment(10)  # Update progress 
     loading_func(p.progress)
     if field_name=="included_skills":
-        required_skills = job_posting_dict["skills"]
-        response = asyncio_run(lambda: tailor_skills(required_skills, details, resume_content, job_requirements,), timeout=10)
+        response = asyncio_run(lambda: tailor_skills(job_skills, details, job_requirements, ), timeout=20, max_try=1)
         response_dict=response.dict() if response else {}
         p.increment(20)  # Update progress 
         loading_func(p.progress)
@@ -382,7 +382,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         loading_func(p.progress)
     elif field_name=="summary_objective":
         job_title = job_posting_dict["job"]
-        response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=10)
+        response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=20, max_try=1)
         response_dict=response.dict() if response else {}
         p.increment(30)  # Update progress 
         loading_func(p.progress)
@@ -394,10 +394,13 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
             loading_func(p.progress)
         else:
             response_dict = "please add more bullet points first"
-    if response_dict:
-        st.session_state[f"tailored_{field_name}_{idx}"]=response_dict
-    else:
-        st.session_state[f"tailored_{field_name}_{idx}"]="please try again"
+    return response_dict
+    # if response_dict:
+    #     print(f"successfully tailored {field_name}")
+    #     st.session_state[f"tailored_{field_name}_{idx}"]=response_dict
+    # else:
+    #     print(f"failed to tailor {field_name}")
+    #     st.session_state[f"tailored_{field_name}_{idx}"]="please try again"
     # return st.session_state.tailor_dict
 
 
@@ -409,20 +412,22 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
 #         skills_str+="(skill: " +skill + ", example: "+ example + ")"
 #     return skills_str
 
-async def tailor_skills(required_skills, my_skills, resume_content, job_requirements):
+async def tailor_skills(required_skills, my_skills, job_requirement, ):
 
     """ Creates a list of relevant skills, irrelevant skills, and transferable skills according to the skills required in a job description"""
   
     
     skills_prompt = """ Your task is to compare the skills section of the resume and skills required in the job description. 
     
-    You are given two core pieces of information below: the skills in a resume and the skills wanted in a job description.
+    You are given several core pieces of information below: a list of skills in a resume, a list of skills wanted in a job posting, and job requirements
     
-    The skills in the resume: {my_skills} \
+    skill list in the resume: {my_skills} \
     
-    Skills wanted in the job description: {required_skills} \
+    skill list in the job description: {required_skills} \
+    
+    job requirements: {job_requirement} \
 
-    Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job description. 
+    Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job description and job requirements.
     
     These are skills that are in the resume that do not align with the requirement of the job description. Remember some skills are transferable so they are still relevant.
     
@@ -462,10 +467,10 @@ async def tailor_skills(required_skills, my_skills, resume_content, job_requirem
             ]
         )
     model_parser = prompt | llm.with_structured_output(schema=SkillsRelevancy)
-    generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough()} 
+    generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough(), "job_requirement":RunnablePassthrough()} 
                      | prompt_template
                      | model_parser)
-    response = await generator.ainvoke({"my_skills":my_skills, "required_skills":required_skills})
+    response = await generator.ainvoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
     # print(response)
     return response
 
@@ -516,7 +521,7 @@ async def tailor_objective(job_requirements, my_objective, resume_content, job_t
 
         Please follow the following format and the relevant information from a job posting with to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and DO NOT make changes based on arbitrary choice of wording.
         
-        Always follow relevant information you're provided to make relevant changes. 
+        Always follow relevant information you're provided to make relevant changes and make sure the replaced words are verbatim from the resume objective.
 
         1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
 

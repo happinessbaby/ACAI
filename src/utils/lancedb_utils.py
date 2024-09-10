@@ -260,7 +260,7 @@ def save_user_changes(userId, data, schema, tablename):
     #NOTE: below json dump crashes the ui
     # if tablename==lance_users_table:
     #     data["resume_content"] = json.dumpss(data)
-    # NOTE: currently does not support update, so need to delete the row and append it again
+    # NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
     print(data)
     try:
         delete_user_from_table(userId, tablename)
