@@ -406,6 +406,7 @@ def html_to_text(urls:List[str], save_path=None, to_tmp=False):
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
         content = docs_transformed[0].page_content  
+        print(content)
         txt_path= write_file(end_path=save_path, file_content=content, file_ext="txt", to_tmp=to_tmp)
         return txt_path
     except Exception as e:
