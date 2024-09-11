@@ -480,7 +480,7 @@ def create_mapreduce_chain(files: List[str], map_template:str, reduce_template:s
 
     return map_reduce_chain.run(docs)
 
-async def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")) -> Dict[str, Any]:
+def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")) -> Dict[str, Any]:
 
     """ Tags input text according to schema: https://python.langchain.com/docs/use_cases/tagging """
 
@@ -512,23 +512,24 @@ async def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0
 
     #     dictionary of metadata
 
-    # chain = create_tagging_chain(schema, llm)
-    # response = chain.run(user_input)
-    tagging_prompt = ChatPromptTemplate.from_template(
-    """
-        Extract the desired information from the following passage.
+    chain = create_tagging_chain(schema, llm)
+    response = chain.run(user_input)
+    # tagging_prompt = ChatPromptTemplate.from_template(
+    # """
+    #     Extract the desired information from the following passage.
 
-        Only extract the properties mentioned in the 'Classification' function.
+    #     Only extract the properties mentioned in the 'Classification' function.
 
-        Passage:
-        {input}
-        """
-        )
-    llm = llm.with_structured_output(
-        schema
-    )
-    chain = tagging_prompt | llm
-    response = await chain.ainvoke({"input":user_input})
+    #     Passage:
+    #     {input}
+    #     """
+    #     )
+    # llm = llm.with_structured_output(
+    #     schema
+    # )
+    # chain = tagging_prompt | llm
+    # response = await chain.ainvoke({"input":user_input})
+    print(response)
     return response
 
 def create_document_tagger(schema:Dict[str, Any], doc:Document, llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")) -> Dict[str, Any]:

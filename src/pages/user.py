@@ -64,6 +64,8 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
+menu_placeholder=st.empty()
+profile_placeholder=st.empty()
 _, c, _= st.columns([3, 1, 3])
 with c:
     add_vertical_space(20)
@@ -71,6 +73,7 @@ with c:
 _, c1, _ = st.columns([3, 2, 3])
 with c1:
     signin_placeholder=st.empty()
+    signup_placeholder=st.empty()
 _, c2, _ = st.columns([1, 1, 1, ])
 with c2:
     resume_placeholder=st.empty()
@@ -192,11 +195,13 @@ class User():
             st.session_state["user_mode"]="reset"
             self.reset_password(token, username)
         if st.session_state.user_mode!="signedout" and st.session_state.user_mode!="reset":
-            user_menu(st.session_state.userId, page="profile")
+            with menu_placeholder.container():
+                user_menu(st.session_state.userId, page="profile")
             # st.logo("./resources/logo_acareerai.png")
         if st.session_state.user_mode=="signup":
-            print("signing up")
-            self.sign_up()
+            with signup_placeholder.container():
+                print("signing up")
+                self.sign_up()
         elif st.session_state.user_mode=="signedin":
             print("signed in")
             if "redirect_page" in st.session_state:
@@ -204,15 +209,17 @@ class User():
             else:
                 try:
                     if not st.session_state["profile"]:
-                        print("user profile does not exists yet")
-                        # ask user for their resumes
-                        self.initialize_resume()
+                        with resume_placeholder.container():
+                            print("user profile does not exists yet")
+                            # ask user for their resumes
+                            self.initialize_resume()
                     else:
-                        #display the progress bar
-                        progress_bar(0)
-                        add_vertical_space(8)
-                        # display the main profile
-                        self.display_profile()
+                        with profile_placeholder.container():
+                            #display the progress bar
+                            progress_bar(0)
+                            add_vertical_space(8)
+                            # display the main profile
+                            self.display_profile()
                 except KeyError as e:
                     print(e)
                     # NOTE; sometimes retrieval of the user_profile_dict is slow so "if st.session_state["user_profile_dict"]" will raise an error
@@ -226,8 +233,9 @@ class User():
                     #     # Re-raise the KeyError for any other missing key
                     #     raise
         elif st.session_state.user_mode=="signedout":
-            print("signed out")
-            self.sign_in()
+            with signin_placeholder.container(border=True):
+                print("signed out")
+                self.sign_in()
         elif st.session_state.user_mode=="signout":
             self.sign_out()
         # elif st.session_state.user_mode=="reset_password":
@@ -263,35 +271,19 @@ class User():
     # @st.fragment()
     def sign_in(self, ):
 
-        # _, c1, _ = st.columns([3, 2, 3])
-        # with c1:
-            # signin_placeholder=st.empty()
-            with signin_placeholder.container(border=True):
-                # st.markdown("<h1 style='text-align: center; color: #2d2e29;'>Welcome to ACAI</h1>", unsafe_allow_html=True)
-                st.image(st.session_state.logo_path)
-                _, g_col= st.columns([1, 3])
-                with g_col:
-                    self.google_signin()
-                # add_vertical_space(1)
-                # sac.divider(label='or',  align='center', color='gray')
-                st.divider()
-                st.subheader("Log in")
-                with st.form(key="login_form", clear_on_submit=True, ):
-                    username=st.text_input("Email", )
-                    password=st.text_input("Password", type="password")
-                    submit = st.form_submit_button("login", )
-            if submit:
-                signin_placeholder.empty()
-                username= authenticate(username, password)
-                if username:
-                    st.session_state["user_mode"]="signedin"
-                    st.session_state["userId"]=username
-                    print("signing in")
-                    st.rerun()
-                else:
-                    st.error('Wrong username/password.')
 
-
+        st.image(st.session_state.logo_path)
+        _, g_col= st.columns([1, 3])
+        with g_col:
+            self.google_signin()
+        # add_vertical_space(1)
+        # sac.divider(label='or',  align='center', color='gray')
+        st.divider()
+        st.subheader("Log in")
+        with st.form(key="login_form", clear_on_submit=True, ):
+            username=st.text_input("Email", )
+            password=st.text_input("Password", type="password")
+            signin = st.form_submit_button("login", )
                 # name, authentication_status, username = st.session_state.authenticator.login()
                 # if authentication_status:
                 #     # email = st.session_state.authenticator.credentials["usernames"][username]["email"]
@@ -302,27 +294,31 @@ class User():
                 # elif authentication_status==False:
                 #     st.error('Username/password is incorrect')
                 # placeholder_error = st.empty()
-                signup_col, forgot_password_col= st.columns([3, 1])
-                with signup_col:
-                    add_vertical_space(2)
-                    sign_up = st.button(label="Sign up", key="signup",  type="primary")
-                    if sign_up:
-                        st.session_state["user_mode"]="signup"
-                        st.rerun()
-                with forgot_password_col:
-                    st.markdown(primary_button3, unsafe_allow_html=True)
-                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    if st.button(label="forgot password", key="forgot_password", ):
-                        self.recover_password_popup()
-                # with forgot_username_col:
-                #     st.markdown(primary_button3, unsafe_allow_html=True)
-                #     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                #     if st.button(label="forgot username", key="forgot_username",):
-                #         self.recover_password_username_popup(type="username")
-                # print(name, authentication_status, username)
-            # if st.button("skip log in", ):
-            #     st.session_state.userId="test"
-            #     st.session_state["mode"]="signedin"
+        signup_col, forgot_password_col= st.columns([3, 1])
+        with signup_col:
+            add_vertical_space(2)
+            signup = st.button(label="Sign up", key="signup",  type="primary")
+        with forgot_password_col:
+            st.markdown(primary_button3, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+            forgot=st.button(label="forgot password", key="forgot_password", )
+        if signup:
+            signin_placeholder.empty()
+            st.session_state["user_mode"]="signup"
+            st.rerun()
+        if signin:
+            username= authenticate(username, password)
+            if username:
+                signin_placeholder.empty()
+                st.session_state["user_mode"]="signedin"
+                st.session_state["userId"]=username
+                print("signing in")
+                st.rerun()
+            else:
+                st.error('Wrong username/password.')
+        if forgot:
+            self.recover_password_popup()
+
 
     @st.dialog(title=" ")
     def recover_password_popup(self):
@@ -344,8 +340,9 @@ class User():
         submit = st.button("next", key="recover_password_submit_button", disabled=st.session_state.recover_disabled, )
         if submit:
             if "recover_password" in st.session_state:
-                if send_recovery_email(st.session_state.recover_password_email, ):
-                    st.success('Please check your email')
+                with st.spinner("Processing..."):
+                    if send_recovery_email(st.session_state.recover_password_email, ):
+                        st.success('Please check your email')
             else:
                 st.error("something went wrong, please try again.")
 
@@ -412,51 +409,51 @@ class User():
         else:
             print("No user is signed in")
 
-    @st.fragment()
+    # @st.fragment()
     def sign_up(self,):
 
         print("inside signing up")
-        _, c, _ = st.columns([1, 1, 1])
-        with c:
-            signup_placeholder=st.empty()
-            with signup_placeholder.container():
-                st.subheader("Register")
-                with st.container(border=True):
-                    # if "signup_error_msg" in st.session_state and ""
-                    # if "signup_email" in st.session_state 
-                    #     st.session_state.signup_disabled=False
-                    # else:
-                    #     st.session_state.signup_disabled=True
-                    st.session_state["signup_disabled"]=False
-                    # with st.form("sign_up_form"):
-                    first_name=st.text_input("First name (optional)", key="signup_first_name", )
-                    last_name = st.text_input("Last name (optional)", key="signup_last_name")
-                    email = st.text_input("Email", key="signup_email", on_change=check_user)
-                    password=st.text_input("Password", type="password", key="signup_password", on_change=check_user, )
-                    confirm_password = st.text_input("Confirm password", type="password", key="signup_password_confirm", )
-                    if password and confirm_password and password!=confirm_password:
-                        st.error("Passwords don't match")
-                        st.session_state.signup_disabled=True
-                    if "signup_error_msg" in st.session_state:
-                        if st.session_state.signup_error_msg == "email exists":
-                            st.error("Email already exists. Please log in.")
-                        elif st.session_state.signup_error_msg == "email invalid":
-                            st.error("Please provide a valid email. ")
-                        elif st.session_state.signup_error_msg == "password length":
-                            st.error("Password must be greater than 6 characters")
-                        del st.session_state["signup_error_msg"]
-                        st.session_state.signup_disabled=True
-                    if not st.session_state.signup_email or not st.session_state.signup_password or not st.session_state.signup_password_confirm:
-                        st.session_state.signup_disabled=True
-                    submit = st.button("sign up", key="signup_submit_button", disabled=st.session_state.signup_disabled)
-                    if submit:
-                        if add_user(email, password, first_name, last_name):
-                            st.session_state["user_mode"]="signedin"
-                            st.session_state["userId"] = email
-                            # st.success("User registered successfully. Redirecting...")
-                            signup_placeholder.empty()
-                            # time.sleep(5)
-                            st.rerun()
+        # _, c, _ = st.columns([1, 1, 1])
+        # with c:
+        #     signup_placeholder=st.empty()
+      
+        st.subheader("Register")
+        with st.container(border=True):
+            # if "signup_error_msg" in st.session_state and ""
+            # if "signup_email" in st.session_state 
+            #     st.session_state.signup_disabled=False
+            # else:
+            #     st.session_state.signup_disabled=True
+            st.session_state["signup_disabled"]=False
+            # with st.form("sign_up_form"):
+            first_name=st.text_input("First name (optional)", key="signup_first_name", )
+            last_name = st.text_input("Last name (optional)", key="signup_last_name")
+            email = st.text_input("Email", key="signup_email", on_change=check_user)
+            password=st.text_input("Password", type="password", key="signup_password", on_change=check_user, )
+            confirm_password = st.text_input("Confirm password", type="password", key="signup_password_confirm", )
+            if password and confirm_password and password!=confirm_password:
+                st.error("Passwords don't match")
+                st.session_state.signup_disabled=True
+            if "signup_error_msg" in st.session_state:
+                if st.session_state.signup_error_msg == "email exists":
+                    st.error("Email already exists. Please log in.")
+                elif st.session_state.signup_error_msg == "email invalid":
+                    st.error("Please provide a valid email. ")
+                elif st.session_state.signup_error_msg == "password length":
+                    st.error("Password must be greater than 6 characters")
+                del st.session_state["signup_error_msg"]
+                st.session_state.signup_disabled=True
+            if not st.session_state.signup_email or not st.session_state.signup_password or not st.session_state.signup_password_confirm:
+                st.session_state.signup_disabled=True
+            submit = st.button("sign up", key="signup_submit_button", disabled=st.session_state.signup_disabled)
+        if submit:
+            if add_user(email, password, first_name, last_name):
+                st.session_state["user_mode"]="signedin"
+                st.session_state["userId"] = email
+                # st.success("User registered successfully. Redirecting...")
+                signup_placeholder.empty()
+                # time.sleep(5)
+                st.rerun()
         # with c:
         #     try:
         #         authenticator = st.session_state.authenticator
@@ -476,7 +473,7 @@ class User():
         #             Contain at least one lowercase letter, at least one uppercase letter, at least one digit, at least one special character and between 8 and 20 characters in length""")
         #         else:
         #             st.warning(e)
-    @st.fragment()
+    # @st.fragment()
     def reset_password(self, token, username):
     
         _, c, _ = st.columns([3, 2, 3])
@@ -485,7 +482,7 @@ class User():
                 with st.form(key="password_reset_form"):
                 # Display the password reset form
                     st.image("./resources/logo_acareerai.png")
-                    st.subheader("Password Reset")
+                    # st.subheader("Password Reset")
                     new_password = st.text_input("New Password", type="password", )
                     confirm_password = st.text_input("Confirm Password", type="password")               
                     if st.form_submit_button("Reset Password"):
@@ -496,8 +493,10 @@ class User():
                             st.success("Password has been reset successfully! Redirecting...")
                             st.session_state["user_mode"]="signedin"
                             st.session_state["userId"] = username
-                            time.sleep(5)
-                            nav_to("/user")                              
+                            time.sleep(1)
+                            st.query_params.clear()
+                            # nav_to("/user")  
+                            st.switch_page("pages/user.py")                            
                         else:
                             st.error("Passwords do not match.")
             else:
@@ -537,24 +536,25 @@ class User():
         # _, c, _ = st.columns([1, 1, 1])
         # with c:
         #     resume_placeholder=st.empty()
-            with resume_placeholder.container():
-                st.title("Let's get started with your resume")
-                if "user_resume_path" in st.session_state:
-                    st.session_state.resume_disabled = False
-                else:
-                    st.session_state.resume_disabled = True
-                st.markdown("#")
-                resume = st.file_uploader(label="Upload your resume",
-                                key="user_resume",
-                                    accept_multiple_files=False, 
-                                    # on_change=self.form_callback, 
-                                    type=["pdf", "odt", "docx", "txt"],
-                                    help="This will become your profile")
-                _, c2 = st.columns([3, 1])
-                with c2:
-                    add_vertical_space(2)
-                    skip= st.button(label="I'll do it later", type="primary", key="skip_resume_button" )
+            # with resume_placeholder.container():
+            st.title("Let's get started with your resume")
+            if "user_resume_path" in st.session_state:
+                st.session_state.resume_disabled = False
+            else:
+                st.session_state.resume_disabled = True
+            st.markdown("#")
+            resume = st.file_uploader(label="Upload your resume",
+                            key="user_resume",
+                                accept_multiple_files=False, 
+                                # on_change=self.form_callback, 
+                                type=["pdf", "odt", "docx", "txt"],
+                                help="This will become your profile")
+            _, c2 = st.columns([3, 1])
+            with c2:
+                add_vertical_space(2)
+                skip= st.button(label="I'll do it later", type="primary", key="skip_resume_button" )
             if skip:
+                menu_placeholder.empty()
                 resume_placeholder.empty()
                 with spinner_placeholder.container():
                     with st.spinner("Loading your profile..."):
@@ -562,6 +562,7 @@ class User():
                         self.create_empty_profile() 
                         st.rerun()
             if resume:
+                menu_placeholder.empty()
                 resume_placeholder.empty()
                 with spinner_placeholder.container():
                     with st.spinner("Processing..."):
@@ -1223,6 +1224,15 @@ class User():
         """ Displays the field-specific analysis UI including evaluation and tailoring """
 
 
+        def join_with_punctuation(sublist):
+            # Function to join words while avoiding extra spaces before punctuation
+            result = ""
+            for idx, word in enumerate(sublist):
+                if idx > 0 and not re.match(r'[^\w\s]', word):  # Check if word is not punctuation
+                    result += " "  # Add space only if the next word is not punctuation
+                result += word
+            return result.strip()
+
         def apply_changes():
 
             if field_name=="summary_objective":
@@ -1243,6 +1253,21 @@ class User():
             elif type=="bullet_points":
                 st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
                 st.session_state["profile_changed"]=True
+
+        def create_annotations(text_list, replaced_words, substitutions):
+
+            # replace replacements with annotation
+            for i in range(len(text_list)):
+                for j in range(1, len(text_list)-i+1):
+                    # substring = " ".join(text_list[i:i+j]).strip()
+                    substring = join_with_punctuation(text_list[i:i+j])
+                    if substring in replaced_words:
+                        idx = replaced_words.index(substring)
+                        text_list[i] = (substitutions[idx]+" ", substring)
+                        for x in range(i+1, i+j):
+                            text_list[x]=""
+                        break                 
+            return text_list
 
 
         _, c0, c1, c2 = st.columns([5, 1, 1, 1])
@@ -1324,17 +1349,8 @@ class User():
                                 text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
                                 replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
                                 substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
-                                # replace replacements with annotation
-                                for i in range(len(text_list)):
-                                    for j in range(1, len(text_list)-i+1):
-                                        substring = " ".join(text_list[i:i+j])
-                                        if substring in replaced_words:
-                                            idx = replaced_words.index(substring)
-                                            text_list[i] = (substitutions[idx]+" ", substring)
-                                            for x in range(i+1, i+j):
-                                                text_list[x]=""
-                                            break                 
-                                text_list =  [text + " " if not isinstance(text, tuple) else text for text in text_list if text != ""]
+                                text_list = create_annotations(text_list, replaced_words, substitutions)     
+                                text_list =  [text + " " if not isinstance(text, tuple) and not re.match(r'[^\w\s]', text) else text for text in text_list if text != ""]
                                 st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
                                 annotated_text(text_list)
@@ -1553,14 +1569,13 @@ class User():
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
-
         # self.save_session_profile()
         eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
         with fields_col:
-             # save session profile periodically unless user freezes their profile
+            # save session profile periodically unless user freezes their profile
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
             if freeze:
-                 pass
+                pass
             else:
                 self.save_session_profile()
             # self.display_general_evaluation()
@@ -1889,6 +1904,7 @@ class User():
                 delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 self.delete_session_states(["profile", "evaluation", "init_eval"])
+                profile_placeholder.empty()
                 st.rerun()
     
     def delete_session_states(self, names:List[str])->None:

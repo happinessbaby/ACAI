@@ -594,7 +594,7 @@ async def suggest_transferable_skills(resume_content, job_description, ):
 
     query = """ 
      
-     Your task is to come up with a list of tranferable skills that the candidate can include from the job description.
+     Your task is to come up with a list of tranferable skills that the candidate can include in their resume based on the job description.
      
     job description: {job_description} \n
 
@@ -991,23 +991,25 @@ def process_inputs(user_input, ):
                 },
             "topic": {
                 "type": "string",
-                "enum": ["description", "url", "other"],
+                "enum": ["job description", "url", "other"],
                 "description": "determines if the statement contains certain topic",
             },
         },
         # "required": ["topic", "sentiment", "aggressiveness"],
-        "required": ["topic"],
+        "required": ["topic", "safety"],
     }
-    # response = create_input_tagger(tag_schema, user_input)
-    # topic = response.get("topic", "")
-    # safety=response.get("safety", "")
-    response = asyncio_run(lambda: create_input_tagger(InputClassification, user_input, ), timeout=10, max_try=1)
-    if response:
-        topic = response.dict().get("topic", "")
-        safety=response.dict().get("safety", "")
-        return topic, safety
-    else:
-        return None, None
+    response = create_input_tagger(tag_schema, user_input)
+    topic = response.get("topic", None)
+    safety=response.get("safety", None)
+    print(topic, safety)
+    return topic, safety
+    # response = asyncio_run(lambda: create_input_tagger(InputClassification, user_input, ), timeout=10, max_try=1)
+    # if response:
+    #     topic = response.dict().get("topic", "")
+    #     safety=response.dict().get("safety", "")
+    #     return topic, safety
+    # else:
+    #     return None, None
     
 
 def process_uploads(uploaded_file, save_path, to_tmp=True):

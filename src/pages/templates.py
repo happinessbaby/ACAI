@@ -165,7 +165,7 @@ class Reformat():
                 with c:
                     float_container=st.container()
                     with float_container:
-                        add_vertical_space(10)
+                        # add_vertical_space(10)
                         if st.button(label="Is this template for me?", key="template_learn_more_button", type="primary"):
                             self.learn_more_popup()
                         with stylable_container(
