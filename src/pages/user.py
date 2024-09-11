@@ -1888,6 +1888,9 @@ class User():
 
     @st.fragment(run_every=1)
     def save_session_profile(self, ):
+
+        """ Saves profile into lancedb table periodically if there's change """
+        
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             print('profile changed, saving user changes')
             save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table, convert_content=True)
@@ -1913,6 +1916,9 @@ class User():
                 st.rerun()
     
     def delete_session_states(self, names:List[str])->None:
+
+        """ Helper function to clean up session state"""
+
         for name in names:
             try:
                 del st.session_state[name]

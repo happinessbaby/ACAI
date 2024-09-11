@@ -68,6 +68,7 @@ def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=Non
 
     print("start evaluating...")
     resume_content = resume_dict["resume_content"]
+    print(resume_content)
     if type=="general":
         try:
             st.session_state["evaluation"] = {"finished":False}

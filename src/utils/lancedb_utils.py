@@ -251,7 +251,7 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False):
 
     if convert_content:
         data = convert_profile_to_resume(data)
-        print(data)
+        # print(data)
     try:
     #   NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
         delete_user_from_table(userId, tablename)
