@@ -20,7 +20,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 
 cookie_name = os.environ["COOKIE_NAME"]
-cookie_key=os.environ["COOKIE_KEY"]
+user_cookie_key=os.environ["USER_COOKIE_KEY"]
 cookie_password = os.environ["COOKIE_PASSWORD"]
 # controller = CookieController(key='cookies')
 cookies = EncryptedCookieManager(
@@ -223,9 +223,15 @@ def change_password(username, new_password):
 
         
 
-def save_cookie(username):
+def save_cookie(cookie_value, cookie_key=user_cookie_key):
 
-    cookies[cookie_key] = username
+    cookies[cookie_key] = cookie_value
+    cookies.save()
+
+def save_cookies(cookie_dict):
+    
+    for key, value in cookie_dict.items():
+        cookies[key]=value
     cookies.save()
 
 def authenticate(username, password):
@@ -249,7 +255,7 @@ def authenticate(username, password):
             print("username password mistmatch")
             return None
         
-def retrieve_cookie():
+def retrieve_cookie(cookie_key=user_cookie_key):
     # Check the contents of cookie.
     # cookies = controller.getAll()
     # time.sleep(1)
@@ -270,7 +276,7 @@ def retrieve_cookie():
         print("Failed to retrieve cookie")
         return None
     
-def delete_cookie():
+def delete_cookie(cookie_key=user_cookie_key):
     # controller.remove(f'{cookie_name}_username')
     # unset username in cookies
     cookies[cookie_key] = ""

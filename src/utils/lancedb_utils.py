@@ -67,14 +67,14 @@ lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 #     def url(self):
 #         return self.job_url
 
-def add_lancedb_dataset():
-    ds = lance.dataset(
-        f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table""",
-        storage_options={
-            "access_key_id": os.environ["AWS_SERVER_PUBLIC_KEY"],
-            "secret_access_key": os.environ["AWS_SERVER_SECRET_KEY"],
-        }
-    )
+# def add_lancedb_dataset():
+#     ds = lance.dataset(
+#         f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table""",
+#         storage_options={
+#             "access_key_id": os.environ["AWS_SERVER_PUBLIC_KEY"],
+#             "secret_access_key": os.environ["AWS_SERVER_SECRET_KEY"],
+#         }
+#     )
 def register_model(model_name):
     registry = EmbeddingFunctionRegistry.get_instance()
     model = registry.get(model_name).create()
@@ -186,28 +186,6 @@ def retrieve_dict_from_table(userId, tablename):
                             row[key][k] = convert_arrays_to_lists(cleaned_data)
                 else:  # Handle None and anomalies
                     row[key] = ''
-        # for key in table_dict:
-        #     if isinstance(table_dict[key], list):
-        #         try:
-        #             value=table_dict[key][0]
-        #             if isinstance(value, str):  # Handle strings
-        #                 table_dict[key]=value
-        #             elif isinstance(value, (np.ndarray, list)):  # Handle arrays
-        #                 # print(value)
-        #                 cleaned_data= clean_field(table_dict, key)
-        #                 table_dict[key] = convert_arrays_to_lists(cleaned_data)
-        #                 # print("list pydantic arrays", table_dict[key])
-        #             elif isinstance(value, dict):
-        #                 for k in value:
-        #                     if isinstance(value[k], (np.ndarray, list)):
-        #                         cleaned_data = clean_field(value, k)
-        #                         value[k] = convert_arrays_to_lists(cleaned_data)
-        #                 table_dict[key]=value
-        #             else:                   # Handle None and anomalies
-        #                 table_dict[key] = ''
-        #         except IndexError as e:
-        #             print(e)
-        #             pass
         print(f"Retrieved {tablename} dict from lancedb", )
         return table_dict if tablename==lance_tracker_table else table_dict[0]
     else:
@@ -254,15 +232,28 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
     return pa.schema(fields)
 
 
-def save_user_changes(userId, data, schema, tablename):
+def save_user_changes(userId, data, schema, tablename, convert_content=False):
 
-    # converts profile into resume content 
-    #NOTE: below json dump crashes the ui
-    # if tablename==lance_users_table:
-    #     data["resume_content"] = json.dumpss(data)
-    # NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
-    print(data)
+    """Saves user and job information into lancedb tables 
+    
+    Args:
+        userId: primary key, unique identifier for the entry
+        data: a python dictionary
+        schema: a pydantic class
+        tablename: name of the table
+
+    Keyword Args:
+        convert_content: only for users table, converts profile dictionary into resume content string
+        
+    Returns: None
+    
+    """
+
+    if convert_content:
+        data = convert_profile_to_resume(data)
+        print(data)
     try:
+    #   NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
         delete_user_from_table(userId, tablename)
         schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!
@@ -273,7 +264,29 @@ def save_user_changes(userId, data, schema, tablename):
     
 def convert_profile_to_resume(profile):
 
-    """ Converts a profile dictionary to resume-like text and save as resume content"""
+    """ Converts a profile dictionary to resume-like text and save as resume content """
+
+    output = []
+    
+    for section, content in profile.items():
+        # Add the section title
+        output.append(f"{section}:\n")
+        
+        # Check if the content is a dictionary
+        if isinstance(content, dict):
+            # Flatten the nested content, keeping only the values
+            values = content.values()
+            output.append("\n".join(map(str, values)) + "\n")
+        else:
+            # If not a dictionary, add the content directly
+            output.append(str(content) + "\n")
+    
+    # Join the output list into a single string and return
+    profile["resume_content"]= "\n".join(output)
+    return profile
+
+
+    
 
     
 

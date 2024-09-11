@@ -2,7 +2,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import os
 # from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password
+from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password, save_cookies
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes
@@ -64,6 +64,8 @@ user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table = os.environ["LANCE_USERS_TABLE"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
+google_cookie_key = os.environ["GOOGLE_COOKIE_KEY"]
+user_cookie_key=os.environ["USER_COOKIE_KEY"]
 menu_placeholder=st.empty()
 profile_placeholder=st.empty()
 _, c, _= st.columns([3, 1, 3])
@@ -250,7 +252,6 @@ class User():
     def sign_out(self, ):
 
         print('signing out')
-        #NOTE: can't get authenticator logout to delete cookies so manually doing it with the cookie manager wrapper class
         # also needs to manually delete cookies for google login case
         # st.session_state.cm.delete_cookie()
         delete_cookie()
@@ -350,6 +351,7 @@ class User():
     def google_signin(self,):
 
         auth_code = st.query_params.get("code")
+        # auth_code = retrieve_cookie(cooke_key=google_cookie_key)
       
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             client_secret_json,
@@ -367,17 +369,16 @@ class User():
                 )
                 user_info = user_info_service.userinfo().get().execute()
                 assert user_info.get("email"), "Email not found in infos"
-                # st.session_state["google_auth_code"] = auth_code
-                # st.session_state["user_info"] = user_info
                 st.session_state["credentials"] = credentials
-                save_cookie(user_info.get("email"))
+                # save_cookie(user_info.get("email"))
+                # save_cookie(credentials.token, cookie_key=google_cookie_key)
+                save_cookies({user_cookie_key:user_info.get("email"), google_cookie_key:credentials.token})
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=user_info.get("email")
-                st.query_params.clear()
-                # time.sleep(5)
                 st.rerun()
             except Exception as e:
                 print(e)
+                # clear the parameters including auth_code to allow user to access sign in button again
                 st.query_params.clear()
                 st.rerun()
         else:
@@ -389,21 +390,25 @@ class User():
                     include_granted_scopes="true",
                 )
                 # webbrowser.open_new_tab(authorization_url)
-                st.query_params.redirect_uri=authorization_url
-                st.query_params.state=state
+                # st.query_params.redirect_uri=authorization_url
+                # st.query_params.state=state
                 # st.experimental_set_query_params(redirect_uri=authorization_url, state=state)
                 st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
 
     def google_signout(self):
-        if "credentials" in st.session_state:
-            credentials = st.session_state["credentials"]
-            revoke_token_url = "https://accounts.google.com/o/oauth2/revoke?token=" + credentials.token
+
+        token = retrieve_cookie(cookie_key=google_cookie_key)
+        if token:
+        # if "credentials" in st.session_state:
+            # credentials = st.session_state["credentials"]
+            revoke_token_url = "https://accounts.google.com/o/oauth2/revoke?token=" + token
             response = requests.get(revoke_token_url)
             if response.status_code == 200:
                 st.query_params.clear()
-                print("Successfully signed out")
+                print("Successfully signed out of Google")
                 # Clear session state
-                del st.session_state["credentials"]
+                # del st.session_state["credentials"]
+                delete_cookie(cookie_key=google_cookie_key)
             else:
                 print("Failed to revoke token")
         else:
@@ -1885,7 +1890,7 @@ class User():
     def save_session_profile(self, ):
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             print('profile changed, saving user changes')
-            save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+            save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table, convert_content=True)
             st.session_state["profile_changed"]=False
 
 
