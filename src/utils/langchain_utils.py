@@ -621,7 +621,7 @@ async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-
     # print(response_dict)
     return response_dict
 
-async def create_comma_separated_list_parser(input_variables, base_template, query_dict):
+def create_comma_separated_list_parser(input_variables, base_template, query_dict):
 
     """Outputs in comma separated list format: https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/types/csv/
     
@@ -646,7 +646,7 @@ async def create_comma_separated_list_parser(input_variables, base_template, que
 
     model = ChatOpenAI(temperature=0, model="gpt-4o-mini")
     chain = prompt | model | output_parser
-    response = await chain.ainvoke(query_dict)
+    response = chain.invoke(query_dict)
     print(response)
     return response
 
@@ -676,7 +676,7 @@ async def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()
 
 # Assuming you have an instance of BaseOpenAI or OpenAIChat called `llm_instance`
 
-async def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-4o-mini", cache=False)) -> str:
+def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-4o-mini", cache=False)) -> str:
 
     """ General purpose agent that uses the OpenAI functions ability.
      
@@ -713,7 +713,7 @@ async def generate_multifunction_response(query: str, tools: List[Tool], early_s
             tools, llm, agent=AgentType.OPENAI_MULTI_FUNCTIONS
         )
     try: 
-        response = await agent.ainvoke({"input": query}) 
+        response = agent.invoke({"input": query}) 
         print(f"Successfully got multifunction response: {response}")
     except Exception as e:
         print(e)

@@ -236,7 +236,7 @@ class User():
                     #     raise
         elif st.session_state.user_mode=="signedout":
             with signin_placeholder.container(border=True):
-                print("signed out")
+                print("signing in")
                 self.sign_in()
         elif st.session_state.user_mode=="signout":
             self.sign_out()
@@ -313,7 +313,7 @@ class User():
                 signin_placeholder.empty()
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=username
-                print("signing in")
+                print("signed in")
                 st.rerun()
             else:
                 st.error('Wrong username/password.')
@@ -792,16 +792,17 @@ class User():
             if topic=="job description" and safe:
                 st.session_state["job_description"] = input_value
                 self.initialize_job_posting_callback()
-            elif topic=="url" and safe:
-                end_path = process_links(input_value, st.session_state.users_upload_path, )
-                if end_path is not None:
-                    # content_safe, content_type, content_topics, end_path = result
-                    # if content_safe and content_type=="job posting":
-                    st.session_state["job_posting_path"]=end_path
-                    st.session_state["posting_link"]=input_value
-                    self.initialize_job_posting_callback()
+            elif topic=="url":
+                result = process_links(input_value, st.session_state.users_upload_path, )
+                if result is not None:
+                    content_safe, content_type, content_topics, end_path = result
+                    if content_safe and content_type=="job posting":
+                        st.session_state["job_posting_path"]=end_path
+                        st.session_state["posting_link"]=input_value
+                        self.initialize_job_posting_callback()
+                    else:
+                        st.warning("That didn't work. Please try pasting the content of job description")
                 else:
-                    #NOTE: the warnings for job posting are not showing in dialog, despite creating empty containers 
                     st.warning("That didn't work. Please try pasting the content of job description")
             else:
                 st.warning("That didn't work. Please try again")
@@ -829,8 +830,6 @@ class User():
         _, c = st.columns([3, 1])
         with c:
             if st.button("confirm", key="confirm_rearrange_skills_button"):
-            # if slist:
-            #     print(slist)
                 st.session_state["profile"]["included_skills"]=[skill["name"] for skill in slist]
                 st.session_state["profile_changed"]=True
                 st.rerun()
@@ -1121,7 +1120,7 @@ class User():
                     # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
                     st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ), placeholder="Issue organization", label_visibility="collapsed")
-                    st.text_input("Issue date", value=date, key=f"{name}_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
+                    st.text_input("Issue date", value=date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
                     # st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
@@ -1133,13 +1132,13 @@ class User():
                     location = value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Job title", value = job_title, key=f"experience_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"experience_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Job title", value = job_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_org_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"experience_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"experience_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"experience_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
                     # st.write("Description")
                     get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
                     get_display()
@@ -1154,71 +1153,76 @@ class User():
                     location=value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Project title", value = project_title, key=f"project_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"project_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_org_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"project_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"project_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"project_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
-                        st.text_input("Link", value=link, key=f"project_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
                     # st.write("Description")
                     get_display= self.display_field_details("projects", idx, "description", "bullet_points")
                     get_display()
 
         def callback(idx):
-       
+
+            try:
+                link = st.session_state[f"{name}_link_{idx}"]
+                st.session_state["profile"][name][idx]["link"]= link
+            except Exception:
+                pass
             try:
                 title = st.session_state[f"{name}_title_{idx}"]
                 st.session_state["profile"][name][idx]["title"]=title
             except Exception:
                 pass
-            try:
-                date = st.session_state[f"{name}_date_{idx}"]
-                st.session_state["profile"][name][idx]["issue_date"]=date
-            except Exception:
-                pass
+            # try:
+            #     date = st.session_state[f"{name}_date_{idx}"]
+            #     st.session_state["profile"][name][idx]["issue_date"]=date
+            # except Exception:
+            #     pass
             try:
                 org = st.session_state[f"{name}_org_{idx}"]
                 st.session_state["profile"][name][idx]["issue_organization"]=org
             except Exception:
                 pass
+            # try:
+            #     descr = st.session_state[f"{name}_descr_{idx}"]
+            #     st.session_state["profile"][name][idx]["description"]=descr
+            # except Exception:
+            #     pass
+            # try:
+            #     title = st.session_state[f"experience_title_{idx}"]
+            #         # self.experience_list[idx]["job_title"] = title
+            #     st.session_state["profile"]["work_experience"][idx]["job_title"] = title
+            # except Exception:
+            #     pass
+            # try:
+            #     company = st.session_state[f"company_{idx}"]
+            #     st.session_state["profile"]["work_experience"][idx]["company"] = company
+            # except Exception:
+            #     pass
             try:
-                descr = st.session_state[f"{name}_descr_{idx}"]
-                st.session_state["profile"][name][idx]["description"]=descr
+                start_date = st.session_state[f"{name}_start_date_{idx}"]
+                st.session_state["profile"][name][idx]["start_date"] =start_date
             except Exception:
                 pass
             try:
-                title = st.session_state[f"experience_title_{idx}"]
-                    # self.experience_list[idx]["job_title"] = title
-                st.session_state["profile"]["work_experience"][idx]["job_title"] = title
+                end_date = st.session_state[f"{name}_end_date_{idx}"]
+                st.session_state["profile"][name][idx]["end_date"] = end_date
             except Exception:
                 pass
             try:
-                company = st.session_state[f"company_{idx}"]
-                st.session_state["profile"]["work_experience"][idx]["company"] = company
+                location = st.session_state[f"{name}_location_{idx}"]
+                st.session_state["profile"][name][idx]["location"] = location
             except Exception:
                 pass
-            try:
-                start_date = st.session_state[f"start_date_{idx}"]
-                st.session_state["profile"]["work_experience"][idx]["start_date"] =start_date
-            except Exception:
-                pass
-            try:
-                end_date = st.session_state[f"end_date_{idx}"]
-                st.session_state["profile"]["work_experience"][idx]["end_date"] = end_date
-            except Exception:
-                pass
-            try:
-                location = st.session_state[f"experience_location_{idx}"]
-                st.session_state["profile"]["work_experience"][idx]["location"] = location
-            except Exception:
-                pass
-            try:
-                experience_description = st.session_state[f"experience_description_{idx}"]
-                st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
-            except Exception:
-                pass
+            # try:
+            #     experience_description = st.session_state[f"{name}_description_{idx}"]
+            #     st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
+            # except Exception:
+            #     pass
             st.session_state["profile_changed"]=True
             
         return get_display
@@ -1244,10 +1248,10 @@ class User():
                 st.session_state["old_summary"]=st.session_state["profile"]["summary_objective"]
                 st.session_state["profile"]["summary_objective"]="".join(st.session_state["new_summary"])
                 st.session_state["profile_changed"]=True
-            elif type=="bullet_points":
-                st.session_state[f"old_{field_name}_{idx}"] = st.session_state["profile"][field_name][idx]["description"]
-                st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"new_{field_name}_{idx}"]
-                st.session_state["profile_changed"]=True
+            # elif type=="bullet_points":
+            #     st.session_state[f"old_{field_name}_{idx}"] = st.session_state["profile"][field_name][idx]["description"]
+            #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"new_{field_name}_{idx}"]
+            #     st.session_state["profile_changed"]=True
 
 
 
@@ -1255,9 +1259,9 @@ class User():
             if field_name=="summary_objective":
                 st.session_state["profile"]["summary_objective"]=st.session_state["old_summary"]
                 st.session_state["profile_changed"]=True
-            elif type=="bullet_points":
-                st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
-                st.session_state["profile_changed"]=True
+            # elif type=="bullet_points":
+            #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
+            #     st.session_state["profile_changed"]=True
 
         def create_annotations(text_list, replaced_words, substitutions):
 
@@ -1368,19 +1372,22 @@ class User():
                                     # st.rerun()
                             else:
                                 st.write(tailoring)
-                        elif type=="bullet_points":
-                            if tailoring!="please try again" and tailoring!="please add more bullet points first":
-                                st.write(tailoring["ranked"])
-                                if tailoring.get("ranked_list", ""):
-                                    st.write(tailoring["ranked_list"])
-                                #     st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
-                                #     _, c = st.columns([3,1])
-                                #     with c:
-                                #         st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
-                                #         if f"old_{field_name}_{idx}" in st.session_state: 
-                                #             st.button("revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
-                            else:
-                                st.write(tailoring)   
+                        else:
+                            st.write(tailoring)
+                        # elif type=="bullet_points":
+                        #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
+                        #         st.write(tailoring)
+                        #         # st.write(tailoring["ranked"])
+                        #         # if tailoring.get("ranked_list", ""):
+                        #         #     st.write(tailoring["ranked_list"])
+                        #         #     st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
+                        #         #     _, c = st.columns([3,1])
+                        #         #     with c:
+                        #         #         st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
+                        #         #         if f"old_{field_name}_{idx}" in st.session_state: 
+                        #         #             st.button("revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
+                        #     else:
+                        #         st.write(tailoring)   
         
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
@@ -1895,6 +1902,7 @@ class User():
             print('profile changed, saving user changes')
             save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table, convert_content=True)
             st.session_state["profile_changed"]=False
+            st.session_state["update_template"]=True
 
 
     @st.dialog("Warning")

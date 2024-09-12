@@ -530,7 +530,7 @@ def extract_resume_fields3(resume: str,  llm = ChatOpenAI(temperature=0, model="
 
 
 
-async def research_skills(content: str,  content_type: str, ):
+def research_skills(content: str,  content_type: str, ):
 
     """ Finds soft skills and hard skills in a resume or job posting. 
     As some resume do not have a skills section and some job postings do not list them, this function also infers some skills. """
@@ -550,7 +550,7 @@ async def research_skills(content: str,  content_type: str, ):
     Please draw all your answers from the content:
     content: {content}
     """
-    return await create_comma_separated_list_parser(input_variables=["content_type", "content"], base_template=query, query_dict={"content_type":content_type, "content":content})
+    return create_comma_separated_list_parser(input_variables=["content_type", "content"], base_template=query, query_dict={"content_type":content_type, "content":content})
 
 
 
@@ -889,7 +889,8 @@ def create_resume_info(resume_path, q, ):
         # resume_info_dict[resume_path].update(certifications)
         # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
         # resume_info_dict[resume_path].update(awards)
-        suggested_skills= asyncio_run(lambda: research_skills(resume_content, "resume"), timeout=1, max_try=1)
+        # suggested_skills= asyncio_run(lambda: research_skills(resume_content, "resume"), timeout=1, max_try=1)
+        suggested_skills = research_skills(resume_content, "resume")
         resume_info_dict.update({"suggested_skills": suggested_skills if suggested_skills else []})
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
@@ -926,7 +927,8 @@ def create_job_posting_info(posting_path, about_job, q, ):
             basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
             job_posting_info_dict.update(basic_info_dict)
         # Research soft and hard skills required
-        job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_try=1)
+        # job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_try=1)
+        job_posting_skills = research_skills(posting, "job posting")
         job_posting_info_dict.update({"skills":job_posting_skills} if job_posting_skills else {"skills":[]})
         # Research company
         company = basic_info_dict["company"]
@@ -1038,10 +1040,9 @@ def process_links(links, save_path,  to_tmp=True):
     # end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
     txt_path= html_to_text(links, to_tmp=to_tmp )
     if txt_path:
-        return txt_path
-        # content_safe, content_type, content_topics = check_content(txt_path, )
-        # if content_safe is not None:
-        #     return  (content_safe, content_type, content_topics, txt_path)
+        content_safe, content_type, content_topics = check_content(txt_path, )
+        if content_safe is not None:
+            return  (content_safe, content_type, content_topics, txt_path)
     return None
   
 
