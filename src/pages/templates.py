@@ -30,6 +30,13 @@ lance_users_table = os.environ["LANCE_USERS_TABLE"]
 # NOTE: TESTING OUT OPTION 2 FOR NOW 
 float_init()
 option=2
+menu_placeholder=st.empty()
+progressbar_placeholder=st.empty()
+template_placeholder = st.empty()
+_, c, _= st.columns([3, 1, 3])
+with c:
+    add_vertical_space(20)
+    spinner_placeholder=st.empty()
 # st.logo("./resources/logo_acareerai.png")
 
 class Reformat():
@@ -80,19 +87,24 @@ class Reformat():
 
         st.markdown(general_button, unsafe_allow_html=True)   
         st.markdown(primary_button, unsafe_allow_html=True )
-        user_menu(st.session_state.userId, page="template")
-        progress_bar(1)
-        add_vertical_space(8)
-        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]):
+        with menu_placeholder.container():
+            user_menu(st.session_state.userId, page="template")
+        with progressbar_placeholder.container():
+            progress_bar(1)
+        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
             if self.reformat_templates():
-                print(st.session_state["selected_fields"])
-                self.display_resume_templates()
-                st.session_state["profile_changed"]=False
-                st.session_state["fields_changed"]=False
+                with template_placeholder.container():
+                    # print(st.session_state["selected_fields"])
+                    self.display_resume_templates()
+                    st.session_state["update_template"]=False
+                    st.session_state["fields_changed"]=False
+            else:
+                st.rerun()
         else:
-            self.display_resume_templates()
-            st.session_state["profile_changed"]=False
-            st.session_state["fields_changed"]=False
+            with template_placeholder.container():
+                self.display_resume_templates()
+                st.session_state["update_template"]=False
+                st.session_state["fields_changed"]=False
 
 
     def reformat_templates(self, ):
@@ -100,15 +112,19 @@ class Reformat():
         try:
             template_paths = list_files(template_path, ext=".docx")
             # print(template_paths)
-            with Pool() as pool:
-                st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-            # if option==1:
-            #     with Pool() as pool:
-            #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-            #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-            if option==2:
-                with Pool() as pool:
-                    st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+            with spinner_placeholder.container():
+                with st.spinner("Updating templates..."):
+                    with Pool() as pool:
+                        st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+                    if st.session_state["formatted_docx_paths"]:
+                        # if option==1:
+                        #     with Pool() as pool:
+                        #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                        #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                        if option==2:
+                            with Pool() as pool:
+                                st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+            spinner_placeholder.empty()
             return True
         except Exception as e:
             print(e)
@@ -118,6 +134,7 @@ class Reformat():
     @st.fragment()
     def display_resume_templates(self, ):
         
+        add_vertical_space(8)
         c1, template_col, select_col = st.columns([1, 3, 1])
         with c1:
             self.fields_selection()  

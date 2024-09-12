@@ -40,6 +40,7 @@ import subprocess
 import base64
 # import aspose.words as aw
 import glob
+import re
 # from jinja2 import Template
 from botocore.exceptions import ClientError
 # from pdf2image import convert_from_bytes
@@ -342,9 +343,11 @@ def count_length(filename="", content="" ):
     try:
         if filename:
             content = read_file(filename)
-        # Split the content into words based on whitespace
-        words = content.split()
+        # Remove punctuation, newline characters, and special characters
+        clean_content = re.sub(r'[{}\[\]()\n\W_]+', '', content)
+        words = clean_content.split()
         word_count = len(words)
+        print(word_count)
         return word_count
     except FileNotFoundError:
         print(f"The file {filename} does not exist.")
