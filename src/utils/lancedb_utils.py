@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, get_args, get_origin, Set
 from dotenv import load_dotenv, find_dotenv
 # from utils.aws_manager import get_session_token
 # from utils.dynamodb_utils import init_dynamodb_table
-import lance
+# import lance
 
 _ = load_dotenv(find_dotenv()) # read local .env file
 
@@ -268,19 +268,21 @@ def convert_profile_to_resume(profile):
 
     output = [] 
     for section, content in profile.items():
-        # Add the section title
-        output.append(f"{section}:\n")        
-        # Check if the content is a dictionary
-        if isinstance(content, dict):
-            # Flatten the nested content, keeping only the values
-            values = content.values()
-            output.append("".join(map(str, values)) + "\n")
-        else:
-            # If not a dictionary, add the content directly
-            output.append(str(content) + "\n")
+        if section!="resume_content" and section!="resume_path" and section!="user_id":
+            if content:
+                # Add the section title
+                output.append(f"{section}:\n")        
+                # Check if the content is a dictionary
+                if isinstance(content, dict):
+                    # Flatten the nested content, keeping only the values
+                    values = content.values()
+                    output.append(" ".join(map(str, values)) + "\n")
+                else:
+                    # If not a dictionary, add the content directly
+                    output.append(str(content) + "\n")
     # Join the output list into a single string and return
     profile["resume_content"]= "\n".join(output)
-    print(profile["resume_content"])
+    # print(profile["resume_content"])
     return profile
 
 
