@@ -353,7 +353,8 @@ def analyze_resume_type(resume_content, ):
     """
     response=asyncio_run(lambda: create_smartllm_chain(query_type, n_ideas=1), timeout=10)
     if response:
-        type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType), timoue=5)
+        # type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType), timoue=5)
+        type_dict = create_pydantic_parser(response, ResumeType)
         return type_dict["type"]
     else:
         return ""
@@ -548,6 +549,7 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title):
         ("human", "{content}"),
             ]
         )
+    print(resume_content)
     model_parser = prompt |  llm.with_structured_output(schema=Replacements)
     prompt_template = ChatPromptTemplate.from_template(template_string)
     prompt_template2 = ChatPromptTemplate.from_template(template_string2)
@@ -629,7 +631,8 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
     jobs_list=[]
     for job in jobs:
         jobs_list.append(job["job_title"])
-    similar_jobs = asyncio_run(lambda: extract_similar_jobs(jobs_list, desired_jobs))
+    # similar_jobs = asyncio_run(lambda: extract_similar_jobs(jobs_list, desired_jobs))
+    similar_jobs = extract_similar_jobs(jobs_list, desired_jobs)
     total_years_work=0
     for job in jobs:
         if job in similar_jobs:

@@ -402,7 +402,7 @@ class ResumeUsers(BaseModel):
     projects: Optional[List[Project]] = Field(..., description="List of projects")
     certifications: Optional[List[Certification]] = Field(..., description="List of certifications")
     # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
-    suggested_skills: Optional[List[Skill]] = Field(..., description="List of skills not in resume but suggested by AI to include")
+    suggested_skills: Optional[List[str]] = Field(..., description="List of skills not in resume but suggested by AI to include")
     qualifications: Optional[List[Qualification]]
     awards: Optional[List[Award]]
     licenses: Optional[List[License]]

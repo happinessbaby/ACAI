@@ -5,7 +5,7 @@ from google.auth.transport import requests
 from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password, save_cookies
 import time
 from datetime import datetime
-from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes
+from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
@@ -156,13 +156,19 @@ class User():
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
+            if "profile_schema" not in st.session_state:
+                st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
                 # scheduler = BackgroundScheduler()
                 # scheduler.add_job(_self.save_session_profile, 'interval', seconds=5, )
                 # scheduler.start()
             if "evaluation" not in st.session_state:
                 st.session_state["evaluation"] = retrieve_dict_from_table(st.session_state.userId, lance_eval_table)
+            if "evaluation_schema" not in st.session_state:
+                st.session_state["evaluation_schema"] = convert_pydantic_schema_to_arrow(GeneralEvaluation)
             if "tracker" not in st.session_state:
                 st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+            if "tracker_schema" not in st.session_state:
+                st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -592,7 +598,7 @@ class User():
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
-        save_user_changes(st.session_state.userId, resume_dict, ResumeUsers, lance_users_table)
+        save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table)
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -610,7 +616,7 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table)
+        save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table)
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
         # prevent evaluation when profile is empty 
@@ -885,8 +891,22 @@ class User():
                             x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
                 st.write("Suggested skills to include:")
-                for idx, skill in enumerate(self.generated_skills_set):
-                    y = st.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                with stylable_container(key="custom_skills_button2",
+                    # border-radius: 20px;
+                    # background-color: #4682B4;
+                            css_styles=["""button {
+                                color: black;
+                                background: none;
+                                border: none;
+                                font-size: 8px;
+                                padding: 0;
+                                cursor: pointer;
+                            }""",
+                            ],
+                    ):
+                    suggested_grid = grid([1, 1, 1])
+                    for idx, skill in enumerate(self.generated_skills_set):
+                        y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
                 st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ))
             
         def skills_callback(idx, skill):
@@ -902,20 +922,19 @@ class User():
             except Exception:
                     pass
             try:
-                name = f"add_skill_{idx}"
-                add_skill = st.session_state[name]
+                add_skill = st.session_state[f"add_skill_{idx}"]
                 if add_skill:
-                    if add_skill not in self.skills_set:
-                        self.skills_set.append(add_skill)
+                    if skill not in self.skills_set:
+                        self.skills_set.append(skill)
                         st.session_state["profile"]["included_skills"]=self.skills_set
+                        st.session_state["profile_changed"]=True
                     self.generated_skills_set.remove(skill)
-                    st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
-                    st.session_state["profile_changed"]=True
+                    st.session_state["profile"]["suggested_skills"]=self.generated_skills_set
+                    # st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
             except Exception:
                 pass
             try:
-                name = f"remove_skill_{idx}"
-                remove_skill = st.session_state[name]
+                remove_skill = st.session_state[f"remove_skill_{idx}"]
                 if remove_skill:
                     # print('remove skill', skill)
                     self.skills_set.remove(skill)
@@ -1521,7 +1540,7 @@ class User():
         st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
         st.session_state["job_posting_dict"].update({"status": ""})
         st.session_state["job_posting_dict"].update({"time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
-        save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], JobTrackingUsers, lance_tracker_table)
+        save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], st.session_state["tracker_schema"], lance_tracker_table)
         self.delete_session_states(["job_posting_path", "job_description"])
 
 
@@ -1672,9 +1691,9 @@ class User():
                 # self.display_field_analysis("included_skills")
                 suggested_skills = st.session_state["profile"]["suggested_skills"]
                 self.skills_set= st.session_state["profile"]["included_skills"]
-                self.generated_skills_set=set()
-                for skill in suggested_skills:
-                    self.generated_skills_set.add(skill["skill"])
+                self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
+                # for skill in suggested_skills:
+                #     self.generated_skills_set.add(skill["skill"])
                 get_display=self.display_skills()
                 get_display()
                 if st.session_state["profile"]["included_skills"]:
@@ -1738,7 +1757,7 @@ class User():
             if finished and st.session_state["eval_rerun_timer"]:
                 st.session_state["evaluation"].update({"user_id":st.session_state.userId})
                 st.session_state["eval_rerun_timer"]=None
-                save_user_changes(st.session_state.userId, st.session_state["evaluation"], GeneralEvaluation, lance_eval_table)
+                save_user_changes(st.session_state.userId, st.session_state["evaluation"], st.session_state["evaluation_schema"], lance_eval_table)
                 st.rerun()      
         except Exception:
             finished=False
@@ -1900,7 +1919,7 @@ class User():
         
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             print('profile changed, saving user changes')
-            save_user_changes(st.session_state.userId, st.session_state.profile, ResumeUsers, lance_users_table, convert_content=True)
+            save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table, convert_content=True)
             st.session_state["profile_changed"]=False
             st.session_state["update_template"]=True
 

@@ -11,7 +11,7 @@ from backend.mock_interviewer import InterviewController
 # from callbacks.capturing_callback_handler import playback_callbacks
 from utils.basic_utils import delete_file, mk_dirs, move_file
 from dotenv import load_dotenv, find_dotenv
-from utils.common_utils import  check_content, process_links, process_uploads, process_inputs, retrieve_or_create_job_posting_info, retrieve_or_create_resume_info
+from utils.common_utils import  check_content, process_links, process_uploads, process_inputs
 import asyncio
 import functools
 from typing import Any, Dict, Union

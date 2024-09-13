@@ -3,7 +3,7 @@ import os
 import openai
 from utils.openai_api import get_completion
 from utils.basic_utils import read_file, process_json, write_file
-from utils.common_utils import (retrieve_or_create_resume_info, retrieve_or_create_job_posting_info)
+from utils.common_utils import create_resume_info, create_job_posting_info
 from datetime import date
 from pathlib import Path
 import json
@@ -211,8 +211,8 @@ def generate_preformatted_cover_letter(resume_file, job_posting_file='', job_des
     # Part 1: Insert user information into template
     template_file = "./backend/cover_letter_templates/template1.docx"
     cover_letter_template = DocxTemplate(template_file)
-    resume_dict = retrieve_or_create_resume_info(resume_file) 
-    job_posting_dict= retrieve_or_create_job_posting_info(posting_path=job_posting_file, about_job=job_description, )
+    resume_dict = create_resume_info(resume_file) 
+    job_posting_dict= create_job_posting_info(posting_path=job_posting_file, about_job=job_description, )
     job_posting_dict.update(resume_dict["contact"])
     info_dict=job_posting_dict
     func = lambda key, default: default if key not in info_dict or info_dict[key]==-1 else info_dict[key]
