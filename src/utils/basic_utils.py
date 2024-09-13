@@ -344,10 +344,11 @@ def count_length(filename="", content="" ):
         if filename:
             content = read_file(filename)
         # Remove punctuation, newline characters, and special characters
-        clean_content = re.sub(r'[{}\[\]()\n\W_]+', '', content)
+        clean_content = re.sub(r'[{}\[\]()\n_]+', '', content)
+        print(clean_content)
         words = clean_content.split()
         word_count = len(words)
-        print(word_count)
+        # print(word_count)
         return word_count
     except FileNotFoundError:
         print(f"The file {filename} does not exist.")
