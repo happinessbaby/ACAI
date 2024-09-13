@@ -598,7 +598,30 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
-async def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
+def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples'),
+        ("human", "{content}"),
+            ]
+        )
+    
+    runnable = prompt | llm.with_structured_output(schema=schema)
+    response = runnable.invoke({"content": content})
+    response_dict = response.dict()
+    # print(response_dict)
+    return response_dict
+
+async def acreate_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
     prompt = ChatPromptTemplate.from_messages(
     [
         (

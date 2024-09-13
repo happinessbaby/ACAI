@@ -255,7 +255,7 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False):
     try:
     #   NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
         delete_user_from_table(userId, tablename)
-        schema = convert_pydantic_schema_to_arrow(schema)
+        # schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!
         add_to_lancedb_table(tablename, [data], schema=schema)
         print(f"Successsfully saved {tablename}")
@@ -266,23 +266,21 @@ def convert_profile_to_resume(profile):
 
     """ Converts a profile dictionary to resume-like text and save as resume content """
 
-    output = []
-    
+    output = [] 
     for section, content in profile.items():
         # Add the section title
-        output.append(f"{section}:\n")
-        
+        output.append(f"{section}:\n")        
         # Check if the content is a dictionary
         if isinstance(content, dict):
             # Flatten the nested content, keeping only the values
             values = content.values()
-            output.append("\n".join(map(str, values)) + "\n")
+            output.append("".join(map(str, values)) + "\n")
         else:
             # If not a dictionary, add the content directly
             output.append(str(content) + "\n")
-    
     # Join the output list into a single string and return
     profile["resume_content"]= "\n".join(output)
+    print(profile["resume_content"])
     return profile
 
 
