@@ -1066,8 +1066,9 @@ class User():
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
 
-            for idx, value in enumerate(st.session_state["profile"][name]):
-                add_container(idx, value)
+            if st.session_state["profile"][name]:
+                for idx, value in enumerate(st.session_state["profile"][name]):
+                    add_container(idx, value)
             st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():

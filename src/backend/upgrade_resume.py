@@ -273,7 +273,12 @@ def analyze_language(resume_content, category, industry):
         generator =     ({"resume_content":RunnablePassthrough(), "category":RunnablePassthrough()} 
                         | prompt_template
                         | model_parser)
-        language_dict = generator.invoke({"resume_content":resume_content, "category":category})
+        try:
+            language_dict = generator.invoke({"resume_content":resume_content, "category":category})
+        except openai.BadRequestError as e:
+            if "string too long" in str(e):
+                #TODO: shorten content!
+                pass
         # language_resp = asyncio_run(lambda: create_smartllm_chain(query_language, n_ideas=1), timeout=5)
         # if language_resp:
         #     language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
@@ -477,7 +482,12 @@ def tailor_skills(required_skills, my_skills, job_requirement, ):
     generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough(), "job_requirement":RunnablePassthrough()} 
                      | prompt_template
                      | model_parser)
-    response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
+    try:
+        response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
+    except openai.BadRequestError as e:
+        if "string too long" in str(e):
+            #TODO:shorten content!
+            response = ""
     # print(response)
     return response
 
@@ -561,7 +571,12 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title):
                      | {"relevant_information":model_parser1, "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()}
                      | prompt_template2
                      | model_parser)
-    response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
+    try:
+        response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
+    except openai.BadRequestError as e:
+        if "string too long" in str(e):
+            #TODO:shorten content!
+            response = ""
     print(response)
     # response = asyncio_run(lambda:create_pydantic_parser(content={"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective}, schema=Replacements, previous_chain=generator), timeout=20)
     # print(response)

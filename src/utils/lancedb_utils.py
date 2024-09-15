@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 from typing import List, Dict, Optional, get_args, get_origin, Set
 from dotenv import load_dotenv, find_dotenv
+from pydantic import BaseModel, Field
 # from utils.aws_manager import get_session_token
 # from utils.dynamodb_utils import init_dynamodb_table
 # import lance
@@ -191,20 +192,64 @@ def retrieve_dict_from_table(userId, tablename):
     else:
         return None
 
+#NOTE: below works with pydantic 1.x only
+# def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
+#     fields = []
+#     for field_name, model_field in schema.__fields__.items():
+#         field_type = model_field.outer_type_
 
-def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
+#         if get_origin(field_type) is list:
+#             # Handling lists
+#             item_type = get_args(field_type)[0]
+#             if hasattr(item_type, "__fields__"):
+#                 # Handling lists of nested Pydantic models
+#                 nested_fields = [
+#                     pa.field(name, pa.list_(pa.string()) if get_origin(field.outer_type_) is list else pa.string(), nullable=True)
+#                     for name, field in item_type.__fields__.items()
+#                 ]
+#                 nested_struct = pa.struct(nested_fields)
+#                 fields.append(pa.field(field_name, pa.list_(nested_struct), nullable=True))
+#             else:
+#                 # Handling lists of basic types (e.g., List[str])
+#                 fields.append(pa.field(field_name, pa.list_(pa.string()), nullable=True))
+        
+#         # elif get_origin(field_type) is dict and get_args(field_type) == (str, str):
+#         #     # Handling dictionary fields
+#         #     fields.append(pa.field(field_name, pa.map_(pa.string(), pa.string())))
+
+#         elif hasattr(field_type, "__fields__"):
+#             # Handling nested Pydantic models (non-list)
+#             ""
+#             nested_fields = [
+#                 pa.field(name, pa.list_(pa.string()) if get_origin(field.outer_type_) is list else pa.string(), nullable=True)
+#                 for name, field in field_type.__fields__.items()
+#             ]
+#             fields.append(pa.field(field_name, pa.struct(nested_fields), nullable=True))
+
+#         else:
+#             # Handling other field types (default to string for this example)
+#             fields.append(pa.field(field_name, pa.string(), nullable=True))
+
+#     return pa.schema(fields)
+    
+# Note: below works for pydantic V2
+def convert_pydantic_schema_to_arrow(schema: BaseModel) -> pa.Schema:
     fields = []
-    for field_name, model_field in schema.__fields__.items():
-        field_type = model_field.outer_type_
+    for field_name, model_field in schema.model_fields.items():  # Pydantic v2 uses model_fields
+        field_type = model_field.annotation  # Use annotation for field type
 
         if get_origin(field_type) is list:
             # Handling lists
             item_type = get_args(field_type)[0]
-            if hasattr(item_type, "__fields__"):
+            if hasattr(item_type, "model_fields"):
                 # Handling lists of nested Pydantic models
                 nested_fields = [
-                    pa.field(name, pa.list_(pa.string()) if get_origin(field.outer_type_) is list else pa.string(), nullable=True)
-                    for name, field in item_type.__fields__.items()
+                    pa.field(
+                        name,
+                        pa.list_(pa.string()) if get_origin(field.annotation) is list else pa.string(),
+                        nullable=True
+                    )
+                    for name, field in item_type.model_fields.items()  # Pydantic v2: model_fields
                 ]
                 nested_struct = pa.struct(nested_fields)
                 fields.append(pa.field(field_name, pa.list_(nested_struct), nullable=True))
@@ -213,15 +258,18 @@ def convert_pydantic_schema_to_arrow(schema) -> pa.schema:
                 fields.append(pa.field(field_name, pa.list_(pa.string()), nullable=True))
         
         # elif get_origin(field_type) is dict and get_args(field_type) == (str, str):
-        #     # Handling dictionary fields
+        #     # Handling dictionary fields (uncomment if needed)
         #     fields.append(pa.field(field_name, pa.map_(pa.string(), pa.string())))
 
-        elif hasattr(field_type, "__fields__"):
+        elif hasattr(field_type, "model_fields"):
             # Handling nested Pydantic models (non-list)
-            ""
             nested_fields = [
-                pa.field(name, pa.list_(pa.string()) if get_origin(field.outer_type_) is list else pa.string(), nullable=True)
-                for name, field in field_type.__fields__.items()
+                pa.field(
+                    name,
+                    pa.list_(pa.string()) if get_origin(field.annotation) is list else pa.string(),
+                    nullable=True
+                )
+                for name, field in field_type.model_fields.items()  # Pydantic v2: model_fields
             ]
             fields.append(pa.field(field_name, pa.struct(nested_fields), nullable=True))
 

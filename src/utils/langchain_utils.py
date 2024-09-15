@@ -7,6 +7,7 @@ from langchain_community.document_loaders import TextLoader, DirectoryLoader, S3
 from langchain_openai import OpenAI, ChatOpenAI, OpenAIEmbeddings
 from langchain.agents import AgentOutputParser, initialize_agent
 from langchain.chains.summarize import load_summarize_chain
+from tenacity import retry, stop_after_delay, retry_if_exception_type
 # from langchain.memory import ConversationBufferMemory
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain, stuff_prompt
 import os
@@ -38,6 +39,7 @@ from langchain.indexes import SQLRecordManager, index
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain_core.prompts import BaseChatPromptTemplate, PromptTemplate, ChatPromptTemplate
 from utils.aws_manager import get_client
+import concurrent.futures
 
 
 
@@ -598,7 +600,8 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
     response = chain.run(content)
     return response
 
-def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
+
+def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), timeout=10 ):
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -616,11 +619,32 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-min
         )
     
     runnable = prompt | llm.with_structured_output(schema=schema)
-    response = runnable.invoke({"content": content})
-    response_dict = response.dict()
-    # print(response_dict)
-    return response_dict
+    def run_parser():
+        try:
+            response = runnable.invoke({"content": content})
+            return response.dict() 
+        except AttributeError as e:
+            return response
+        except openai.BadRequestError as e:
+            if "string too long" in str(e):
+                print(e)
+                return "too long"  
+        except Exception as e:
+            print(e)
+            return None
+    # Use ThreadPoolExecutor to run the function with a timeout
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(run_parser)
+        try:
+            # Wait for the function to complete with a timeout
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            print("Function timed out")
+            return None
 
+
+
+#NOTE langchain's async often returns nothing or hangs there
 async def acreate_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
     prompt = ChatPromptTemplate.from_messages(
     [
