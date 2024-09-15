@@ -7,11 +7,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice \
     openjdk-11-jre \
     fonts-dejavu \
+    # procps \                  
+    # lsof \                   
+    # net-tools \               
     # poppler-utils \
     # libmagic1 \
-    nginx \
-    certbot \
-    python3-certbot-nginx \
+    # nginx \
+    # certbot \
+    # python3-certbot-nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a user to avoid running as root
@@ -21,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy the Nginx configuration file from your repository to the container
-COPY ../acareerai.conf /etc/nginx/conf.d/
+# COPY ../acareerai.conf /etc/nginx/conf.d/
 
 # COPY src/nltk_data /usr/share/nltk_data
 # Copy requirements.txt into the container

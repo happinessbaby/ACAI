@@ -348,27 +348,27 @@ class generateQATool(BaseTool):
         raise NotImplementedError("This tool does not support async")
     
 
-class ResumeTemplateDesign(BaseModel):
-    json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"resume_file":"<resume_file>"}}'""")
-@tool(args_schema=ResumeTemplateDesign, return_direct=False)
-def design_resume_template(json_request:str):
+# class ResumeTemplateDesign(BaseModel):
+#     json_request: str = Field(description="""Input should be a single string strictly in the following JSON format:'{{"resume_file":"<resume_file>"}}'""")
+# @tool(args_schema=ResumeTemplateDesign, return_direct=False)
+# def design_resume_template(json_request:str):
 
-    """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
-    Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
-    When there is resume_template_file in the prompt, use the "resume_writer" tool instead. """
-    from backend.upgrade_resume import research_resume_type
-    try:
-        args = json.loads(process_json(json_request))
-    except JSONDecodeError as e:
-      print(f"JSON DECODER ERROR: {e}")
-      return "Reformat in JSON and try again."
-    # if resume doesn't exist, ask for resume
-    if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
-      return "Please provide your resume file and try again. "
-    else:
-        resume_file = args["resume_file"]
-    resume_type= research_resume_type(resume_file)
-    return resume_type
+#     """Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
+#     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
+#     When there is resume_template_file in the prompt, use the "resume_writer" tool instead. """
+#     from backend.upgrade_resume import research_resume_type
+#     try:
+#         args = json.loads(process_json(json_request))
+#     except JSONDecodeError as e:
+#       print(f"JSON DECODER ERROR: {e}")
+#       return "Reformat in JSON and try again."
+#     # if resume doesn't exist, ask for resume
+#     if ("resume_file" not in args or args["resume_file"]=="" or args["resume_file"]=="<resume_file>"):
+#       return "Please provide your resume file and try again. "
+#     else:
+#         resume_file = args["resume_file"]
+#     resume_type= research_resume_type(resume_file)
+#     return resume_type
 
 
 @tool(return_direct=True)
