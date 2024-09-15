@@ -27,7 +27,7 @@ from utils.basic_utils import read_file
 from json import JSONDecodeError
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.document_transformers.openai_functions import create_metadata_tagger
-from langchain_experimental.autonomous_agents import BabyAGI
+# from langchain_experimental.autonomous_agents import BabyAGI
 import faiss
 from utils.lancedb_utils import create_lancedb_table
 # from langchain.docstore import InMemoryDocstore
@@ -673,20 +673,20 @@ def create_comma_separated_list_parser(input_variables, base_template, query_dic
     print(response)
     return response
 
-def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperature=0)):
+# def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperature=0)):
     
-    embeddings = OpenAIEmbeddings()
-    embedding_size = 1536
-    index = faiss.IndexFlatL2(embedding_size)
-    # vectorstore = FAISS(embeddings.embed_query, index, InMemoryDocstore({}), {})
-    # Logging of LLMChains
-    # If None, will keep on going forever
-    max_iterations: Optional[int] = 3
-    baby_agi = BabyAGI.from_llm(
-        llm=llm, vectorstore=vectorstore, verbose=True, max_iterations=max_iterations
-    )
-    response = baby_agi({"objective": OBJECTIVE})
-    return response
+#     embeddings = OpenAIEmbeddings()
+#     embedding_size = 1536
+#     index = faiss.IndexFlatL2(embedding_size)
+#     # vectorstore = FAISS(embeddings.embed_query, index, InMemoryDocstore({}), {})
+#     # Logging of LLMChains
+#     # If None, will keep on going forever
+#     max_iterations: Optional[int] = 3
+#     baby_agi = BabyAGI.from_llm(
+#         llm=llm, vectorstore=vectorstore, verbose=True, max_iterations=max_iterations
+#     )
+#     response = baby_agi({"objective": OBJECTIVE})
+#     return response
 
 
 async def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
