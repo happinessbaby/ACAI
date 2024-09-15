@@ -26,7 +26,7 @@ from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from streamlit_float import *
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
-from st_pages import get_pages, get_script_run_ctx 
+from st_pages import get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
 from annotated_text import annotated_text
 from st_draggable_list import DraggableList
