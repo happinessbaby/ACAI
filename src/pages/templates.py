@@ -6,7 +6,8 @@ from css.streamlit_css import general_button, primary_button
 # from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
-from st_pages import get_script_run_ctx 
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+# from st_pages import get_script_run_ctx 
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import retrieve_cookie
 from multiprocessing import Pool

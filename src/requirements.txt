@@ -21,7 +21,7 @@ tenacity
 # elevenlabs==0.2.26
 pip-tools
 # streamlit-modal==0.1.0
-st-pages
+# st-pages
 docxtpl==0.16.7
 langchain_experimental
 langchain_community
