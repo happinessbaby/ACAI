@@ -315,8 +315,8 @@ class GenerateQA(BaseModel):
 #In-Memory ADVANCED RETRIEVER AS CUSTOM TOOL
 #SAME AS ABOVE BUT WRITTEN DIFFERENTLY
 class generateQATool(BaseTool):
-    name="generate_interview_QA"
-    description =  """Generates interview questions and answers base on the user material provided in a directory path. 
+    name: str="generate_interview_QA"
+    description: str =  """Generates interview questions and answers base on the user material provided in a directory path. 
     Use this tool more than any other tools to generate interview questions. """
     args_schema: Type[BaseModel] = GenerateQA
     return_direct: bool=False
@@ -371,17 +371,17 @@ class generateQATool(BaseTool):
 #     return resume_type
 
 
-@tool(return_direct=True)
-def resume_template_design_tool(resume_file: str) -> str:
+# @tool(return_direct=True)
+# def resume_template_design_tool(resume_file: str) -> str:
 
-    """
-    Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
-    Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
-    When there is resume_template_file in the prompt, use the "resume_writer" tool instead. 
-    """
-    from backend.upgrade_resume import research_resume_type
-    resume_type= research_resume_type(resume_file)
-    return resume_type
+#     """
+#     Creates a resume_template for rewriting of resume. Use this tool more than any other tool when user asks to reformat, redesign, or rewrite their resume according to a particular type or template.
+#     Do not use this tool to evaluate or customize and tailor resume content. Do not use this tool if resume_template_file is provided in the prompt. 
+#     When there is resume_template_file in the prompt, use the "resume_writer" tool instead. 
+#     """
+#     from backend.upgrade_resume import research_resume_type
+#     resume_type= research_resume_type(resume_file)
+#     return resume_type
 
 @tool(return_direct=True)
 def file_loader(json_request: str) -> str:
