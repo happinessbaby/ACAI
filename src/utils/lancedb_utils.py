@@ -16,7 +16,7 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 
 
 
-model="gpt-3.5-turbo-0613"
+model="gpt-4o-mini"
 registry = EmbeddingFunctionRegistry.get_instance()
 func = registry.get("openai").create(model=model)
 STORAGE = os.environ["STORAGE"]

@@ -13,6 +13,7 @@ streamlit-pdf-viewer
 st-annotated-text
 streamlit-draggable-list
 streamlit-cookies-manager
+streamlit-antd-components
 
 # PyMuPDF==1.22.3
 docarray==0.32.1
@@ -85,7 +86,6 @@ python-dateutil
 PyPDF2
 # stqdm
 plotly
-streamlit-antd-components
 textstat
 language_tool_python
 pyarrow
