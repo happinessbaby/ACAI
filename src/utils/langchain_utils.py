@@ -481,38 +481,54 @@ def create_mapreduce_chain(files: List[str], map_template:str, reduce_template:s
 
 def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")) -> Dict[str, Any]:
 
-    """ Tags input text according to schema: https://python.langchain.com/docs/use_cases/tagging """
+    """ Tags input text according to schema: https://python.langchain.com/docs/use_cases/tagging 
 
-    #  Args:
+        Args:
 
-    #   schema: for example
-    #    {
-    # "properties": {
-    #     "aggressiveness": {
-    #         "type": "integer",
-    #         "enum": [1, 2, 3, 4, 5],
-    #         "description": "describes how aggressive the statement is, the higher the number the more aggressive",
-    #     },
-    #     "language": {
-    #         "type": "string",
-    #         "enum": ["spanish", "english", "french", "german", "italian"],
-    #     },
-    # },
-    # "required": ["language", "sentiment", "aggressiveness"],
-    # }
+        schema: for example
+        {
+        "properties": {
+            "aggressiveness": {
+                "type": "integer",
+                "enum": [1, 2, 3, 4, 5],
+                "description": "describes how aggressive the statement is, the higher the number the more aggressive",
+            },
+            "language": {
+                "type": "string",
+                "enum": ["spanish", "english", "french", "german", "italian"],
+            },
+        },
+        "required": ["language", "sentiment", "aggressiveness"],
+        }
 
-    # user_input: usually a query
+        user_input: usually a query
 
-    # Keyword Args:
+        Keyword Args:
 
-    #     llm (BaseModel)
-       
-    # Returns:
+            llm (BaseModel)
+        
+        Returns:
 
-    #     dictionary of metadata
+            dictionary of metadata
+    
+    """
 
     chain = create_tagging_chain(schema, llm)
-    response = chain.run(user_input)
+    def run_parser():
+        try:
+            response = chain.run(user_input)
+            return response
+        # except AttributeError as e:
+        #     return response
+        except openai.BadRequestError as e:
+            if "string too long" in str(e):
+                print(e)
+                return "too long"  
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
+   
     # tagging_prompt = ChatPromptTemplate.from_template(
     # """
     #     Extract the desired information from the following passage.

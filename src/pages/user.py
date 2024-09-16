@@ -2,7 +2,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import os
 # from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, save_cookie, change_password, save_cookies
+from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, change_password, save_cookies
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
