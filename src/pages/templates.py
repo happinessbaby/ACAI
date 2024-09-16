@@ -9,7 +9,7 @@ from streamlit_float import *
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 # from st_pages import get_script_run_ctx 
 from streamlit_extras.add_vertical_space import add_vertical_space
-from utils.cookie_manager import retrieve_cookie
+from utils.cookie_manager import retrieve_cookie, init_cookies
 from multiprocessing import Pool
 from datetime import datetime
 from pathlib import Path
@@ -46,6 +46,8 @@ class Reformat():
     
     def __init__(self, ):
 
+        # if "init_cookies" not in st.session_state:
+        init_cookies()
         # st.session_state["current_page"] = "template"
         # if "cm" not in st.session_state:
         #     st.session_state["cm"] = CookieManager()

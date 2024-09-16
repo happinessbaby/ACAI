@@ -5,9 +5,9 @@ import os
 import json
 import streamlit as st
 # from datetime import datetime, timedelta, date
-from streamlit_cookies_controller import CookieController
+# from streamlit_cookies_controller import CookieController
 from utils.aws_manager import get_client
-# from streamlit_cookies_manager import EncryptedCookieManager
+from streamlit_cookies_manager import EncryptedCookieManager
 from streamlit_utils import set_streamlit_page_config_once
 import streamlit as st
 # from streamlit_js_eval import set_cookie, get_cookie
@@ -23,18 +23,21 @@ _ = load_dotenv(find_dotenv()) # read local .env file
 cookie_name = os.environ["COOKIE_NAME"]
 user_cookie_key=os.environ["USER_COOKIE_KEY"]
 cookie_password = os.environ["COOKIE_PASSWORD"]
-controller = CookieController(key='cookies')
-# cookies = EncryptedCookieManager(
-#     # This prefix will get added to all your cookie names.
-#     # This way you can run your app on Streamlit Cloud without cookie name clashes with other apps.
-#     prefix=cookie_name,
-#     # You should really setup a long COOKIES_PASSWORD secret if you're running on Streamlit Cloud.
-#     password=cookie_password,
-# )
-
-# if not cookies.ready():
-#     # Wait for the component to load and send us current cookies.
-#     st.stop()
+# controller = CookieController(key='cookies')
+def init_cookies():
+    # if "cookies" not in st.session_state:
+    st.session_state["cookies"] = EncryptedCookieManager(
+        # This prefix will get added to all your cookie names.
+        # This way you can run your app on Streamlit Cloud without cookie name clashes with other apps.
+        prefix=cookie_name,
+        # You should really setup a long COOKIES_PASSWORD secret if you're running on Streamlit Cloud.
+        password=cookie_password,
+    )
+    if not st.session_state.cookies.ready():
+        # Wait for the component to load and send us current cookies.
+        st.stop()
+    # else:
+    #     st.session_state["init_cookies"]=True
 
 STORAGE = os.environ['STORAGE']
 
@@ -57,10 +60,7 @@ def retrieve_users() -> dict:
         # Convert the JSON string back to a dictionary
         users = json.loads(json_data)
     return users
-# USERS = {
-#     'tebbles': {'username': 'tebbles', 'password': 'Pyq901210!', "first_name":"Yueqi", "last_name":"Peng"},
-#     'peter': {'username': 'peter', 'password': 'ppp'}
-# }
+
 
 USERS=retrieve_users()
 
@@ -173,10 +173,9 @@ def add_user(username, password, first_name=None, last_name=None):
             json_data = json.dumps(USERS, indent=4)
             # Upload the JSON string to S3
             s3.put_object(Bucket=bucket_name, Key=login_file, Body=json_data)
-        controller.set(user_cookie_key,username, max_age=8*60*60)
-        # save_cookie(username)
+        # controller.set(user_cookie_key,username, max_age=8*60*60)
+        save_cookie(username)
         # set_cookie(user_cookie_key, username, 1)
-            # controller.set(f'{cookie_name}_password',password, max_age=8*60*60)
         print(f"Successfully set cookie: {username}")
         return True
     except Exception as e:
@@ -225,18 +224,18 @@ def change_password(username, new_password):
 
         
 
-# def save_cookie(cookie_value, cookie_key=user_cookie_key):
+def save_cookie(cookie_value, cookie_key=user_cookie_key):
 
-#     cookies[cookie_key] = cookie_value
-#     cookies.save()
+    st.session_state.cookies[cookie_key] = cookie_value
+    st.session_state.cookies.save()
 
 def save_cookies(cookie_dict):
     
-    # for key, value in cookie_dict.items():
-    #     cookies[key]=value
-    # cookies.save()
     for key, value in cookie_dict.items():
-        controller.set(key, value, max_age=8*60*60)
+        st.session_state.cookies[key]=value
+    st.session_state.cookies.save()
+    # for key, value in cookie_dict.items():
+    #     controller.set(key, value, max_age=8*60*60)
 
 def authenticate(username, password):
     # usern = st.session_state.username
@@ -248,8 +247,8 @@ def authenticate(username, password):
         user_password = USERS.get(username, {}).get('password', '')
         if user_password == password:       
             # Save to cookie.
-            controller.set(user_cookie_key,username, max_age=8*60*60)
-            # save_cookie(username)
+            # controller.set(user_cookie_key,username, max_age=8*60*60)
+            save_cookie(cookie_value=username, cookie_key=user_cookie_key)
             # set_cookie(user_cookie_key, username, 1)
             # expiration = f"expires={1 * 24 * 60 * 60};"
             # st.markdown(
@@ -271,28 +270,30 @@ def retrieve_cookie(cookie_key=user_cookie_key):
     # time.sleep(1)
     # # Get cookie username and password if there is.
     # cookie_username = controller.get(f'{cookie_name}_username')
-    # cookie_password = controller.get(f'{cookie_name}_password')
-    # if cookie_key in cookies.keys() and str(cookies[cookie_key]):
-    #     cookie_username = cookies.get(cookie_key)
-    #     print("Successfully retrieved cookie")
-    #     return cookie_username
-    # else:
-    #     # ss.login_ok = False
-    #     print("Failed to retrieve cookie")
-    #     return None
-    try:
-        cookie_username = st.context.cookies[cookie_key]
-        print(f"retrieved cookie for user: {cookie_username}")
-        return cookie_username
-    except Exception as e:
-        print("failed to retriever cookie", e)
+    if cookie_key in st.session_state.cookies.keys():
+        cookie_username = st.session_state.cookies.get(cookie_key)
+        if cookie_username:
+            print("Successfully retrieved cookie")
+            return cookie_username
+        else:
+            return None
+    else:
+        # ss.login_ok = False
+        print("Failed to retrieve cookie")
         return None
+    # try:
+    #     cookie_username = st.context.cookies[cookie_key]
+    #     print(f"retrieved cookie for user: {cookie_username}")
+    #     return cookie_username
+    # except Exception as e:
+    #     print("failed to retriever cookie", e)
+    #     return None
     
 def delete_cookie(cookie_key=user_cookie_key):
-    controller.remove(cookie_key)
+    # controller.remove(cookie_key)
     # unset username in cookies
-    # cookies[cookie_key] = ""
-    # cookies.save()
+    st.session_state.cookies[cookie_key] = ""
+    st.session_state.cookies.save()
     print("Successfully removed cookie")
 
 

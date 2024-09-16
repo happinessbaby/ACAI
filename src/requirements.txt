@@ -14,7 +14,7 @@ st-annotated-text
 streamlit-draggable-list
 streamlit-cookies-manager
 streamlit-antd-components
-streamlit-cookies-controller
+# streamlit-cookies-controller
 
 # PyMuPDF==1.22.3
 docarray==0.32.1

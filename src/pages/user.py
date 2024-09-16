@@ -2,7 +2,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import os
 # from google.oauth2 import id_token
 from google.auth.transport import requests
-from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, change_password, save_cookies
+from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, add_user, check_user, change_password, save_cookies, init_cookies
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
@@ -107,8 +107,8 @@ class User():
     ctx = get_script_run_ctx()
 
     def __init__(self, ):
-
-
+        # if "init_cookies" not in st.session_state:
+        init_cookies()
         # if "cm" not in st.session_state:
         #     st.session_state["cm"] = CookieManager()
         # if "userId" not in st.session_state:
