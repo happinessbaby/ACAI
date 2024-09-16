@@ -41,8 +41,9 @@ from dotenv import load_dotenv, find_dotenv
 from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from utils.async_utils import asyncio_run
+from utils.async_utils import asyncio_run, future_run_with_timeout
 from multiprocessing import Pool
+# import concurrent.futures
 # from langchain_core.tools import Tool
 
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -648,8 +649,7 @@ def extract_similar_jobs(job_list:List[str], desired_titles: List[str], ):
 #     return relevancy
 
 
-
-async def get_web_resources(query: str, with_source: bool=False, engine="retriever", llm = ChatOpenAI(temperature=0.8, model="gpt-3.5-turbo-0613", cache=False)) -> str:
+def get_web_resources(query: str, with_source: bool=False, engine="retriever", llm = ChatOpenAI( model="gpt-4o-mini"), timeout=10) -> str:
 
     """ Retrieves web answer given a query question. The default search is using WebReserachRetriever: https://python.langchain.com/docs/modules/data_connection/retrievers/web_research.
     
@@ -679,31 +679,37 @@ async def get_web_resources(query: str, with_source: bool=False, engine="retriev
             search=search, 
         )
         if (with_source):
-            qa_source_chain = RetrievalQAWithSourcesChain.from_chain_type(llm, retriever=web_research_retriever)
-            response = qa_source_chain({"question":query})
+            chain = RetrievalQAWithSourcesChain.from_chain_type(llm, retriever=web_research_retriever)
+            # response = qa_source_chain({"question":query})
         else:
-            qa_chain = RetrievalQA.from_chain_type(llm, retriever=web_research_retriever)
-            response = await qa_chain.arun(query)
-        print(f"Successfully retreived web resources using Web Research Retriever: {response}")
+            chain = RetrievalQA.from_chain_type(llm, retriever=web_research_retriever)
+            # response = await qa_chain.arun(query)
     elif engine=="agent":
         tools = create_search_tools("google", 3)
-        agent= initialize_agent(
+        chain= initialize_agent(
             tools, 
             llm, 
             agent="zero-shot-react-description",
             handle_parsing_errors=True,
             verbose = True,
             )
+        
+    def run_parser():
+
         try:
-            response = await agent.arun(query)
+            response = chain.run(query)
             return response
         except ValueError as e:
             response = str(e)
             if not response.startswith("Could not parse LLM output: `"):
-                return ""
+                return None
             response = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
-        print(f"Successfully retreived web resources using Zero-Shot-React agent: {response}")
-    return response
+        except Exception as e:
+            return None
+        # print(f"Successfully retreived web resources using Zero-Shot-React agent: {response}")
+    return future_run_with_timeout(run_parser)
+
+
 
 
 async def retrieve_from_db(query: str, vectorstore_path: str, vectorstore_type="faiss", llm=OpenAI(temperature=0.8)) -> str:
@@ -861,6 +867,7 @@ def create_resume_info(resume_path, q, ):
                 else:
                     resume_info_dict.update(result)
             elif isinstance(result, str):
+                #NOTE: handles error that's caught
                 pass
 
 
@@ -970,14 +977,15 @@ def create_job_posting_info(posting_path, about_job, q, ):
         job_posting_skills = research_skills(posting, "job posting")
         job_posting_info_dict.update({"skills":job_posting_skills} if job_posting_skills else {"skills":[]})
         # Research company
-        company = basic_info_dict["company"]
-        company_description = basic_info_dict["company_description"]
+        company = job_posting_info_dict["company"]
+        company_description = job_posting_info_dict["company_description"]
         if company and not company_description:
             company_query = f""" Research what kind of company {company} is, such as its culture, mission, and values.       
                                 In 50 words or less, summarize your research result.                 
                                 Look up the exact name of the company. If it doesn't exist or the search result does not return a company, output -1."""
-            company_description = asyncio_run(lambda: get_web_resources(company_query, engine="agent"))
-            job_posting_info_dict.update({"company_description": company_description})
+            company_description = get_web_resources(company_query, engine="agent")
+            if company_description:
+                job_posting_info_dict.update({"company_description": company_description})
         # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     # if STORAGE=="LOCAL":
@@ -991,8 +999,6 @@ def create_job_posting_info(posting_path, about_job, q, ):
     q.put(job_posting_info_dict)
     return job_posting_info_dict
 
-def cleanup_resume_content(resume_content):
-    """Cleans up resume"""
 
 # def retrieve_or_create_resume_info(resume_path, q=None, ):
 #     #NOTE: JSON file is the temp solution, will move to database

@@ -92,19 +92,19 @@ class Reformat():
             user_menu(st.session_state.userId, page="template")
         with progressbar_placeholder.container():
             progress_bar(1)
-        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
+        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]):
             if self.reformat_templates():
                 with template_placeholder.container():
                     # print(st.session_state["selected_fields"])
                     self.display_resume_templates()
-                    st.session_state["update_template"]=False
+                    st.session_state["profile_changed"]=False
                     st.session_state["fields_changed"]=False
             else:
                 st.rerun()
         else:
             with template_placeholder.container():
                 self.display_resume_templates()
-                st.session_state["update_template"]=False
+                st.session_state["profile_changed"]=False
                 st.session_state["fields_changed"]=False
 
 

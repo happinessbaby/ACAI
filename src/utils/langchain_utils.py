@@ -39,11 +39,8 @@ from langchain.indexes import SQLRecordManager, index
 from langchain_experimental.smart_llm import SmartLLMChain
 from langchain_core.prompts import BaseChatPromptTemplate, PromptTemplate, ChatPromptTemplate
 from utils.aws_manager import get_client
-import concurrent.futures
-
-
-
-
+from utils.async_utils import future_run_with_timeout
+# import concurrent.futures
 from dotenv import load_dotenv, find_dotenv
 # from langchain_community.cache import RedisCache, RedisSemanticCache
 # from langchain_community.docstore import Wikipedia
@@ -602,6 +599,7 @@ def create_structured_output_chain(content:str, schema: Dict[str, Any], llm=Chat
 
 
 def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), timeout=10 ):
+    
     prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -617,14 +615,13 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-min
         ("human", "{content}"),
             ]
         )
-    
     runnable = prompt | llm.with_structured_output(schema=schema)
     def run_parser():
         try:
             response = runnable.invoke({"content": content})
-            return response.dict() 
-        except AttributeError as e:
             return response
+        # except AttributeError as e:
+        #     return response
         except openai.BadRequestError as e:
             if "string too long" in str(e):
                 print(e)
@@ -632,43 +629,36 @@ def create_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-min
         except Exception as e:
             print(e)
             return None
-    # Use ThreadPoolExecutor to run the function with a timeout
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = executor.submit(run_parser)
-        try:
-            # Wait for the function to complete with a timeout
-            return future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            print("Function timed out")
-            return None
+    return future_run_with_timeout(run_parser)
+
 
 
 
 #NOTE langchain's async often returns nothing or hangs there
-async def acreate_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
-    prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are an expert extraction algorithm. "
-            "Only extract relevant information from the text. "
-            "If you do not know the value of an attribute asked to extract, "
-            "return null for the attribute's value.",
-        ),
-        # Please see the how-to about improving performance with
-        # reference examples.
-        # MessagesPlaceholder('examples'),
-        ("human", "{content}"),
-            ]
-        )
+# async def acreate_pydantic_parser(content:str, schema, llm=ChatOpenAI(model="gpt-4o-mini"), ):
+#     prompt = ChatPromptTemplate.from_messages(
+#     [
+#         (
+#             "system",
+#             "You are an expert extraction algorithm. "
+#             "Only extract relevant information from the text. "
+#             "If you do not know the value of an attribute asked to extract, "
+#             "return null for the attribute's value.",
+#         ),
+#         # Please see the how-to about improving performance with
+#         # reference examples.
+#         # MessagesPlaceholder('examples'),
+#         ("human", "{content}"),
+#             ]
+#         )
     
-    runnable = prompt | llm.with_structured_output(schema=schema)
-    response = await runnable.ainvoke({"content": content})
-    response_dict = response.dict()
-    # print(response_dict)
-    return response_dict
+#     runnable = prompt | llm.with_structured_output(schema=schema)
+#     response = await runnable.ainvoke({"content": content})
+#     response_dict = response.dict()
+#     # print(response_dict)
+#     return response_dict
 
-def create_comma_separated_list_parser(input_variables, base_template, query_dict):
+def create_comma_separated_list_parser(input_variables, base_template, query_dict, timeout=10):
 
     """Outputs in comma separated list format: https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/types/csv/
     
@@ -693,9 +683,15 @@ def create_comma_separated_list_parser(input_variables, base_template, query_dic
 
     model = ChatOpenAI(temperature=0, model="gpt-4o-mini")
     chain = prompt | model | output_parser
-    response = chain.invoke(query_dict)
-    print(response)
-    return response
+    def run_parser():
+        try:
+            response = chain.invoke(query_dict)
+            return response
+            # print(response)
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
 
 # def create_babyagi_chain(OBJECTIVE: str, vectorstore:Any, llm = OpenAI(temperature=0)):
     
@@ -713,17 +709,32 @@ def create_comma_separated_list_parser(input_variables, base_template, query_dic
 #     return response
 
 
-async def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
+# async def acreate_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI()):
+
+#     prompt = PromptTemplate.from_template(query)
+#     chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=n_ideas, verbose=verbose)
+#     response = await chain.arun({})
+#     print(response)
+#     return response
+        
+def create_smartllm_chain(query, n_ideas=3, verbose=True, llm=ChatOpenAI(), timeout=10):
 
     prompt = PromptTemplate.from_template(query)
     chain = SmartLLMChain(llm=llm, prompt=prompt, n_ideas=n_ideas, verbose=verbose)
-    response = await chain.arun({})
-    print(response)
-    return response
+    def run_parser():
+        try: 
+            response = chain.run({}) 
+            print(f"Successfully got multifunction response: {response}")
+            return response
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
+
 
 # Assuming you have an instance of BaseOpenAI or OpenAIChat called `llm_instance`
 
-def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-4o-mini", cache=False)) -> str:
+def generate_multifunction_response(query: str, tools: List[Tool], early_stopping=True, max_iter = 2, llm = ChatOpenAI(model="gpt-4o-mini"), timeout=10):
 
     """ General purpose agent that uses the OpenAI functions ability.
      
@@ -743,7 +754,7 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
 
     Returns:
 
-        answer to the query
+        dictionary with "output" as key 
     
     """
     if early_stopping:
@@ -753,19 +764,30 @@ def generate_multifunction_response(query: str, tools: List[Tool], early_stoppin
             agent=AgentType.OPENAI_MULTI_FUNCTIONS, 
             max_iterations=max_iter,
             early_stopping_method="force",
-            verbose=True
+            # verbose=True
         )
     else:
         agent = initialize_agent(
             tools, llm, agent=AgentType.OPENAI_MULTI_FUNCTIONS
         )
-    try: 
-        response = agent.invoke({"input": query}) 
-        print(f"Successfully got multifunction response: {response}")
-    except Exception as e:
-        print(e)
-        response = ""
-    return response.get("output", "") if response else response
+
+    def run_parser():
+        try: 
+            response = agent.invoke({"input": query}) 
+            print(f"Successfully got multifunction response: {response}")
+            return response
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
+
+    # try: 
+    #     response = agent.invoke({"input": query}) 
+    #     print(f"Successfully got multifunction response: {response}")
+    # except Exception as e:
+    #     print(e)
+    #     response = ""
+    # return response.get("output", "") if response else response
 
 
 

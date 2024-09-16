@@ -20,7 +20,8 @@ import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate,  PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
-from utils.async_utils import asyncio_run
+from utils.async_utils import asyncio_run, future_run_with_timeout
+# import concurrent.futures
 import time as time
 import streamlit as st
 
@@ -99,6 +100,7 @@ def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=Non
                 category_dict = analyze_language(resume_content, category, industry)
                 if category_dict:
                     if  category=="syntax" or category=="tone":
+                        category_dict=category_dict.dict()
                         if category_dict["reason"]:
                            category_dict["reason"]= insert_break_character(category_dict["reason"])
                     st.session_state.evaluation.update({category:category_dict})
@@ -199,7 +201,7 @@ def analyze_field_content(field_content, field_type, resume_content):
         """
         # response = asyncio_run(lambda: generate_multifunction_response(summary_query, create_search_tools("google", 1)), timeout=10)
     response = generate_multifunction_response(query, create_search_tools("google", 1))
-    return response
+    return response.get("output", "") if response else ""
 
 
     
@@ -231,12 +233,15 @@ s
     
     """
     comparison_dict = {"closeness":"", "reason":""}
-    comparison_resp = asyncio_run(lambda:generate_multifunction_response(query_comparison, sample_tools, early_stopping=False), timeout=5)
+    comparison_resp = generate_multifunction_response(query_comparison, sample_tools, early_stopping=False)
+    comparison_resp = comparison_resp.get("output", "")
     if comparison_resp:
-        comparison_dict = asyncio_run(lambda:create_pydantic_parser(comparison_resp, Comparison), timeout=5)
+        resp = create_pydantic_parser(comparison_resp, Comparison)
+        if resp:
+            comparison_dict = resp.dict()
     return comparison_dict
 
-def analyze_language(resume_content, category, industry):
+def analyze_language(resume_content, category, industry, timeout=10):
 
     """ Analyzes the resume for its language aspects including tone, diction, syntax, etc. """
 
@@ -273,12 +278,21 @@ def analyze_language(resume_content, category, industry):
         generator =     ({"resume_content":RunnablePassthrough(), "category":RunnablePassthrough()} 
                         | prompt_template
                         | model_parser)
-        try:
-            language_dict = generator.invoke({"resume_content":resume_content, "category":category})
-        except openai.BadRequestError as e:
-            if "string too long" in str(e):
-                #TODO: shorten content!
-                pass
+        
+        def run_parser():
+            try: 
+                response =generator.invoke({"resume_content":resume_content, "category":category})
+                return response
+            except Exception as e:
+                print(e)
+                return None
+        return future_run_with_timeout(run_parser)
+        # try:
+        #     language_dict = generator.invoke({"resume_content":resume_content, "category":category})
+        # except openai.BadRequestError as e:
+        #     if "string too long" in str(e):
+        #         #TODO: shorten content!
+        #         pass
         # language_resp = asyncio_run(lambda: create_smartllm_chain(query_language, n_ideas=1), timeout=5)
         # if language_resp:
         #     language_dict = asyncio_run(lambda:create_pydantic_parser(language_resp, Language), timeout=5)
@@ -303,7 +317,7 @@ def analyze_language(resume_content, category, industry):
                     language_dict={"rating":"bad", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
         else:
             language_dict={"rating":"", "reason":""}
-    return language_dict if isinstance(language_dict, dict) else language_dict.dict()
+        return language_dict 
 
 
 def generate_impression(resume_content, jobs):
@@ -332,7 +346,7 @@ def generate_impression(resume_content, jobs):
 
     # impression_resp = asyncio_run(lambda: generate_multifunction_response(query_impression, create_search_tools("google", 1), early_stopping=False), timeout=10)
     impression_resp = generate_multifunction_response(query_impression, create_search_tools("google", 1))
-    return impression_resp if impression_resp else ""
+    return impression_resp.get("output", "") if impression_resp else ""
 
 
 def analyze_resume_type(resume_content, ):
@@ -356,11 +370,11 @@ def analyze_resume_type(resume_content, ):
       Note a resume can be mix of chronological and functional type.
 
     """
-    response=asyncio_run(lambda: create_smartllm_chain(query_type, n_ideas=1), timeout=10)
+    response= create_smartllm_chain(query_type, n_ideas=1)
     if response:
         # type_dict = asyncio_run(lambda: create_pydantic_parser(response, ResumeType), timoue=5)
         type_dict = create_pydantic_parser(response, ResumeType)
-        return type_dict["type"]
+        return type_dict.dict()["type"]  if type_dict else ""
     else:
         return ""
 
@@ -424,7 +438,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
 #         skills_str+="(skill: " +skill + ", example: "+ example + ")"
 #     return skills_str
 
-def tailor_skills(required_skills, my_skills, job_requirement, ):
+def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
 
     """ Creates a list of relevant skills, irrelevant skills, and transferable skills according to the skills required in a job description"""
   
@@ -482,17 +496,26 @@ def tailor_skills(required_skills, my_skills, job_requirement, ):
     generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough(), "job_requirement":RunnablePassthrough()} 
                      | prompt_template
                      | model_parser)
-    try:
-        response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
-    except openai.BadRequestError as e:
-        if "string too long" in str(e):
-            #TODO:shorten content!
-            response = ""
-    # print(response)
-    return response
+    
+    def run_parser():
+        try: 
+            response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
+            return response
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
+    # try:
+    #     response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
+    # except openai.BadRequestError as e:
+    #     if "string too long" in str(e):
+    #         #TODO:shorten content!
+    #         response = ""
+    # # print(response)
+    # return response
 
 
-def tailor_objective(job_requirements, my_objective, resume_content, job_title):
+def tailor_objective(job_requirements, my_objective, resume_content, job_title, timeout=10):
 
     """ Generates replacements for words and phrases in the summary objective section according to the job description"""
 
@@ -559,7 +582,7 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title):
         ("human", "{content}"),
             ]
         )
-    print(resume_content)
+    # print(resume_content)
     model_parser = prompt |  llm.with_structured_output(schema=Replacements)
     prompt_template = ChatPromptTemplate.from_template(template_string)
     prompt_template2 = ChatPromptTemplate.from_template(template_string2)
@@ -571,20 +594,29 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title):
                      | {"relevant_information":model_parser1, "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()}
                      | prompt_template2
                      | model_parser)
-    try:
-        response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
-    except openai.BadRequestError as e:
-        if "string too long" in str(e):
-            #TODO:shorten content!
-            response = ""
-    print(response)
-    # response = asyncio_run(lambda:create_pydantic_parser(content={"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective}, schema=Replacements, previous_chain=generator), timeout=20)
+    
+    def run_parser():
+        try: 
+            response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
+            return response
+        except Exception as e:
+            print(e)
+            return None
+    return future_run_with_timeout(run_parser)
+    # try:
+    #     response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
+    # except openai.BadRequestError as e:
+    #     if "string too long" in str(e):
+    #         #TODO:shorten content!
+    #         response = ""
     # print(response)
-    # print(prompt_template.messages[0].prompt.input_variables)
-    # message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
-    # response = await llm.ainvoke(message)
-    # print(response)
-    return response
+    # # response = asyncio_run(lambda:create_pydantic_parser(content={"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective}, schema=Replacements, previous_chain=generator), timeout=20)
+    # # print(response)
+    # # print(prompt_template.messages[0].prompt.input_variables)
+    # # message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
+    # # response = await llm.ainvoke(message)
+    # # print(response)
+    # return response
 
 
 
@@ -617,7 +649,7 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements, ):
     #     if ranked_list:
     #         ranked_dict.update({"ranked_list":ranked_list})
     # ranked_dict = {"ranked":ranked, "ranked_list":ranked_list}
-    return ranked
+    return ranked.get("output", "") if ranked else ""
 
 
 
@@ -648,19 +680,22 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
         jobs_list.append(job["job_title"])
     # similar_jobs = asyncio_run(lambda: extract_similar_jobs(jobs_list, desired_jobs))
     similar_jobs = extract_similar_jobs(jobs_list, desired_jobs)
-    total_years_work=0
-    for job in jobs:
-        if job in similar_jobs:
-            try:
-                years = int(job["years_of_experience"])
-                if years>0:
-                    total_years_work+=years
-            except Exception:
-                pass  
-    if total_years_work<=2:
-        resume_type="functional"
+    if similar_jobs:
+        total_years_work=0
+        for job in jobs:
+            if job in similar_jobs:
+                try:
+                    years = int(job["years_of_experience"])
+                    if years>0:
+                        total_years_work+=years
+                except Exception:
+                    pass  
+        if total_years_work<=2:
+            resume_type="functional"
+        else:
+            resume_type="chronological" 
     else:
-        resume_type="chronological"   
+        resume_type=""  
     # year_graduated = resume_dict["education"]["graduation_year"]
     # years_since_graduation = calculate_graduation_years(year_graduated)
     # if (years_since_graduation!=-1 and years_since_graduation-total_years_work>2) or (years_since_graduation!=-1 and years_since_graduation<=2 ):

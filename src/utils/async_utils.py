@@ -4,6 +4,7 @@ import asyncio
 import sys
 # import trace
 import threading
+import concurrent.futures
 # import time
 
 class thread_with_trace(threading.Thread):
@@ -77,6 +78,16 @@ def _to_task(future, as_task, loop):
     return loop.create_task(future)
 
 
+def future_run_with_timeout(run_parser, timeout=10):
+    # Use ThreadPoolExecutor to run the function with a timeout
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(run_parser)
+        try:
+            # Wait for the function to complete with a timeout
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            print("Function timed out")
+            return None
 
     # else:
     #     nest_asyncio.apply(loop)
