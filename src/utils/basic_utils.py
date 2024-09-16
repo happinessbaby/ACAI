@@ -345,7 +345,7 @@ def count_length(filename="", content="" ):
             content = read_file(filename)
         # Remove punctuation, newline characters, and special characters
         clean_content = re.sub(r'[{}\[\]()\n_]+', '', content)
-        print(clean_content)
+        # print(clean_content)
         words = clean_content.split()
         word_count = len(words)
         # print(word_count)

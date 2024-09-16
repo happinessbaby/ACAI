@@ -1,11 +1,24 @@
 openai
-# PyMuPDF==1.22.3
 langchain
+langchain_openai
+langchain_experimental
+langchain_community
+
+streamlit
+streamlit_float
+# streamlit_js_eval
+streamlit-extras
+streamlit-nested-layout
+streamlit-pdf-viewer
+st-annotated-text
+streamlit-draggable-list
+streamlit-cookies-manager
+
+# PyMuPDF==1.22.3
 docarray==0.32.1
 # pandoc==2.3
 # pypandoc==1.11
 wikipedia
-streamlit
 # streamlit-chat==0.1.1
 unstructured
 # redis==4.5.5
@@ -23,8 +36,6 @@ pip-tools
 # streamlit-modal==0.1.0
 # st-pages
 docxtpl==0.16.7
-langchain_experimental
-langchain_community
 # playwright==1.38.0
 # SQLAlchemy==2.0.22
 # spacy==3.5.4
@@ -58,14 +69,13 @@ requests-aws4auth
 lancedb
 # pywinctl
 # streamlit-audiorec
-streamlit-mic-recorder
+# streamlit-mic-recorder
 # streamlit-bokeh-events
 # apify-client
 unstructured_client
 jq
 # python-linkedin
 # schedule
-langchain_openai
 # st_btn_select
 odfpy
 python-dateutil
@@ -100,11 +110,3 @@ selenium
 # pdf2image
 pyjwt
 s3fs
-streamlit_float
-# streamlit_js_eval
-streamlit-extras
-streamlit-nested-layout
-streamlit-pdf-viewer
-st-annotated-text
-streamlit-draggable-list
-streamlit-cookies-manager

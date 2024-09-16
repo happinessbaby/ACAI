@@ -957,8 +957,9 @@ class User():
                 field_list = st.session_state["profile"][field_name][x][field_detail]
             else:
                 field_list = st.session_state["profile"][field_name][field_detail]
-            for idx, value in enumerate(field_list):
-                add_detail(value, idx,)
+            if field_list:
+                for idx, value in enumerate(field_list):
+                    add_detail(value, idx,)
             if type=="bullet_points":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
@@ -1066,8 +1067,9 @@ class User():
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
         def get_display():
 
-            for idx, value in enumerate(st.session_state["profile"][name]):
-                add_container(idx, value)
+            if st.session_state["profile"][name]:
+                for idx, value in enumerate(st.session_state["profile"][name]):
+                    add_container(idx, value)
             st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
@@ -1376,7 +1378,8 @@ class User():
                                 text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
                                 replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
                                 substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
-                                text_list = create_annotations(text_list, replaced_words, substitutions)     
+                                text_list = create_annotations(text_list, replaced_words, substitutions)   
+                                #TODO: for every word followed by a punctuation, there should be a space after the word  
                                 text_list =  [text + " " if not isinstance(text, tuple) and not re.match(r'[^\w\s]', text) else text for text in text_list if text != ""]
                                 st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
                                 # print(text_list)
@@ -1604,10 +1607,10 @@ class User():
         with fields_col:
             # save session profile periodically unless user freezes their profile
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
-            if freeze:
-                pass
-            else:
-                self.save_session_profile()
+            # if freeze:
+            #     pass
+            # else:
+            self.save_session_profile(freeze=freeze)
             # self.display_general_evaluation()
             # self.evaluation_callback()
 
@@ -1912,15 +1915,16 @@ class User():
 
 
     @st.fragment(run_every=1)
-    def save_session_profile(self, ):
+    def save_session_profile(self, freeze=False):
 
         """ Saves profile into lancedb table periodically if there's change """
         
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
-            print('profile changed, saving user changes')
-            save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table, convert_content=True)
-            st.session_state["profile_changed"]=False
-            st.session_state["update_template"]=True
+            if not freeze: 
+                print('profile changed, saving user changes')
+                save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table, convert_content=True)
+                st.session_state["profile_changed"]=False
+            # st.session_state["update_template"]=True
 
 
     @st.dialog("Warning")
