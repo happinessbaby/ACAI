@@ -12,7 +12,7 @@ import uuid
 import streamlit.components.v1 as components
 import base64
 from streamlit_extras.add_vertical_space import add_vertical_space
-from css.streamlit_css import primary_button2
+from css.streamlit_css import primary_button2, primary_button3
 import streamlit as st
 
 
@@ -98,8 +98,14 @@ def nav_to(url):
 
 @st.fragment()         
 def user_menu(userId, page, ):
-    _, c1 = st.columns([10, 1])
+    _, c1, c2 = st.columns([10, 1, 1])
     with c1:
+        st.markdown(primary_button3, unsafe_allow_html=True)
+        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+        if st.button("contact", key="contact_button"):
+            st.switch_page('pages/contact.py')
+    with c2:
+        add_vertical_space(2)
         if not userId:
             if st.button("Log in", key="profile_button", type="primary"):
                 st.session_state["user_mode"] = "signedout"
@@ -119,14 +125,18 @@ def user_menu(userId, page, ):
                     }
                     """,
             ):
-                with st.popover(label=f"{userId}",):
+                with st.popover(label=f"{userId}", use_container_width=True):
                     # if page!="main":
                     #     if st.button("Home", type="primary"):
                     #         st.switch_page("home.py")
+                    st.markdown(primary_button3, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     if page!="profile":
                         if st.button("My profile", type="primary"):
                             st.switch_page("pages/user.py")
                     st.divider()
+                    st.markdown(primary_button3, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     if st.button("Log out", type="primary"):
                         st.session_state["user_mode"]="signout"
                         st.switch_page("pages/user.py")

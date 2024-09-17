@@ -259,9 +259,9 @@ def convert_pydantic_schema_to_arrow(schema: BaseModel) -> pa.Schema:
                 # Handling lists of basic types (e.g., List[str])
                 if pa.types.is_string(item_type):
                     fields.append(pa.field(field_name, pa.list_(pa.string()), nullable=True))
-                else:
-                    # Use a default type if item_type is not string
-                    fields.append(pa.field(field_name, pa.list_(pa.null()), nullable=True))
+                # else:
+                #     # Use a default type if item_type is not string
+                #     fields.append(pa.field(field_name, pa.list_(pa.null()), nullable=True))
         
         # elif get_origin(field_type) is dict and get_args(field_type) == (str, str):
         #     # Handling dictionary fields (uncomment if needed)
