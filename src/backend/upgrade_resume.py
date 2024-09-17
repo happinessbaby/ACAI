@@ -837,6 +837,16 @@ def readability_checker(content):
     )
     return stats
     
+def generate_resume_job_comparison(resume_content, job_posting, percentage_comparison=False):
+
+    """ Generates a resume job comparison, including percentage comparison"""
+
+    prompt = f"""Act as a Application Tracking System, compare the candidate's resume to a job role description.
+    
+    resume content: {resume_content} \n
+
+    job role description: {job_posting} \n
+    """
 
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:

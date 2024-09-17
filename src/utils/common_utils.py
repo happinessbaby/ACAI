@@ -1049,10 +1049,13 @@ def process_inputs(user_input, ):
         "required": ["topic", "safety"],
     }
     response = create_input_tagger(tag_schema, user_input)
-    topic = response.get("topic", None)
-    safety=response.get("safety", None)
-    print(topic, safety)
-    return topic, safety
+    if response:
+        topic = response.get("topic", None)
+        safety=response.get("safety", None)
+        print(topic, safety)
+        return topic, safety
+    else:
+        return None, None
     # response = asyncio_run(lambda: create_input_tagger(InputClassification, user_input, ), timeout=10, max_try=1)
     # if response:
     #     topic = response.dict().get("topic", "")

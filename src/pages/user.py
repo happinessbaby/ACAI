@@ -1474,12 +1474,18 @@ class User():
         #         st.session_state["job_posting_dict"] = past_jobs[past_jobs.index(selection)]
         #         st.session_state["preselection"] = True
         if mode=="resume":
-            freeze = st.radio("Would you like to freeze your profile before you start tailoring?", 
-                    help = "This will make your tailoring changes a session copy so you can edit without losing the original profile",
+            freeze = st.radio("Would you like to freeze your profile?", 
+                    help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
                     options=["yes", "no"], 
                     horizontal=True,)
             if freeze:
                 st.session_state["freeze"]=True
+            match = st.radio("Would you like to get matched to the job?", 
+                    help = "This will show you if you are a good fit for this role",
+                    options=["yes", "no"], 
+                    horizontal=True,)
+            if match:
+                st.session_state["init_match"]=True
         job_posting = st.text_area("job posting link or job description", 
                                         key="job_postingx", 
                                         placeholder="Pleasae paste a job posting link or a job description here",
@@ -1602,18 +1608,16 @@ class User():
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
-        # self.save_session_profile()
-        eval_col, profile_col, fields_col = st.columns([1, 3, 1])   
-        with fields_col:
-            # save session profile periodically unless user freezes their profile
-            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
-            # if freeze:
-            #     pass
-            # else:
-            self.save_session_profile(freeze=freeze)
-            # self.display_general_evaluation()
-            # self.evaluation_callback()
 
+        freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+        self.save_session_profile(freeze=freeze)
+        eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
+        with tailor_col:
+            if "init_match" not in st.session_state:
+                if st.button("Match my profile to job", key="match_profile_button"):
+                    self.job_posting_popup(mode="resume")
+            else:
+                pass
         # general evaluation column
         with eval_col:
             if st.session_state["profile"]["resume_content"]!="":
