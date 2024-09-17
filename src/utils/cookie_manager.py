@@ -174,7 +174,7 @@ def add_user(username, password, first_name=None, last_name=None):
             # Upload the JSON string to S3
             s3.put_object(Bucket=bucket_name, Key=login_file, Body=json_data)
         # controller.set(user_cookie_key,username, max_age=8*60*60)
-        save_cookie(username)
+        save_cookie(cookie_value=username, cookie_key=user_cookie_key)
         # set_cookie(user_cookie_key, username, 1)
         print(f"Successfully set cookie: {username}")
         return True
@@ -238,8 +238,6 @@ def save_cookies(cookie_dict):
     #     controller.set(key, value, max_age=8*60*60)
 
 def authenticate(username, password):
-    # usern = st.session_state.username
-    # passw = st.session_state.password
 
     user_info = USERS.get(username, {})
     

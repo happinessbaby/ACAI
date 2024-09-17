@@ -57,10 +57,9 @@ loguru==0.7.0
 PyYAML
 # st-click-detector
 # st_clickable_images
-tenacity
 toml==0.10.2
 # geopy==2.4.0
-httpx-oauth
+# httpx-oauth
 # streamlit-authenticator
 # extra-streamlit-components
 localstoragePy
@@ -92,7 +91,7 @@ language_tool_python
 pyarrow
 boto3
 nest_asyncio
-websockets
+# websockets
 google-search-results
 google-api-python-client
 google-auth-httplib2 
@@ -101,7 +100,6 @@ google-cloud-speech
 google-auth
 pydantic
 # sagemaker
-requests-aws4auth 
 # nltk
 # Jinja2   
 selenium

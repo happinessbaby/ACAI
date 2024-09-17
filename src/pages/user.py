@@ -887,7 +887,7 @@ class User():
                     ):
                         my_grid=grid([1, 1, 1])
                         for idx, skill in enumerate(self.skills_set):
-                            x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                            x = my_grid.button(skill+" :red[-]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
                 st.write("Suggested skills to include:")
                 with stylable_container(key="custom_skills_button2",
@@ -1797,6 +1797,7 @@ class User():
                             st.subheader(":blue[good]")
                         else:
                             st.subheader(":red[too long]")
+                        st.caption(f"A good resume length is between 475 and 600 words, yours is {str(length)} words.")
                         # pages=st.session_state["evaluation"]["page_count"]
                         # fig = length_chart(int(length))
                         # st.plotly_chart(fig, 
@@ -1825,7 +1826,7 @@ class User():
                         #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
                             add_vertical_space(1)
-                            if st.button("Why the right type matters?", type="primary", key="resume_type_button"):
+                            if st.button("What are the different formats?", type="primary", key="resume_type_button"):
                                 self.resume_type_popup()
                             # add_vertical_space(1)
                             # if st.button("Explore template options", key="resume_template_explore_button"):
@@ -1843,9 +1844,9 @@ class User():
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True)
-                            st.write("Tone: keep a formal and respectful tone")
-                            st.write("Syntax: use power verbs and an active voice")
-                            st.write("Readability: vary your sentence lengths and word syllables")
+                            st.caption("Tone: keep a formal and respectful tone")
+                            st.caption("Syntax: use power verbs and an active voice")
+                            st.caption("Readability: vary your sentence lengths and word syllables")
                         # st.scatter_chart(df)
                     except Exception:
                         if finished is False:
@@ -1896,6 +1897,7 @@ class User():
 
     @st.dialog(" ")
     def resume_type_popup(self, ):
+        add_vertical_space(4)
         st.image("./resources/functional_chronological_resume.png")
     
     # @st.dialog(" ", width="large")
