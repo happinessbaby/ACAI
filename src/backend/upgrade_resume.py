@@ -11,7 +11,7 @@ from docxtpl import DocxTemplate, RichText
 # from docx import Document
 # from docx.shared import Inches
 import re
-from utils.pydantic_schema import ResumeType, Comparison, SkillsRelevancy, Replacements, Language
+from utils.pydantic_schema import ResumeType, Comparison, SkillsRelevancy, Replacements, Language, MatchResumeJob
 from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
@@ -20,7 +20,7 @@ import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate,  PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
-from utils.async_utils import asyncio_run, future_run_with_timeout
+from utils.async_utils import asyncio_run, future_run_with_timeout, tenacity_run_with_timeout
 # import concurrent.futures
 import time as time
 import streamlit as st
@@ -468,8 +468,6 @@ def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
         Step 2: <step 2 reasoning>
         Step 3: <step 3 reasoning>
 
-    Make sure lists from both steps include only skills from the resume, and provide your reasoning.
-
     """
     # These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
     # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills but not SQL skill. SQL is the irrelevant skill in the resume since it's not in the job description.\
@@ -837,16 +835,66 @@ def readability_checker(content):
     )
     return stats
     
-def generate_resume_job_comparison(resume_content, job_posting, percentage_comparison=False):
+def match_resume_job(resume_dict, job_posting_dict, field_name):
 
     """ Generates a resume job comparison, including percentage comparison"""
-
-    prompt = f"""Act as a Application Tracking System, compare the candidate's resume to a job role description.
+    # field_names=["included_skills", "summary_objective", "education"]
+    resume_content = resume_dict[field_name]
+    job_posting = job_posting_dict["content"]
+    # if "matching" not in st.session_state:
+    #     st.session_state["matching" ]= {}
+    #     st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})
+    prompt = """Act as a Application Tracking System.
     
-    resume content: {resume_content} \n
+    Step 1: compare the candidate resume's {field_name} to a job role description.
+    
+    resume {field_name} content: {resume_content} \n
 
     job role description: {job_posting} \n
+
+    Step 2: generate a percentage comparison of {field_name}
+
+    Use the following format:
+        Step 1: <step 1 answer>
+        Step 2: <step 2 answer>
+
     """
+    prompt_template = ChatPromptTemplate.from_template(prompt)
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples')
+        ("human", "{content}"),
+            ]
+        )
+    model_parser =prompt | llm.with_structured_output(schema=MatchResumeJob)
+    generator =   (
+        {"resume_content":RunnablePassthrough(), "job_posting":RunnablePassthrough(), "field_name":RunnablePassthrough()} 
+                     | prompt_template
+                     | model_parser)
+    try:
+        # Call the run_parser_with_timeout function with tenacity
+        response = tenacity_run_with_timeout({"resume_content":resume_content, "job_posting":job_posting, "field_name":field_name}, generator)
+        print(response)
+        # response = response.dict()
+        return response
+        # st.session_state.matching.update({f"{field_name}_eval":response["evaluation"]})
+        # st.session_state.matching.update({f"{field_name}_percentage":response["percentage"]})
+    except Exception as e:
+        print(f"Error or Timeout occurred: {e}")
+        return None
+        # st.session_state.matching.update({f"{field_name}_eval": None})
+        # st.session_state.matching.update({f"{field_name}_percentage":None})
+
+
 
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:

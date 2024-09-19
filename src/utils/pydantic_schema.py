@@ -328,7 +328,14 @@ class Replacements(BaseModel):
         default=[], description="the content will be a list made up of words that are to be replaced and their subtitutions"
     )
 
-
+class MatchResumeJob(BaseModel):
+    evaluation: Optional[str] = Field(
+        default="", description= "found in Step 1, this is an evaluation of how a resume field compares to a job description"
+    )
+    percentage: Optional[int] = Field(
+        default=0, description = "found in Step 2, this is a percentage comparison, output the number without percentage sign, for example, if it's 80%, output 80"
+    )
+    
 class GeneralEvaluation(BaseModel):
     user_id : str
     word_count: Optional[int]

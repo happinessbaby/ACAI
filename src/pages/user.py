@@ -21,7 +21,7 @@ from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress
 from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
-from backend.upgrade_resume import tailor_resume, evaluate_resume
+from backend.upgrade_resume import tailor_resume, evaluate_resume, match_resume_job
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
 import threading
@@ -32,11 +32,12 @@ from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
 import requests
-from threading import Thread
+# from threading import Thread
 # from apscheduler.schedulers.background import BackgroundScheduler
-from utils.async_utils import thread_with_trace, asyncio_run
+# from utils.async_utils import thread_with_trace, asyncio_run
 import re
 import queue
+from multiprocessing import Pool
 # import streamlit_antd_components as sac
 #NOTE: below import is necessary for nested column fix, do not delete
 import streamlit_nested_layout 
@@ -101,6 +102,10 @@ st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 #NOTE: fragment parameter seems to need to be set at topmost level
 if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
+if "tailor_rerun_timer" not in st.session_state:
+    st.session_state["tailor_rerun_timer"]=3
+
+field_names = ["included_skills", "summary_objective",  "education"]
 
 class User():
 
@@ -1478,14 +1483,12 @@ class User():
                     help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
                     options=["yes", "no"], 
                     horizontal=True,)
-            if freeze:
-                st.session_state["freeze"]=True
+            st.session_state["freeze"]=freeze
             match = st.radio("Would you like to get matched to the job?", 
                     help = "This will show you if you are a good fit for this role",
                     options=["yes", "no"], 
                     horizontal=True,)
-            if match:
-                st.session_state["init_match"]=True
+            st.session_state["init_match"]=match
         job_posting = st.text_area("job posting link or job description", 
                                         key="job_postingx", 
                                         placeholder="Pleasae paste a job posting link or a job description here",
@@ -1555,7 +1558,7 @@ class User():
     
     def tailor_callback(self, type=None, field_name=None, idx=-1, field_details=None, container=None):
       
-        if "job_posting_dict" in st.session_state and field_name:
+        if field_name:
             # starts specific field tailoring
             p=Progress()
             my_bar = container.progress(0, text=None)
@@ -1570,6 +1573,26 @@ class User():
             # Ensure the progress bar reaches 100% after the function is complete
             # p.progress = 100
             my_bar.progress(100, text="Tailoring Complete!")
+        else:
+            if "matching" not in st.session_state and "init_match" in st.session_state and st.session_state["init_match"]:
+            # starts job-resume match tailoring
+                # self.tailor_thread = threading.Thread(target=match_resume_job, args=(st.session_state["profile"], st.session_state["job_posting_dict"], ), daemon=True)
+                # add_script_run_ctx(self.tailor_thread, self.ctx)
+                # self.tailor_thread.start()  
+                st.session_state["matching" ]= {}
+                st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})
+                args = [(st.session_state["profile"], st.session_state["job_posting_dict"], field ) for field in field_names]
+                with Pool(processes=4) as pool:
+                    results= pool.starmap(match_resume_job, args) 
+                st.session_state["tailor_rerun_timer"]=None
+                for i, resp in enumerate(results):
+                    field = field_names[i]
+                    resp_dict=resp.dict()
+                    st.session_state.matching.update({f"{field}_eval":resp_dict["evaluation"]})
+                    st.session_state.matching.update({f"{field}_percent":resp_dict["percentage"]})
+
+
+
 
 
 
@@ -1609,15 +1632,17 @@ class User():
 
         """Displays interactive user profile UI"""
 
-        freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
-        self.save_session_profile(freeze=freeze)
         eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
         with tailor_col:
+            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            self.save_session_profile(freeze=freeze)
             if "init_match" not in st.session_state:
                 if st.button("Match my profile to job", key="match_profile_button"):
                     self.job_posting_popup(mode="resume")
             else:
-                pass
+                if "job_posting_dict" in st.session_state:
+                    self.display_match()
+                    self.tailor_callback()
         # general evaluation column
         with eval_col:
             if st.session_state["profile"]["resume_content"]!="":
@@ -1749,6 +1774,40 @@ class User():
                     #     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     #     self.job_posting_popup(mode="cover_letter")
    
+    @st.fragment(run_every=st.session_state["tailor_rerun_timer"])
+    def display_match(self, ):
+
+        """ Displays the tailoring match to job resulf of the profile"""
+
+        with st.expander("Show my match report"):
+            if "matching" in st.session_state:
+                for field in field_names:
+                    if st.session_state["matching"][f"{field}_eval"]!="":
+                        if st.session_state["matching"][f"{field}_eval"] is not None:
+                            st.write(st.session_state["matching"][f"{field}_eval"])
+                    else:
+                        st.write(f"Matching {field}...")
+            else:
+                st.write("Please wait...")
+            st.markdown(primary_button2, unsafe_allow_html=True)
+            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            with st.popover("Match again"):
+                current = st.button("with the currrent job posting", key=f"match_again_button_current", type="primary", )
+                new_upload = st.button("with a new job posting", key=f"match_again_button_new", type="primary",)
+                if current:
+                    self.delete_session_states(["matching"])
+                    st.session_state["tailor_rerun_timer"]=3
+                    st.rerun()
+                if new_upload:
+                    self.delete_session_states(["init_match", "matching"])
+                    st.session_state["tailor_rerun_timer"]=3
+                    self.job_posting_popup(mode="resume",)
+
+
+                
+
+
+
 
     
     @st.fragment(run_every=st.session_state["eval_rerun_timer"])
