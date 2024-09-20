@@ -388,6 +388,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
 
     about_job = job_posting_dict["about_job"]
     job_skills = job_posting_dict["skills"] 
+    job_posting = job_posting_dict["content"]
     resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     job_requirements = about_job if not job_requirements else job_requirements
@@ -410,7 +411,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         # response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=30, max_try=1)
         response = tailor_objective(about_job, details, resume_content, job_title,)
         response_dict=response.dict() if response else {}
-        p.increment(30)  # Update progress 
+        p.increment(20)  # Update progress 
         loading_func(p.progress)
     if type=="bullet_points":
         # print("bullet point details", details)
@@ -420,6 +421,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
             loading_func(p.progress)
         else:
             response_dict = "please add more bullet points first"
+    match = match_resume_job(resume_dict[field_name], job_posting, field_name)
+    match_dict = match.dict() if match else  {"evaluation":None, "percentage":None}
+    response_dict.update(match_dict)
+    p.increment(10)  # Update progress 
+    loading_func(p.progress)
     return response_dict
     # if response_dict:
     #     print(f"successfully tailored {field_name}")
@@ -835,12 +841,12 @@ def readability_checker(content):
     )
     return stats
     
-def match_resume_job(resume_dict, job_posting_dict, field_name):
+def match_resume_job(resume_content, job_posting, field_name):
 
     """ Generates a resume job comparison, including percentage comparison"""
     # field_names=["included_skills", "summary_objective", "education"]
-    resume_content = resume_dict[field_name]
-    job_posting = job_posting_dict["content"]
+    # resume_content = resume_dict[field_name]
+    # job_posting = job_posting_dict["content"]
     # if "matching" not in st.session_state:
     #     st.session_state["matching" ]= {}
     #     st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})

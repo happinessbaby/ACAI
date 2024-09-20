@@ -430,3 +430,46 @@ def automatic_download(file_path ):
     </head>
     </html>
     """, height=0, width=0)
+
+
+def percentage_comparison(percentage):
+
+    title = "Match Score"
+    # Create the figure
+    fig = go.Figure()
+
+    # Add the horizontal bar
+    fig.add_trace(go.Bar(
+        x=[percentage],  # Percentage value
+        y=[''],  # Empty y-axis label
+        orientation='h',  # Horizontal bar
+        marker_color='lightskyblue',  # Bar color
+        width=[0.4]  # Control the bar height
+    ))
+
+        # Add an annotation (tick mark and label) at the percentage value
+    fig.add_annotation(
+        x=percentage,
+        y=0,  # Annotation on the bar
+        text=f"{percentage}%",  # Label for the tick mark
+        showarrow=True,
+        arrowhead=2,  # Arrow style
+        ax=0,  # Shift label slightly above the bar
+        ay=-20,  # Vertical shift of label
+        font=dict(size=12, color="black"),  # Label style
+    )
+
+    # Update layout for title and axis
+    fig.update_layout(
+        title=title,
+        xaxis=dict(
+            title="Percentage (%)",
+            range=[0, 100],  # Ensure the bar spans from 0 to 100%
+            tickvals=[0, 25, 50, 75, 100],
+            showgrid=False  # Optional: hide gridlines
+        ),
+        yaxis=dict(showticklabels=False),  # Hide y-axis labels
+        height=200  # Adjust the height to make the bar more prominent
+    )
+    return fig
+
