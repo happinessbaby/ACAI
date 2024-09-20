@@ -55,7 +55,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=None, loading_func=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
 
 
     def insert_break_character(text, char='<br>', interval=5):
@@ -378,7 +378,7 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", idx=-1, details=None, p=None, loading_func=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  details=None, p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
     for _ in range(5):
@@ -413,17 +413,22 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         response_dict=response.dict() if response else {}
         p.increment(20)  # Update progress 
         loading_func(p.progress)
-    if type=="bullet_points":
+    elif field_name=="education":
+        response_dict={}
+    else:
         # print("bullet point details", details)
-        if len(details)>1:
-            response_dict = tailor_bullet_points(field_name, details, job_requirements, )
-            p.increment(30)  # Update progress 
-            loading_func(p.progress)
-        else:
-            response_dict = "please add more bullet points first"
+        # if len(details)>1:
+        response_dict = tailor_bullet_points(field_name, details, job_requirements, )
+        p.increment(30)  # Update progress 
+        loading_func(p.progress)
+        # else:
+        #     response_dict = "please add more bullet points first"
     match = match_resume_job(resume_dict[field_name], job_posting, field_name)
     match_dict = match.dict() if match else  {"evaluation":None, "percentage":None}
-    response_dict.update(match_dict)
+    try:
+        response_dict.update(match_dict)
+    except Exception as e:
+        pass
     p.increment(10)  # Update progress 
     loading_func(p.progress)
     return response_dict
@@ -729,9 +734,9 @@ def reformat_resume(template_path, ):
         filename = os.path.basename(template_path)
         templatex = split_at_letter_number(filename)
         template_type, template_num = templatex[0], templatex[1]
-        print(template_type, template_num)
-        output_dir = st.session_state["users_download_path"]
-        end_path = os.path.join(output_dir, filename)
+        # print(template_type, template_num)
+        # output_dir = st.session_state["users_download_path"]
+        # end_path = os.path.join(output_dir, filename)
     except Exception:
         return ""
     if STORAGE=="CLOUD":

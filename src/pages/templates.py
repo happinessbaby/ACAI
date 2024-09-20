@@ -69,20 +69,20 @@ class Reformat():
         if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
         if "selected_fields" not in st.session_state:
-            st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience"]
-        if "user_save_path" not in st.session_state:
-            if STORAGE=="CLOUD":
-                st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
-            elif STORAGE=="LOCAL":
-                st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], st.session_state.userId, "profile")
+            st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
+        # if "user_save_path" not in st.session_state:
+        #     if STORAGE=="CLOUD":
+        #         st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
+        #     elif STORAGE=="LOCAL":
+        #         st.session_state["user_save_path"] = os.path.join(os.environ["USER_PATH"], st.session_state.userId, "profile")
             # Get the current time
-            now = datetime.now()
-            # Format the time as "year-month-day-hour-second"
-            formatted_time = now.strftime("%Y-%m-%d-%H-%M")
-            st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
-            st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
-            paths=[st.session_state["users_download_path"]]
-            mk_dirs(paths,)
+            # now = datetime.now()
+            # # Format the time as "year-month-day-hour-second"
+            # formatted_time = now.strftime("%Y-%m-%d-%H-%M")
+            # st.session_state["users_upload_path"] = os.path.join(st.session_state.user_save_path, "uploads", formatted_time)
+            # st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
+            # paths=[st.session_state["users_download_path"]]
+            # mk_dirs(paths,)
 
 
     def _init_display(self, ):
@@ -101,7 +101,8 @@ class Reformat():
                     st.session_state["profile_changed"]=False
                     st.session_state["fields_changed"]=False
             else:
-                st.rerun()
+                with spinner_placeholder.container():
+                    st.subheader('Please try again')
         else:
             with template_placeholder.container():
                 self.display_resume_templates()
@@ -200,7 +201,7 @@ class Reformat():
                                 with c1:
                                     # st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
                                     with open(st.session_state["selected_docx_resume"], "rb") as f:
-                                        st.download_button("Download as Microsoft Word", f, mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                                        st.download_button("Recommended: Download as Microsoft Word", f, mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                                 with c2:
                                     # st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
                                     with open(st.session_state["selected_pdf_resume"], "rb") as f:
