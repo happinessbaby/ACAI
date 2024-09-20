@@ -1658,6 +1658,29 @@ class User():
         with tailor_col:
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
             self.save_session_profile(freeze=freeze)
+            if "job_posting_dict" in st.session_state:
+                with st.container(border=True):
+                    st.write("Current job saved on clipboard")
+                    job_title = st.session_state["job_posting_dict"].get('job', "")
+                    company = st.session_state["job_posting_dict"].get("company", "")
+                    about = st.session_state["job_posting_dict"].get("about_job", "")
+                    st.write(f"Job: {job_title}")
+                    st.write(f"Company: {company}")
+                    st.write(f"Summary: {about}")
+                    st.markdown(primary_button3, unsafe_allow_html=True)
+                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                    if st.button("delete", key="delete_job_posting_button", type="primary"):
+                        self.delete_session_states(["job_posting_dict"])
+                        st.rerun()
+            with stylable_container(key="custom_button1_profile1",
+                            css_styles=["""button {
+                                color: white;
+                                background-color: #ff8247;
+                            }""",
+                            ],
+                    ):
+                if st.button("Upload a new job posting", key="new_job_posting_button", ):
+                        self.job_posting_popup(mode="resume")
             # if "init_match" not in st.session_state:
             #     if st.button("Match my profile to job", key="match_profile_button"):
             #         self.job_posting_popup(mode="resume")
@@ -1665,9 +1688,6 @@ class User():
             #     if "job_posting_dict" in st.session_state:
             #         self.display_match()
             #         self.tailor_callback()
-            # if "init_match" in st.session_state:
-            #     self.display_match()
-            #     self.tailor_callback()
         # general evaluation column
         with eval_col:
             if st.session_state["profile"]["resume_content"]!="":
@@ -1803,8 +1823,8 @@ class User():
                     if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                         # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                         self.delete_profile_popup()
-                    if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
-                        self.job_posting_popup(mode="resume")
+                    # if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                    #     self.job_posting_popup(mode="resume")
                     # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     #     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     #     self.job_posting_popup(mode="cover_letter")
@@ -1895,7 +1915,7 @@ class User():
                             st.subheader(":blue[good]")
                         else:
                             st.subheader(":red[too long]")
-                        st.caption(f"A good resume length is between 475 and 600 words, yours is {str(length)} words.")
+                        st.caption(f"A good resume length is between 475 and 600 words, yours is around {str(length)} words.")
                         # pages=st.session_state["evaluation"]["page_count"]
                         # fig = length_chart(int(length))
                         # st.plotly_chart(fig, 
