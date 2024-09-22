@@ -62,7 +62,8 @@ elif STORAGE=="LOCAL":
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
-lance_users_table = os.environ["LANCE_USERS_TABLE"]
+lance_users_table_default = os.environ["LANCE_USERS_TABLE"]
+lance_users_table_current = os.environ["LANCE_USERS_TABLE_CURRENT"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 google_cookie_key = os.environ["GOOGLE_COOKIE_KEY"]
 user_cookie_key=os.environ["USER_COOKIE_KEY"]
@@ -105,7 +106,7 @@ if "eval_rerun_timer" not in st.session_state:
 if "tailor_rerun_timer" not in st.session_state:
     st.session_state["tailor_rerun_timer"]=3
 
-field_names = ["included_skills", "summary_objective",  "education"]
+# field_names = ["included_skills", "summary_objective",  "education"]
 
 class User():
 
@@ -159,7 +160,7 @@ class User():
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
+                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
                 # scheduler = BackgroundScheduler()
@@ -602,7 +603,8 @@ class User():
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
-        save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table)
+        save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_current)
+        save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_default)
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -620,7 +622,8 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table)
+        save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_current)
+        save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default)
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
         # prevent evaluation when profile is empty 
@@ -1262,9 +1265,12 @@ class User():
             # Function to join words while avoiding extra spaces before punctuation
             result = ""
             for idx, word in enumerate(sublist):
-                if idx > 0 and not re.match(r'[^\w\s]', word):  # Check if word is not punctuation
-                    result += " "  # Add space only if the next word is not punctuation
-                result += word
+                if not re.match(r'[^\w\s]', word):  # Check if word is not punctuation
+                    # result += " "  # Add space only if the next word is not punctuation
+                    result += f"{word} "
+                else:
+                    result.strip()
+                    result += f"{word} "     
             return result.strip()
 
         def apply_changes():
@@ -1658,20 +1664,28 @@ class User():
         with tailor_col:
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
             self.save_session_profile(freeze=freeze)
-            if "job_posting_dict" in st.session_state:
+            if "job_posting_dict" in st.session_state or st.session_state["tracker"] is not None:
                 with st.container(border=True):
                     st.write("Current job saved on clipboard")
-                    job_title = st.session_state["job_posting_dict"].get('job', "")
-                    company = st.session_state["job_posting_dict"].get("company", "")
-                    about = st.session_state["job_posting_dict"].get("about_job", "")
+                    if "job_posting_dict" in st.session_state:
+                        job_title = st.session_state["job_posting_dict"].get('job', "")
+                        company = st.session_state["job_posting_dict"].get("company", "")
+                        about = st.session_state["job_posting_dict"].get("about_job", "")
+                    elif st.session_state["tracker"]:
+                        print(st.session_state["tracker"])
+                        job_title = st.session_state["tracker"].get('job', "")
+                        company = st.session_state["tracker"].get("company", "")
+                        about = st.session_state["tracker"].get("about_job", "")
                     st.write(f"Job: {job_title}")
                     st.write(f"Company: {company}")
                     st.write(f"Summary: {about}")
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    if st.button("delete", key="delete_job_posting_button", type="primary"):
-                        self.delete_session_states(["job_posting_dict"])
-                        st.rerun()
+                    _, del_col=st.columns([3, 1])
+                    with del_col:
+                        if st.button("delete", key="delete_job_posting_button",):
+                            self.delete_session_states(["job_posting_dict"])
+                            st.rerun()
             with stylable_container(key="custom_button1_profile1",
                             css_styles=["""button {
                                 color: white;
@@ -1679,8 +1693,9 @@ class User():
                             }""",
                             ],
                     ):
-                if st.button("Upload a new job posting", key="new_job_posting_button", ):
-                        self.job_posting_popup(mode="resume")
+                if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                    self.job_posting_popup(mode="resume")
+    
             # if "init_match" not in st.session_state:
             #     if st.button("Match my profile to job", key="match_profile_button"):
             #         self.job_posting_popup(mode="resume")
@@ -1722,8 +1737,8 @@ class User():
                     if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
                         st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
                         st.session_state["profile_changed"] = True
-                    website = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=website, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=website:
+                    websites = st.session_state["profile"]["contact"]["websites"]
+                    if st.text_input("Other websites", value=websites, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=websites:
                         st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                         st.session_state["profile_changed"] = True
             with c2:
@@ -1769,8 +1784,8 @@ class User():
                     self.display_field_analysis(field_name="work_experience", details=st.session_state["profile"]["work_experience"])
             with st.expander(label="Skills",icon=":material/widgets:"):
                 # self.display_field_analysis("included_skills")
-                suggested_skills = st.session_state["profile"]["suggested_skills"]
-                self.skills_set= st.session_state["profile"]["included_skills"]
+                suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
+                self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
                 self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
                 # for skill in suggested_skills:
                 #     self.generated_skills_set.add(skill["skill"])
@@ -1820,11 +1835,14 @@ class User():
                             }""",
                             ],
                     ):
+                    # if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                    #     self.job_posting_popup(mode="resume")
+                    if st.button("Switch to default profile", key="default_profile_button", use_container_width=True):
+                        st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+                        st.rerun()
                     if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                         # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                         self.delete_profile_popup()
-                    # if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
-                    #     self.job_posting_popup(mode="resume")
                     # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     #     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     #     self.job_posting_popup(mode="cover_letter")
@@ -2042,9 +2060,11 @@ class User():
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
             if not freeze: 
                 print('profile changed, saving user changes')
-                save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table, convert_content=True)
-                st.session_state["profile_changed"]=False
-            # st.session_state["update_template"]=True
+                save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default, convert_content=True)
+            else:
+                save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_current, convert_content=True)
+            st.session_state["profile_changed"]=False
+            st.session_state["update_template"]=True
 
 
     @st.dialog("Warning")
@@ -2058,7 +2078,8 @@ class User():
         c1, _, c2 = st.columns([1, 1, 1])
         with c2:
             if st.button("yes, I'll upload a new resume", type="primary", ):
-                delete_user_from_table(st.session_state.userId, lance_users_table)
+                delete_user_from_table(st.session_state.userId, lance_users_table_default)
+                delete_user_from_table(st.session_state.userId, lance_users_table_current)
                 delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 self.delete_session_states(["profile", "evaluation", "init_eval"])

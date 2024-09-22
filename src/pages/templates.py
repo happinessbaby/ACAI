@@ -1,17 +1,17 @@
 from backend.upgrade_resume import reformat_resume
-import uuid
+# import uuid
 import os
-from utils.basic_utils import binary_file_downloader_html, convert_docx_to_img, list_files, mk_dirs, convert_doc_to_pdf
+from utils.basic_utils import list_files, convert_doc_to_pdf
 from css.streamlit_css import general_button, primary_button
 # from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
-from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+# from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 # from st_pages import get_script_run_ctx 
 from streamlit_extras.add_vertical_space import add_vertical_space
 from utils.cookie_manager import retrieve_cookie, init_cookies
 from multiprocessing import Pool
-from datetime import datetime
+# from datetime import datetime
 from pathlib import Path
 import streamlit_antd_components as sac
 from utils.lancedb_utils import retrieve_dict_from_table
@@ -41,7 +41,7 @@ with c:
 
 class Reformat():
 
-    ctx = get_script_run_ctx()
+    # ctx = get_script_run_ctx()
     
     def __init__(self, ):
 
@@ -93,12 +93,12 @@ class Reformat():
             user_menu(st.session_state.userId, page="template")
         with progressbar_placeholder.container():
             progress_bar(1)
-        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("profile_changed" in st.session_state and st.session_state["profile_changed"]):
+        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
             if self.reformat_templates():
                 with template_placeholder.container():
                     # print(st.session_state["selected_fields"])
                     self.display_resume_templates()
-                    st.session_state["profile_changed"]=False
+                    st.session_state["update_template"]=False
                     st.session_state["fields_changed"]=False
             else:
                 with spinner_placeholder.container():
@@ -106,7 +106,7 @@ class Reformat():
         else:
             with template_placeholder.container():
                 self.display_resume_templates()
-                st.session_state["profile_changed"]=False
+                st.session_state["update_template"]=False
                 st.session_state["fields_changed"]=False
 
 

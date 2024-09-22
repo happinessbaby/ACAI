@@ -754,7 +754,7 @@ def reformat_resume(template_path, ):
             "PHONE": func("phone", ""),
             "EMAIL": func("email", ""),
             "LINKEDIN": func("linkedin", ""),
-            "WEBSITE": func("websites", ""),
+            "WEBSITES": func("websites", ""),
         }
         context.update(personal_context)
     if "Education" in selected_fields:
@@ -790,7 +790,7 @@ def reformat_resume(template_path, ):
                 if project["link"]:
                     rt = RichText()
                     rt.add(project['link'], url_id=doc_template.build_url_id(project['link']))
-                    project['link'] = rt  # Add this to the context as 'rich_link'
+                    project['rich_link'] = rt  # Add this to the context as 'rich_link'
             context.update({"show_projects":True,
                 'PROJECTS': PROJECTS,
             })
@@ -802,25 +802,25 @@ def reformat_resume(template_path, ):
     # # Save the rendered content into a new .docx file
     # save_rendered_content(rendered_contents, end_path)
     doc_template.render(context)
-    if STORAGE=="LOCAL":
-        doc_template.save(end_path) 
-    elif STORAGE=="CLOUD":
-          # Save the rendered template to a BytesIO object
-        output_stream = BytesIO()
-        doc_template.save(output_stream)
-        output_stream.seek(0)    
-        # # Upload the BytesIO object to S3
-        # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
-        # Write to a temporary file
-        # Create a temporary file with a custom prefix and suffix
-        fd, end_path = tempfile.mkstemp(prefix=f"{template_type}_{template_num}_", suffix=".docx",)
-        # Write to the temporary file
-        with os.fdopen(fd, 'wb') as temp_file:
-        # with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
-            temp_file.write(output_stream.getvalue())
-            temp_file.seek(0)  # Reset stream position to the beginning if needed
-            # end_path = temp_file.name
-            print(f"Temporary file created at: {end_path}")
+    # if STORAGE=="LOCAL":
+    #     doc_template.save(end_path) 
+    # elif STORAGE=="CLOUD":
+    # Save the rendered template to a BytesIO object
+    output_stream = BytesIO()
+    doc_template.save(output_stream)
+    output_stream.seek(0)    
+    # # Upload the BytesIO object to S3
+    # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
+    # Write to a temporary file
+    # Create a temporary file with a custom prefix and suffix
+    fd, end_path = tempfile.mkstemp(prefix=f"{template_type}_{template_num}_", suffix=".docx",)
+    # Write to the temporary file
+    with os.fdopen(fd, 'wb') as temp_file:
+    # with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+        temp_file.write(output_stream.getvalue())
+        temp_file.seek(0)  # Reset stream position to the beginning if needed
+        # end_path = temp_file.name
+        print(f"Temporary file created at: {end_path}")
     return end_path
     
 

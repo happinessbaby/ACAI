@@ -223,7 +223,7 @@ class SpecialResumeFields(BaseModel):
     )
     industry: Optional[str] = Field(
         default="", description="""the industry the candidate wants to work in, 
-        it should be one of the following: [hr, designer, information-technology,teacher, advocate, business-development,healthcare,fitness, agriculture, bpo, sales, consultant, public-relations, healthcare, arts,digital-media, banking, finance, accountant,apparel, engineering, chef, aviation, automobile]"""
+        it should be one of the following: hr, designer, information-technology,teacher, advocate, business-development,healthcare,fitness, agriculture, bpo, sales, consultant, public-relations, healthcare, arts,digital-media, banking, finance, accountant,apparel, engineering, chef, aviation, automobile"""
     )
     summary_objective: Optional[str] = Field(
         default = "", description="the summary or objective section of the resume, please include the entire section"
@@ -414,5 +414,5 @@ class ResumeUsers(BaseModel):
     awards: Optional[List[Award]]
     licenses: Optional[List[License]]
     hobbies: Optional[List[str]]
-
+    
 
