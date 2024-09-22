@@ -278,7 +278,7 @@ class Keywords(BaseModel):
         default="", description = "salary or salary range offered for the job, can be annually or hourly"    
     )
     on_site: Optional[bool] = Field(
-        default=None, description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
+        default="", description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
     )
 
 

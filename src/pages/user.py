@@ -801,24 +801,66 @@ class User():
                 time.sleep(2)   
                 st.rerun()     
         elif input_type=="job_posting":
-            topic, safe = process_inputs(input_value, )
-            if topic=="job description" and safe:
-                st.session_state["job_description"] = input_value
-                self.initialize_job_posting_callback()
-            elif topic=="url":
-                result = process_links(input_value, st.session_state.users_upload_path, )
+            job_link, job_description = input_value
+            if job_link:
+                st.session_state["posting_link"]=job_link
+                result = process_links(job_link, st.session_state.users_upload_path, )
                 if result is not None:
                     content_safe, content_type, content_topics, end_path = result
                     if content_safe and content_type=="job posting":
                         st.session_state["job_posting_path"]=end_path
-                        st.session_state["posting_link"]=input_value
                         self.initialize_job_posting_callback()
                     else:
-                        st.warning("That didn't work. Please try pasting the content of job description")
+                        st.warning("That didn't work. Please try again")
                 else:
-                    st.warning("That didn't work. Please try pasting the content of job description")
+                    if job_description:
+                        result = process_inputs(job_description, )
+                        if result is not None:
+                            topic, safe = result
+                            if topic=="job description" and safe:
+                                st.session_state["job_description"] = job_description
+                                self.initialize_job_posting_callback()
+                        else:
+                            st.warning("That didn't work. Please try again")
+                    else:
+                        st.warning("That didn't work. Please try pasting the content of job description")
             else:
-                st.warning("That didn't work. Please try again")
+                if job_description:
+                    result = process_inputs(job_description, )
+                    if result is not None:
+                        topic, safe = result
+                        if topic=="job description" and safe:
+                            st.session_state["job_description"] = job_description
+                            self.initialize_job_posting_callback()
+                    else:
+                        st.warning("That didn't work. Please try again")
+                else:
+                    st.warning("Please upload a job link or job description")
+            self.delete_session_states(["job_linkx", "job_descriptionx"])
+            
+
+            
+
+            # result = process_inputs(input_value, )
+            # if result is not None:
+            #     topic, safe = result
+            #     if topic=="job description" and safe:
+            #         st.session_state["job_description"] = input_value
+            #         self.initialize_job_posting_callback()
+            #     elif topic=="url":
+            #         result = process_links(input_value, st.session_state.users_upload_path, )
+            #         if result is not None:
+            #             content_safe, content_type, content_topics, end_path = result
+            #             if content_safe and content_type=="job posting":
+            #                 st.session_state["job_posting_path"]=end_path
+            #                 st.session_state["posting_link"]=input_value
+            #                 self.initialize_job_posting_callback()
+            #             else:
+            #                 st.warning("That didn't work. Please try pasting the content of job description")
+            #         else:
+            #             st.warning("That didn't work. Please try pasting the content of job description")
+            #     else:
+            #         st.warning("That didn't work. Please try again")
                     
 
         # elif input_type=="job_description":
@@ -1493,14 +1535,6 @@ class User():
         if mode=="cover_letter":
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
         st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
-        # past_jobs = st.session_state["tracker"]
-        # if past_jobs:
-        #     options =[past_job["company"] + "-" + past_job["job"] for past_job in past_jobs]
-        #     print(options)
-        #     selection = st.selectbox(label="Select a past job", options = options, index=None, )
-        #     if selection:
-        #         st.session_state["job_posting_dict"] = past_jobs[past_jobs.index(selection)]
-        #         st.session_state["preselection"] = True
         if mode=="resume":
             freeze = st.radio("Would you like to freeze your profile?", 
                     help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
@@ -1512,27 +1546,31 @@ class User():
             #         options=["yes", "no"], 
             #         horizontal=True,)
             # st.session_state["init_match"]=match
-        job_posting = st.text_area("job posting link or job description", 
-                                        key="job_postingx", 
-                                        placeholder="Pleasae paste a job posting link or a job description here",
+        job_posting_link = st.text_input("job link", key="job_linkx", placeholder="paste a posting link here", label_visibility="collapsed")
+        job_posting = st.text_area("job description", 
+                                        key="job_descriptionx", 
+                                        placeholder="paste a job description here",
                                         # on_change=self.form_callback, 
                                         label_visibility="collapsed",
                                             )
-        if job_posting:
-            # self.form_callback()
-            if mode=="resume":
-                with st.spinner("Processing..."):
-                    # self.form_callback()
-                    # self.delete_session_states(["job_postingx"])
-                    self.process(job_posting, "job_posting")
-                if "job_posting_dict" in st.session_state:
-                    # st.session_state["tailoring_field"]=field_name
-                    # st.session_state["tailoring_field_idx"]=field_idx
-                    st.session_state["freeze"]=freeze
-                    # st.session_state["init_match"]=match
-                    if field_details and tailor_container:
-                        self.tailor_callback(field_name, field_details, tailor_container)
-                    st.rerun()
+        _, next_col=st.columns([5, 1])
+        with next_col:
+            if st.button("Next", key="job_posting_button", ):
+            # if job_posting:
+                # self.form_callback()
+                if mode=="resume":
+                    with st.spinner("Processing..."):
+                        # self.form_callback()
+                        # self.delete_session_states(["job_postingx"])
+                        self.process((job_posting_link, job_posting), "job_posting")
+                    if "job_posting_dict" in st.session_state:
+                        # st.session_state["tailoring_field"]=field_name
+                        # st.session_state["tailoring_field_idx"]=field_idx
+                        st.session_state["freeze"]=freeze
+                        # st.session_state["init_match"]=match
+                        if field_details and tailor_container:
+                            self.tailor_callback(field_name, field_details, tailor_container)
+                        st.rerun()
         # st.session_state["info_container"]=st.empty()
         # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
         #     # if "preselection" not in st.session_state:
@@ -1671,14 +1709,17 @@ class User():
                         job_title = st.session_state["job_posting_dict"].get('job', "")
                         company = st.session_state["job_posting_dict"].get("company", "")
                         about = st.session_state["job_posting_dict"].get("about_job", "")
+                        link = st.session_state["job_posting_dict"].get("link", "")
                     elif st.session_state["tracker"]:
                         print(st.session_state["tracker"])
                         job_title = st.session_state["tracker"].get('job', "")
                         company = st.session_state["tracker"].get("company", "")
                         about = st.session_state["tracker"].get("about_job", "")
+                        link = st.session_state["tracker"].get("link", "")
                     st.write(f"Job: {job_title}")
                     st.write(f"Company: {company}")
                     st.write(f"Summary: {about}")
+                    st.write(f"Link: {link}")
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     _, del_col=st.columns([3, 1])

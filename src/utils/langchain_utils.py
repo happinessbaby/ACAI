@@ -520,10 +520,10 @@ def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0, mode
             return response
         # except AttributeError as e:
         #     return response
-        except openai.BadRequestError as e:
-            if "string too long" in str(e):
-                print(e)
-                return "too long"  
+        # except openai.BadRequestError as e:
+        #     if "string too long" in str(e):
+        #         print(e)
+        #         return "too long"  
         except Exception as e:
             print(e)
             return None
