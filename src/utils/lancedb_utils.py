@@ -139,6 +139,10 @@ def delete_user_from_table(userId, tablename):
         print(e)
         pass
     
+def delete_job_posting_from_table(userId, tablename):
+    """"""
+    pass
+
 
 def flatten(data):
     if isinstance(data, (list, np.ndarray)):

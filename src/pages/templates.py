@@ -47,12 +47,7 @@ class Reformat():
 
         # if "init_cookies" not in st.session_state:
         init_cookies()
-        # st.session_state["current_page"] = "template"
-        # if "cm" not in st.session_state:
-        #     st.session_state["cm"] = CookieManager()
-        # st.session_state.userId = st.session_state.cm.retrieve_userId()
-        # if not st.session_state.userId:
-        #     st.switch_page("pages/user.py")      
+        # st.session_state["current_page"] = "template"    
         self._init_session_states()
         self._init_display()
 
@@ -111,27 +106,27 @@ class Reformat():
 
 
     def reformat_templates(self, ):
-
-        try:
-            template_paths = list_files(template_path, ext=".docx")
-            # print(template_paths)
-            with spinner_placeholder.container():
-                with st.spinner("Updating templates..."):
-                    with Pool() as pool:
-                        st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-                    if st.session_state["formatted_docx_paths"]:
-                        # if option==1:
-                        #     with Pool() as pool:
-                        #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-                        #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-                        # if option==2:
-                            with Pool() as pool:
-                                st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
-            spinner_placeholder.empty()
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
+            try:
+                template_paths = list_files(template_path, ext=".docx")
+                # print(template_paths)
+                with spinner_placeholder.container():
+                    with st.spinner("Updating templates..."):
+                        with Pool() as pool:
+                            st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+                        if st.session_state["formatted_docx_paths"]:
+                            # if option==1:
+                            #     with Pool() as pool:
+                            #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                            #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                            # if option==2:
+                                with Pool() as pool:
+                                    st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+                spinner_placeholder.empty()
+                return True
+            except Exception as e:
+                print(e)
+                return False
 
 
     @st.fragment()
@@ -236,24 +231,51 @@ class Reformat():
             index_selected = [idx for idx, val in enumerate(st.session_state["resume_fields"]) if val in st.session_state["selected_fields"]]
         else:
             index_selected = [0, 1, 2, 3]
-        st.write("Fields to include in the resume")
-        selected_fields = sac.chip(items=[
-                sac.ChipItem(label='Contact'),
-                sac.ChipItem(label='Education'),
-                sac.ChipItem(label='Summary Objective'),
-                sac.ChipItem(label='Work Experience'),
-                sac.ChipItem(label='Skills'),
-                sac.ChipItem(label='Professional Accomplishment'),
-                sac.ChipItem(label='Projects'),
-                sac.ChipItem(label='Certifications'),
-                sac.ChipItem(label='Awards & Honors'),
-            ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
-        if selected_fields!=st.session_state["selected_fields"]:
-            st.session_state["fields_changed"]=True
-            st.session_state["selected_fields"]=selected_fields
-            st.rerun()
+        with st.container(border=True):
+            st.write("Fields to include in the resume")
+            selected_fields = sac.chip(items=[
+                    sac.ChipItem(label='Contact'),
+                    sac.ChipItem(label='Education'),
+                    sac.ChipItem(label='Summary Objective'),
+                    sac.ChipItem(label='Work Experience'),
+                    sac.ChipItem(label='Skills'),
+                    sac.ChipItem(label='Professional Accomplishment'),
+                    sac.ChipItem(label='Projects'),
+                    sac.ChipItem(label='Certifications'),
+                    sac.ChipItem(label='Awards & Honors'),
+                ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
+            _, c1 = st.columns([2, 1])
+            with c1:
+                if st.button("Confirm", key="fields_selection_button"):
+                    if selected_fields!=st.session_state["selected_fields"]:
+                        st.session_state["fields_changed"]=True
+                        st.session_state["selected_fields"]=selected_fields
+                        st.rerun()
 
-
+# @st.fragment(run_every=3)
+# def reformat_templates():
+#     if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
+#         try:
+#             template_paths = list_files(template_path, ext=".docx")
+#             # print(template_paths)
+#             # with spinner_placeholder.container():
+#             # with st.spinner("Updating templates..."):
+#             with Pool() as pool:
+#                 st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+#             if st.session_state["formatted_docx_paths"]:
+#                 # if option==1:
+#                 #     with Pool() as pool:
+#                 #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+#                 #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+#                 # if option==2:
+#                     with Pool() as pool:
+#                         st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+#             # spinner_placeholder.empty()
+#             print("Successfully initialized templates")
+#             return True
+#         except Exception as e:
+#             print(e)
+#             return False
 
 if __name__ == '__main__':
 
