@@ -223,7 +223,7 @@ class SpecialResumeFields(BaseModel):
     )
     industry: Optional[str] = Field(
         default="", description="""the industry the candidate wants to work in, 
-        it should be one of the following: [hr, designer, information-technology,teacher, advocate, business-development,healthcare,fitness, agriculture, bpo, sales, consultant, public-relations, healthcare, arts,digital-media, banking, finance, accountant,apparel, engineering, chef, aviation, automobile]"""
+        it should be one of the following: hr, designer, information-technology,teacher, advocate, business-development,healthcare,fitness, agriculture, bpo, sales, consultant, public-relations, healthcare, arts,digital-media, banking, finance, accountant,apparel, engineering, chef, aviation, automobile"""
     )
     summary_objective: Optional[str] = Field(
         default = "", description="the summary or objective section of the resume, please include the entire section"
@@ -278,7 +278,7 @@ class Keywords(BaseModel):
         default="", description = "salary or salary range offered for the job, can be annually or hourly"    
     )
     on_site: Optional[bool] = Field(
-        default=None, description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
+        default="", description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
     )
 
 
@@ -328,7 +328,14 @@ class Replacements(BaseModel):
         default=[], description="the content will be a list made up of words that are to be replaced and their subtitutions"
     )
 
-
+class MatchResumeJob(BaseModel):
+    evaluation: Optional[str] = Field(
+        default="", description= "found in Step 1, this is an evaluation of how a resume field compares to a job description"
+    )
+    percentage: Optional[int] = Field(
+        default=0, description = "found in Step 2, this is a percentage comparison, output the number without percentage sign, for example, if it's 80%, output 80"
+    )
+    
 class GeneralEvaluation(BaseModel):
     user_id : str
     word_count: Optional[int]
@@ -407,5 +414,5 @@ class ResumeUsers(BaseModel):
     awards: Optional[List[Award]]
     licenses: Optional[List[License]]
     hobbies: Optional[List[str]]
-
+    
 

@@ -859,6 +859,10 @@ def create_resume_info(resume_path, q, ):
             results = pool.starmap(create_pydantic_parser, args)
 
         for result in results:
+            try:
+                result = result.dict()
+            except Exception as e:
+                pass
             if isinstance(result, dict):
                 if "city" in result:
                     resume_info_dict.update({"contact":result})
@@ -1049,10 +1053,12 @@ def process_inputs(user_input, ):
         "required": ["topic", "safety"],
     }
     response = create_input_tagger(tag_schema, user_input)
-    topic = response.get("topic", None)
-    safety=response.get("safety", None)
-    print(topic, safety)
-    return topic, safety
+    if response:
+        topic = response.get("topic", None)
+        safety=response.get("safety", None)
+        print(topic, safety)
+        return (topic, safety)
+    return None
     # response = asyncio_run(lambda: create_input_tagger(InputClassification, user_input, ), timeout=10, max_try=1)
     # if response:
     #     topic = response.dict().get("topic", "")
@@ -1077,8 +1083,9 @@ def process_uploads(uploaded_file, save_path, to_tmp=True):
         else:
             end_path=tmp_save_path
         if end_path:
-            content_safe, content_type, content_topics = check_content(end_path, )
-            if content_safe is not None:
+            result = check_content(end_path, )
+            if result is not None:
+                content_safe, content_type, content_topics = result
                 return (content_safe, content_type, content_topics, end_path)
     return None
         
@@ -1088,8 +1095,9 @@ def process_links(links, save_path,  to_tmp=True):
     # end_path = os.path.join(save_path, str(uuid.uuid4())+".txt")
     txt_path= html_to_text(links, to_tmp=to_tmp )
     if txt_path:
-        content_safe, content_type, content_topics = check_content(txt_path, )
-        if content_safe is not None:
+        result = check_content(txt_path, )
+        if result is not None:
+            content_safe, content_type, content_topics = result
             return  (content_safe, content_type, content_topics, txt_path)
     return None
   
@@ -1256,10 +1264,10 @@ def check_content(file_path: str,) -> Union[bool, str, set] :
         if (content_dict):    
             # return content_safe, content_type, content_topics
             print('Successfully checked content')
-            return content_safe, content_type, content_topics
+            return (content_safe, content_type, content_topics)
     except Exception:
         # raise Exception(f"Content checking failed for {file_path}")
-        return None, None, None
+        return None
     
     
 

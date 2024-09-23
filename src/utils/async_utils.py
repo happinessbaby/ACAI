@@ -5,6 +5,7 @@ import sys
 # import trace
 import threading
 import concurrent.futures
+from tenacity import retry, stop_after_delay, retry_if_exception_type
 # import time
 
 class thread_with_trace(threading.Thread):
@@ -88,11 +89,14 @@ def future_run_with_timeout(run_parser, timeout=10):
         except concurrent.futures.TimeoutError:
             print("Function timed out")
             return None
-
-    # else:
-    #     nest_asyncio.apply(loop)
-    # finally:
-    #     loop.run_until_complete(_to_task(future, as_task, loop))
-        # loop.close()
         
-        # return asyncio.run(_to_task(future, as_task, loop))
+# Define a retry function with timeout using tenacity
+@retry(stop=stop_after_delay(10), retry=retry_if_exception_type(TimeoutError))
+def tenacity_run_with_timeout(content_dict, runnable):
+    try:
+        response = runnable.invoke(content_dict)
+        return response
+    except Exception as e:
+        print(e)
+        return None
+

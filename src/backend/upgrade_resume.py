@@ -11,7 +11,7 @@ from docxtpl import DocxTemplate, RichText
 # from docx import Document
 # from docx.shared import Inches
 import re
-from utils.pydantic_schema import ResumeType, Comparison, SkillsRelevancy, Replacements, Language
+from utils.pydantic_schema import ResumeType, Comparison, SkillsRelevancy, Replacements, Language, MatchResumeJob
 from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
@@ -20,7 +20,7 @@ import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate,  PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
-from utils.async_utils import asyncio_run, future_run_with_timeout
+from utils.async_utils import asyncio_run, future_run_with_timeout, tenacity_run_with_timeout
 # import concurrent.futures
 import time as time
 import streamlit as st
@@ -55,7 +55,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", idx=-1, details=None, p=None, loading_func=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
 
 
     def insert_break_character(text, char='<br>', interval=5):
@@ -378,7 +378,7 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="general", idx=-1, details=None, p=None, loading_func=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  details=None, p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
     for _ in range(5):
@@ -388,6 +388,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
 
     about_job = job_posting_dict["about_job"]
     job_skills = job_posting_dict["skills"] 
+    job_posting = job_posting_dict["content"]
     resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
     job_requirements = about_job if not job_requirements else job_requirements
@@ -410,16 +411,26 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, type=None, field_name="ge
         # response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=30, max_try=1)
         response = tailor_objective(about_job, details, resume_content, job_title,)
         response_dict=response.dict() if response else {}
+        p.increment(20)  # Update progress 
+        loading_func(p.progress)
+    elif field_name=="education":
+        response_dict={}
+    else:
+        # print("bullet point details", details)
+        # if len(details)>1:
+        response_dict = tailor_bullet_points(field_name, details, job_requirements, )
         p.increment(30)  # Update progress 
         loading_func(p.progress)
-    if type=="bullet_points":
-        # print("bullet point details", details)
-        if len(details)>1:
-            response_dict = tailor_bullet_points(field_name, details, job_requirements, )
-            p.increment(30)  # Update progress 
-            loading_func(p.progress)
-        else:
-            response_dict = "please add more bullet points first"
+        # else:
+        #     response_dict = "please add more bullet points first"
+    match = match_resume_job(resume_dict[field_name], job_posting, field_name)
+    match_dict = match.dict() if match else  {"evaluation":None, "percentage":None}
+    try:
+        response_dict.update(match_dict)
+    except Exception as e:
+        pass
+    p.increment(10)  # Update progress 
+    loading_func(p.progress)
     return response_dict
     # if response_dict:
     #     print(f"successfully tailored {field_name}")
@@ -467,8 +478,6 @@ def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
         Step 1: <step 1 reasoning>
         Step 2: <step 2 reasoning>
         Step 3: <step 3 reasoning>
-
-    Make sure lists from both steps include only skills from the resume, and provide your reasoning.
 
     """
     # These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
@@ -725,9 +734,9 @@ def reformat_resume(template_path, ):
         filename = os.path.basename(template_path)
         templatex = split_at_letter_number(filename)
         template_type, template_num = templatex[0], templatex[1]
-        print(template_type, template_num)
-        output_dir = st.session_state["users_download_path"]
-        end_path = os.path.join(output_dir, filename)
+        # print(template_type, template_num)
+        # output_dir = st.session_state["users_download_path"]
+        # end_path = os.path.join(output_dir, filename)
     except Exception:
         return ""
     if STORAGE=="CLOUD":
@@ -745,7 +754,7 @@ def reformat_resume(template_path, ):
             "PHONE": func("phone", ""),
             "EMAIL": func("email", ""),
             "LINKEDIN": func("linkedin", ""),
-            "WEBSITE": func("websites", ""),
+            "WEBSITES": func("websites", ""),
         }
         context.update(personal_context)
     if "Education" in selected_fields:
@@ -781,7 +790,7 @@ def reformat_resume(template_path, ):
                 if project["link"]:
                     rt = RichText()
                     rt.add(project['link'], url_id=doc_template.build_url_id(project['link']))
-                    project['link'] = rt  # Add this to the context as 'rich_link'
+                    project['rich_link'] = rt  # Add this to the context as 'rich_link'
             context.update({"show_projects":True,
                 'PROJECTS': PROJECTS,
             })
@@ -793,25 +802,25 @@ def reformat_resume(template_path, ):
     # # Save the rendered content into a new .docx file
     # save_rendered_content(rendered_contents, end_path)
     doc_template.render(context)
-    if STORAGE=="LOCAL":
-        doc_template.save(end_path) 
-    elif STORAGE=="CLOUD":
-          # Save the rendered template to a BytesIO object
-        output_stream = BytesIO()
-        doc_template.save(output_stream)
-        output_stream.seek(0)    
-        # # Upload the BytesIO object to S3
-        # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
-        # Write to a temporary file
-        # Create a temporary file with a custom prefix and suffix
-        fd, end_path = tempfile.mkstemp(prefix=f"{template_type}_{template_num}_", suffix=".docx",)
-        # Write to the temporary file
-        with os.fdopen(fd, 'wb') as temp_file:
-        # with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
-            temp_file.write(output_stream.getvalue())
-            temp_file.seek(0)  # Reset stream position to the beginning if needed
-            # end_path = temp_file.name
-            print(f"Temporary file created at: {end_path}")
+    # if STORAGE=="LOCAL":
+    #     doc_template.save(end_path) 
+    # elif STORAGE=="CLOUD":
+    # Save the rendered template to a BytesIO object
+    output_stream = BytesIO()
+    doc_template.save(output_stream)
+    output_stream.seek(0)    
+    # # Upload the BytesIO object to S3
+    # s3.put_object(Bucket=bucket_name, Key=end_path, Body=output_stream.getvalue())
+    # Write to a temporary file
+    # Create a temporary file with a custom prefix and suffix
+    fd, end_path = tempfile.mkstemp(prefix=f"{template_type}_{template_num}_", suffix=".docx",)
+    # Write to the temporary file
+    with os.fdopen(fd, 'wb') as temp_file:
+    # with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as temp_file:
+        temp_file.write(output_stream.getvalue())
+        temp_file.seek(0)  # Reset stream position to the beginning if needed
+        # end_path = temp_file.name
+        print(f"Temporary file created at: {end_path}")
     return end_path
     
 
@@ -837,6 +846,66 @@ def readability_checker(content):
     )
     return stats
     
+def match_resume_job(resume_content, job_posting, field_name):
+
+    """ Generates a resume job comparison, including percentage comparison"""
+    # field_names=["included_skills", "summary_objective", "education"]
+    # resume_content = resume_dict[field_name]
+    # job_posting = job_posting_dict["content"]
+    # if "matching" not in st.session_state:
+    #     st.session_state["matching" ]= {}
+    #     st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})
+    prompt = """Act as a Application Tracking System.
+    
+    Step 1: compare the candidate resume's {field_name} to a job role description.
+    
+    resume {field_name} content: {resume_content} \n
+
+    job role description: {job_posting} \n
+
+    Step 2: generate a percentage comparison of {field_name}
+
+    Use the following format:
+        Step 1: <step 1 answer>
+        Step 2: <step 2 answer>
+
+    """
+    prompt_template = ChatPromptTemplate.from_template(prompt)
+    prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are an expert extraction algorithm. "
+            "Only extract relevant information from the text. "
+            "If you do not know the value of an attribute asked to extract, "
+            "return null for the attribute's value.",
+        ),
+        # Please see the how-to about improving performance with
+        # reference examples.
+        # MessagesPlaceholder('examples')
+        ("human", "{content}"),
+            ]
+        )
+    model_parser =prompt | llm.with_structured_output(schema=MatchResumeJob)
+    generator =   (
+        {"resume_content":RunnablePassthrough(), "job_posting":RunnablePassthrough(), "field_name":RunnablePassthrough()} 
+                     | prompt_template
+                     | model_parser)
+    try:
+        # Call the run_parser_with_timeout function with tenacity
+        response = tenacity_run_with_timeout({"resume_content":resume_content, "job_posting":job_posting, "field_name":field_name}, generator)
+        print(response)
+        # response = response.dict()
+        return response
+        # st.session_state.matching.update({f"{field_name}_eval":response["evaluation"]})
+        # st.session_state.matching.update({f"{field_name}_percentage":response["percentage"]})
+    except Exception as e:
+        print(f"Error or Timeout occurred: {e}")
+        return None
+        # st.session_state.matching.update({f"{field_name}_eval": None})
+        # st.session_state.matching.update({f"{field_name}_percentage":None})
+
+
 
 
 # def reformat_functional_resume(resume_file="", posting_path="", template_file="") -> None:
