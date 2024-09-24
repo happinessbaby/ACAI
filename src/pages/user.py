@@ -9,8 +9,10 @@ from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table
 
 # from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
-from utils.basic_utils import mk_dirs, send_recovery_email, write_file
+from utils.basic_utils import mk_dirs, send_recovery_email
 from typing import Any, List
+from utils.basic_utils import list_files, convert_doc_to_pdf
+from backend.upgrade_resume import reformat_resume
 # import uuid
 # from streamlit_js_eval import get_geolocation
 # from geopy.geocoders import Nominatim
@@ -19,10 +21,9 @@ from typing import Any, List
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
-from css.streamlit_css import general_button, primary_button3, google_button, primary_button2, primary_button
-from backend.upgrade_resume import tailor_resume, evaluate_resume, match_resume_job
-# from pages.templates import reformat_templates
+from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
+from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button
+from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
 import threading
@@ -33,8 +34,8 @@ from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
 import requests
-# from threading import Thread
 # from apscheduler.schedulers.background import BackgroundScheduler
+# from threading import Thread
 # from utils.async_utils import thread_with_trace, asyncio_run
 import re
 import queue
@@ -56,10 +57,12 @@ if STORAGE=="CLOUD":
     login_file = os.environ["S3_LOGIN_FILE_PATH"]
     db_path=os.environ["S3_LANCEDB_PATH"]
     base_uri = os.environ["CLOUD_BASE_URI"]
+    template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
 elif STORAGE=="LOCAL":
     login_file = os.environ["LOGIN_FILE_PATH"]
     db_path=os.environ["LANCEDB_PATH"]
     base_uri = os.environ["BASE_URI"]
+    template_path = os.environ["RESUME_TEMPLATE_PATH"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
@@ -104,10 +107,9 @@ st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 #NOTE: fragment parameter seems to need to be set at topmost level
 if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
-if "tailor_rerun_timer" not in st.session_state:
-    st.session_state["tailor_rerun_timer"]=3
-
-# field_names = ["included_skills", "summary_objective",  "education"]
+# if "tailor_rerun_timer" not in st.session_state:
+#     st.session_state["tailor_rerun_timer"]=3
+    
 
 class User():
 
@@ -116,11 +118,6 @@ class User():
     def __init__(self, ):
         # if "init_cookies" not in st.session_state:
         init_cookies()
-        # if "cm" not in st.session_state:
-        #     st.session_state["cm"] = CookieManager()
-        # if "userId" not in st.session_state:
-        #     st.session_state.userId = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
-        #     st.session_state["userId"]=st.session_state.userId
         self._init_session_states()
         self._init_display()
 
@@ -131,13 +128,8 @@ class User():
         # set current page for progress bar
         st.session_state["current_page"] = "profile"
         # NOTE: userId is retrieved from browser cookie
-        # if "cm" not in st.session_state:
-        #     st.session_state["cm"] = CookieManager()
         if "userId" not in st.session_state:
             st.session_state["userId"] = retrieve_cookie()
-            # st.session_state["userId"] = st.session_state.cm.retrieve_userId(max_retries=3, delay=1)
-            # st.session_state["userId"]=_st.session_state.userId
-        # Open users login file
         if "logo_path" not in st.session_state:
             st.session_state["logo_path"]="./resources/logo_acareerai.png"
         # if "authenticator" not in st.session_state:
@@ -157,16 +149,12 @@ class User():
         #         raise 
             
         if st.session_state["userId"] is not None:
-        # if _st.session_state.userId is not None:
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
-                # scheduler = BackgroundScheduler()
-                # scheduler.add_job(_self.save_session_profile, 'interval', seconds=5, )
-                # scheduler.start()
             if "evaluation" not in st.session_state:
                 st.session_state["evaluation"] = retrieve_dict_from_table(st.session_state.userId, lance_eval_table)
             if "evaluation_schema" not in st.session_state:
@@ -175,13 +163,9 @@ class User():
                 st.session_state["tracker_latest"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             if "tracker_schema" not in st.session_state:
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
-            # if "init_templates" not in st.session_state:
-            #     t = threading.Thread(target=reformat_templates)
-            #     add_script_run_ctx(t, _self.ctx)
-            #     t.start()
-            #     t.join()
-                # if reformat_templates():
-                # st.session_state["init_templates"]=True
+            if "selected_fields" not in st.session_state:
+                st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
+            _self.reformat_templates()
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -437,17 +421,8 @@ class User():
     def sign_up(self,):
 
         print("inside signing up")
-        # _, c, _ = st.columns([1, 1, 1])
-        # with c:
-        #     signup_placeholder=st.empty()
-      
         st.subheader("Register")
         with st.container(border=True):
-            # if "signup_error_msg" in st.session_state and ""
-            # if "signup_email" in st.session_state 
-            #     st.session_state.signup_disabled=False
-            # else:
-            #     st.session_state.signup_disabled=True
             st.session_state["signup_disabled"]=False
             # with st.form("sign_up_form"):
             first_name=st.text_input("First name (optional)", key="signup_first_name", )
@@ -642,8 +617,6 @@ class User():
     #     st.text_area("Where do you see yourself in 5 years?")
 
 
-
-
     # def about_career(self):
 
     #     c1, c2 = st.columns([1, 1])
@@ -681,11 +654,6 @@ class User():
 
 
 
-
-    
-
-
-
     # def test_clear(self):
         
     #     vectorstore = retrieve_vectorstore("elasticsearch", index_name=st.session_state.userId)
@@ -707,87 +675,6 @@ class User():
     #         # Retry after a short delay
     #         return self.get_address(latitude, longitude)
         
-    # def form_callback(self,):
-
-
-    #     # try:
-    #     #     st.session_state["self_description"] = st.session_state.self_descriptionx
-    #     #     st.session_state["users"][st.session_state.userId]["self_description"] = st.session_state.self_description
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     st.session_state["career_goals"] = st.session_state.career_goalsx
-    #     #     st.session_state["users"][st.session_state.userId]["career_goals"] = st.session_state.career_goals
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     st.session_state["job_level"] = st.session_state.job_levelx
-    #     #     st.session_state["users"][st.session_state.userId]["job_level"] = st.session_state.job_level
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     st.session_state["min_pay"] = st.session_state.min_payx
-    #     #     st.session_state["users"][st.session_state.userId]["mininum_pay"] = st.session_state.min_pay
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     st.session_state["pay_type"] = st.session_state.pay_typex
-    #     #     st.session_state["users"][st.session_state.userId]["pay_type"] = st.session_state.pay_type
-    #     # except AttributeError:
-    #     #     pass
-        
-    #     # try:
-    #     #     st.session_state["career_switch"] = st.session_state.career_switchx
-    #     #     st.session_state["users"][st.session_state.userId]["career_switch"] = st.session_state.career_switch
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     transferable_skills = st.session_state.transferable_skillsx
-    #     #     self.process("transferable_skills", transferable_skills)
-    #     #     st.session_state["users"][st.session_state.userId]["transferable_skills"] = st.session_state.transferable_skills
-    #     # except AttributeError:
-    #     #     pass
-    #     # try:
-    #     #     location_input = st.session_state.location_inputx
-    #     #     self.process("location_input", location_input)
-    #     #     st.session_state["users"][st.session_state.userId]["location_input"] = st.session_state.location_input
-    #     # except AttributeError:
-    #     #     pass
-    #     try:
-    #         # delete old instance of user_resume_path
-    #         resume = st.session_state.user_resume
-    #         if resume:
-    #             self.process([resume], "resume", )
-    #     except AttributeError:
-    #         pass
-    #     try:
-    #         posting = st.session_state.job_postingx
-    #         if posting:
-    #             self.process(posting, "job_posting",)
-    #     except AttributeError:
-    #         pass
-    #     self.delete_session_states(["user_resume_path", "job_posting_path", "job_description"])
-        # try:
-        #     try:
-        #         del st.session_state["job_posting_path"]
-        #     except Exception:
-        #         pass
-        #     posting_link = st.session_state.posting_link
-        #     if posting_link:
-        #         self.process(posting_link, "job_posting",)
-        # except AttributeError:
-        #     pass
-        # try:
-        #     try:
-        #         del st.session_state["job_description"]
-        #     except Exception:
-        #         pass
-        #     job_descr = st.session_state.job_descriptionx
-        #     if job_descr:
-        #         self.process(job_descr, "job_description",)
-        # except AttributeError:
-        #     pass
-
 
 
     def process(self, input_value: Any, input_type:str, ):
@@ -833,59 +720,10 @@ class User():
             else:
                 st.warning("That didn't work")
             self.delete_session_states(["job_descriptionx"])
-        # else:
-        #     st.warning("That didn't work. Please try pasting the content of job description")
-        #     else:
-        #         if job_description:
-        #             result = process_inputs(job_description, )
-        #             if result is not None:
-        #                 topic, safe = result
-        #                 if topic=="job description" and safe:
-        #                     st.session_state["job_description"] = job_description
-        #                     self.initialize_job_posting_callback()
-        #             else:
-        #                 st.warning("That didn't work. Please try again")
-        #         else:
-        #             st.warning("Please upload a job link or job description")
-            # self.delete_session_states(["job_linkx", "job_descriptionx"])
+       
             
 
-            
-
-            # result = process_inputs(input_value, )
-            # if result is not None:
-            #     topic, safe = result
-            #     if topic=="job description" and safe:
-            #         st.session_state["job_description"] = input_value
-            #         self.initialize_job_posting_callback()
-            #     elif topic=="url":
-            #         result = process_links(input_value, st.session_state.users_upload_path, )
-            #         if result is not None:
-            #             content_safe, content_type, content_topics, end_path = result
-            #             if content_safe and content_type=="job posting":
-            #                 st.session_state["job_posting_path"]=end_path
-            #                 st.session_state["posting_link"]=input_value
-            #                 self.initialize_job_posting_callback()
-            #             else:
-            #                 st.warning("That didn't work. Please try pasting the content of job description")
-            #         else:
-            #             st.warning("That didn't work. Please try pasting the content of job description")
-            #     else:
-            #         st.warning("That didn't work. Please try again")
-                    
-
-        # elif input_type=="job_description":
-        #     result = process_inputs(input_value, match_topic="job posting or job description")
-        #     if result is not None:
-        #         st.session_state["job_description"] = input_value
-        #     else:
-        #         st.info("Please share a job descriptions")
-
-        # if input_type=="location_input":
-        #     st.session_state.location_input=input_value.split(",")
-        # elif input_type=="transferable_skills":
-        #     st.session_state.transferable_skills=input_value.split(",")
-    @st.dialog("Drag to rearrange")
+        
     def rearrange_skills_popup(self, ):
         data=[]
         idx=0
@@ -1717,6 +1555,7 @@ class User():
         eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
         with tailor_col:
             freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            st.session_state["freeze"]=freeze
             self.save_session_profile(freeze=freeze)
             if "job_posting_dict" in st.session_state or st.session_state["tracker_latest"] is not None:
                 with st.container(border=True):
@@ -1735,7 +1574,8 @@ class User():
                     with c1:
                         st.write("Current job saved on clipboard")
                     with c2:
-                        st.link_button("🔗", url=link)
+                        if link:
+                            st.link_button("🔗", url=link)
                     st.write(f"Job: {job_title}")
                     st.write(f"Company: {company}")
                     st.write(f"Summary: {about}")
@@ -2096,20 +1936,6 @@ class User():
     def resume_type_popup(self, ):
         add_vertical_space(4)
         st.image("./resources/functional_chronological_resume.png")
-    
-    # @st.dialog(" ", width="large")
-    # def explore_template_popup(self, ):
-    #     """"""
-    #     type = sac.tabs([
-    #         sac.TabsItem(label='functional',),
-    #         sac.TabsItem(label='chronological',),
-    #         sac.TabsItem(label='mixed', ),
-    #     ], align='center', variant="outline")
-
-    #     if type=="functional":
-    #         st.image(["./resources/functional/functional0.png", "./resources/functional/functional1.png", "./resources/functional/functional2.png"])
-    #     elif type=="chronological":
-    #         st.image(["./resources/chronological/chronological0.png", "./resources/chronological/chronological1.png", "./resources/chronological/chronological2.png"])
 
 
 
@@ -2142,7 +1968,7 @@ class User():
                 delete_user_from_table(st.session_state.userId, lance_users_table_current)
                 delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
-                self.delete_session_states(["profile", "evaluation", "init_eval"])
+                self.delete_session_states(["profile", "evaluation", "init_eval", "init_templates"])
                 profile_placeholder.empty()
                 st.rerun()
     
@@ -2164,7 +1990,41 @@ class User():
     #         ][0]
     #     print("Current page:", current_page)
     #     return current_page
-                
+
+    #NOTE: this has to be here instead of templates.py because switching from templates makes run every seceonds stop
+    @st.fragment(run_every=3)
+    def reformat_templates(self, ):
+
+        """ Runs the resume templates update every x seconds in the background. """
+
+        if ("init_formatting" in st.session_state and not st.session_state["init_formatting"]) or ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"]):
+            print("REFORMATING")
+            try:
+                # prevents going through this loop while already formatting
+                st.session_state["init_formatting"]=True
+                template_paths = list_files(template_path, ext=".docx")
+                with Pool() as pool:
+                    st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+                    # if st.session_state["current_page"] == "template":  # Define your stopping condition
+                    #     pool.terminate()  # Stop all processes immediately
+                    #     st.stop()  # Optionally stop Streamlit execution
+                if st.session_state["formatted_docx_paths"]:
+                    with Pool() as pool:
+                        st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+                        # if st.session_state["current_page"] == "template":  # Define your stopping condition
+                        #     pool.terminate()  # Stop all processes immediately
+                        #     st.stop()  # Optionally stop Streamlit execution
+                try:
+                    st.session_state["update_template"]=False
+                    st.sesion_state["init_formatting"]=False
+                except Exception:
+                    pass
+            except Exception as e:
+                st.session_state["update_template"]=False
+                print(e)
+        else:
+            print("Skip reformatting templates")
+
 
 
 if __name__ == '__main__':

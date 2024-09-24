@@ -18,6 +18,7 @@ from utils.lancedb_utils import retrieve_dict_from_table
 from streamlit_pdf_viewer import pdf_viewer
 from streamlit_extras.stylable_container import stylable_container
 import streamlit as st
+import time
 
 set_streamlit_page_config_once()
 float_init()
@@ -26,18 +27,19 @@ if STORAGE=="CLOUD":
     template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
 elif STORAGE=="LOCAL":
     template_path = os.environ["RESUME_TEMPLATE_PATH"]
-lance_users_table = os.environ["LANCE_USERS_TABLE"]
+lance_users_table_current = os.environ["LANCE_USERS_TABLE_CURRENT"]
 # pages = get_pages("")
-# NOTE: TESTING OUT OPTION 2 FOR NOW 
+# NOTE: GOINT WITH OPTION 2 FOR NOW 
 # option=2
 menu_placeholder=st.empty()
 progressbar_placeholder=st.empty()
 template_placeholder = st.empty()
 _, c, _= st.columns([3, 1, 3])
 with c:
-    add_vertical_space(20)
+    add_vertical_space(10)
     spinner_placeholder=st.empty()
 # st.logo("./resources/logo_acareerai.png")
+
 
 class Reformat():
 
@@ -45,24 +47,26 @@ class Reformat():
     
     def __init__(self, ):
 
+        #NOTE: below check is used to make sure the templates are finished reformatting in user.py else streamlit will give a bad index error
+        # if "update_templates" in st.session_state and st.session_state["update_templates"]:
+        #     self.reformat_templates()
+        #     st.rerun()
+        # else:
         # if "init_cookies" not in st.session_state:
-        init_cookies()
-        # st.session_state["current_page"] = "template"    
+        init_cookies() 
         self._init_session_states()
         self._init_display()
+
 
     def _init_session_states(_self, ):
 
         st.session_state["current_page"] = "template"
-        # if "cm" not in st.session_state:
-        #     st.session_state["cm"] = CookieManager()
-        # if "userId" not in st.session_state:
         if "userId" not in st.session_state:
             st.session_state["userId"] = retrieve_cookie()
             if not st.session_state["userId"]:
                 st.switch_page("pages/user.py")
         if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table)
+                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
         if "selected_fields" not in st.session_state:
             st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
         # if "user_save_path" not in st.session_state:
@@ -88,25 +92,22 @@ class Reformat():
             user_menu(st.session_state.userId, page="template")
         with progressbar_placeholder.container():
             progress_bar(1)
-        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
-            if self.reformat_templates():
-                with template_placeholder.container():
-                    # print(st.session_state["selected_fields"])
-                    self.display_resume_templates()
-                    st.session_state["update_template"]=False
-                    st.session_state["fields_changed"]=False
-            else:
-                with spinner_placeholder.container():
-                    st.subheader('Please try again')
-        else:
-            with template_placeholder.container():
+        # if self.reformat_templates():
+        if "formatted_pdf_paths" in st.session_state:
+            # with template_placeholder.container():
                 self.display_resume_templates()
-                st.session_state["update_template"]=False
-                st.session_state["fields_changed"]=False
-
+        else:
+             self.reformat_templates()
+             st.rerun()
+        # else:
+        #     with spinner_placeholder.container():
+        #         st.subheader('Please try again')
+   
 
     def reformat_templates(self, ):
-        if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
+
+        # if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
+        #     print("reformatting templates")
             try:
                 template_paths = list_files(template_path, ext=".docx")
                 # print(template_paths)
@@ -123,18 +124,26 @@ class Reformat():
                                 with Pool() as pool:
                                     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
                 spinner_placeholder.empty()
+                # try:
+                #     st.session_state["update_template"]=False
+                #     st.session_state["fields_changed"]=False
+                # except Exception:
+                #     pass
                 return True
             except Exception as e:
                 print(e)
                 return False
+        # else:
+        #     print("skip reformating")
+        #     return True
 
 
     @st.fragment()
     def display_resume_templates(self, ):
         
         add_vertical_space(8)
-        c1, template_col, select_col = st.columns([1, 3, 1])
-        with c1:
+        fields_c1, template_col, select_col = st.columns([1, 3, 1])
+        with fields_c1:
             self.fields_selection()  
         # if option==1: 
         #     with c2:s
@@ -248,38 +257,17 @@ class Reformat():
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
                     if selected_fields!=st.session_state["selected_fields"]:
-                        st.session_state["fields_changed"]=True
+                        # st.session_state["fields_changed"]=True
                         st.session_state["selected_fields"]=selected_fields
-                        st.rerun()
-
-# @st.fragment(run_every=3)
-# def reformat_templates():
-#     if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
-#         try:
-#             template_paths = list_files(template_path, ext=".docx")
-#             # print(template_paths)
-#             # with spinner_placeholder.container():
-#             # with st.spinner("Updating templates..."):
-#             with Pool() as pool:
-#                 st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-#             if st.session_state["formatted_docx_paths"]:
-#                 # if option==1:
-#                 #     with Pool() as pool:
-#                 #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-#                 #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-#                 # if option==2:
-#                     with Pool() as pool:
-#                         st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
-#             # spinner_placeholder.empty()
-#             print("Successfully initialized templates")
-#             return True
-#         except Exception as e:
-#             print(e)
-#             return False
+                        if self.reformat_templates():
+                             st.rerun()
+                        # st.rerun()
 
 if __name__ == '__main__':
 
-
     reformat=Reformat()
-    
+
+
+
+
 
