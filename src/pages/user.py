@@ -11,7 +11,7 @@ from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table
 from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email
 from typing import Any, List
-from utils.basic_utils import list_files, convert_doc_to_pdf
+from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from backend.upgrade_resume import reformat_resume
 # import uuid
 # from streamlit_js_eval import get_geolocation
@@ -120,6 +120,7 @@ class User():
         init_cookies()
         self._init_session_states()
         self._init_display()
+        self.reformat_templates()
 
 
     # @st.cache_data()
@@ -165,7 +166,6 @@ class User():
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
             if "selected_fields" not in st.session_state:
                 st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
-            _self.reformat_templates()
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -612,69 +612,7 @@ class User():
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
 
-    # def about_future(self):
 
-    #     st.text_area("Where do you see yourself in 5 years?")
-
-
-    # def about_career(self):
-
-    #     c1, c2 = st.columns([1, 1])
-    #     # components.html( """<div style="text-align: bottom"> Work Experience</div>""")
-    #     with c1:
-    #         st.text_input("Desired job title(s)", placeholder="please separate each with a comma", key="jobx", on_change=self.form_callback)
-    #     with c2:
-    #         st.select_slider("Level of experience",  options=["no experience", "entry level", "junior level", "mid level", "senior level"], key='job_levelx', on_change=self.form_callback)   
-    #     c1, c2=st.columns([1, 1])
-    #     with c1:
-    #         min_pay = st.text_input("Minimum pay", key="min_payx", on_change=self.form_callback)
-    #     with c2: 
-    #         pay_type = st.selectbox("", ("hourly", "annually"), index=None, placeholder="Select pay type...", key="pay_typex", on_change=self.form_callback)
-    #     job_unsure=st.checkbox("Not sure about the job")
-    #     if job_unsure:
-    #         st.multiselect("What industries interest you?", ["Healthcare", "Computer & Technology", "Advertising & Marketing", "Aerospace", "Agriculture", "Education", "Energy", "Entertainment", "Fashion", "Finance & Economic", "Food & Beverage", "Hospitality", "Manufacturing", "Media & News", "Mining", "Pharmaceutical", "Telecommunication", " Transportation" ], key="industryx", on_change=self.form_callback)
-    #     career_switch = st.checkbox("Career switch", key="career_switchx", on_change=self.form_callback)
-    #     if career_switch:
-    #         st.text_area("Transferable skills", placeholder="Please separate each transferable skill with a comma", key="transferable_skillsx", on_change=self.form_callback)
-    #     location = st.checkbox("Location is important to me")
-    #     # location = st.radio("Is location important to you?", [ "no, I can relocate","I only want to work remotely", "I want to work near where I currently live", "I have a specific place in mind"], key="locationx", on_change=self.form_callback)
-    #     if location:
-    #         location_input = st.radio("", ["I want remote work", "work near where I currently live", "I have a specific place in mind"])
-    #         if location_input=="I want remote work":
-    #             st.session_state.location_input = "remote"
-    #         if location_input == "I have a specific place in mind":
-    #             st.text_input("Location", "e.g., the west coast, NYC, or a state", key="location_inputx", on_change=self.form_callback)
-    #         if location_input == "work near where I currently live":
-    #             if st.checkbox("Share my location"):
-    #                 loc = get_geolocation()
-    #                 if loc:
-    #                     address = self.get_address(loc["coords"]["latitude"], loc["coords"]["longitude"])
-    #                     st.session_state["location_input"] = address
-
-
-
-
-    # def test_clear(self):
-        
-    #     vectorstore = retrieve_vectorstore("elasticsearch", index_name=st.session_state.userId)
-    #     record_manager=create_record_manager(st.session_state.userId)
-    #     print(f"record manager keys: {record_manager.list_keys()}")
-    #     clear_index(record_manager, vectorstore)
-    #     print(f"record manager keys: {record_manager.list_keys()}")
-
-    # def get_address(self, latitude, longitude):
-
-    #     """Retrieves the address of user's current location """
-
-    #     geolocator = Nominatim(user_agent="nearest_city_finder")
-    #     try:
-    #         location = geolocator.reverse((latitude, longitude), exactly_one=True)
-    #         print(location.address)
-    #         return location.address
-    #     except GeocoderTimedOut:
-    #         # Retry after a short delay
-    #         return self.get_address(latitude, longitude)
-        
 
 
     def process(self, input_value: Any, input_type:str, ):
@@ -745,6 +683,7 @@ class User():
 
         """ Interactive display of skills section of the profile"""
 
+        @st.fragment()
         def get_display():
             c1, c2=st.columns([1, 1])
             with c1:
@@ -786,7 +725,7 @@ class User():
                     ):
                         my_grid=grid([1, 1, 1])
                         for idx, skill in enumerate(self.skills_set):
-                            x = my_grid.button(skill+" :red[-]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                            x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
             with c2:
                 st.write("Suggested skills to include:")
                 with stylable_container(key="custom_skills_button2",
@@ -849,7 +788,7 @@ class User():
     def display_field_details(self, field_name, x, field_detail, type):
 
         """ Interactive display of specific details such as bullet points in each field"""
-
+        @st.fragment()
         def get_display():
             
             if x!=-1:
@@ -964,6 +903,7 @@ class User():
 
         """Interactive display of content of each profile/resume field """
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
+        @st.fragment()
         def get_display():
 
             if st.session_state["profile"][name]:
@@ -1109,22 +1049,6 @@ class User():
                 st.session_state["profile"][name][idx]["issue_organization"]=org
             except Exception:
                 pass
-            # try:
-            #     descr = st.session_state[f"{name}_descr_{idx}"]
-            #     st.session_state["profile"][name][idx]["description"]=descr
-            # except Exception:
-            #     pass
-            # try:
-            #     title = st.session_state[f"experience_title_{idx}"]
-            #         # self.experience_list[idx]["job_title"] = title
-            #     st.session_state["profile"]["work_experience"][idx]["job_title"] = title
-            # except Exception:
-            #     pass
-            # try:
-            #     company = st.session_state[f"company_{idx}"]
-            #     st.session_state["profile"]["work_experience"][idx]["company"] = company
-            # except Exception:
-            #     pass
             try:
                 start_date = st.session_state[f"{name}_start_date_{idx}"]
                 st.session_state["profile"][name][idx]["start_date"] =start_date
@@ -1458,10 +1382,6 @@ class User():
         t.start()
         t.join()
         st.session_state["job_posting_dict"]=q.get()
-        # st.session_state["job_posting_dict"] = create_job_posting_info(
-        #             st.session_state.job_posting_path if "job_posting_path" in st.session_state else "",
-        #             st.session_state.job_description if "job_description" in st.session_state else "",  
-        #         )
         # st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"user_id": st.session_state.userId})
@@ -1491,28 +1411,7 @@ class User():
                     st.session_state[f"tailored_{field_name}"]="please try again"
 
                 # Ensure the progress bar reaches 100% after the function is complete
-                # p.progress = 100f
                 my_bar.progress(100, text="Tailoring Complete!")
-            # else:
-            #     if "matching" not in st.session_state and "init_match" in st.session_state and st.session_state["init_match"]:
-            #     # starts job-resume match tailoring
-            #         # self.tailor_thread = threading.Thread(target=match_resume_job, args=(st.session_state["profile"], st.session_state["job_posting_dict"], ), daemon=True)
-            #         # add_script_run_ctx(self.tailor_thread, self.ctx)
-            #         # self.tailor_thread.start()  
-            #         st.session_state["matching" ]= {}
-            #         st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})
-            #         args = [(st.session_state["profile"], st.session_state["job_posting_dict"], field ) for field in field_names]
-            #         with Pool(processes=4) as pool:
-            #             results= pool.starmap(match_resume_job, args) 
-            #         st.session_state["tailor_rerun_timer"]=None
-            #         for i, resp in enumerate(results):
-            #             field = field_names[i]
-            #             resp_dict=resp.dict()
-            #             st.session_state.matching.update({f"{field}_eval":resp_dict["evaluation"]})
-            #             st.session_state.matching.update({f"{field}_percent":resp_dict["percentage"]})
-
-
-
 
 
 
@@ -1525,7 +1424,6 @@ class User():
              # Create a progress bar
             my_bar = container.progress(0, text=None)
             readability_dict, evaluation = evaluate_resume(resume_dict=st.session_state["profile"], type=field_name, details=details, p=p, loading_func=lambda progress: my_bar.progress(progress, text=f"Evaluating: {progress}%"))
-            # Ensure the progress bar reaches 100% after the function is complete
             if readability_dict:
                 st.session_state[f"readability_{field_name}"]=readability_dict
             else:
@@ -1534,6 +1432,7 @@ class User():
                 st.session_state[f"evaluated_{field_name}"]=evaluation
             else:
                 st.session_state[f"evaluated_{field_name}"]=None
+            # Ensure the progress bar reaches 100% after the function is complete
             my_bar.progress(100, text="Evaluation Complete!")
         else:
             # start general evaluation if there's no saved evaluation 
@@ -1554,7 +1453,12 @@ class User():
 
         eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
         with tailor_col:
-            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved")
+            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved. Once you unfreeze it, your profile will go back to the version before freezing.")
+            if st.session_state["freeze"] and not freeze:
+                # if user goes from freezing to unfreezing their profile, need to go back to default profile
+                st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+                st.session_state["freeze"]=freeze
+                st.rerun()
             st.session_state["freeze"]=freeze
             self.save_session_profile(freeze=freeze)
             if "job_posting_dict" in st.session_state or st.session_state["tracker_latest"] is not None:
@@ -1597,13 +1501,6 @@ class User():
                 if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                     self.job_posting_popup(mode="resume")
     
-            # if "init_match" not in st.session_state:
-            #     if st.button("Match my profile to job", key="match_profile_button"):
-            #         self.job_posting_popup(mode="resume")
-            # else:
-            #     if "job_posting_dict" in st.session_state:
-            #         self.display_match()
-            #         self.tailor_callback()
         # general evaluation column
         with eval_col:
             if st.session_state["profile"]["resume_content"]!="":
@@ -1738,49 +1635,17 @@ class User():
                     ):
                     # if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                     #     self.job_posting_popup(mode="resume")
-                    if st.button("Switch to default profile", key="default_profile_button", use_container_width=True):
-                        st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-                        st.rerun()
+                    # if st.button("Download my resume", key="download_resume_button", use_container_width=True):
+                    #     self.choose_templates_popup()
                     if st.button("Upload a new resume", key="new_resume_button", use_container_width=True):
                         # NOTE:cannot be in callback because streamlit dialogs are not supported in callbacks
                         self.delete_profile_popup()
                     # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     #     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     #     self.job_posting_popup(mode="cover_letter")
-   
-    # @st.fragment(run_every=st.session_state["tailor_rerun_timer"])
-    # def display_match(self, ):
-
-    #     """ Displays the tailoring match to job resulf of the profile"""
-
-    #     with st.expander("Show my match report", expanded=True):
-    #         if "matching" in st.session_state:
-    #             for field in field_names:
-    #                 if st.session_state["matching"][f"{field}_eval"]!="":
-    #                     if st.session_state["matching"][f"{field}_eval"] is not None:
-    #                         st.write(st.session_state["matching"][f"{field}_eval"])
-    #                 else:
-    #                     st.write(f"Matching {field}...")
-    #         else:
-    #             st.write("Please wait...")
-    #         st.markdown(primary_button2, unsafe_allow_html=True)
-    #         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-    #         # with st.popover("Match again"):
-    #         #     current = st.button("with the currrent job posting", key=f"match_again_button_current", type="primary", )
-    #         #     new_upload = st.button("with a new job posting", key=f"match_again_button_new", type="primary",)
-    #         #     if current:
-    #         #         self.delete_session_states(["matching"])
-    #         #         st.session_state["tailor_rerun_timer"]=3
-    #         #         st.rerun()
-    #         #     if new_upload:
-    #         #         self.delete_session_states(["init_match", "matching"])
-    #         #         st.session_state["tailor_rerun_timer"]=3
-    #         #         self.job_posting_popup(mode="resume",)
 
 
-                
-
-
+            
 
 
     
@@ -1997,7 +1862,7 @@ class User():
 
         """ Runs the resume templates update every x seconds in the background. """
 
-        if ("init_formatting" in st.session_state and not st.session_state["init_formatting"]) or ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"]):
+        if ("init_formatting" in st.session_state) or ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"]):
             print("REFORMATING")
             try:
                 # prevents going through this loop while already formatting
@@ -2009,14 +1874,18 @@ class User():
                     #     pool.terminate()  # Stop all processes immediately
                     #     st.stop()  # Optionally stop Streamlit execution
                 if st.session_state["formatted_docx_paths"]:
-                    with Pool() as pool:
-                        st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+                        with Pool() as pool:
+                            result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                            st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                            st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
+                    # with Pool() as pool:
+                    #     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
                         # if st.session_state["current_page"] == "template":  # Define your stopping condition
                         #     pool.terminate()  # Stop all processes immediately
                         #     st.stop()  # Optionally stop Streamlit execution
                 try:
                     st.session_state["update_template"]=False
-                    st.sesion_state["init_formatting"]=False
+                    self.delete_session_states(["init_formatting"])
                 except Exception:
                     pass
             except Exception as e:

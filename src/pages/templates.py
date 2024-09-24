@@ -1,9 +1,9 @@
 from backend.upgrade_resume import reformat_resume
 # import uuid
 import os
-from utils.basic_utils import list_files, convert_doc_to_pdf
+from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from css.streamlit_css import general_button, primary_button
-# from streamlit_image_select import image_select
+from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
 # from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
@@ -15,10 +15,11 @@ from multiprocessing import Pool
 from pathlib import Path
 import streamlit_antd_components as sac
 from utils.lancedb_utils import retrieve_dict_from_table
-from streamlit_pdf_viewer import pdf_viewer
+# from streamlit_pdf_viewer import pdf_viewer
 from streamlit_extras.stylable_container import stylable_container
 import streamlit as st
 import time
+import base64
 
 set_streamlit_page_config_once()
 float_init()
@@ -31,13 +32,13 @@ lance_users_table_current = os.environ["LANCE_USERS_TABLE_CURRENT"]
 # pages = get_pages("")
 # NOTE: GOINT WITH OPTION 2 FOR NOW 
 # option=2
-menu_placeholder=st.empty()
-progressbar_placeholder=st.empty()
-template_placeholder = st.empty()
-_, c, _= st.columns([3, 1, 3])
-with c:
-    add_vertical_space(10)
-    spinner_placeholder=st.empty()
+# menu_placeholder=st.empty()
+# progressbar_placeholder=st.empty()
+# template_placeholder = st.empty()
+# _, c, _= st.columns([3, 1, 3])
+# with c:
+#     add_vertical_space(10)
+#     spinner_placeholder=st.empty()
 # st.logo("./resources/logo_acareerai.png")
 
 
@@ -46,12 +47,7 @@ class Reformat():
     # ctx = get_script_run_ctx()
     
     def __init__(self, ):
-
-        #NOTE: below check is used to make sure the templates are finished reformatting in user.py else streamlit will give a bad index error
-        # if "update_templates" in st.session_state and st.session_state["update_templates"]:
-        #     self.reformat_templates()
-        #     st.rerun()
-        # else:
+        
         # if "init_cookies" not in st.session_state:
         init_cookies() 
         self._init_session_states()
@@ -88,14 +84,14 @@ class Reformat():
 
         st.markdown(general_button, unsafe_allow_html=True)   
         st.markdown(primary_button, unsafe_allow_html=True )
-        with menu_placeholder.container():
-            user_menu(st.session_state.userId, page="template")
-        with progressbar_placeholder.container():
-            progress_bar(1)
+        # with menu_placeholder.container():
+        user_menu(st.session_state.userId, page="template")
+    # with progressbar_placeholder.container():
+        progress_bar(1)
         # if self.reformat_templates():
         if "formatted_pdf_paths" in st.session_state:
             # with template_placeholder.container():
-                self.display_resume_templates()
+            self.display_resume_templates()
         else:
              self.reformat_templates()
              st.rerun()
@@ -106,33 +102,33 @@ class Reformat():
 
     def reformat_templates(self, ):
 
+        _, c, _= st.columns([3, 1, 3])
+        with c:
+            add_vertical_space(10)
+            spinner_placeholder=st.empty()
         # if  ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("fields_changed" in st.session_state and st.session_state["fields_changed"]) or ("update_template" in st.session_state and st.session_state["update_template"]):
         #     print("reformatting templates")
-            try:
-                template_paths = list_files(template_path, ext=".docx")
-                # print(template_paths)
-                with spinner_placeholder.container():
-                    with st.spinner("Updating templates..."):
-                        with Pool() as pool:
-                            st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-                        if st.session_state["formatted_docx_paths"]:
-                            # if option==1:
-                            #     with Pool() as pool:
-                            #         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-                            #     st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-                            # if option==2:
-                                with Pool() as pool:
-                                    st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
-                spinner_placeholder.empty()
-                # try:
-                #     st.session_state["update_template"]=False
-                #     st.session_state["fields_changed"]=False
-                # except Exception:
-                #     pass
-                return True
-            except Exception as e:
-                print(e)
-                return False
+        try:
+            template_paths = list_files(template_path, ext=".docx")
+            # print(template_paths)
+            with spinner_placeholder.container():
+                with st.spinner("Updating templates..."):
+                    with Pool() as pool:
+                        st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+                    if st.session_state["formatted_docx_paths"]:
+                        # if option==1:
+                            with Pool() as pool:
+                                result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                            st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                            st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
+                        # if option==2:
+                            # with Pool() as pool:
+                            #     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+            spinner_placeholder.empty()
+            return True
+        except Exception as e:
+            print(e)
+            return False
         # else:
         #     print("skip reformating")
         #     return True
@@ -141,48 +137,54 @@ class Reformat():
     @st.fragment()
     def display_resume_templates(self, ):
         
-        add_vertical_space(8)
+        add_vertical_space(2)
         fields_c1, template_col, select_col = st.columns([1, 3, 1])
         with fields_c1:
             self.fields_selection()  
         # if option==1: 
-        #     with c2:s
-        #         previews = [images[0] for images in st.session_state["image_paths"] if images]
-        #         print(previews)
-        #         selected_idx=image_select("Select a template", images=previews, return_value="index")
-        #         st.image(st.session_state["image_paths"][selected_idx])
-        # if option==2:
         with template_col:
             c1, c2, c3 = st.columns([1, 20, 1])
-            previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
+            if "start_idx" not in st.session_state:
+                 st.session_state["start_idx"]=0
+            previews = [images[0] for images in st.session_state["image_paths"]][st.session_state.start_idx:st.session_state.start_idx+3]
             st.session_state["previews_len"] = len(previews)
+            print(previews)
+            with c2:    
+                selected_idx=image_select("Select a template", images=previews, return_value="index")
+            with c1:
+                add_vertical_space(5)
+                prev = st.button("🞀", key="prev_template_button", on_click=self.callback, args=("previous", ))
+            with c3:
+                add_vertical_space(5)
+                nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
+                # if nxt:
+                #     if st.session_state["selected_idx"]!=len(previews)-1:
+                #         st.session_state["selected_idx"]+=1
+                #         st.rerun()
+            # st.image(st.session_state["image_paths"][selected_idx])
+        # if option==2:
+        # with template_col:
+            # previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
+            previews = st.session_state["image_paths"]
             print(previews)
             if "selected_idx" not in st.session_state:
                 st.session_state["selected_idx"]=0
-            with c1:
-                add_vertical_space(30)
-                prev = st.button("🞀", key="prev_template_button", on_click=self.callback, args=("previous", ))
             with c2:
-                with stylable_container(
-                    key="container_with_border",
-                    css_styles="""
-                        {
-                            border: 1px solid red;
-                            border-radius: 0.5rem;
-                            padding: calc(1em - 1px)
-                        }
-                        """,
-                ):
-                    pdf_viewer(previews[st.session_state.selected_idx])
-                    st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
-                    st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][st.session_state.selected_idx]
-            with c3:
-                add_vertical_space(30)
-                nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
-                if nxt:
-                    if st.session_state["selected_idx"]!=len(previews)-1:
-                        st.session_state["selected_idx"]+=1
-                        st.rerun()
+                # with stylable_container(
+                #     key="container_with_border",
+                #     css_styles="""
+                #         {
+                #             border: 1px solid red;
+                #             border-radius: 0.5rem;
+                #             padding: calc(1em - 1px)
+                #         }
+                #         """,
+                # ):
+                st.image(previews[selected_idx])
+                # pdf_viewer(previews[st.session_state.selected_idx])
+                # self.display_pdf(previews[st.session_state.selected_idx])
+                st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][selected_idx]
+                st.session_state["selected_pdf_resume"] = st.session_state["formatted_pdf_paths"][selected_idx]
 
             with select_col:
                 _, c = st.columns([0.5, 1])
@@ -191,7 +193,7 @@ class Reformat():
                     with float_container:
                         # add_vertical_space(10)
                         if st.button(label="Is this template for me?", key="template_learn_more_button", type="primary"):
-                            self.learn_more_popup()
+                            self.learn_more_popup(selected_idx)
                         with stylable_container(
                             key="custom_button1_template",
                                 css_styles=  
@@ -217,19 +219,36 @@ class Reformat():
 
     def callback(self, direction, ):
         if direction=="next":
-            if st.session_state["selected_idx"]!=st.session_state["previews_len"]-1:
-                        st.session_state["selected_idx"]+=1
+            # if st.session_state["selected_idx"]!=st.session_state["previews_len"]-1:
+            #   st.session_state["selected_idx"]+=1
+            st.session_state["start_idx"] += 3
+            if st.session_state.start_idx>=st.session_state.previews_len:
+                st.session_state.start_idx-=3
         elif direction=="previous":
-            if st.session_state["selected_idx"]!=0:
-                            st.session_state["selected_idx"]-=1
-    @st.dialog(title=" ")                
-    def learn_more_popup(self):
-        filename = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
+            # if st.session_state["selected_idx"]!=0:
+            #     st.session_state["selected_idx"]-=1
+            st.session_state["start_idx"] -= 3
+            if st.session_state.start_idx<=0:
+                st.session_state.start_idx=0
+
+
+    @st.dialog(title=" ", )                
+    def learn_more_popup(self, selected_idx):
+        filename = st.session_state["formatted_docx_paths"][selected_idx]
         templatename = Path(filename).stem.split("_")
         template_type, template_num=templatename[0], templatename[1]
         design = "minimal" if int(template_num)<=5 else "more complicated"
         st.write(f'This is a {template_type} template with {design} design.')
 
+    # def display_pdf(self, file):
+    #     # Opening file from file path
+    #     with open(file, "rb") as f:
+    #         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    #     # Embedding PDF in HTML
+    #     # pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
+    #     pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
+    #     # Displaying File
+    #     st.markdown(pdf_display, unsafe_allow_html=True)
 
     @st.fragment()
     def fields_selection(self, ):
