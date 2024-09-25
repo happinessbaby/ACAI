@@ -367,12 +367,14 @@ class JobTrackingUsers(BaseModel):
     company_description: Optional[str]
     qualifications: Optional[List[str]]
     responsibilities: Optional[List[str]] 
+    keywords: Optional[List[str]]
     salary: Optional[str] 
     on_site: Optional[bool] 
     resume_path: Optional[str]
     cover_letter_path: Optional[str]
     status: Optional[str]
     time: str
+    match: Optional[int]
 
 
 class ResumeUsers(BaseModel):

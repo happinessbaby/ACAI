@@ -555,9 +555,13 @@ def research_skills(content: str,  content_type: str, ):
     return create_comma_separated_list_parser(input_variables=["content_type", "content"], base_template=query, query_dict={"content_type":content_type, "content":content})
 
 
-
-def researches_posting_keywords():
+def research_ats_keywords(content:str):
     """ Finds ATS friendly words from job postings"""
+
+    query = """Act as a Application Tracking System. Research ATS keywords from the job posting and output the top 10 ATS keywords.
+    job posting content: {content}
+    """
+    return create_comma_separated_list_parser(input_variables=["content"], base_template=query, query_dict={"content":content})
 
 def calculate_work_experience_years(start_date, end_date) -> int:
      
@@ -990,6 +994,8 @@ def create_job_posting_info(posting_path, about_job, q, ):
             company_description = get_web_resources(company_query, engine="agent")
             if company_description:
                 job_posting_info_dict.update({"company_description": company_description})
+        keywords = research_ats_keywords(posting)
+        job_posting_info_dict.update({"keywords":keywords} if keywords else {"keywords":[]})
         # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     # if STORAGE=="LOCAL":

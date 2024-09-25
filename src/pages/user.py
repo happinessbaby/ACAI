@@ -12,7 +12,7 @@ from utils.common_utils import  process_uploads, create_resume_info, process_lin
 from utils.basic_utils import mk_dirs, send_recovery_email
 from typing import Any, List
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
-from backend.upgrade_resume import reformat_resume
+from backend.upgrade_resume import reformat_resume, match_resume_job
 # import uuid
 # from streamlit_js_eval import get_geolocation
 # from geopy.geocoders import Nominatim
@@ -34,7 +34,7 @@ from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
 import requests
-# from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 # from threading import Thread
 # from utils.async_utils import thread_with_trace, asyncio_run
 import re
@@ -109,7 +109,9 @@ if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
 # if "tailor_rerun_timer" not in st.session_state:
 #     st.session_state["tailor_rerun_timer"]=3
-    
+
+
+
 
 class User():
 
@@ -166,6 +168,10 @@ class User():
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
             if "selected_fields" not in st.session_state:
                 st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
+            # if "init_templates" not in st.session_state:
+            #     scheduler = BackgroundScheduler()
+            #     scheduler.start()
+            #     scheduler.add_job(_self.reformat_templates, 'interval', seconds=10)
             if "user_save_path" not in st.session_state:
                 if STORAGE=="CLOUD":
                     st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -641,11 +647,11 @@ class User():
                 if content_safe and content_type=="job posting":
                     st.session_state["job_posting_path"]=end_path
                     self.initialize_job_posting_callback()
+                    st.success("Successfully processed job link")
                 else:
                     st.warning("That didn't work")
             else:
                 st.warning("That didn't work")
-            self.delete_session_states(["job_linkx"])
         elif input_type=="job_posting_description":
             result = process_inputs(input_value, )
             if result is not None:
@@ -653,11 +659,11 @@ class User():
                 if topic=="job description" and safe:
                     st.session_state["job_description"] = input_value
                     self.initialize_job_posting_callback()
+                    st.success("Successfully processed job description")
                 else:
                     st.warning("That didn't work")
             else:
                 st.warning("That didn't work")
-            self.delete_session_states(["job_descriptionx"])
        
             
 
@@ -1303,8 +1309,6 @@ class User():
 
         """ Opens a popup for adding a job posting """
 
-        # disables the next button until user provides a job posting
-        # if "job_posting_path" in st.session_state or "job_description" in st.session_state:
         if mode=="cover_letter":
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
         st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
@@ -1313,34 +1317,36 @@ class User():
                     help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
                     options=["yes", "no"], 
                     horizontal=True,)
-        job_posting_link = st.text_input("job link", key="job_linkx", placeholder="paste a posting link here", label_visibility="collapsed")
+        job_posting_link = st.text_input("job link", key="job_linkx", placeholder="Paste a posting link here", label_visibility="collapsed")
         job_posting_description = st.text_area("job description", 
                                         key="job_descriptionx", 
-                                        placeholder="paste a job description here",
+                                        placeholder="Paste a job description here (optional)",
                                         # on_change=self.form_callback, 
                                         label_visibility="collapsed",
                                             )
-        if job_posting_link:
-            with st.spinner("Processing..."):
-                self.process(job_posting_link, "job_posting_link")
-        if job_posting_description:
-            with st.spinner("Processing..."):
-                self.process(job_posting_description, "job_posting_description")
-        if "job_posting_dict" in st.session_state:
-            st.session_state["job_posting_disabled"]=False
-        else:
-            st.session_state["job_posting_disabled"]=True
+        # if job_posting_link:
+        #     with st.spinner("Processing..."):
+        #         self.process(job_posting_link, "job_posting_link")
+        # if job_posting_description:
+        #     with st.spinner("Processing..."):
+        #         self.process(job_posting_description, "job_posting_description")
+        # if "job_posting_dict" in st.session_state:
+        #     st.session_state["job_posting_disabled"]=False
+        # else:
+        #     st.session_state["job_posting_disabled"]=True
         _, next_col=st.columns([5, 1])
         with next_col:
-            submit= st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled)
+            submit= st.button("Next", key="job_posting_button", )
         if submit:
             # if job_posting:
             if mode=="resume":
-                # with st.spinner("Processing..."):
-                #     # self.form_callback()
-                #     # self.delete_session_states(["job_postingx"])
-                #     self.process((job_posting_link, job_posting), "job_posting")
-                # if "job_posting_dict" in st.session_state:
+                if job_posting_link:
+                    with st.spinner("Processing..."):
+                        self.process(job_posting_link, "job_posting_link")
+                if job_posting_description:
+                    with st.spinner("Processing..."):
+                        self.process(job_posting_description, "job_posting_description")
+                if "job_posting_dict" in st.session_state:
                     # st.session_state["tailoring_field"]=field_name
                     # st.session_state["tailoring_field_idx"]=field_idx
                     st.session_state["freeze"]=freeze
@@ -1382,6 +1388,13 @@ class User():
         t.start()
         t.join()
         st.session_state["job_posting_dict"]=q.get()
+        match = match_resume_job(st.session_state["profile"]["resume_content"], st.session_state["job_posting_dict"]["content"], " ")
+        print("MATCH", match)
+        if match:
+            match = match.dict()
+            st.session_state["job_posting_dict"].update({"match":match["percentage"]})
+        else:
+            st.session_state["job_posting_dict"].update({"match":-1})
         # st.session_state["job_posting_dict"].update({"posting_path":st.session_state["job_posting_path"] if "job_posting_path" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else ""})
         st.session_state["job_posting_dict"].update({"user_id": st.session_state.userId})
@@ -1468,22 +1481,38 @@ class User():
                         company = st.session_state["job_posting_dict"].get("company", "")
                         about = st.session_state["job_posting_dict"].get("about_job", "")
                         link = st.session_state["job_posting_dict"].get("link", "")
+                        match = st.session_state["job_posting_dict"].get("match", "")
+                        keywords = st.session_state["job_posting_dict"].get("keywords", "")
                     elif st.session_state["tracker_latest"]:
                         print(st.session_state["tracker_latest"])
                         job_title = st.session_state["tracker_latest"].get('job', "")
                         company = st.session_state["tracker_latest"].get("company", "")
                         about = st.session_state["tracker_latest"].get("about_job", "")
                         link = st.session_state["tracker_latest"].get("link", "")
+                        match = st.session_state["tracker_latest"].get("match", "")
+                        keywords = st.session_state["tracker_latest"].get("keywords", "")
                     c1, c2=st.columns([5, 1])
                     with c1:
                         st.write("Current job saved on clipboard")
                     with c2:
                         if link:
                             st.link_button("🔗", url=link)
-                    st.write(f"Job: {job_title}")
-                    st.write(f"Company: {company}")
-                    st.write(f"Summary: {about}")
-                    # st.write(f"Link: {link}")
+                    if job_title:
+                        st.write(f"Job: {job_title}")
+                    if company:
+                        st.write(f"Company: {company}")
+                    if about:
+                        st.write(f"Summary: {about}")
+                    if keywords:
+                        keywords = ", ".join(keywords)
+                        st.write(f"ATS Keywords: :rainbow[{keywords}]")
+                    if match:
+                        if match<=50:
+                            st.write(f"Match: :red[{match}%]")
+                        if 50<match<70:
+                            st.write(f"Match: :yellow[{match}%]")
+                        else:
+                            st.write(f"Match: :green[{match}%]")
                     st.markdown(primary_button3, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     # _, del_col=st.columns([3, 1])
@@ -1862,7 +1891,7 @@ class User():
 
         """ Runs the resume templates update every x seconds in the background. """
 
-        if ("init_formatting" in st.session_state) or ("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"]):
+        if ("init_formatting" not in st.session_state) and (("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"])):
             print("REFORMATING")
             try:
                 # prevents going through this loop while already formatting
@@ -1900,4 +1929,5 @@ if __name__ == '__main__':
     
     user=User()
     
+
 
