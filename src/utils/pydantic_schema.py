@@ -293,7 +293,7 @@ class Comparison(BaseModel):
 
 class Language(BaseModel):
     rating: Optional[str] = Field(
-        default="", description="""rating identified in the text, should be one of the following metrics: ["bad", "good", "great"]"""
+        default="", description="""rating identified in the text, should be one of the following metrics: ["poor", "good", "excellent"]"""
     )
     reason: Optional[str] = Field(
         default="", description = "the reason provided for the rating in the text"
@@ -367,12 +367,14 @@ class JobTrackingUsers(BaseModel):
     company_description: Optional[str]
     qualifications: Optional[List[str]]
     responsibilities: Optional[List[str]] 
+    keywords: Optional[List[str]]
     salary: Optional[str] 
     on_site: Optional[bool] 
     resume_path: Optional[str]
     cover_letter_path: Optional[str]
     status: Optional[str]
     time: str
+    match: Optional[int]
 
 
 class ResumeUsers(BaseModel):

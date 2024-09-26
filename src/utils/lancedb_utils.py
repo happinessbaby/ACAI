@@ -270,7 +270,7 @@ def convert_pydantic_schema_to_arrow(schema: BaseModel) -> pa.schema:
         field = process_field(field_name, field_type)
         if field is not None:
             fields.append(field)
-    print(fields)
+    # print(fields)
 
     return pa.schema(fields)
     
@@ -416,7 +416,7 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False):
     #   NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
         delete_user_from_table(userId, tablename)
         data=preprocess_data_for_arrow(data)
-        print(data)
+        # print(data)
         # schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!
         add_to_lancedb_table(tablename, [data], schema=schema)

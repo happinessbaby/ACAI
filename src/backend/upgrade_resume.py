@@ -846,7 +846,7 @@ def readability_checker(content):
     )
     return stats
     
-def match_resume_job(resume_content, job_posting, field_name):
+def match_resume_job(resume_content:str, job_posting_content:str, field_name:str):
 
     """ Generates a resume job comparison, including percentage comparison"""
     # field_names=["included_skills", "summary_objective", "education"]
@@ -857,13 +857,13 @@ def match_resume_job(resume_content, job_posting, field_name):
     #     st.session_state.matching.update({f"{field_name}_eval": "" for field_name in field_names})
     prompt = """Act as a Application Tracking System.
     
-    Step 1: compare the candidate resume's {field_name} to a job role description.
+    Step 1: compare the candidate resume {field_name} to a job role description.
     
     resume {field_name} content: {resume_content} \n
 
     job role description: {job_posting} \n
 
-    Step 2: generate a percentage comparison of {field_name}
+    Step 2: generate a percentage comparison of resume {field_name}.
 
     Use the following format:
         Step 1: <step 1 answer>
@@ -893,7 +893,7 @@ def match_resume_job(resume_content, job_posting, field_name):
                      | model_parser)
     try:
         # Call the run_parser_with_timeout function with tenacity
-        response = tenacity_run_with_timeout({"resume_content":resume_content, "job_posting":job_posting, "field_name":field_name}, generator)
+        response = tenacity_run_with_timeout({"resume_content":resume_content, "job_posting":job_posting_content, "field_name":field_name}, generator)
         print(response)
         # response = response.dict()
         return response

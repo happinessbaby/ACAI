@@ -37,7 +37,7 @@ def init_cookies():
         # Wait for the component to load and send us current cookies.
         st.stop()
     # else:
-    #     st.session_state["init_cookies"]=True
+    st.session_state["init_cookies"]=True
 
 STORAGE = os.environ['STORAGE']
 
