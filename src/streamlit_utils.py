@@ -96,7 +96,7 @@ def nav_to(url):
     st.write(nav_script, unsafe_allow_html=True)
 
 
-@st.fragment()         
+# @st.fragment()         
 def user_menu(userId, page, ):
     _, c1, c2 = st.columns([10, 1, 1])
     with c1:
@@ -145,7 +145,7 @@ def user_menu(userId, page, ):
                 #         st.session_state["user_mode"] = "delete_profile"
                 #         st.switch_page("pages/user.py")
 
-@st.fragment()
+# @st.fragment()
 def progress_bar(page):
 
     _, c, _ = st.columns([1, 3, 1])
@@ -328,7 +328,7 @@ def comparison_chart(data):
 def language_radar(data_list):
     # Sample data
     # Mapping from categories to numeric values
-    category_mapping = {"no data": 0, 'bad': 1, 'good': 2, 'great': 3}
+    category_mapping = {"no data": 0, 'poor': 1, 'good': 2, 'excellent': 3}
     metrics = []
     values = []
     hover_texts=[]
@@ -349,7 +349,7 @@ def language_radar(data_list):
         hoverinfo='text'  # Display only the hover text
     ))
     # Define axis labels
-    axis_labels = {1: 'Bad', 2: 'Good', 3: 'Great'}
+    axis_labels = {1: 'poor', 2: 'good', 3: 'excellent'}
     fig.update_layout(
         polar=dict(
             radialaxis=dict(

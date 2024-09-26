@@ -186,7 +186,7 @@ class User():
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
             if "freeze" not in st.session_state:
-                st.session_state["freeze"]=False
+                st.session_state["freeze"]=True
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -667,8 +667,9 @@ class User():
        
             
 
-        
+    @st.dialog("Rearrange")  
     def rearrange_skills_popup(self, ):
+        add_vertical_space(2)
         data=[]
         idx=0
         for skill in self.skills_set:
@@ -875,17 +876,20 @@ class User():
             placeholder = st.empty()
             if type=="bullet_points":
                 with placeholder.container():
-                    c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
-                    with c1:
-                        st.write("•")
-                    with c2: 
-                        text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
-                    with c3:
-                        st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                    with c4:
-                        st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
-                    with x_col:
-                        st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                    try:
+                        c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
+                        with c1:
+                            st.write("•")
+                        with c2: 
+                            text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
+                        with c3:
+                            st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                        with c4:
+                            st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                        with x_col:
+                            st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                    except Exception:
+                        pass
                    
 
         def callback(idx, ):
@@ -1022,7 +1026,7 @@ class User():
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
                         st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"{name}_org_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
                         st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
                         st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
@@ -1050,6 +1054,11 @@ class User():
             #     st.session_state["profile"][name][idx]["issue_date"]=date
             # except Exception:
             #     pass
+            try:
+                org = st.session_state[f"{name}_company_{idx}"]
+                st.session_state["profile"][name][idx]["company"]=org
+            except Exception:
+                pass
             try:
                 org = st.session_state[f"{name}_org_{idx}"]
                 st.session_state["profile"][name][idx]["issue_organization"]=org
@@ -1093,8 +1102,8 @@ class User():
                     # result += " "  # Add space only if the next word is not punctuation
                     result += f"{word} "
                 else:
-                    result.strip()
-                    result += f"{word} "     
+                    result = result.rstrip()  # Remove the trailing space before punctuation
+                    result += f"{word} " # Append the punctuation without space
             return result.strip()
 
         def apply_changes():
@@ -1317,11 +1326,12 @@ class User():
                     help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
                     options=["yes", "no"], 
                     horizontal=True,)
-        job_posting_link = st.text_input("job link", key="job_linkx", placeholder="Paste a posting link here", label_visibility="collapsed")
+        job_posting_link = st.text_input("job link", key="job_linkx", placeholder="Paste a posting link here", value="",label_visibility="collapsed")
         job_posting_description = st.text_area("job description", 
                                         key="job_descriptionx", 
                                         placeholder="Paste a job description here (optional)",
                                         # on_change=self.form_callback, 
+                                        value = "", 
                                         label_visibility="collapsed",
                                             )
         # if job_posting_link:
@@ -1493,7 +1503,7 @@ class User():
                         keywords = st.session_state["tracker_latest"].get("keywords", "")
                     c1, c2=st.columns([5, 1])
                     with c1:
-                        st.write("Current job saved on clipboard")
+                        st.write("Current job clipped")
                     with c2:
                         if link:
                             st.link_button("🔗", url=link)
@@ -1886,7 +1896,7 @@ class User():
     #     return current_page
 
     #NOTE: this has to be here instead of templates.py because switching from templates makes run every seceonds stop
-    @st.fragment(run_every=3)
+    @st.fragment(run_every=30)
     def reformat_templates(self, ):
 
         """ Runs the resume templates update every x seconds in the background. """

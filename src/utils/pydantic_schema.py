@@ -293,7 +293,7 @@ class Comparison(BaseModel):
 
 class Language(BaseModel):
     rating: Optional[str] = Field(
-        default="", description="""rating identified in the text, should be one of the following metrics: ["bad", "good", "great"]"""
+        default="", description="""rating identified in the text, should be one of the following metrics: ["poor", "good", "excellent"]"""
     )
     reason: Optional[str] = Field(
         default="", description = "the reason provided for the rating in the text"
