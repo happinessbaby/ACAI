@@ -92,7 +92,10 @@ class Reformat():
             st.session_state["spinner_placeholder"]=st.empty()
         if "formatted_pdf_paths" in st.session_state and ("update_template" not in st.session_state or not st.session_state["update_template"]):
             # with template_placeholder.container():
-            self.display_resume_templates()
+            if "image_paths" in st.session_state and st.session_state["image_paths"]:
+                self.display_resume_templates()
+            else:
+                st.subheader("Sorry, that didn't work. Please try again.")
         else:
             self.reformat_templates()
             st.session_state["update_template"]=False
