@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # procps \                  
     # lsof \                   
     # net-tools \               
-    # poppler-utils \
+    poppler-utils \
     # libmagic1 \
     # nginx \
     # certbot \
