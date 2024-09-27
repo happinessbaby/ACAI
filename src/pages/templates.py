@@ -139,23 +139,32 @@ class Reformat():
     def display_resume_templates(self, ):
         
         add_vertical_space(2)
-        fields_c1, template_col, select_col = st.columns([1, 3, 1])
-        with fields_c1:
+        fields_col, template_col, select_col = st.columns([1, 3, 1])
+        with fields_col:
             self.fields_selection()  
         # if option==1: 
         with template_col:
-            c1, c2, c3 = st.columns([1, 20, 1])
+            prev_col, preview_col, nxt_col = st.columns([1, 20, 1])
             if "start_idx" not in st.session_state:
                  st.session_state["start_idx"]=0
             previews = [images[0] for images in st.session_state["image_paths"]][st.session_state.start_idx:st.session_state.start_idx+3]
             st.session_state["previews_len"] = len(previews)
-            print(previews)
-            with c2:    
-                st.session_state["selected_idx"]=image_select("Select a template", images=previews, return_value="index", index = st.session_state.selected_idx if "selected_idx" in st.session_state else 0,)
-            with c1:
+            # print(previews)
+            with preview_col:    
+                c1, _, _= st.columns([1, 1, 1])
+                c2, _ = st.columns([2, 1])
+                if len(previews)==1:
+                    with c1:
+                        st.session_state["selected_idx"]=image_select("Select a template", images=previews, return_value="index", index = st.session_state.selected_idx if "selected_idx" in st.session_state else 0,)
+                elif len(previews)==2:
+                    with c2:
+                        st.session_state["selected_idx"]=image_select("Select a template", images=previews, return_value="index", index = st.session_state.selected_idx if "selected_idx" in st.session_state else 0,)
+                else:
+                    st.session_state["selected_idx"]=image_select("Select a template", images=previews, return_value="index", index = st.session_state.selected_idx if "selected_idx" in st.session_state else 0,)    
+            with prev_col:
                 add_vertical_space(5)
                 prev = st.button("🞀", key="prev_template_button", on_click=self.callback, args=("previous", ))
-            with c3:
+            with nxt_col:
                 add_vertical_space(5)
                 nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
                 # if nxt:
@@ -166,11 +175,11 @@ class Reformat():
         # if option==2:
         # with template_col:
             # previews = [pdf for pdf in st.session_state["formatted_pdf_paths"] if pdf]
-            previews = st.session_state["image_paths"]
-            print(previews)
-            if "selected_idx" not in st.session_state:
-                st.session_state["selected_idx"]=0
-            with c2:
+            # previews = st.session_state["image_paths"]
+            # print(previews)
+            # if "selected_idx" not in st.session_state:
+            #     st.session_state["selected_idx"]=0
+            with preview_col:
                 # with stylable_container(
                 #     key="container_with_border",
                 #     css_styles="""
