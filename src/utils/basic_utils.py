@@ -119,9 +119,11 @@ def convert_doc_to_pdf(input_path, ext=".docx", max_retries=3, delay=1):
     output_dir = os.path.dirname(input_path)
     for attempt in range(max_retries):
         try:
-            subprocess.run([libreoffice_path, '--headless', '-env:UserInstallation=file:///tmp/LibreOffice_Conversion_${user}', '--convert-to', 'pdf:writer_pdf_Export', '--outdir', output_dir, input_path], check=True)
+            subprocess.run([libreoffice_path, '--headless', '-env:UserInstallation=file:///tmp/LibreOffice_Conversion_${user}', '--convert-to', 'pdf:writer_pdf_Export', '--outdir', output_dir, input_path], check=True, timeout=10)
             print('converted docx to pdf', pdf_output_path)
             return pdf_output_path
+        except subprocess.TimeoutExpired:
+            print("Conversion process timed out!")
         except subprocess.CalledProcessError as e:
             print(f"Error during conversion to pdf {attempt + 1}: {e}")
             time.sleep(delay)  # Wait before retrying
@@ -134,14 +136,16 @@ def convert_pdf_to_img(pdf_path, image_format="png", max_retries=1, delay=1):
     for attempt in range(max_retries):
         try:
             # Convert PDF to images using pdftoppm
-            subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True)
+            subprocess.run([pdftoppm_path, '-{}'.format(image_format), pdf_path, image_output_path], check=True, timeout=10)
             # Collect the generated image paths
             image_paths = glob.glob(f"{image_output_path}-*.{image_format}")
             print("converted pdf to image: ", image_paths)
             return image_paths
+        except subprocess.TimeoutExpired:
+            print("Conversion process timed out!")
         except subprocess.CalledProcessError as e:
-                print(f"Error converting {pdf_path} to image on attempt {attempt + 1}: {e}")
-                time.sleep(delay)  # Wait before retrying
+            print(f"Error converting {pdf_path} to image on attempt {attempt + 1}: {e}")
+            time.sleep(delay)  # Wait before retrying
     return []  # Indicate failure after retries
 
 
