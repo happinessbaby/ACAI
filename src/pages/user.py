@@ -122,7 +122,7 @@ class User():
         init_cookies()
         self._init_session_states()
         self._init_display()
-        self.reformat_templates()
+        # self.reformat_templates()
 
 
     # @st.cache_data()
