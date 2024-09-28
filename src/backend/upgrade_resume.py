@@ -418,6 +418,11 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
     else:
         # print("bullet point details", details)
         # if len(details)>1:
+        if isinstance(details, list):
+            try:
+                details = [detail["description"] for detail in details]
+            except Exception:
+                pass   
         response_dict = tailor_bullet_points(field_name, details, job_requirements, )
         p.increment(30)  # Update progress 
         loading_func(p.progress)
@@ -636,13 +641,15 @@ def tailor_bullet_points(field_name, field_detail,  job_requirements, ):
     rank_prompt = f"""Please rank content of the {field_name} section of the resume with respective to the job requirements.
         For example, if a candidate has experience in SQL and SQL is also a skill required in the job, then this experience should be ranked higher on the list.
         If a candidate has experience in customer service but this is not part of the role of the job, then this experience should be ranked lower. 
+        Sometimes the section may contain several lists of descriptions. Please treat each description as a separate content to be ranked.
         {field_name} section: {field_detail} \
         job requirements: {job_requirements} \
-
-        Please provide your reasoning for your ranking process.  
+ 
         Output in the following format:
-        Reranked section: - <reranked section verbatim without reasoning> \n
-        reason: <your reasoning>
+        Reranking suggestions: 
+        - <first ranked content and your reasoning> \
+        - <second reanked content and your reasoning> \
+        ....so on. 
         DO NOT USE ANY TOOLS.
 
     """

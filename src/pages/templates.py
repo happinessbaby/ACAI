@@ -190,7 +190,7 @@ class Reformat():
                 #         }
                 #         """,
                 # ):
-                st.image(previews[st.session_state.selected_idx])
+                st.image(st.session_state.image_paths[st.session_state.selected_idx])
                 # pdf_viewer(previews[st.session_state.selected_idx])
                 # self.display_pdf(previews[st.session_state.selected_idx])
                 st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
@@ -250,15 +250,6 @@ class Reformat():
         design = "minimal" if int(template_num)<=5 else "more complicated"
         st.write(f'This is a {template_type} template with {design} design.')
 
-    # def display_pdf(self, file):
-    #     # Opening file from file path
-    #     with open(file, "rb") as f:
-    #         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    #     # Embedding PDF in HTML
-    #     # pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf">'
-    #     pdf_display = F'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
-    #     # Displaying File
-    #     st.markdown(pdf_display, unsafe_allow_html=True)
 
     @st.fragment()
     def fields_selection(self, ):

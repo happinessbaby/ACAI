@@ -1248,6 +1248,8 @@ class User():
                             else:
                                 st.write(tailoring)
                         else:
+                            # Remove special characters but keep punctuation and dashes
+                            tailoring = re.sub(r'[^a-zA-Z0-9\s.,!?-]', '', tailoring)
                             st.write(tailoring)
                         # elif type=="bullet_points":
                         #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
@@ -1812,7 +1814,7 @@ class User():
                     #         st.write("Evaluating...")
                     st.markdown(primary_button2, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    if st.button("Refresh", key=f"general_eval_refresh_sbutton", ):
+                    if st.button("Refresh", key=f"general_eval_refresh_button", ):
                         # if button_name=="evaluate again ✨":
                             # container.empty()
                             # remove evaluation from lance table and old evaluation from session
