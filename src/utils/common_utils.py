@@ -957,6 +957,7 @@ def create_job_posting_info(posting_path, about_job, q, ):
     job_posting_info_dict = {"content":"", "skills":[], 
                              "job":"", "about_job":"", "company":"", "company_description":"",
                                "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
+    #NOTE: prioritizes content of job posting link over job description in case both are uploaded
     if posting_path:
         posting = read_file(posting_path)
         # prompt_template = """Identity the job position, company then provide a summary in 100 words or less of the following job posting:

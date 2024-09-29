@@ -591,6 +591,7 @@ class User():
         resume_dict.update({"user_id": st.session_state.userId}) 
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
+        st.session_state["update_template"]=True
         # save resume/profile into lancedb table
         save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_current)
         save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_default)
@@ -638,32 +639,23 @@ class User():
             else:
                 st.warning("That didn't work, please try again.") 
                 time.sleep(2)   
-                st.rerun()     
-        elif input_type=="job_posting_link":
-            st.session_state["posting_link"]=input_value
-            result = process_links(input_value, st.session_state.users_upload_path, )
-            if result is not None:
-                content_safe, content_type, content_topics, end_path = result
-                if content_safe and content_type=="job posting":
-                    st.session_state["job_posting_path"]=end_path
-                    self.initialize_job_posting_callback()
-                    st.success("Successfully processed job link")
-                else:
-                    st.warning("That didn't work")
-            else:
-                st.warning("That didn't work")
-        elif input_type=="job_posting_description":
-            result = process_inputs(input_value, )
-            if result is not None:
-                topic, safe = result
-                if topic=="job description" and safe:
-                    st.session_state["job_description"] = input_value
-                    self.initialize_job_posting_callback()
-                    st.success("Successfully processed job description")
-                else:
-                    st.warning("That didn't work")
-            else:
-                st.warning("That didn't work")
+                st.rerun()  
+        if input_type=="job_posting":
+            st.session_state["posting_link"]=input_value.get("job_posting_link", "")
+            description = input_value.get("job_posting_description", "")
+            if st.session_state.posting_link:
+                result = process_links(st.session_state.posting_link, st.session_state.users_upload_path, )
+                if result is not None:
+                    content_safe, content_type, content_topics, end_path = result
+                    if content_safe and content_type=="job posting":
+                        st.session_state["job_posting_path"]=end_path
+            if description:
+                result = process_inputs(description, )
+                if result is not None:
+                    topic, safe = result
+                    if topic=="job description" and safe:
+                        st.session_state["job_description"] = description
+          
        
             
 
@@ -1336,36 +1328,28 @@ class User():
                                         value = "", 
                                         label_visibility="collapsed",
                                             )
-        # if job_posting_link:
-        #     with st.spinner("Processing..."):
-        #         self.process(job_posting_link, "job_posting_link")
-        # if job_posting_description:
-        #     with st.spinner("Processing..."):
-        #         self.process(job_posting_description, "job_posting_description")
-        # if "job_posting_dict" in st.session_state:
-        #     st.session_state["job_posting_disabled"]=False
-        # else:
-        #     st.session_state["job_posting_disabled"]=True
         _, next_col=st.columns([5, 1])
         with next_col:
             submit= st.button("Next", key="job_posting_button", )
         if submit:
-            # if job_posting:
             if mode=="resume":
-                if job_posting_link:
+                if job_posting_link or job_posting_description:
                     with st.spinner("Processing..."):
-                        self.process(job_posting_link, "job_posting_link")
-                if job_posting_description:
-                    with st.spinner("Processing..."):
-                        self.process(job_posting_description, "job_posting_description")
-                if "job_posting_dict" in st.session_state:
-                    # st.session_state["tailoring_field"]=field_name
-                    # st.session_state["tailoring_field_idx"]=field_idx
-                    st.session_state["freeze"]=freeze
-                    # st.session_state["init_match"]=match
-                    if field_details and tailor_container:
-                        self.tailor_callback(field_name, field_details, tailor_container)
-                    st.rerun()
+                        job_posting = {"job_posting_link": job_posting_link, "job_posting_description":job_posting_description}
+                        self.process(job_posting, "job_posting")
+                        if "job_description" in st.session_state or "job_posting_path" in st.session_state:
+                            self.initialize_job_posting_callback()
+                            if "job_posting_dict" in st.session_state:
+                                # st.session_state["tailoring_field"]=field_name
+                                # st.session_state["tailoring_field_idx"]=field_idx
+                                st.success("Successfully processed job posting")
+                                st.session_state["freeze"]=freeze
+                                # st.session_state["init_match"]=match
+                                if field_details and tailor_container:
+                                    self.tailor_callback(field_name, field_details, tailor_container)
+                                st.rerun()
+                        else:
+                            st.warning("That didn't work")
         # st.session_state["info_container"]=st.empty()
         # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
         #     # if "preselection" not in st.session_state:
@@ -1522,7 +1506,7 @@ class User():
                         if match<=50:
                             st.write(f"Match: :red[{match}%]")
                         if 50<match<70:
-                            st.write(f"Match: :yellow[{match}%]")
+                            st.write(f"Match: :orange[{match}%]")
                         else:
                             st.write(f"Match: :green[{match}%]")
                     st.markdown(primary_button3, unsafe_allow_html=True)
