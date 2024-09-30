@@ -22,7 +22,7 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
-from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button
+from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
@@ -30,6 +30,7 @@ import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 # from st_pages import get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
+from authlib.integrations.requests_client import OAuth2Session
 from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
@@ -65,11 +66,13 @@ elif STORAGE=="LOCAL":
     template_path = os.environ["RESUME_TEMPLATE_PATH"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+linkedin_client_id = os.environ["LINKEDIN_CLIENT_ID"]
+linkedin_client_secret =os.environ["LINKEDIN_CLIENT_SECRET"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table_default = os.environ["LANCE_USERS_TABLE"]
 lance_users_table_current = os.environ["LANCE_USERS_TABLE_CURRENT"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
-google_cookie_key = os.environ["GOOGLE_COOKIE_KEY"]
+other_cookie_key = os.environ["OTHER_COOKIE_KEY"]
 user_cookie_key=os.environ["USER_COOKIE_KEY"]
 menu_placeholder=st.empty()
 profile_placeholder=st.empty()
@@ -134,7 +137,7 @@ class User():
         if "userId" not in st.session_state:
             st.session_state["userId"] = retrieve_cookie()
         if "logo_path" not in st.session_state:
-            st.session_state["logo_path"]="./resources/logo_acareerai.png"
+            st.session_state["logo_path"]="./resources/logo-no-background.png"
         # if "authenticator" not in st.session_state:
         #     with open(login_file) as file:
         #         st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -281,11 +284,15 @@ class User():
     # @st.fragment()
     def sign_in(self, ):
 
-
-        st.image(st.session_state.logo_path)
+        add_vertical_space(3)
+        _, img_col, _ = st.columns([1, 4, 1])
+        with img_col:
+            st.image(st.session_state.logo_path)
+        add_vertical_space(2)
         _, g_col= st.columns([1, 3])
         with g_col:
             self.google_signin()
+            self.linkedin_signin()
         # add_vertical_space(1)
         # sac.divider(label='or',  align='center', color='gray')
         st.divider()
@@ -304,14 +311,14 @@ class User():
                 # elif authentication_status==False:
                 #     st.error('Username/password is incorrect')
                 # placeholder_error = st.empty()
-        signup_col, forgot_password_col= st.columns([3, 1])
+        _, signup_col, forgot_password_col= st.columns([5, 2, 2])
         with signup_col:
             add_vertical_space(2)
             signup = st.button(label="Sign up", key="signup",  type="primary")
         with forgot_password_col:
             st.markdown(primary_button3, unsafe_allow_html=True)
             st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-            forgot=st.button(label="forgot password", key="forgot_password", )
+            forgot=st.button(label="recover password", key="forgot_password", )
         if signup:
             signin_placeholder.empty()
             st.session_state["user_mode"]="signup"
@@ -381,7 +388,7 @@ class User():
                 st.session_state["credentials"] = credentials
                 # save_cookie(user_info.get("email"))
                 # save_cookie(credentials.token, cookie_key=google_cookie_key)
-                save_cookies({user_cookie_key:user_info.get("email"), google_cookie_key:credentials.token})
+                save_cookies({user_cookie_key:user_info.get("email"), other_cookie_key:credentials.token})
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=user_info.get("email")
                 st.rerun()
@@ -392,8 +399,8 @@ class User():
                 st.rerun()
         else:
             st.markdown(google_button, unsafe_allow_html=True)
-            st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
-            if st.button("Sign in with Google"):
+            st.markdown('<span id="google-button-after"></span>', unsafe_allow_html=True)
+            if st.button("Continue with Google"):
                 authorization_url, state = flow.authorization_url(
                     access_type="offline",
                     include_granted_scopes="true",
@@ -406,7 +413,7 @@ class User():
 
     def google_signout(self):
 
-        token = retrieve_cookie(cookie_key=google_cookie_key)
+        token = retrieve_cookie(cookie_key=other_cookie_key)
         if token:
         # if "credentials" in st.session_state:
             # credentials = st.session_state["credentials"]
@@ -417,11 +424,63 @@ class User():
                 print("Successfully signed out of Google")
                 # Clear session state
                 # del st.session_state["credentials"]
-                delete_cookie(cookie_key=google_cookie_key)
+                delete_cookie(cookie_key=other_cookie_key)
             else:
                 print("Failed to revoke token")
         else:
             print("No user is signed in")
+    
+
+    def linkedin_signin(self):
+
+        redirect_uri = st.session_state.redirect_page if "redirect_page" in st.session_state else base_uri + "/user"
+        auth_code = st.query_params.get("code")   
+        linkedin = OAuth2Session(linkedin_client_id, linkedin_client_secret, redirect_uri=redirect_uri)     
+        if auth_code:
+            try:
+                # Exchange authorization code for access token
+                token = linkedin.fetch_token(
+                    'https://www.linkedin.com/oauth/v2/accessToken',
+                    code=auth_code,
+                    client_secret=linkedin_client_secret
+                )
+
+                # Use the access token to fetch user profile information
+                linkedin = OAuth2Session(linkedin_client_id, token=token)
+                user_info = linkedin.get('https://api.linkedin.com/v2/me').json()
+                email_info = linkedin.get('https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))').json()
+
+                # assert email_info['elements'][0]['handle~']['emailAddress'], "Email not found in infos"
+
+                # Save user credentials and info in session state
+                st.session_state["credentials"] = token
+                st.session_state["user_mode"] = "signedin"
+                st.session_state["userId"] = email_info['elements'][0]['handle~']['emailAddress']
+
+                # Save cookies for user email and token
+                save_cookies({
+                    user_cookie_key: email_info['elements'][0]['handle~']['emailAddress'],
+                    other_cookie_key: token['access_token']
+                })
+
+                st.rerun()
+            except Exception as e:
+                print(e)
+                # Clear the parameters including auth_code to allow user to access sign-in button again
+                st.query_params.clear()
+                st.rerun()
+        else:
+            # Show LinkedIn sign-in button
+            st.markdown(linkedin_button, unsafe_allow_html=True)
+            st.markdown('<span id="linkedin-button-after"></span>', unsafe_allow_html=True)
+            if st.button("Continue with LinkedIn"):
+                # Get LinkedIn authorization URL
+                authorization_url, state = linkedin.create_authorization_url(
+                    'https://www.linkedin.com/oauth/v2/authorization',
+                    scope=["r_liteprofile", "r_emailaddress"]
+                )
+                # Redirect user to the LinkedIn authorization URL
+                st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
 
     # @st.fragment()
     def sign_up(self,):
