@@ -22,7 +22,7 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
-from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button
+from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button, included_skills_button, suggested_skills_button, new_upload_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
@@ -30,9 +30,11 @@ import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 # from st_pages import get_script_run_ctx 
 from streamlit_extras.stylable_container import stylable_container
+from authlib.integrations.requests_client import OAuth2Session
 from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
+import streamlit_antd_components as sac
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
 # from threading import Thread
@@ -65,11 +67,13 @@ elif STORAGE=="LOCAL":
     template_path = os.environ["RESUME_TEMPLATE_PATH"]
 client_secret_json = os.environ["CLIENT_SECRET_JSON"]
 user_profile_file=os.environ["USER_PROFILE_FILE"]
+linkedin_client_id = os.environ["LINKEDIN_CLIENT_ID"]
+linkedin_client_secret =os.environ["LINKEDIN_CLIENT_SECRET"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table_default = os.environ["LANCE_USERS_TABLE"]
-lance_users_table_current = os.environ["LANCE_USERS_TABLE_CURRENT"]
+lance_users_table_tailored = os.environ["LANCE_USERS_TABLE_TAILORED"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
-google_cookie_key = os.environ["GOOGLE_COOKIE_KEY"]
+other_cookie_key = os.environ["OTHER_COOKIE_KEY"]
 user_cookie_key=os.environ["USER_COOKIE_KEY"]
 menu_placeholder=st.empty()
 profile_placeholder=st.empty()
@@ -110,7 +114,7 @@ if "eval_rerun_timer" not in st.session_state:
 # if "tailor_rerun_timer" not in st.session_state:
 #     st.session_state["tailor_rerun_timer"]=3
 
-
+field_names=["summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards"]
 
 
 class User():
@@ -134,7 +138,7 @@ class User():
         if "userId" not in st.session_state:
             st.session_state["userId"] = retrieve_cookie()
         if "logo_path" not in st.session_state:
-            st.session_state["logo_path"]="./resources/logo_acareerai.png"
+            st.session_state["logo_path"]="./resources/logo-no-background.png"
         # if "authenticator" not in st.session_state:
         #     with open(login_file) as file:
         #         st.session_state["config"] = yaml.load(file, Loader=SafeLoader)
@@ -155,7 +159,9 @@ class User():
             if "user_mode" not in st.session_state:
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
-                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
+                st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+            if "count" not in st.session_state:
+                st.session_state["count"]=0
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
             if "evaluation" not in st.session_state:
@@ -185,8 +191,12 @@ class User():
                 st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
-            if "freeze" not in st.session_state:
-                st.session_state["freeze"]=True
+            # if "freeze" not in st.session_state:
+            #     st.session_state["freeze"]=True
+            if "selection" not in st.session_state:
+                st.session_state["selection"]="default"
+                st.session_state["freeze"]=False
+                st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -281,11 +291,15 @@ class User():
     # @st.fragment()
     def sign_in(self, ):
 
-
-        st.image(st.session_state.logo_path)
+        add_vertical_space(3)
+        _, img_col, _ = st.columns([1, 4, 1])
+        with img_col:
+            st.image(st.session_state.logo_path)
+        add_vertical_space(2)
         _, g_col= st.columns([1, 3])
         with g_col:
             self.google_signin()
+            self.linkedin_signin()
         # add_vertical_space(1)
         # sac.divider(label='or',  align='center', color='gray')
         st.divider()
@@ -304,14 +318,14 @@ class User():
                 # elif authentication_status==False:
                 #     st.error('Username/password is incorrect')
                 # placeholder_error = st.empty()
-        signup_col, forgot_password_col= st.columns([3, 1])
+        _, signup_col, forgot_password_col= st.columns([5, 2, 2])
         with signup_col:
             add_vertical_space(2)
             signup = st.button(label="Sign up", key="signup",  type="primary")
         with forgot_password_col:
             st.markdown(primary_button3, unsafe_allow_html=True)
             st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-            forgot=st.button(label="forgot password", key="forgot_password", )
+            forgot=st.button(label="recover password", key="forgot_password", )
         if signup:
             signin_placeholder.empty()
             st.session_state["user_mode"]="signup"
@@ -381,7 +395,7 @@ class User():
                 st.session_state["credentials"] = credentials
                 # save_cookie(user_info.get("email"))
                 # save_cookie(credentials.token, cookie_key=google_cookie_key)
-                save_cookies({user_cookie_key:user_info.get("email"), google_cookie_key:credentials.token})
+                save_cookies({user_cookie_key:user_info.get("email"), other_cookie_key:credentials.token})
                 st.session_state["user_mode"]="signedin"
                 st.session_state["userId"]=user_info.get("email")
                 st.rerun()
@@ -392,8 +406,8 @@ class User():
                 st.rerun()
         else:
             st.markdown(google_button, unsafe_allow_html=True)
-            st.markdown('<span id="button-after"></span>', unsafe_allow_html=True)
-            if st.button("Sign in with Google"):
+            st.markdown('<span id="google-button-after"></span>', unsafe_allow_html=True)
+            if st.button("Continue with Google"):
                 authorization_url, state = flow.authorization_url(
                     access_type="offline",
                     include_granted_scopes="true",
@@ -406,7 +420,7 @@ class User():
 
     def google_signout(self):
 
-        token = retrieve_cookie(cookie_key=google_cookie_key)
+        token = retrieve_cookie(cookie_key=other_cookie_key)
         if token:
         # if "credentials" in st.session_state:
             # credentials = st.session_state["credentials"]
@@ -417,11 +431,63 @@ class User():
                 print("Successfully signed out of Google")
                 # Clear session state
                 # del st.session_state["credentials"]
-                delete_cookie(cookie_key=google_cookie_key)
+                delete_cookie(cookie_key=other_cookie_key)
             else:
                 print("Failed to revoke token")
         else:
             print("No user is signed in")
+    
+
+    def linkedin_signin(self):
+
+        redirect_uri = st.session_state.redirect_page if "redirect_page" in st.session_state else base_uri + "/user"
+        auth_code = st.query_params.get("code")   
+        linkedin = OAuth2Session(linkedin_client_id, linkedin_client_secret, redirect_uri=redirect_uri)     
+        if auth_code:
+            try:
+                # Exchange authorization code for access token
+                token = linkedin.fetch_token(
+                    'https://www.linkedin.com/oauth/v2/accessToken',
+                    code=auth_code,
+                    client_secret=linkedin_client_secret
+                )
+
+                # Use the access token to fetch user profile information
+                linkedin = OAuth2Session(linkedin_client_id, token=token)
+                user_info = linkedin.get('https://api.linkedin.com/v2/me').json()
+                email_info = linkedin.get('https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))').json()
+
+                # assert email_info['elements'][0]['handle~']['emailAddress'], "Email not found in infos"
+
+                # Save user credentials and info in session state
+                st.session_state["credentials"] = token
+                st.session_state["user_mode"] = "signedin"
+                st.session_state["userId"] = email_info['elements'][0]['handle~']['emailAddress']
+
+                # Save cookies for user email and token
+                save_cookies({
+                    user_cookie_key: email_info['elements'][0]['handle~']['emailAddress'],
+                    other_cookie_key: token['access_token']
+                })
+
+                st.rerun()
+            except Exception as e:
+                print(e)
+                # Clear the parameters including auth_code to allow user to access sign-in button again
+                st.query_params.clear()
+                st.rerun()
+        else:
+            # Show LinkedIn sign-in button
+            st.markdown(linkedin_button, unsafe_allow_html=True)
+            st.markdown('<span id="linkedin-button-after"></span>', unsafe_allow_html=True)
+            if st.button("Continue with LinkedIn"):
+                # Get LinkedIn authorization URL
+                authorization_url, state = linkedin.create_authorization_url(
+                    'https://www.linkedin.com/oauth/v2/authorization',
+                    scope=["r_liteprofile", "r_emailaddress"]
+                )
+                # Redirect user to the LinkedIn authorization URL
+                st.write(f'<meta http-equiv="refresh" content="0;url={authorization_url}">', unsafe_allow_html=True)
 
     # @st.fragment()
     def sign_up(self,):
@@ -593,7 +659,7 @@ class User():
         st.session_state["profile"] = resume_dict
         st.session_state["update_template"]=True
         # save resume/profile into lancedb table
-        save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_current)
+        # save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_tailored)
         save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_default)
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
@@ -612,7 +678,7 @@ class User():
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
                    "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
-        save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_current)
+        # save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored)
         save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default)
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
@@ -710,35 +776,17 @@ class User():
                                     self.rearrange_skills_popup()
 
                     with stylable_container(key="custom_skills_button",
-                    # border-radius: 20px;
-                    # background-color: #4682B4;
-                            css_styles=["""button {
-                                color: black;
-                                background: none;
-                                border: none;
-                                font-size: 8px;
-                                padding: 0;
-                                cursor: pointer;
-                            }""",
-                            ],
+                            css_styles=included_skills_button,
                     ):
-                        my_grid=grid([1, 1, 1])
+                        included_grid=grid([1, 1, 1])
                         for idx, skill in enumerate(self.skills_set):
-                            x = my_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
+                            x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),)
             with c2:
-                st.write("Suggested skills to include:")
+                st.write("**Suggested skills to include:**")
                 with stylable_container(key="custom_skills_button2",
                     # border-radius: 20px;
                     # background-color: #4682B4;
-                            css_styles=["""button {
-                                color: black;
-                                background: none;
-                                border: none;
-                                font-size: 8px;
-                                padding: 0;
-                                cursor: pointer;
-                            }""",
-                            ],
+                            css_styles=suggested_skills_button
                     ):
                     suggested_grid = grid([1, 1, 1])
                     for idx, skill in enumerate(self.generated_skills_set):
@@ -1316,10 +1364,13 @@ class User():
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
         st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
         if mode=="resume":
-            freeze = st.radio("Would you like to freeze your profile?", 
-                    help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
-                    options=["yes", "no"], 
-                    horizontal=True,)
+            if st.session_state.selection!="freeze":
+                freeze = st.radio("Would you like to switch to tailor mode?", 
+                        help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
+                        options=["yes", "no"], 
+                        horizontal=True,)
+            else:
+                freeze = True
         job_posting_link = st.text_input("job link", key="job_linkx", placeholder="Paste a posting link here", value="",label_visibility="collapsed")
         job_posting_description = st.text_area("job description", 
                                         key="job_descriptionx", 
@@ -1344,6 +1395,10 @@ class User():
                                 # st.session_state["tailoring_field_idx"]=field_idx
                                 st.success("Successfully processed job posting")
                                 st.session_state["freeze"]=freeze
+                                st.session_state["selection"]="default" if not freeze else "freeze"
+                                for field_name in field_names:
+                                    self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
+                                st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffd7ba" )
                                 # st.session_state["init_match"]=match
                                 if field_details and tailor_container:
                                     self.tailor_callback(field_name, field_details, tailor_container)
@@ -1462,14 +1517,37 @@ class User():
 
         eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
         with tailor_col:
-            freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved. Once you unfreeze it, your profile will go back to the version before freezing.")
-            if st.session_state["freeze"] and not freeze:
+            selection=sac.segmented(
+                   items=[
+                        sac.SegmentedItem(label='Edit default'),
+                        # sac.SegmentedItem(label='Save as default'),
+                        sac.SegmentedItem(label='Tailor mode'),
+                    ], label=' ', align='center', index=1 if st.session_state["selection"]=="freeze" else 0
+                )
+                        # freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved. Once you unfreeze it, your profile will go back to the version before freezing.")
+            # if st.session_state["freeze"] and not freeze:
                 # if user goes from freezing to unfreezing their profile, need to go back to default profile
-                st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-                st.session_state["freeze"]=freeze
+            if selection=="Edit default" and st.session_state["selection"]!="default":
+                # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
+                st.session_state["freeze"]=False
+                st.session_state["selection"]="default"
+                # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
+                st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
+                st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
                 st.rerun()
-            st.session_state["freeze"]=freeze
-            self.save_session_profile(freeze=freeze)
+            if selection == "Tailor mode" and st.session_state["selection"]!="freeze":  
+                 #st._config.set_option(f'theme.backgroundColor' ,"white" )
+                # st._config.set_option(f'theme.base' ,"dark" )
+                # st._config.set_option(f'theme.primaryColor' ,"#47ff5a" ) 
+                # st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_tailored)
+                st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffd7ba" if "color" not in st.session_state else st.session_state.color )
+                #st.markdown(dark, unsafe_allow_html=True)   
+                st.session_state["freeze"]=True
+                st.session_state["selection"]="freeze"
+                st.session_state["profile"] = st.session_state["profile"] if st.session_state["count"]==0 else retrieve_dict_from_table(st.session_state.userId, lance_users_table_tailored)
+                # st.session_state["color"] = st.color_picker("Pick A Color", "#ffd7ba")
+                st.rerun()
+            self.save_session_profile()
             if "job_posting_dict" in st.session_state or st.session_state["tracker_latest"] is not None:
                 with st.container(border=True):
                     if "job_posting_dict" in st.session_state:
@@ -1489,7 +1567,7 @@ class User():
                         keywords = st.session_state["tracker_latest"].get("keywords", "")
                     c1, c2=st.columns([5, 1])
                     with c1:
-                        st.write("Current job clipped")
+                        st.write("**Clipped job**")
                     with c2:
                         if link:
                             st.link_button("🔗", url=link)
@@ -1509,19 +1587,15 @@ class User():
                             st.write(f"Match: :orange[{match}%]")
                         else:
                             st.write(f"Match: :green[{match}%]")
-                    st.markdown(primary_button3, unsafe_allow_html=True)
-                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                    # st.markdown(primary_button3, unsafe_allow_html=True)
+                    # st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     # _, del_col=st.columns([3, 1])
                     # with del_col:
                     #     if st.button("delete", key="delete_job_posting_button",):
                     #         self.delete_session_states(["job_posting_dict"])
                     #         st.rerun()
             with stylable_container(key="custom_button1_profile1",
-                            css_styles=["""button {
-                                color: white;
-                                background-color: #ff8247;
-                            }""",
-                            ],
+                            css_styles=new_upload_button
                     ):
                 if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                     self.job_posting_popup(mode="resume")
@@ -1533,7 +1607,25 @@ class User():
                 self.evaluation_callback()
         # the main profile column
         with profile_col:
+            if st.session_state.selection=="freeze":
+                st.info("When tailoring, do not refresh your page else your changes will be lost.")
             c1, c2 = st.columns([1, 1])
+            #     print("SSSSSSSSSSSSSSSSSSS")
+            #     st.markdown(
+            #         '''
+            #         <style>
+            #         .streamlit-expanderHeader {
+            #             background-color: #ff9747;
+            #             color: black; # Adjust this for expander header color
+            #         }
+            #         .streamlit-expanderContent {
+            #             background-color: #ff9747;
+            #             color: black; # Expander content color
+            #         }
+            #         </style>
+            #         ''',
+            #         unsafe_allow_html=True
+            #     )
             with c1:
                 with st.expander(label="Contact", icon=":material/contacts:"):
                     name = st.session_state["profile"]["contact"]["name"]
@@ -1652,11 +1744,7 @@ class User():
             _, menu_col, _ = st.columns([1, 1, 1])   
             with menu_col:
                 with stylable_container(key="custom_button1_profile1",
-                            css_styles=["""button {
-                                color: white;
-                                background-color: #ff8247;
-                            }""",
-                            ],
+                            css_styles=new_upload_button
                     ):
                     # if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                     #     self.job_posting_popup(mode="resume")
@@ -1830,15 +1918,18 @@ class User():
 
 
     @st.fragment(run_every=1)
-    def save_session_profile(self, freeze=False):
+    def save_session_profile(self,):
 
         """ Saves profile into lancedb table periodically if there's change """
         
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
-            if not freeze: 
-                print('profile changed, saving user changes')
+            if not st.session_state["freeze"]: 
+                print('Changed for default profile, saving user changes')
                 save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default, convert_content=True)
-            save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_current, convert_content=True)
+            # else:
+            #     print('Changed for tailored profile, saving user changes')
+            save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored, convert_content=True)
+            st.session_state["count"]+=1
             st.session_state["profile_changed"]=False
             st.session_state["update_template"]=True
 
@@ -1855,7 +1946,7 @@ class User():
         with c2:
             if st.button("yes, I'll upload a new resume", type="primary", ):
                 delete_user_from_table(st.session_state.userId, lance_users_table_default)
-                delete_user_from_table(st.session_state.userId, lance_users_table_current)
+                # delete_user_from_table(st.session_state.userId, lance_users_table_tailored)
                 delete_user_from_table(st.session_state.userId, lance_eval_table)
                  # delete session-specific copy of the profile and evaluation
                 self.delete_session_states(["profile", "evaluation", "init_eval", "init_templates"])

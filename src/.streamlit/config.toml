@@ -11,7 +11,7 @@ showSidebarNavigation = false
 showErrorDetails = false
 
 [theme]
-primaryColor="#ff8247"
+primaryColor="#ff9747"
 backgroundColor="#ffffff"
 secondaryBackgroundColor="#ffffff"
 textColor="#2d2e29"
