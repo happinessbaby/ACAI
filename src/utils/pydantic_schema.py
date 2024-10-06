@@ -372,7 +372,7 @@ class JobTrackingUsers(BaseModel):
     location: Optional[str] 
     resume_path: Optional[str]
     cover_letter_path: Optional[str]
-    status: Optional[str]
+    applied: Optional[bool]
     time: str
     match: Optional[int]
 

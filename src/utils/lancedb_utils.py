@@ -189,8 +189,6 @@ def retrieve_dict_from_table(userId, tablename):
                         if isinstance(row[key][k], (np.ndarray, list)):
                             cleaned_data = clean_field(row[key], k)
                             row[key][k] = convert_arrays_to_lists(cleaned_data)
-                else:  # Handle None and anomalies
-                    row[key] = ''
         print(f"Retrieved {tablename} dict from lancedb", )
         #returns the most current job saved for trackers table
         # return table_dict[-1] if tablename==lance_tracker_table else table_dict[0]

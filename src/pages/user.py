@@ -224,6 +224,7 @@ class User():
                 print("signing up")
                 self.sign_up()
         elif st.session_state.user_mode=="signedin":
+            st.query_params.clear()
             print("signed in")
             if "redirect_page" in st.session_state:
                 st.switch_page(st.session_state.redirect_page)
@@ -469,7 +470,6 @@ class User():
                     user_cookie_key: email_info['elements'][0]['handle~']['emailAddress'],
                     other_cookie_key: token['access_token']
                 })
-
                 st.rerun()
             except Exception as e:
                 print(e)
@@ -1364,13 +1364,14 @@ class User():
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
         st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
         if mode=="resume":
-            if st.session_state.selection!="freeze":
-                freeze = st.radio("Would you like to switch to tailor mode?", 
-                        help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
-                        options=["yes", "no"], 
-                        horizontal=True,)
-            else:
-                freeze = True
+            # if st.session_state.selection!="freeze":
+            # freeze = st.radio("Would you like to switch to tailor mode?", 
+            #         help = "This will allow you to edit without losing the original profile, especially helpful during tailoring",
+            #         options=["yes", "no"], 
+            #         horizontal=True,)
+            freeze = st.toggle("Switch to tailor mode", value=True)
+            # else:
+            #     freeze = True
         job_posting_link = st.text_input("job link", key="job_linkx", placeholder="Paste a posting link here", value="",label_visibility="collapsed")
         job_posting_description = st.text_area("job description", 
                                         key="job_descriptionx", 
@@ -1396,9 +1397,12 @@ class User():
                                 st.success("Successfully processed job posting")
                                 st.session_state["freeze"]=freeze
                                 st.session_state["selection"]="default" if not freeze else "freeze"
+                                if freeze:
+                                    st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffd7ba" )
+                                else:
+                                    st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
                                 for field_name in field_names:
                                     self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
-                                st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffd7ba" )
                                 # st.session_state["init_match"]=match
                                 if field_details and tailor_container:
                                     self.tailor_callback(field_name, field_details, tailor_container)
@@ -1451,7 +1455,7 @@ class User():
         st.session_state["job_posting_dict"].update({"user_id": st.session_state.userId})
         st.session_state["job_posting_dict"].update({"resume_path": ""})
         st.session_state["job_posting_dict"].update({"cover_letter_path": ""})
-        st.session_state["job_posting_dict"].update({"status": ""})
+        st.session_state["job_posting_dict"].update({"applied": False})
         st.session_state["job_posting_dict"].update({"time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
         save_user_changes(st.session_state.userId, st.session_state["job_posting_dict"], st.session_state["tracker_schema"], lance_tracker_table)
         self.delete_session_states(["job_posting_path", "job_description"])
@@ -1508,7 +1512,17 @@ class User():
                 st.session_state["init_eval"]=True
          
 
+    def job_applied_callback(self, ):
+ 
+        applied = st.session_state["job_applied_toggle"]
+        data = st.session_state["job_posting_dict"] if "job_posting_dict" in st.session_state else st.session_state["tracker_latest"]
+        data.update({"applied": applied})
+        save_user_changes(st.session_state.userId, data, st.session_state["tracker_schema"], lance_tracker_table)
+        if applied:
+            st.balloons()
+            print("AAAAAAAAAAAAAAAA")
     
+
 
     @st.fragment()
     def display_profile(self,):
@@ -1558,7 +1572,6 @@ class User():
                         match = st.session_state["job_posting_dict"].get("match", "")
                         keywords = st.session_state["job_posting_dict"].get("keywords", "")
                     elif st.session_state["tracker_latest"]:
-                        print(st.session_state["tracker_latest"])
                         job_title = st.session_state["tracker_latest"].get('job', "")
                         company = st.session_state["tracker_latest"].get("company", "")
                         about = st.session_state["tracker_latest"].get("about_job", "")
@@ -1587,6 +1600,9 @@ class User():
                             st.write(f"Match: :orange[{match}%]")
                         else:
                             st.write(f"Match: :green[{match}%]")
+                    applied = st.toggle("Applied", key="job_applied_toggle", 
+                                        value=st.session_state["job_posting_dict"]["applied"] if "job_posting_dict" in st.session_state else st.session_state["tracker_latest"]["applied"], 
+                                        on_change=self.job_applied_callback)
                     # st.markdown(primary_button3, unsafe_allow_html=True)
                     # st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
                     # _, del_col=st.columns([3, 1])
