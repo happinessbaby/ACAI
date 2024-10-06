@@ -956,7 +956,7 @@ def create_job_posting_info(posting_path, about_job, q, ):
     # job_posting = posting_path if posting_path else about_job[:50]
     job_posting_info_dict = {"content":"", "skills":[], 
                              "job":"", "about_job":"", "company":"", "company_description":"",
-                               "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
+                               "qualifications":[], "responsibilities":[], "salary":"", "location":"", "keywords":[]}
     #NOTE: prioritizes content of job posting link over job description in case both are uploaded
     if posting_path:
         posting = read_file(posting_path)

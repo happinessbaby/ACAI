@@ -277,8 +277,8 @@ class Keywords(BaseModel):
     salary: Optional[str] = Field(
         default="", description = "salary or salary range offered for the job, can be annually or hourly"    
     )
-    on_site: Optional[bool] = Field(
-        default="", description = "whether of not the job is on-site. If on-site, output True. If remote, output False. If it's hybrid, it should be considered on-site too"
+    location: Optional[str] = Field(
+        default="", description = "job location, can be remote, hybrid, or somewhere specific"
     )
 
 
@@ -369,7 +369,7 @@ class JobTrackingUsers(BaseModel):
     responsibilities: Optional[List[str]] 
     keywords: Optional[List[str]]
     salary: Optional[str] 
-    on_site: Optional[bool] 
+    location: Optional[str] 
     resume_path: Optional[str]
     cover_letter_path: Optional[str]
     status: Optional[str]

@@ -21,12 +21,12 @@ general_button = """<style>.element-container:has(.general-button) + div button 
                 top:1px;
             } </style>
             """
-
+# ORANGE NO BORDER NO BACKGROUND
 primary_button2 =  """
          <style>.element-container:has(.primary-button2) + div button {
             background: none;
             border: none;
-            color: #ff8247;
+            color: #ff9747;
             padding: 0;
             cursor: pointer;
             font-size: 12px; /* Adjust as needed */
@@ -59,7 +59,7 @@ primary_button="""
             }
             </style>
             """
-
+# LIGHT GREY NO BORDER NO BACKGROUND
 primary_button3="""
             <style>
           .element-container:has(.primary-button3) + div button {
@@ -133,7 +133,7 @@ google_button = """
                     background-repeat: no-repeat;
                     background-position: 16px 50%;
                     }
-                    .element-container:has(#button-after) + div button:hover { 
+                    .element-container:has(#google-button-after) + div button:hover { 
                         box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
                     }
                 </style>"""
@@ -160,7 +160,122 @@ linkedin_button="""
                     background-position: 16px 50%;
                     background-size: 20px 20px; /* Adjust icon size here */
                     }
-                    .element-container:has(#button-after) + div button:hover { 
+                    .element-container:has(#linkedin-button-after) + div button:hover { 
                         box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
                     }
                 </style>"""
+
+included_skills_button = ["""
+button {
+  align-items: center;
+  background-color: #FFE7E7;
+  background-position: 0 0;
+  border: 1px solid #FEE0E0;
+  border-radius: 11px;
+  box-sizing: border-box;
+  color: #D33A2C;
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 33.4929px;
+  list-style: outside url(https://www.smashingmagazine.com/images/bullet.svg) none;
+  padding: 2px 12px;
+  text-align: left;
+  text-decoration: none;
+  text-shadow: none;
+  text-underline-offset: 1px;
+  transition: border .2s ease-in-out,box-shadow .2s ease-in-out;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  word-break: break-word;
+} """,
+"""
+button:active,
+button:hover,
+button:focus {
+  outline: 0;
+}""",
+"""
+button:active {
+  background-color: #D33A2C;
+  box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+  color: #FFFFFF;
+}""",
+"""
+button:hover {
+  background-color: #FFE3E3;
+  border-color: #FAA4A4;
+}""",
+"""
+button:active:hover,
+button:focus:hover,
+button:focus {
+  background-color: #D33A2C;
+  box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+  color: #FFFFFF;
+}"""
+]
+
+
+suggested_skills_button = ["""
+button {
+  align-items: center;
+  background-color:#E7FEE7;
+  background-position: 0 0;
+  border: 1px solid #D0FAD0;
+  border-radius: 11px;
+  box-sizing: border-box;
+  color: #2C8A33;
+  cursor: pointer;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 33.4929px;
+  list-style: outside url(https://www.smashingmagazine.com/images/bullet.svg) none;
+  padding: 2px 12px;
+  text-align: left;
+  text-decoration: none;
+  text-shadow: none;
+  text-underline-offset: 1px;
+  transition: border .2s ease-in-out,box-shadow .2s ease-in-out;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  word-break: break-word;
+} """,
+"""
+button:active,
+button:hover,
+button:focus {
+  outline: 0;
+}""",
+"""
+button:active {
+  background-color: #2C8A33;
+  box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+  color: #FFFFFF;
+}""",
+"""
+button:hover {
+  background-color: #DFFAD0;
+  border-color: #A8FAA4;
+}""",
+"""
+button:active:hover,
+button:focus:hover,
+button:focus {
+  background-color: #2C8A33;
+  box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+  color: #FFFFFF;
+}"""
+]
+
+new_upload_button = ["""button {
+                                color: white;
+                                background-color: #ff9747;
+                            }""",
+                            ]
