@@ -109,3 +109,4 @@ selenium
 # pdf2image
 pyjwt
 s3fs
+authlib
