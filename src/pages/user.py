@@ -115,7 +115,10 @@ if "eval_rerun_timer" not in st.session_state:
 #     st.session_state["tailor_rerun_timer"]=3
 
 all_fields=["summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
-
+all_fields_icons = [":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
+all_fields_labels=["Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
+zipped = zip(all_fields, all_fields_labels, all_fields_icons)
+fields_dict = {key: (val1, val2) for key, val1, val2 in zipped}
 
 class User():
 
@@ -200,9 +203,10 @@ class User():
                 st.session_state["tailor_color"] = "#ffffff"
             if "additional_fields" not in st.session_state:
                 st.session_state["additional_fields"]=[]
-                for field in all_fields:
-                    if not st.session_state["profile"][field]:
-                        st.session_state.additional_fields.append(field)
+                if st.session_state["profile"]:
+                    for field in all_fields:
+                        if not st.session_state["profile"][field]:
+                            st.session_state.additional_fields.append(field)
             if "show" not in st.session_state:
                 st.session_state["show"]=False
         else:
@@ -665,6 +669,9 @@ class User():
         resume_dict.update({"user_id": st.session_state.userId}) 
         # save resume dict into session's profile
         st.session_state["profile"] = resume_dict
+        for field in all_fields:
+            if not st.session_state["profile"][field]:
+                st.session_state.additional_fields.append(field)
         st.session_state["update_template"]=True
         # save resume/profile into lancedb table
         # save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_tailored)
@@ -681,11 +688,19 @@ class User():
         # end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
         #creates an empty file
         # write_file(end_path, file_content="")
+        # st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
+        #            "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
+        #            "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+        #            "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
+        #            "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
-                   "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
-                   "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
+                   "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
+                   "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
+        for field in all_fields:
+            if not st.session_state["profile"][field]:
+                st.session_state.additional_fields.append(field)
         # save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored)
         save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default)
          # delete any old resume saved in session state
@@ -777,7 +792,7 @@ class User():
                                     font-size: 12px; 
                                     text-decoration: none;
                                 }
-                                """,
+                            """,
                         ):
                             if self.skills_set:
                                 if st.button("Rearrange", key="rearrange_skills_button", ):
@@ -792,9 +807,7 @@ class User():
             with c2:
                 st.write("**Suggested skills to include:**")
                 with stylable_container(key="custom_skills_button2",
-                    # border-radius: 20px;
-                    # background-color: #4682B4;
-                            css_styles=suggested_skills_button
+                            css_styles=suggested_skills_button,
                     ):
                     suggested_grid = grid([1, 1, 1])
                     for idx, skill in enumerate(self.generated_skills_set):
@@ -967,15 +980,16 @@ class User():
             if st.session_state["profile"][name]:
                 for idx, value in enumerate(st.session_state["profile"][name]):
                     add_container(idx, value)
-            else:
+            #NOTE: when first initiated, it'll be None, so add an empty entry to let user see the inputs. however, when user deletes all the entries, it'll become an empty list. 
+                    #The below elif statement to check for None only is needed else the last entry cannot be deleted
+            elif st.session_state["profile"][name] is None:
+                st.session_state["profile"][name]=[]
                 add_new_entry()
                 add_container(0, st.session_state["profile"][name][0])
             st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
             # adds new empty entry to profile dict
-            if st.session_state["profile"][name]==None:
-                st.session_state["profile"][name]=[]
             if name=="certifications" or name=="licenses":
                 st.session_state["profile"][name].append({"description":[],"issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
@@ -984,6 +998,7 @@ class User():
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","link":"","location":"","start_date":"", "title":""})
+        
         
         def delete_container(placeholder, idx):
 
@@ -1408,7 +1423,7 @@ class User():
                                 #     st._config.set_option(f'theme.secondaryBackgroundColor' , st.session_state.tailor_color )
                                 # else:
                                 #     st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
-                                for field_name in all_field:
+                                for field_name in all_fields:
                                     self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
                                 # st.session_state["init_match"]=match
                                 if field_details and tailor_container:
@@ -1541,17 +1556,21 @@ class User():
 
         def add_field(field, placeholder,):
 
-            with placeholder.container():
+            # with placeholder.container():
                 if field=="qualifications":
-                    with st.expander(label="Professional Accomplishment", icon=":material/commit:"):
+                    with placeholder.expander(label="Professional Accomplishment", icon=":material/commit:"):
+                        _, del_col=st.columns([15, 1])
                         # st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
                         #                 label="learn more")
-                        st.button("**:red[X]**", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("qualifications", placeholder, ))
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("qualifications", placeholder, ))
                         get_display=self.display_field_content("qualifications")
                         get_display()
                 elif field=="summary_objective":  
-                    with st.expander(label="Summary Objective", icon=":material/summarize:"):
-                        st.button("**:red[X]**", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("summary_objective", placeholder, ))
+                    with placeholder.expander(label="Summary Objective", icon=":material/summarize:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("summary_objective", placeholder, ))
                         pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                         if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                             st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1563,22 +1582,28 @@ class User():
                         if st.session_state["profile"]["summary_objective"]:
                             self.display_field_analysis(field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
                 elif field=="work_experience":
-                    with st.expander(label="Work Experience", icon=":material/work_history:"):
-                        st.button("**:red[X]**", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("work_experience", placeholder,))
+                    with placeholder.expander(label="Work Experience", icon=":material/work_history:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("work_experience", placeholder,))
                         get_display=self.display_field_content("work_experience")
                         get_display()
                         if st.session_state["profile"]["work_experience"]:
                             self.display_field_analysis(field_name="work_experience", details=st.session_state["profile"]["work_experience"])
                 elif field=="projects":
-                    with st.expander(label="Projects", icon=":material/perm_media:"):
-                        st.button("**:red[X]**", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("projects", placeholder,))
+                    with placeholder.expander(label="Projects", icon=":material/perm_media:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("projects", placeholder,))
                         get_display=self.display_field_content("projects")
                         get_display()
                         if st.session_state["profile"]["projects"]:
                             self.display_field_analysis(field_name="projects", details=st.session_state["profile"]["projects"])
                 elif field=="included_skills":
-                    with st.expander(label="Skills",icon=":material/widgets:"):
-                        st.button("**:red[X]**", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("included_skills", placeholder,))  
+                    with placeholder.expander(label="Skills",icon=":material/widgets:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary",key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("included_skills", placeholder,))  
                         suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
                         self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
                         self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
@@ -1588,6 +1613,36 @@ class User():
                         get_display()
                         if st.session_state["profile"]["included_skills"]:
                             self.display_field_analysis(field_name="included_skills", details=st.session_state["profile"]["included_skills"])
+                elif field=="certifications":
+                    with placeholder.expander(label="Certifications",  icon=":material/license:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary",key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("certifications", placeholder,))  
+                        get_display=self.display_field_content("certifications")
+                        get_display()
+                elif field=="awards":
+                    with placeholder.expander("Awards & Honors", icon=":material/workspace_premium:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary",key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("awards", placeholder,))  
+                        get_display=self.display_field_content("awards")
+                        get_display()
+                elif field=="licenses":
+                     with placeholder.expander("Licenses", icon=":material/license:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary",key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("licences", placeholder,))  
+                        get_display=self.display_field_content("licenses")
+                        get_display()
+                elif field=="hobbies":
+                    with placeholder.expander("Hobbies", icon=":material/heart_plus:"):
+                        _, del_col=st.columns([15, 1])
+                        with del_col:
+                            st.button("**:grey[delete]**", type="primary",key=f"delete_{field}_button", on_click=self.delete_field_popup, args=("hobbies", placeholder,))  
+                        hobbies = ", ".join(st.session_state["profile"]["hobbies"])
+                        if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
+                            st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",")
+                            st.session_state["profile_changed"] = True
 
         eval_col, profile_col, tailor_col = st.columns([1, 3, 1])   
         with tailor_col:
@@ -1598,9 +1653,7 @@ class User():
                         sac.SegmentedItem(label='Tailor mode'),
                     ], label=' ', align='center', index=1 if st.session_state["selection"]=="freeze" else 0
                 )
-                        # freeze=st.toggle("Freeze my profile", value=st.session_state["freeze"], help="If you freeze your profile, your edits won't be permanently saved. Once you unfreeze it, your profile will go back to the version before freezing.")
-            # if st.session_state["freeze"] and not freeze:
-                # if user goes from freezing to unfreezing their profile, need to go back to default profile
+                      
             if selection=="Edit default" and st.session_state["selection"]!="default":
                 # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
                 st.session_state["freeze"]=False
@@ -1622,9 +1675,9 @@ class User():
                 # st.session_state["color"] = st.color_picker("Pick A Color", "#ffd7ba")
                 st.rerun()
             self.save_session_profile()
-            if "job_posting_dict" in st.session_state or st.session_state["tracker_latest"] is not None:
-                job_posting_container=st.empty()
-                if st.session_state["selection"]=="freeze":
+            if st.session_state["selection"]=="freeze":
+                if "job_posting_dict" in st.session_state or st.session_state["tracker_latest"] is not None:
+                    job_posting_container=st.empty()
                     with job_posting_container.container(border=True):
                         if "job_posting_dict" in st.session_state:
                             job_title = st.session_state["job_posting_dict"].get('job', "")
@@ -1752,90 +1805,43 @@ class User():
             if "summary_objective" not in st.session_state["additional_fields"]:
                 placeholder=st.empty()
                 add_field("summary_objective", placeholder)
-                # with st.expander(label="Summary Objective", icon=":material/summarize:"):
-                #     st.button("**:red[X]**", key="delete_summaries_button", on_click=self.delete_field_popup, args=("summary_objective", ))
-                #     pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
-                #     if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
-                #         st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
-                #         st.session_state["profile_changed"] = True
-                #     summary = st.session_state["profile"]["summary_objective"]
-                #     if st.text_area("Summary", value=summary, key="profile_summary", placeholder="Your summary objective", label_visibility="collapsed")!=summary:
-                #         st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary
-                #         st.session_state["profile_changed"] = True
-                #     if st.session_state["profile"]["summary_objective"]:
-                #         self.display_field_analysis(field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
             if "work_experience" not in st.session_state["additional_fields"]:
                 placeholder=st.empty()
                 add_field("work_experience", placeholder)
-            # with st.expander(label="Work Experience", icon=":material/work_history:"):
-            #     get_display=self.display_field_content("work_experience")
-            #     get_display()
-            #     if st.session_state["profile"]["work_experience"]:
-            #         self.display_field_analysis(field_name="work_experience", details=st.session_state["profile"]["work_experience"])
             if "included_skills" not in st.session_state["additional_fields"]:
                 placeholder=st.empty()
                 add_field("included_skills", placeholder)
-            # with st.expander(label="Skills",icon=":material/widgets:"):
-            #     # self.display_field_analysis("included_skills")
-            #     suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
-            #     self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
-            #     self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
-            #     # for skill in suggested_skills:
-            #     #     self.generated_skills_set.add(skill["skill"])
-            #     get_display=self.display_skills()
-            #     get_display()
-            #     if st.session_state["profile"]["included_skills"]:
-            #         self.display_field_analysis(field_name="included_skills", details=st.session_state["profile"]["included_skills"])
-            # c1, c2 = st.columns([1, 1])
-            # with c1:
             if "qualifications" not in st.session_state["additional_fields"]:
                 placeholder=st.empty()
                 add_field("qualifications", placeholder)
-                # with st.expander(label="Professional Accomplishment", icon=":material/commit:"):
-                #     st.button("**:red[X]**", key="delete_qualifications_button", on_click=self.delete_field_popup, args=("qualifications", ))
-                #     st.page_link("https://www.indeed.com/career-advice/resumes-cover-letters/listing-accomplishments-on-your-resume", 
-                #                     label="learn more")
-                #     get_display=self.display_field_content("qualifications")
-                #     get_display()
-                #     if st.session_state["profile"]["qualifications"]:
-                #         self.display_field_analysis(field_name="qualifications", details=st.session_state["profile"]["qualifications"])
-            # with c2:
             if "projects" not in st.session_state["additional_fields"]:
                 placeholder=st.empty()
                 add_field("projects", placeholder)
-            # with st.expander(label="Projects", icon=":material/perm_media:"):
-            #     get_display=self.display_field_content("projects")
-            #     get_display()
-            #     if st.session_state["profile"]["projects"]:
-            #         self.display_field_analysis(field_name="projects", details=st.session_state["profile"]["projects"])
-            # c1, c2=st.columns([1, 1])
-            # with c1:
-            with st.expander(label="Certifications",  icon=":material/license:"):
-                get_display=self.display_field_content("certifications")
-                get_display()
-        # with c2:
+            if "certifications" not in st.session_state["additional_fields"]:
+                placeholder=st.empty()
+                add_field("certifications", placeholder)
             if "awards" not in st.session_state["additional_fields"]:
-                with st.expander("Awards & Honors", icon=":material/workspace_premium:"):
-                    get_display=self.display_field_content("awards")
-                    get_display()
-            # with c3:
-            #     with st.expander("Licenses"):
-            #         get_display=self.display_field_content("licenses")
-            #         get_display()
+                placeholder=st.empty()
+                add_field("awards", placeholder)
+            if "licenses" not in st.session_state["additional_fields"]:
+                placeholder=st.empty()
+                add_field("licenses", placeholder)
+            if "hobbies" not in st.session_state["additional_fields"]:
+                placeholder=st.empty()
+                add_field("hobbies", placeholder)
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
             placeholder=st.empty()
             if st.session_state["additional_fields"]:
-                if st.button("Add a field", key="add_field_button", use_container_width=True, ):
-                    st.session_state.show = not st.session_state.show
-                    if st.session_state.show:
-                        with st.container(border=True):
-                            fields_grid = grid([1, 1, 1, 1, 1])
-                            for field in st.session_state["additional_fields"]:
-                                if fields_grid.button(label=field, key=f"{field}_add_button",):
-                                    print("AAAAAAAAAAAAAAA")
-                                    st.session_state["additional_fields"].remove(field)
-                                    print("BBBBBBBBBBBBB")
-                                    st.rerun()
+                st.button("Add a field", key="add_field_button", use_container_width=True, on_click=self.show_hide, )
+                    # st.session_state.show = not st.session_state.show
+                if st.session_state.show:
+                    with st.container(border=True):
+                        fields_grid = grid([1, 1, 1])
+                        for field in st.session_state["additional_fields"]:
+                            label, icon = fields_dict[field]
+                            if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
+                                st.session_state["additional_fields"].remove(field)
+                                st.rerun()
             st.divider()
         # the menu container
             _, menu_col, _ = st.columns([1, 1, 1])   
@@ -1849,26 +1855,24 @@ class User():
                     # if st.button("Draft a cover letter", key="cover_letter_button", use_container_width=True):
                     #     # NOTE:cannot be in callback because job_posting_popup is a dialog
                     #     self.job_posting_popup(mode="cover_letter")
+    def show_hide(self, ):
+        st.session_state.show = not st.session_state.show
 
-
-            
-
-        # try:
-        #     st.session_state["additional_fields"].remove(field)
-        # except Exception:
-        #     pass
 
     @st.dialog("Warning")   
     def delete_field_popup(self, field, placeholder):
         add_vertical_space(2)
-        st.warning(f"You're about to delete the field {field} from your profile. Are you sure?")
+        name, icon = fields_dict[field]
+        st.warning(f"You're about to delete the field **{name}** from your profile. Are you sure?")
         add_vertical_space(2)
-        if st.button("confirm", type="primary"):
-            st.session_state["additional_fields"].append(field)
-            st.session_state["profile"][field]=None
-            st.session_state["profile_changed"]=True
-            placeholder.empty()
-            st.rerun()
+        _, c = st.columns([5, 1])
+        with c:
+            if st.button("Confirm", type="primary"):
+                st.session_state["additional_fields"].append(field)
+                st.session_state["profile"][field]=None
+                st.session_state["profile_changed"]=True
+                placeholder.empty()
+                st.rerun()
 
 
     
