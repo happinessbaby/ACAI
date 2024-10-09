@@ -272,7 +272,7 @@ class Reformat():
                     sac.ChipItem(label='Projects'),
                     sac.ChipItem(label='Certifications'),
                     sac.ChipItem(label='Awards & Honors'),
-                ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color="#47ff5a")
+                ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color= "#47ff5a")
             _, c1 = st.columns([2, 1])
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
