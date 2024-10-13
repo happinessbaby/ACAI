@@ -101,6 +101,15 @@ def add_to_lancedb_table(table_name, data, schema, mode="append"):
     table.add(data, mode=mode)
     print("Sucessfully added data to table")
 
+def update_lancedb_table(table_name, condition, data, schema):
+    try:
+        table = db.open_table(table_name)
+    except Exception as e:
+        print(e)
+        table = create_lancedb_table(table_name, schema)
+    table.update(where=condition, values=data)
+
+
 def create_lancedb_index(table_name, distance_type):
 
     """ https://lancedb.github.io/lancedb/ann_indexes/#creating-an-ivf_pq-index"""
@@ -297,11 +306,33 @@ def preprocess_data_for_arrow(data):
     else:
         return data  # No change for non-list, non-dict values
 
+def save_job_posting_changes(userId, data, schema, tablename, mode="add", time=None):
+
+    """Saves job posting information to lancedb table
+    
+    Args:
+        userId: primary key
+        data: a dictionary
+        schema: schema of the table
+        tablename: name of the table
+
+    Keyword Args:
+        mode: add or update, if add, new row is added to preexisting table. If update, old row is updated.
+        time: for update only, needs a timestamp in addition to userId to update row
+        
+    """
+
+    if mode=="add":
+        add_to_lancedb_table(tablename, [data], schema=schema)
+    elif mode=="update":
+        condition =f"user_id = '{userId}' and time='{time}'"
+        update_lancedb_table(tablename, condition, data, schema)
+
 
 
 def save_user_changes(userId, data, schema, tablename, convert_content=False, delete_user=True):
 
-    """Saves user and job information into lancedb tables 
+    """Saves user and job information to lancedb tables 
     
     Args:
         userId: primary key, unique identifier for the entry
@@ -311,6 +342,7 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False, de
 
     Keyword Args:
         convert_content: only for users table, converts profile dictionary into resume content string
+        delete_user: currently no support for nested column update so need to delete the row and add it back
         
     Returns: None
     
