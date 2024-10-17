@@ -878,72 +878,9 @@ def create_resume_info(resume_path, q, ):
                 #NOTE: handles error that's caught
                 pass
 
-
-
-
-        # # special_field_content = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialResumeFields), timeout=10, max_try=1)
-        # special_field_content = create_pydantic_parser(resume_content, SpecialResumeFields)
-        # # special_field_group1 = asyncio_run(lambda: create_pydantic_parser(resume_content, SpecialFieldGroup1), timeout=1, max_try=1)
-        # special_field_group1 = create_pydantic_parser(resume_content, SpecialFieldGroup1)
-        # if isinstance(special_field_group1, dict):
-        #     resume_info_dict.update(special_field_group1)
-        # elif isinstance(special_field_group1, str):
-        #     if special_field_group1=="too long":
-        #         pass
-                    
-        # # else:
-        # #     resume_info_dict.update({"licenses":[], "awards":[], "certifications":[]})
-        # # field_details = create_pydantic_parser(resume_content, ResumeFieldDetail)
-        # if special_field_content:
-        #     resume_info_dict.update(special_field_content)
-        # # else:
-        # #     resume_info_dict.update({"pursuit_jobs":"","industry":"", "summary_objective":"", "included_skills":[], "hobbies":[]})
-        # # resume_info_dict[resume_path].update(field_details)
-        # # work_experience = field_details["work_experience"]
-        # # if work_experience:
-        # #     for i in range(len(work_experience)):
-        # #         years_experience = calculate_work_experience_years(work_experience[i]["start_date"],work_experience[i]["end_date"])
-        # #         work_experience[i].update({"years_of_experience": years_experience})
-        # #     resume_info_dict[resume_path].update({"work_experience": work_experience})
-        # # contact = asyncio_run(lambda: create_pydantic_parser(resume_content, Contact), timeout=5)
-        # contact = create_pydantic_parser(resume_content, Contact)
-        # if contact:
-        #     resume_info_dict.update({"contact":contact})
-        # # education = asyncio_run(lambda: create_pydantic_parser(resume_content, Education), timeout=5)
-        # education = create_pydantic_parser(resume_content, Education)
-        # if education:
-        #     resume_info_dict.update({"education":education})
-        # # basic_field_content =  create_pydantic_parser(resume_content, BasicResumeFields)
-        # # if basic_field_content["work_experience"]:
-        # # experience = asyncio_run(lambda: create_pydantic_parser(resume_content, Jobs), timeout=10, max_try=1)
-        # experience = create_pydantic_parser(resume_content, Jobs)
-        # resume_info_dict.update(experience if experience else {"work_experience":[]})
-        # # if special_field_content["skills_section"]:
-        # #     included_skills = create_pydantic_parser(special_field_content["skills_section"], Skills)
-        # #     resume_info_dict[resume_path].update({"included_skills": included_skills["skills"]})
-        # # else:
-        # #     resume_info_dict[resume_path].update({"included_skills": None})
-        # # if special_field_content["projects_section"]:
-        # # projects = asyncio_run(lambda: create_pydantic_parser(resume_content, Projects), timeout=10, max_try=1)
-        # projects = create_pydantic_parser(resume_content, Projects)
-        # resume_info_dict.update(projects if projects else {"projects":[]})
-        # # else:
-        # #     resume_info_dict[resume_path].update({"projects": None})
-        # # if special_field_content["qualifications_section"]:
-        # # qualifications = asyncio_run(lambda: create_pydantic_parser(resume_content, Qualifications), timeout=10, max_try=1)
-        # qualifications = create_pydantic_parser(resume_content, Qualifications)
-        # resume_info_dict.update(qualifications if qualifications else {"qualifications":[]})
-        # # else:
-        # #     resume_info_dict[resume_path].update({"qualifications": None})
-        # # licenses = asyncio_run(create_pydantic_parser(resume_content, Licenses))
-        # # resume_info_dict[resume_path].update(licenses)
-        # # certifications = asyncio_run(create_pydantic_parser(resume_content, Certifications))
-        # # resume_info_dict[resume_path].update(certifications)
-        # # awards = asyncio_run(create_pydantic_parser(resume_content, Awards))
-        # # resume_info_dict[resume_path].update(awards)
-        # # suggested_skills= asyncio_run(lambda: research_skills(resume_content, "resume"), timeout=1, max_try=1)
         suggested_skills = research_skills(resume_content, "resume")
         resume_info_dict.update({"suggested_skills": suggested_skills if suggested_skills else []})
+        resume_info_dict=dict(sorted(resume_info_dict.items()))
     # with open(resume_info_file, 'a') as json_file:
     #     json.dump(resume_info_dict, json_file, indent=4)
     q.put(resume_info_dict)

@@ -13,12 +13,14 @@ import streamlit.components.v1 as components
 import base64
 from streamlit_extras.add_vertical_space import add_vertical_space
 from css.streamlit_css import primary_button2, primary_button3
+from dotenv import load_dotenv, find_dotenv
+_ = load_dotenv(find_dotenv()) # read local .env file
 import streamlit as st
 
 
 # pages = get_pages("")
 # ctx = get_script_run_ctx()
-
+logo_path= os.environ["LOGO_PATH"]
 
 def hide_streamlit_icons():
 
@@ -64,7 +66,7 @@ def set_streamlit_page_config_once():
     #         """
     # st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
     try:
-        st.set_page_config(layout="wide")
+        st.set_page_config(page_title="aCareerAI", page_icon=logo_path, initial_sidebar_state="auto", menu_items=None, layout="wide")
     except st.errors.StreamlitAPIException as e:
         if "can only be called once per app" in e.__str__():
             # ignore this error

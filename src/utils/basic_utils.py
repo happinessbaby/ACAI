@@ -533,6 +533,27 @@ def write_to_docx_template(doc: Any, field_name: List[str], field_content: Dict[
     doc.save(res_path)
     print(f"Succesfully written {field_name} to {res_path}.")
 
+def change_hex_color(hex_color, mode, percentage=0.3):
+    # Remove the '#' if present
+    hex_color = hex_color.lstrip('#')
+    # Convert the hex color to RGB values
+    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+    if mode=="darken":
+        # Darken each RGB component by reducing it by the given percentage
+        darken = lambda x: max(0, int(x * (1 - percentage)))
+        r_darker = darken(r)
+        g_darker = darken(g)
+        b_darker = darken(b)
+        # Return the new hex color
+        return f'#{r_darker:02x}{g_darker:02x}{b_darker:02x}'
+    elif mode=="lighten":
+        # Lighten each RGB component by increasing it by the given percentage
+        lighten = lambda x: min(255, int(x + (255 - x) * percentage))
+        r_lighter = lighten(r)
+        g_lighter = lighten(g)
+        b_lighter = lighten(b)
+        # Return the new hex color
+        return f'#{r_lighter:02x}{g_lighter:02x}{b_lighter:02x}'
 # source code: https://github.com/trancethehuman/entities-extraction-web-scraper/blob/main/scrape.py
 # async def ascrape_playwright(url, tags: list[str] = ["h1", "h2", "h3"]) -> str:
 #     """

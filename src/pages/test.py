@@ -1,21 +1,18 @@
 import streamlit as st
 
-# Custom CSS 
-st.markdown(
-    '''
-    <style>
-    .streamlit-expanderHeader {
-        background-color: orange;
-        color: orange; # Adjust this for expander header color
-    }
-    .streamlit-expanderContent {
-        background-color: orange;
-        color: orange; # Expander content color
-    }
-    </style>
-    ''',
-    unsafe_allow_html=True
-)
+def callback():
+    call = st.session_state.test_balloons
+    if call:
+        print("AAAAAAAAAAAa")
+        st.balloons()
+    else:
+        print("BBBBBBBBBBBBBBB")
 
-with st.expander("Expand"):
-    st.write("Content inside the expander")
+
+# @st.fragment
+def test():
+    button = st.toggle("turn on", on_change=callback, value=True, key="test_balloons")
+    # if button:
+    #     st.balloons()
+
+test()
