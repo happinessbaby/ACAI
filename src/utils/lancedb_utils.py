@@ -30,7 +30,7 @@ db = lancedb.connect(db_path,)
     # """By default, S3 does not support concurrent writes. Having two or more processes writing to the same table at the same time can lead to data corruption. This is because S3, unlike other object stores, does not have any atomic put or copy operation.
     # To enable concurrent writes, you can configure LanceDB to use a DynamoDB table as a commit store. This table will be used to coordinate writes between different processes."""
     # db_path =  f"""s3+ddb://{bucket_name}{lancedb_path}?ddbTableName=my-dynamodb-table"""
-print("db path", db_path)
+# print("db path", db_path)
     # args_dict={}
     # args_dict["KeySchema"] = [
     # {"AttributeName": "base_uri", "KeyType": "HASH"},
@@ -99,7 +99,7 @@ def add_to_lancedb_table(table_name, data, schema, mode="append"):
         print(e)
         table = create_lancedb_table(table_name, schema)
     table.add(data, mode=mode)
-    print("Sucessfully added data to table")
+    # print("Sucessfully added data to table")
 
 def update_lancedb_table(table_name, condition, data, schema):
     try:
@@ -120,9 +120,9 @@ def retrieve_lancedb_table(table_name):
 
     try:
         table= db.open_table(table_name)
-        print(f"table {table_name} exists")
+        # print(f"table {table_name} exists")
     except Exception as e:
-        print(f"table {table_name} does not exists", e)
+        # print(f"table {table_name} does not exists", e)
         return None
     return table
 
@@ -206,9 +206,9 @@ def retrieve_dict_from_table(userId, tablename):
                         if isinstance(row[key][k], (np.ndarray, list)):
                             cleaned_data = clean_field(row[key], k)
                             row[key][k] = convert_arrays_to_lists(cleaned_data)
-        print(f"Retrieved {tablename} dict from lancedb", table_dict )
+        # print(f"Retrieved {tablename} dict from lancedb", table_dict )
         #returns the most current job saved for trackers table
-        return table_dict if tablename==lance_tracker_table else table_dict[0]
+        return sorted(table_dict,  key=lambda x: x['time']) if tablename==lance_tracker_table else table_dict[0]
     else:
         return None
 
@@ -324,9 +324,15 @@ def save_job_posting_changes(userId, data, schema, tablename, mode="add", time=N
 
     if mode=="add":
         add_to_lancedb_table(tablename, [data], schema=schema)
+    elif mode=="upsert":  # for nested columns
+        #NOTE: cannot update nested column so when updating nested columns needs to delete then add
+        delete_job_from_table(userId, time=time, tablename=tablename)
+        add_to_lancedb_table(tablename, [data], schema=schema)
     elif mode=="update":
+        # updates non-nested columns
         condition =f"user_id = '{userId}' and time='{time}'"
         update_lancedb_table(tablename, condition, data, schema)
+    print(f"Successfully saved {tablename} to lancedb")
 
 
 
@@ -360,7 +366,7 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False, de
         # schema = convert_pydantic_schema_to_arrow(schema)
         #NOTE: the data added has to be a LIST!
         add_to_lancedb_table(tablename, [data], schema=schema)
-        print(f"Successsfully saved {tablename}")
+        print(f"Successsfully saved {tablename} to lancedb")
     except Exception as e:
         raise e
     

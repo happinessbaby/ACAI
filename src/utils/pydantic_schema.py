@@ -14,15 +14,15 @@ class Job(BaseModel):
     end_date: Optional[str] = Field(
       default="", description = "the end date of this job experience if available"
       )
-    job_title: Optional[str] = Field(
-        default="", description="the job position, this needs to be a work experience"
-        )
     location: Optional[str] = Field(
         default="", description="the location where the candidate worked for this job position"
     )
     start_date: Optional[str] = Field(
       default="", description = "the start date of this job experinece if available"
       )
+    title: Optional[str] = Field(
+        default="", description="the job position, this needs to be a work experience"
+        )
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
@@ -354,6 +354,32 @@ class GeneralEvaluation(BaseModel):
     finished: bool
 
 
+
+
+class ResumeUsers(BaseModel):
+    # resume_content: str = func.SourceField() 
+    # vector: Vector(func.ndims()) = func.VectorField(default=None)
+    awards: Optional[List[Award]]
+    certifications: Optional[List[Certification]] = Field(..., description="List of certifications")
+    contact: Contact
+    education: Education
+    hobbies: Optional[List[str]]
+    included_skills: Optional[List[str]]
+    industry: Optional[str]
+    licenses: Optional[List[License]]
+    projects: Optional[List[Project]] = Field(..., description="List of projects")
+    pursuit_jobs: Optional[str]
+    qualifications: Optional[List[Qualification]]
+    resume_content: str
+    resume_path: str = Field(..., description="path to the resume")
+    suggested_skills: Optional[List[str]] = Field(..., description="List of skills not in resume but suggested by AI to include")
+    summary_objective: Optional[str]
+    user_id: str = Field(..., description="ID of user")
+    work_experience: Optional[List[Job]] = Field(..., description="List of jobs")
+    # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
+    
+
+
 class JobTrackingUsers(BaseModel):
 
     user_id: str
@@ -370,51 +396,9 @@ class JobTrackingUsers(BaseModel):
     keywords: Optional[List[str]]
     salary: Optional[str] 
     location: Optional[str] 
-    resume_path: Optional[str]
     cover_letter_path: Optional[str]
     applied: Optional[bool]
     time: str
     match: Optional[int]
-
-
-class ResumeUsers(BaseModel):
-    # resume_content: str = func.SourceField() 
-    # vector: Vector(func.ndims()) = func.VectorField(default=None)
-    user_id: str = Field(..., description="ID of user")
-    resume_path: str = Field(..., description="path to the resume")
-    resume_content: str
-    contact: Contact
-    education: Education
-    # name: Optional[str] 
-    # email: Optional[str]
-    # phone: Optional[str]
-    # city: Optional[str]
-    # state: Optional[str]
-    # linkedin: Optional[str] 
-    # website: Optional[str]
-    # institution: Optional[str]
-    # degree: Optional[str]
-    # study: Optional[str] 
-    # graduation_year:Optional[str]
-    # gpa:Optional[str]
-    # coursework: Optional[List[str]]
-    pursuit_jobs: Optional[str]
-    industry: Optional[str]
-    summary_objective: Optional[str]
-    included_skills: Optional[List[str]]
-    # skills_section: Optional[str]
-    # work_experience_section:  Optional[str]
-    # qualifications_section: Optional[str]
-    # awards_honors_section: Optional[str] 
-    # projects_section: Optional[str]
-    work_experience: Optional[List[Job]] = Field(..., description="List of jobs")
-    projects: Optional[List[Project]] = Field(..., description="List of projects")
-    certifications: Optional[List[Certification]] = Field(..., description="List of certifications")
-    # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
-    suggested_skills: Optional[List[str]] = Field(..., description="List of skills not in resume but suggested by AI to include")
-    qualifications: Optional[List[Qualification]]
-    awards: Optional[List[Award]]
-    licenses: Optional[List[License]]
-    hobbies: Optional[List[str]]
-    
-
+    color: Optional[str]
+    profile: Optional[ResumeUsers]

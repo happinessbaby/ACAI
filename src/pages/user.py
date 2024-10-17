@@ -6,18 +6,11 @@ from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, a
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, delete_job_from_table, save_job_posting_changes
-
-# from utils.lancedb_utils_async import add_to_lancedb_table, retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow
 from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
 from utils.basic_utils import mk_dirs, send_recovery_email, change_hex_color
 from typing import Any, List
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from backend.upgrade_resume import reformat_resume, match_resume_job
-# import uuid
-# from streamlit_js_eval import get_geolocation
-# from geopy.geocoders import Nominatim
-# from geopy.exc import GeocoderTimedOut
-# from utils.aws_manager import get_client
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
@@ -71,7 +64,7 @@ linkedin_client_id = os.environ["LINKEDIN_CLIENT_ID"]
 linkedin_client_secret =os.environ["LINKEDIN_CLIENT_SECRET"]
 lance_eval_table = os.environ["LANCE_EVAL_TABLE"]
 lance_users_table_default = os.environ["LANCE_USERS_TABLE"]
-lance_users_table_tailored = os.environ["LANCE_USERS_TABLE_TAILORED"]
+# lance_users_table_tailored = os.environ["LANCE_USERS_TABLE_TAILORED"]
 lance_tracker_table = os.environ["LANCE_TRACKER_TABLE"]
 other_cookie_key = os.environ["OTHER_COOKIE_KEY"]
 user_cookie_key=os.environ["USER_COOKIE_KEY"]
@@ -111,8 +104,7 @@ st.markdown("<style> ul {display: none;} </style>", unsafe_allow_html=True)
 #NOTE: fragment parameter seems to need to be set at topmost level
 if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
-# if "tailor_rerun_timer" not in st.session_state:
-#     st.session_state["tailor_rerun_timer"]=3
+
 
 all_fields=["summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
 all_fields_icons = [":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
@@ -164,8 +156,8 @@ class User():
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-            if "count" not in st.session_state:
-                st.session_state["count"]=0
+            # if "count" not in st.session_state:
+            #     st.session_state["count"]=0
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
             if "evaluation" not in st.session_state:
@@ -177,6 +169,7 @@ class User():
                 if st.session_state["tracker"]:
                     st.session_state["current_idx"]= len(st.session_state["tracker"])-1
                     st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
+                    st.session_state["tailor_color"] = st.session_state["job_posting_dict"]["color"]
             if "tracker_schema" not in st.session_state:
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
             if "selected_fields" not in st.session_state:
@@ -198,13 +191,9 @@ class User():
                 st.session_state["users_download_path"] =  os.path.join(st.session_state.user_save_path, "downloads", formatted_time)
                 paths=[st.session_state["users_upload_path"], st.session_state["users_download_path"]]
                 mk_dirs(paths,)
-            # if "freeze" not in st.session_state:
-            #     st.session_state["freeze"]=True
             if "selection" not in st.session_state:
                 st.session_state["selection"]="default"
-                st.session_state["freeze"]=False
                 st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
-                st.session_state["tailor_color"] = "#ffffff"
             if "additional_fields" not in st.session_state:
                 st.session_state["additional_fields"]=[]
                 if st.session_state["profile"]:
@@ -870,10 +859,7 @@ class User():
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
-            # if x!=-1 and len(field_list)>0:
-            #     details = st.session_state["profile"][field_name][x][field_detail]
-            #     # print("BBBBB", details)
-            #     self.display_field_analysis(type, field_name, details=details, idx=x)
+
 
         def delete_entry(placeholder, idx):
             if type=="bullet_points":
@@ -974,7 +960,7 @@ class User():
 
         """Interactive display of content of each profile/resume field """
         #TODO: FUTURE USING DRAGGABLE CONTAINERS TO ALLOW REORDER CONTENT https://discuss.streamlit.io/t/draggable-streamlit-containers/72484?u=yueqi_peng
-        # @st.fragment
+        @st.fragment
         def get_display():
 
             if st.session_state["profile"][name]:
@@ -994,7 +980,7 @@ class User():
             if name=="certifications" or name=="licenses":
                 st.session_state["profile"][name].append({"description":[],"issue_date":"", "issue_organization":"", "title":""})
             elif name=="work_experience":
-                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","job_title":"","location":"","start_date":""})
+                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","location":"","start_date":"","title":""})
             elif name=="awards" or name=="qualifications":
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
@@ -1066,7 +1052,7 @@ class User():
                     get_display= self.display_field_details(name, idx, "description", "bullet_points")
                     get_display()
                 elif name=="work_experience":
-                    job_title = value["job_title"]
+                    job_title = value["title"]
                     company = value["company"]
                     start_date = value["start_date"]
                     end_date = value["end_date"]
@@ -1118,11 +1104,6 @@ class User():
                 st.session_state["profile"][name][idx]["title"]=title
             except Exception:
                 pass
-            # try:
-            #     date = st.session_state[f"{name}_date_{idx}"]
-            #     st.session_state["profile"][name][idx]["issue_date"]=date
-            # except Exception:
-            #     pass
             try:
                 org = st.session_state[f"{name}_company_{idx}"]
                 st.session_state["profile"][name][idx]["company"]=org
@@ -1148,11 +1129,6 @@ class User():
                 st.session_state["profile"][name][idx]["location"] = location
             except Exception:
                 pass
-            # try:
-            #     experience_description = st.session_state[f"{name}_description_{idx}"]
-            #     st.session_state["profile"]["work_experience"][idx]["description"] = experience_description
-            # except Exception:
-            #     pass
             st.session_state["profile_changed"]=True
             
         return get_display
@@ -1338,50 +1314,16 @@ class User():
                         st.markdown(primary_button2, unsafe_allow_html=True)
                         st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
                         st.button("Tailor again", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, details, tailor_container,))
-                        # with st.popover("Tailor again"):
-                        #     current = st.button("with the currrent job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container,))
-                        #     new_upload = st.button("with a new job posting", key=f"tailor_again_{field_name}_button_{idx}"+"_new", type="primary",)
-                        #     if new_upload:
-                        #         self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
-                        # display_tailor_options(popover_label="tailor again", container=tailor_container)
-                        # st.button("tailor again", key=button_key, on_click=self.tailor_callback, args=(field_name, details, ), )
             else:
-                # with stylable_container(
-                #     key=f"tailor_{field_name}_{idx}_popover",
-                #     css_styles="""
-                #         button {
-                #             background: none;
-                #             border: none;
-                #             color: #ff8247;
-                #             padding: 0;
-                #             cursor: pointer;
-                #             font-size: 12px; /* Adjust as needed */
-                #             text-decoration: none;
-                #         }
-                #         """,
-                # ):
-                    # st.markdown(primary_button2, unsafe_allow_html=True)
-                    # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    if tailor_container.button("Tailor", key=f"tailor_{field_name}_button", disabled=True if st.session_state["selection"]=="default" else False):
-                        if "job_posting_dict" not in st.session_state:
-                            # with tailor_container.popover("Tailor"):
-                            #     upload = st.button("Please upload a job posting first", type="primary", key=f"tailor_{field_name}_{idx}_upload")
-                            #     if upload:
-                            self.job_posting_popup(mode="resume", field_name=field_name, field_details=details, tailor_container=tailor_container)
-                        else:
-                            # if field_name==st.session_state["tailoring_field"] and idx==st.session_state[f"tailoring_field_idx"]:
-                            self.tailor_callback(field_name,  details, tailor_container)
-                            st.rerun()
-                        # else:
-                            # st.markdown(primary_button2, unsafe_allow_html=True)
-                            # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                            # st.button("Tailor again", key=f"tailor_again_{field_name}_button_{idx}", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container,))
-                            # with tailor_container.popover("Tailor"):
-                            #     current = st.button("with the currrent job posting", key=f"tailor_{field_name}_{idx}_current", type="primary", on_click=self.tailor_callback, args=(type, field_name, idx, details, tailor_container,))
-                            #     new_upload = st.button("with a new job posting", key=f"tailor_{field_name}_{idx}_new", type="primary",)
-                            #     if new_upload:
-                            #         self.job_posting_popup(mode="resume", field_name=field_name, field_idx=idx)
-        
+                if tailor_container.button("Tailor", key=f"tailor_{field_name}_button", disabled=True if st.session_state["selection"]=="default" else False):
+                    if "job_posting_dict" not in st.session_state:
+                        self.job_posting_popup(mode="resume", field_name=field_name, field_details=details, tailor_container=tailor_container)
+                    else:
+                        # if field_name==st.session_state["tailoring_field"] and idx==st.session_state[f"tailoring_field_idx"]:
+                        self.tailor_callback(field_name,  details, tailor_container)
+                        st.rerun()
+                
+    
           
 
     @st.dialog("Job posting")   
@@ -1392,8 +1334,6 @@ class User():
         if mode=="cover_letter":
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
         st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
-        # if mode=="resume":
-        #     freeze = st.toggle("Switch to tailor mode", value=True, help="This will allow you to edit without affecting your default profile")
         job_posting_link = st.text_input("Link (required)", key="job_linkx", placeholder="Paste a posting link here", value=None,)
         job_posting_description = st.text_area("Description", 
                                         key="job_descriptionx", 
@@ -1417,18 +1357,14 @@ class User():
                                 # st.session_state["tailoring_field"]=field_name
                                 # st.session_state["tailoring_field_idx"]=field_idx
                                 st.success("Successfully processed job posting")
-                                # st.session_state["freeze"]=freeze
-                                # st.session_state["selection"]="default" if not freeze else "freeze"
-                                # if freeze:
-                                #     st._config.set_option(f'theme.secondaryBackgroundColor' , st.session_state.tailor_color )
-                                # else:
-                                #     st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
                                 for field_name in all_fields:
                                     self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
                                 # st.session_state["init_match"]=match
                                 if field_details and tailor_container:
                                     self.tailor_callback(field_name, field_details, tailor_container)
                                 st.rerun()
+                            else:
+                                st.warning("That didin't work.")
                         else:
                             st.warning("That didn't work")
         # st.session_state["info_container"]=st.empty()
@@ -1472,14 +1408,22 @@ class User():
                 st.session_state["job_posting_dict"].update({"match":match["percentage"]})
             else:
                 st.session_state["job_posting_dict"].update({"match":-1})
-            st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else "", "user_id": st.session_state.userId, "resume_path": "", "cover_letter_path": "", "applied": False, "time":datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+            st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else "", 
+                                                         "user_id": st.session_state.userId, 
+                                                         "color": "#ffffff", 
+                                                         "cover_letter_path": "",
+                                                           "applied": False, 
+                                                           "time":datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                                                           "profile":st.session_state["profile"]})
             save_job_posting_changes(st.session_state.userId, st.session_state["job_posting_dict"], st.session_state["tracker_schema"], lance_tracker_table,)
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             st.session_state["current_idx"]= len(st.session_state["tracker"])-1
             st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
+            st.session_state["tailor_color"] = "#ffffff"
             self.delete_session_states(["job_posting_path", "job_description"])
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
 
 
@@ -1526,7 +1470,6 @@ class User():
         else:
             # start general evaluation if there's no saved evaluation 
             if "init_eval" not in st.session_state and st.session_state["evaluation"] is None:
-                # evaluate_resume(st.session_state["profile"], "general")
                 self.eval_thread = threading.Thread(target=evaluate_resume, args=(st.session_state["profile"], "general", ), daemon=True)
                 add_script_run_ctx(self.eval_thread, self.ctx)
                 self.eval_thread.start()   
@@ -1567,8 +1510,6 @@ class User():
                         suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
                         self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
                         self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
-                        # for skill in suggested_skills:
-                        #     self.generated_skills_set.add(skill["skill"])
                         get_display=self.display_skills()
                         get_display()
                         if st.session_state["profile"]["included_skills"]:
@@ -1588,21 +1529,13 @@ class User():
                         if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
                             st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile-hobbies else []
                             st.session_state["profile_changed"] = True
-        def scroll_callback(direction):
-            current = st.session_state["current_idx"]
-            # print(len(st.session_state["tracker"]))
-            if direction=="previous":         
-                st.session_state["current_idx"]=current-1 if current-1>=0 else 0
-                st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
-            elif direction=="next":
-                st.session_state["current_idx"]=current+1 if current+1<len(st.session_state["tracker"]) else len(st.session_state["tracker"])-1
-                st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
         def job_applied_callback():
             applied = st.session_state["job_applied_toggle"]
             value = {"applied": applied}
             time = st.session_state["job_posting_dict"]["time"]
             st.session_state["job_posting_dict"].update(value)
             save_job_posting_changes(st.session_state.userId, value, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             if applied:
                 print("APPLIED")
                 #TODO: balloons not working properly
@@ -1625,43 +1558,58 @@ class User():
             selection=sac.segmented(
                    items=[
                         sac.SegmentedItem(label='Edit default'),
-                        # sac.SegmentedItem(label='Save as default'),
                         sac.SegmentedItem(label='Tailor mode'),
-                    ], label=' ', align='center', index=1 if st.session_state["selection"]=="freeze" else 0
+                    ], label=' ', align='center', index=1 if st.session_state["selection"]=="tailor" else 0
                 )
                       
             if selection=="Edit default" and st.session_state["selection"]!="default":
                 # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
-                st.session_state["freeze"]=False
-                st.session_state["selection"]="default"
                 # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
+                st.session_state["selection"]="default"
                 st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
                 st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
                 st.rerun()
-            if selection == "Tailor mode" and st.session_state["selection"]!="freeze":  
+            elif selection == "Tailor mode" and st.session_state["selection"]!="tailor":  
                  #st._config.set_option(f'theme.backgroundColor' ,"white" )
                 # st._config.set_option(f'theme.base' ,"dark" )
                 # st._config.set_option(f'theme.primaryColor' ,"#47ff5a" ) 
-                # st.session_state["profile"]=retrieve_dict_from_table(st.session_state.userId, lance_users_table_tailored)
-                st._config.set_option(f'theme.secondaryBackgroundColor' , st.session_state.tailor_color )
-                #st.markdown(dark, unsafe_allow_html=True)   
-                st.session_state["freeze"]=True
-                st.session_state["selection"]="freeze"
-                #NOTE: below ensures that the tailored copy is the default profile when first refresh 
-                st.session_state["profile"] = st.session_state["profile"] if st.session_state["count"]==0 else retrieve_dict_from_table(st.session_state.userId, lance_users_table_tailored)
-                # st.session_state["color"] = st.color_picker("Pick A Color", "#ffd7ba")
+                if "tailor_color" in st.session_state:
+                    color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                else:
+                    color="#ffffff"
+                st._config.set_option(f'theme.secondaryBackgroundColor', color ) 
+                st.session_state["selection"]="tailor"
+                if "current_idx" in st.session_state:
+                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
                 st.rerun()
             prev_col, job_col, nxt_col = st.columns([1, 10, 1])
-            if st.session_state["selection"]=="freeze":
+            if st.session_state["selection"]=="tailor":
                 if "job_posting_dict" in st.session_state:
                     with prev_col:
                         add_vertical_space(15)
+                        #NOTE: scrolling cannot be callback because need to set config
                         if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                            prev = st.button("🞀", key="prev_job_button", on_click=scroll_callback, args=("previous", ))
+                            prev = st.button("🞀", key="prev_job_button", )
+                            if prev:
+                                st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                                st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                                color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                                st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                                st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                st.rerun()
                     with nxt_col:
                         add_vertical_space(15)
                         if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                            nxt = st.button("🞂", key="next_job_button", on_click=scroll_callback, args=("next", ))      
+                            nxt = st.button("🞂", key="next_job_button",)     
+                            if nxt:
+                                st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                                st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                                color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                                st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                                st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                st.rerun()
                     with job_col:
                         job_posting_container=st.empty()
                         with job_posting_container.container(border=True): 
@@ -1680,13 +1628,15 @@ class User():
                                 if link:
                                     st.link_button("🔗", url=link)
                             with c2:
-                                change_color = st.color_picker("pick a color", value = st.session_state.tailor_color, key="color_picker", label_visibility="collapsed")
+                                change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#ffffff", key="color_picker", label_visibility="collapsed")
                                 #NOTE: resetting config does not work in callback
                                 if change_color!=st.session_state["tailor_color"]:
                                     st.session_state["tailor_color"]= st.session_state.color_picker
                                     color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                                    time=st.session_state["tracker"][st.session_state.current_idx]["time"]
+                                    save_job_posting_changes(st.session_state.userId, {"color":st.session_state["tailor_color"]}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+                                    st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
                                     st._config.set_option(f'theme.secondaryBackgroundColor' , color )
-                                    # TODO: save changed color to table
                                     st.rerun()
                             with c4:
                                 st.button("X", key="delete_job_button", on_click=delete_job_callback)
@@ -1716,7 +1666,7 @@ class User():
                                 st.markdown(text, unsafe_allow_html=True)
                                 if match<=50:
                                     st.write(f":red[{match}%]")
-                                if 50<match<70:
+                                elif 50<match<70:
                                     st.write(f":orange[{match}%]")
                                 else:
                                     st.write(f":green[{match}%]")
@@ -1732,13 +1682,7 @@ class User():
                             ):
                         if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                             self.job_posting_popup(mode="resume")
-                    # st.markdown(primary_button3, unsafe_allow_html=True)
-                    # st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                    # _, del_col=st.columns([3, 1])
-                    # with del_col:
-                    #     if st.button("delete", key="delete_job_posting_button",):
-                    #         self.delete_session_states(["job_posting_dict"])
-                    #         st.rerun()
+
     
         # general evaluation column
         # with eval_col:
@@ -1747,7 +1691,7 @@ class User():
         #         self.evaluation_callback()
         # the main profile column
         with profile_col:
-            if st.session_state.selection=="freeze":
+            if st.session_state.selection=="tailor":
                 st.info("When tailoring, do not refresh your page else your changes will be lost.")
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -1894,20 +1838,6 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-            # with stylable_container(
-            #         key="profile_report_custum_popover",
-            #         css_styles="""
-            #             button {
-            #                 background: none;
-            #                 border: none;
-            #                 color: #ff8247;
-            #                 padding: 0;
-            #                 cursor: pointer;
-            #                 font-size: 12px; /* Adjust as needed */
-            #                 text-decoration: none;
-            #             }
-            #             """,
-            #     ):
                 with st.expander("Show my profile report", expanded=True):
                     # c1, c2=st.columns([1, 1])
                     # with c1:
@@ -2000,15 +1930,12 @@ class User():
                     #         st.write("Evaluating...")
                     st.markdown(primary_button2, unsafe_allow_html=True)
                     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                    if st.button("Refresh", key=f"general_eval_refresh_button", ):
-                        # if button_name=="evaluate again ✨":
-                            # container.empty()
-                            # remove evaluation from lance table and old evaluation from session
-                            delete_user_from_table(st.session_state.userId, lance_eval_table)
-                            self.delete_session_states(["evaluation","init_eval"])
-                            # reset evaluation rerun timer
-                            st.session_state["eval_rerun_timer"]=3
-                            st.rerun()
+                    if st.button("Refresh", key=f"general_eval_refresh_button", ):    
+                        delete_user_from_table(st.session_state.userId, lance_eval_table)
+                        self.delete_session_states(["evaluation","init_eval"])
+                        # reset evaluation rerun timer
+                        st.session_state["eval_rerun_timer"]=3
+                        st.rerun()
                         # elif button_name=="stop evaluation":s
                         #     try:
                         #         # kill the evaluation thread 
@@ -2037,13 +1964,15 @@ class User():
         """ Saves profile into lancedb table periodically if there's change """
         
         if "profile_changed" in st.session_state and st.session_state["profile_changed"]:
-            if not st.session_state["freeze"]: 
+            if st.session_state["selection"]=="default": 
                 print('Changed for default profile, saving user changes')
                 save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default, convert_content=True)
-            # else:
-            #     print('Changed for tailored profile, saving user changes')
-            save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored, convert_content=True)
-            st.session_state["count"]+=1
+            # save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored, convert_content=True)
+            elif st.session_state["selection"]=="tailor" and st.session_state["tracker"] is not None and len(st.session_state["tracker"])>0:
+                print("Saving tailoring profile")
+                time=st.session_state["tracker"][st.session_state.current_idx]["time"]
+                st.session_state["tracker"][st.session_state.current_idx].update({"profile": st.session_state["profile"]})
+                save_job_posting_changes(st.session_state.userId, st.session_state["tracker"][st.session_state.current_idx], st.session_state["tracker_schema"], lance_tracker_table, mode="upsert", time=time)
             st.session_state["profile_changed"]=False
             st.session_state["update_template"]=True
 
