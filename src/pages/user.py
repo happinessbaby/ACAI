@@ -106,11 +106,9 @@ if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
 
 
-all_fields=["summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
-all_fields_icons = [":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
-all_fields_labels=["Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
-zipped = zip(all_fields, all_fields_labels, all_fields_icons)
-fields_dict = {key: (val1, val2) for key, val1, val2 in zipped}
+all_fields=["contact", "education", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
+all_fields_icons = [":material/contacts:", ":material/school:", ":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
+all_fields_labels=["Contact", "Education", "Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
 
 class User():
 
@@ -172,8 +170,8 @@ class User():
                     st.session_state["tailor_color"] = st.session_state["job_posting_dict"]["color"]
             if "tracker_schema" not in st.session_state:
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
-            if "selected_fields" not in st.session_state:
-                st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
+            # if "selected_fields" not in st.session_state:
+            #     st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
             # if "init_templates" not in st.session_state:
             #     scheduler = BackgroundScheduler()
             #     scheduler.start()
@@ -194,6 +192,9 @@ class User():
             if "selection" not in st.session_state:
                 st.session_state["selection"]="default"
                 st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
+            if "fields_dict" not in st.session_state:
+                zipped = zip(all_fields, all_fields_labels, all_fields_icons)
+                st.session_state["fields_dict"] = {key: (val1, val2) for key, val1, val2 in zipped}
             if "additional_fields" not in st.session_state:
                 st.session_state["additional_fields"]=[]
                 if st.session_state["profile"]:
@@ -661,10 +662,12 @@ class User():
         for field in all_fields:
             if st.session_state["profile"][field] is None:
                 st.session_state.additional_fields.append(field)
-        st.session_state["update_template"]=True
         # save resume/profile into lancedb table
-        # save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_tailored)
         save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_default)
+        st.session_state["update_template"]=True
+        st.session_state["show"]=False
+        for field in st.session_state["additional_fields"]:
+            self.delete_session_states([f"{field}_add_button"])
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -673,15 +676,6 @@ class User():
 
         """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
 
-        # filename = str(uuid.uuid4())
-        # end_path =  os.path.join( st.session_state.user_save_path, "", "uploads", filename+'.txt')
-        #creates an empty file
-        # write_file(end_path, file_content="")
-        # st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
-        #            "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
-        #            "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
-        #            "pursuit_jobs":"", "industry":"","summary_objective":"", "included_skills":[], "work_experience":[], "projects":[], 
-        #            "certifications":[], "suggested_skills":[], "qualifications":[], "awards":[], "licenses":[], "hobbies":[]}
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
@@ -694,6 +688,9 @@ class User():
         save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default)
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
+        st.session_state["show"]=False
+        for field in st.session_state["additional_fields"]:
+            self.delete_session_states([f"{field}_add_button"])
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
 
@@ -1256,7 +1253,7 @@ class User():
                         if field_name=="included_skills":
                             if tailoring!="please try again":
                                 try:
-                                    irrelevant_skills = ", ".join(tailoring.get("irrelevant skills", ""))
+                                    irrelevant_skills = ", ".join(tailoring.get("irrelevant_skills", ""))
                                     relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
                                     transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
                                     st.write("Here are some tailoring suggestions")
@@ -1485,50 +1482,49 @@ class User():
 
         def add_field(field, placeholder,):
 
-            # with placeholder.container():
-                label, icon = fields_dict[field]
-                with placeholder.expander(label=label, icon=icon):
-                    _, del_col=st.columns([8, 1])
-                    with del_col:
-                        st.button(":grey[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
-                    if field=="summary_objective":  
-                        pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
-                        if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
-                            st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
-                            st.session_state["profile_changed"] = True
-                        summary = st.session_state["profile"]["summary_objective"]
-                        if summary is None:
-                            st.session_state["profile"]["summary_objective"]=" "
-                            st.session_state["profile_changed"]=True
-                        if st.text_area("Summary", value=summary, key="profile_summary", placeholder="Your summary objective", label_visibility="collapsed")!=summary:
-                            # NOTE: this ensures that if text area is cleared, the value of profile summary is never None, else the field won't show up
-                            st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary if st.session_state.profile_summary else " "
-                            st.session_state["profile_changed"] = True
-                        if st.session_state["profile"]["summary_objective"].strip():
-                            self.display_field_analysis(field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
-                    elif field=="included_skills":
-                        suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
-                        self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
-                        self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
-                        get_display=self.display_skills()
-                        get_display()
-                        if st.session_state["profile"]["included_skills"]:
-                            self.display_field_analysis(field_name="included_skills", details=st.session_state["profile"]["included_skills"])
-                    elif field=="work_experience" or field=="projects" or field=="certifications" or field=="awards" or field=="licenses" or field=="qualifications":
-                        get_display=self.display_field_content(field)
-                        get_display()
-                        if st.session_state["profile"][field]:
-                            self.display_field_analysis(field_name=field, details=st.session_state["profile"][field])
-                    elif field=="hobbies":
-                        if st.session_state["profile"]["hobbies"] is not None:
-                            hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
-                        else:
-                            hobbies = ""
-                            st.session_state["profile"]["hobbies"] = []
-                            st.session_state["profile_changed"] = True
-                        if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
-                            st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile-hobbies else []
-                            st.session_state["profile_changed"] = True
+            label, icon = st.session_state.fields_dict[field]
+            with placeholder.expander(label=label, icon=icon):
+                _, del_col=st.columns([8, 1])
+                with del_col:
+                    st.button(":grey[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
+                if field=="summary_objective":  
+                    pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
+                    if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
+                        st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
+                        st.session_state["profile_changed"] = True
+                    summary = st.session_state["profile"]["summary_objective"]
+                    if summary is None:
+                        st.session_state["profile"]["summary_objective"]=" "
+                        st.session_state["profile_changed"]=True
+                    if st.text_area("Summary", value=summary, key="profile_summary", placeholder="Your summary objective", label_visibility="collapsed")!=summary:
+                        # NOTE: this ensures that if text area is cleared, the value of profile summary is never None, else the field won't show up
+                        st.session_state["profile"]["summary_objective"] = st.session_state.profile_summary if st.session_state.profile_summary else " "
+                        st.session_state["profile_changed"] = True
+                    if st.session_state["profile"]["summary_objective"].strip():
+                        self.display_field_analysis(field_name="summary_objective", details=st.session_state["profile"]["summary_objective"])
+                elif field=="included_skills":
+                    suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
+                    self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
+                    self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
+                    get_display=self.display_skills()
+                    get_display()
+                    if st.session_state["profile"]["included_skills"]:
+                        self.display_field_analysis(field_name="included_skills", details=st.session_state["profile"]["included_skills"])
+                elif field=="work_experience" or field=="projects" or field=="certifications" or field=="awards" or field=="licenses" or field=="qualifications":
+                    get_display=self.display_field_content(field)
+                    get_display()
+                    if st.session_state["profile"][field]:
+                        self.display_field_analysis(field_name=field, details=st.session_state["profile"][field])
+                elif field=="hobbies":
+                    if st.session_state["profile"]["hobbies"] is not None:
+                        hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
+                    else:
+                        hobbies = ""
+                        st.session_state["profile"]["hobbies"] = []
+                        st.session_state["profile_changed"] = True
+                    if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
+                        st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile-hobbies else []
+                        st.session_state["profile_changed"] = True
         def job_applied_callback():
             applied = st.session_state["job_applied_toggle"]
             value = {"applied": applied}
@@ -1539,7 +1535,7 @@ class User():
             if applied:
                 print("APPLIED")
                 #TODO: balloons not working properly
-                # st.balloons()   
+                st.balloons()   
         def delete_job_callback():
             timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
             delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
@@ -1579,7 +1575,7 @@ class User():
                     color="#ffffff"
                 st._config.set_option(f'theme.secondaryBackgroundColor', color ) 
                 st.session_state["selection"]="tailor"
-                if "current_idx" in st.session_state:
+                if st.session_state["tracker"] is not None and len(st.session_state["tracker"]):
                     st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
                 st.rerun()
             prev_col, job_col, nxt_col = st.columns([1, 10, 1])
@@ -1618,7 +1614,10 @@ class User():
                             about = st.session_state["job_posting_dict"].get("about_job", "")
                             link = st.session_state["job_posting_dict"].get("link", "")
                             match = st.session_state["job_posting_dict"].get("match", "")
-                            keywords = st.session_state["job_posting_dict"].get("keywords", "")
+                            skills_keywords = st.session_state["job_posting_dict"].get("skills_keywords", "")
+                            experience_keywords = st.session_state["job_posting_dict"].get("experience_keywords", "")
+                            salary = st.session_state["job_posting_dict"].get("salary", "")
+                            location = st.session_state["job_posting_dict"].get("location", "")
                             c1, c2, c3, c4=st.columns([4, 1, 1, 1])
                             with c1:
                                 # st.write("**Clipped job**")
@@ -1652,15 +1651,32 @@ class User():
                                 # st.write(f"Summary: {about}")
                                 text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Summary: {about}</p>'
                                 st.markdown(text, unsafe_allow_html=True)
-                            if keywords:
-                                text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS keywords:</p>'
+                            if salary:
+                                # st.write(f"Summary: {about}")
+                                text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Salary: {salary}</p>'
                                 st.markdown(text, unsafe_allow_html=True)
-                                keywords = ", ".join(keywords)
-                                color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
-                                color = change_hex_color(color, mode="darken")
-                                keywords = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
-                                st.markdown(keywords, unsafe_allow_html=True)
-                                # st.write(f"ATS Keywords: :rainbow[{keywords}]")
+                            if location:
+                                # st.write(f"Summary: {about}")
+                                text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Location: {location}</p>'
+                                st.markdown(text, unsafe_allow_html=True)
+                            if skills_keywords:
+                                # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS skills keywords:</p>'
+                                # st.markdown(text, unsafe_allow_html=True)
+                                # keywords = ", ".join(skills_keywords)
+                                # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
+                                # color = change_hex_color(color, mode="darken")
+                                # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
+                                # st.markdown(keywords_display, unsafe_allow_html=True)
+                                st.write(f"ATS Skills Keywords: :rainbow[{skills_keywords}]")
+                            if experience_keywords:
+                                # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS experience keywords:</p>'
+                                # st.markdown(text, unsafe_allow_html=True)
+                                # keywords = ", ".join(experience_keywords)
+                                # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
+                                # color = change_hex_color(color, mode="darken", percentage=0.5)
+                                # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
+                                # st.markdown(keywords_display, unsafe_allow_html=True)
+                                st.write(f"ATS Experience Keywords: :rainbow[{experience_keywords}]")
                             if match:
                                 text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
                                 st.markdown(text, unsafe_allow_html=True)
@@ -1691,8 +1707,6 @@ class User():
         #         self.evaluation_callback()
         # the main profile column
         with profile_col:
-            if st.session_state.selection=="tailor":
-                st.info("When tailoring, do not refresh your page else your changes will be lost.")
             c1, c2 = st.columns([1, 1])
             with c1:
                 with st.expander(label="Contact", icon=":material/contacts:"):
@@ -1775,15 +1789,15 @@ class User():
                 placeholder=st.empty()
                 add_field("hobbies", placeholder)
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
-            placeholder=st.empty()
+            # placeholder=st.empty()
             if st.session_state["additional_fields"]:
-                st.button("Add field", key="add_field_button", use_container_width=True, on_click=show_hide, )
+                st.button("Add a field", key="add_field_button", use_container_width=True, on_click=show_hide, )
                 #NOTE: below cannot be added to callback probably becauese it's adding buttons
                 if st.session_state.show:
                     with st.container(border=True):
-                        fields_grid = grid([1, 1, 1])
+                        fields_grid = grid([1, 1, 1], vertical_align="center" )
                         for field in st.session_state["additional_fields"]:
-                            label, icon = fields_dict[field]
+                            label, icon = st.session_state.fields_dict[field]
                             if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
                                 st.session_state["additional_fields"].remove(field)
                                 st.rerun()
@@ -1806,7 +1820,7 @@ class User():
     @st.dialog("Warning")   
     def delete_field_popup(self, field, placeholder):
         add_vertical_space(2)
-        name, icon = fields_dict[field]
+        name, icon = st.session_state.fields_dict[field]
         st.warning(f"You're about to delete the field **{name}** from your profile. Are you sure?")
         add_vertical_space(2)
         _, c = st.columns([5, 1])

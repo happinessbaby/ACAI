@@ -397,7 +397,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
     loading_func(p.progress)
     if field_name=="included_skills":
         # response = asyncio_run(lambda: tailor_skills(job_skills, details, job_requirements, ), timeout=30, max_try=1)
-        response = tailor_skills(job_skills, details, job_requirements, )
+        response = tailor_skills(job_posting, details, job_requirements, )
         response_dict=response.dict() if response else {}
         p.increment(20)  # Update progress 
         loading_func(p.progress)
@@ -454,22 +454,20 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
 #         skills_str+="(skill: " +skill + ", example: "+ example + ")"
 #     return skills_str
 
-def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
+def tailor_skills( my_skills, job_requirement, timeout=10):
 
     """ Creates a list of relevant skills, irrelevant skills, and transferable skills according to the skills required in a job description"""
   
     
     skills_prompt = """ Your task is to compare the skills section of the resume and skills required in the job description. 
     
-    You are given several core pieces of information below: a list of skills in a resume, a list of skills wanted in a job posting, and job requirements
+    You are given the information below: a list of skills in a resume and job requirements
     
     skill list in the resume: {my_skills} \
     
-    skill list in the job description: {required_skills} \
-    
     job requirements: {job_requirement} \
 
-    Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job description and job requirements.
+    Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job requirements.
     
     These are skills that are in the resume that do not align with the requirement of the job description. 
     
@@ -477,18 +475,16 @@ def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
 
     These are usally skills that exist in both the resume and job posting. 
 
-    Step 3: Make a list of skills that are in the job description that can be added to the resumes. These are usually transferable skills, but can also be other technical skills. 
+    Step 3: Make a list of transferable skills based on the resume and job description. 
 
-    Use the following format:
-        Step 1: <step 1 reasoning>
-        Step 2: <step 2 reasoning>
-        Step 3: <step 3 reasoning>
+    These are the skills that can be transferred from one job to another, and they should not already exist in the reusme. 
 
-    """
-    # These additional skills are ones that are not included in the resume but would benefit the candidate if they are added. \
-    # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills but not SQL skill. SQL is the irrelevant skill in the resume since it's not in the job description.\
-    # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication skills too. Communication is the relevant skill that exists in both the resume and job description. \
-    # For example, a candidate may have SQL and communication skills in their resume. The job description asks for communication and Python skills. Python is the additional skill that may raise the chance of the candidate getting the job offer. \
+    Output using the following format:
+        Step 1: <step 1 result>
+        Step 2: <step 2 result>
+        Step 3: <step 3 result>
+
+    """ 
 
     prompt_template = ChatPromptTemplate.from_template(skills_prompt)
     prompt = ChatPromptTemplate.from_messages(
@@ -507,13 +503,14 @@ def tailor_skills(required_skills, my_skills, job_requirement, timeout=10):
             ]
         )
     model_parser = prompt | llm.with_structured_output(schema=SkillsRelevancy)
-    generator =     ({"my_skills":RunnablePassthrough(), "required_skills":RunnablePassthrough(), "job_requirement":RunnablePassthrough()} 
+    generator =     ({"my_skills":RunnablePassthrough(), "job_requirement":RunnablePassthrough()} 
                      | prompt_template
                      | model_parser)
     
     def run_parser():
         try: 
-            response = generator.invoke({"my_skills":my_skills, "required_skills":required_skills, "job_requirement":job_requirement})
+            response = generator.invoke({"my_skills":my_skills,  "job_requirement":job_requirement})
+            print(response)
             return response
         except Exception as e:
             print(e)
@@ -734,25 +731,21 @@ def reformat_resume(template_path, ):
         return s  # If no match is found, return the original string
 
     print("reformatting resume")
-    try:
-        selected_fields = st.session_state["selected_fields"]
-        print(selected_fields)
-        info_dict = st.session_state["profile"]
-        filename = os.path.basename(template_path)
-        templatex = split_at_letter_number(filename)
-        template_type, template_num = templatex[0], templatex[1]
-        # print(template_type, template_num)
-        # output_dir = st.session_state["users_download_path"]
-        # end_path = os.path.join(output_dir, filename)
-    except Exception:
-        return ""
+    selected_fields = st.session_state["selected_fields"]
+    info_dict = st.session_state["profile"]
+    filename = os.path.basename(template_path)
+    templatex = split_at_letter_number(filename)
+    template_type, template_num = templatex[0], templatex[1]
+    # print(template_type, template_num)
+    # output_dir = st.session_state["users_download_path"]
+    # end_path = os.path.join(output_dir, filename)
     if STORAGE=="CLOUD":
         # Download the file content from S3 into memory
         s3_object = s3.get_object(Bucket=bucket_name, Key=template_path)
         template_path = BytesIO(s3_object['Body'].read())
     doc_template = DocxTemplate(template_path)
     context={}
-    if "Contact" in selected_fields:      
+    if "Contact" in selected_fields and info_dict["contact"] is not None:      
         func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
         personal_context = {
             "NAME": func("name", ""),
@@ -764,7 +757,7 @@ def reformat_resume(template_path, ):
             "WEBSITES": func("websites", ""),
         }
         context.update(personal_context)
-    if "Education" in selected_fields:
+    if "Education" in selected_fields and info_dict["education"] is not None:
         func = lambda key, default: default if info_dict["education"][key]=="" or info_dict["education"][key]==[] or info_dict["education"][key]==None else info_dict["education"][key]
         education_context = {
             "show_education":True,
@@ -777,18 +770,18 @@ def reformat_resume(template_path, ):
         }
         context.update(education_context)
     func = lambda key, default: default if info_dict[key]=="" or info_dict[key]==[] or info_dict[key]==None else info_dict[key]
-    if "Summary Objective" in selected_fields:
+    if "Summary Objective" in selected_fields and info_dict["summary_objective"] is not None:
         context.update({"show_summary":True, "SUMMARY": func("summary_objective", ""), 
                          "PURSUIT_JOB": func("pursuit_jobs", ""),})      
-    if "Work Experience" in selected_fields:
+    if "Work Experience" in selected_fields and info_dict["work_experience"] is not None:
          context.update({"show_work_experience":True,"WORK_EXPERIENCE": func("work_experience", "")})
-    if "Skills" in selected_fields:
+    if "Skills" in selected_fields and info_dict["included_skills"] is not None:
         context.update({"show_skills":True,"SKILLS": func("included_skills", ""),})
-    if "Professional Accomplishment" in selected_fields:
+    if "Professional Accomplishment" in selected_fields and info_dict["qualifications"] is not None:
         context.update({"show_pa":True, "PA": func("qualifications", ""),})
-    if "Certifications" in selected_fields:
+    if "Certifications" in selected_fields and info_dict["certifications"] is not None:
         context.update({"show_certifications":True,"CERTIFICATIONS": func("certifications", ""),})
-    if "Projects" in selected_fields:
+    if "Projects" in selected_fields and info_dict["projects"] is not None:
         # context.update({"show_projects":True,"PROJECTS":func("projects", "")})
         # Create RichText objects for each project link
         PROJECTS = info_dict.get("projects", "")
@@ -801,7 +794,7 @@ def reformat_resume(template_path, ):
             context.update({"show_projects":True,
                 'PROJECTS': PROJECTS,
             })
-    if "Awards & Honors" in selected_fields:
+    if "Awards & Honors" in selected_fields and info_dict["awards"] is not None:
         context.update({"show_awards":True,"AWARDS": func("awards", "")})
     # text_box_contents = read_text_boxes(template_path)
     #  # Render each text box template with the context
