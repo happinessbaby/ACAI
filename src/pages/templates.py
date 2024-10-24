@@ -2,7 +2,7 @@ from backend.upgrade_resume import reformat_resume
 # import uuid
 import os
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
-from css.streamlit_css import new_upload_button
+from css.streamlit_css import new_upload_button, primary_button3
 from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
@@ -64,6 +64,7 @@ class Reformat():
         if "selected_fields" not in st.session_state:
             # if "additional_fields" in st.session_state:
             st.session_state["selected_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key not in st.session_state["additional_fields"]]
+            st.session_state["resume_fields"] = st.session_state["selected_fields"]
             print(st.session_state.selected_fields)
         # if "user_save_path" not in st.session_state:
         #     if STORAGE=="CLOUD":
@@ -206,7 +207,9 @@ class Reformat():
                         float_container=st.container()
                         with float_container:
                             # add_vertical_space(10)
-                            if st.button(label="Is this template for me?", key="template_learn_more_button", type="primary"):
+                            st.markdown(primary_button3, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                            if st.button(label="Is this template for me?", key="template_learn_more_button", ):
                                 self.learn_more_popup(st.session_state.selected_idx)
                             with stylable_container(
                                 key="custom_button1_template",
@@ -254,22 +257,30 @@ class Reformat():
     @st.fragment()
     def fields_selection(self, ):
 
-        # index_selected = [idx for idx, val in enumerate(st.session_state["resume_fields"]) if val in st.session_state["selected_fields"]]
         with st.container(border=True):
             st.write("Fields to include in the resume")
-            selected_fields = sac.chip(items=[
-                    sac.ChipItem(label='Contact'),
-                    sac.ChipItem(label='Education'),
-                    sac.ChipItem(label='Summary Objective'),
-                    sac.ChipItem(label='Work Experience'),
-                    sac.ChipItem(label='Skills'),
-                    sac.ChipItem(label='Professional Accomplishment'),
-                    sac.ChipItem(label='Projects'),
-                    sac.ChipItem(label='Certifications'),
-                    sac.ChipItem(label='Awards & Honors'),
-                    sac.ChipItem(label="Licenses"),
-                    sac.ChipItem(label="Hobbies"),
-                ], label=' ', index=st.session_state.selected_fields, align='center', radius='md', multiple=True , variant="light", color= "#47ff5a")
+            items = []
+            index = [idx for idx, value in enumerate(st.session_state.selected_fields)]
+            for field in st.session_state.resume_fields:
+                items.append(sac.ChipItem(label=field))
+            selected_fields = sac.chip(
+                # items=[
+                #     sac.ChipItem(label='Contact'),
+                #     sac.ChipItem(label='Education'),
+                #     sac.ChipItem(label='Summary Objective'),
+                #     sac.ChipItem(label='Work Experience'),
+                #     sac.ChipItem(label='Skills'),
+                #     sac.ChipItem(label='Professional Accomplishment'),
+                #     sac.ChipItem(label='Projects'),
+                #     sac.ChipItem(label='Certifications'),
+                #     sac.ChipItem(label='Awards & Honors'),
+                #     sac.ChipItem(label="Licenses"),
+                #     sac.ChipItem(label="Hobbies"),
+                # ],
+                items=items,
+                  label=' ',
+                    index=index,
+                      align='center', radius='md', multiple=True , variant="outline", color= "#47ff5a")
             _, c1 = st.columns([2, 1])
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
