@@ -59,8 +59,6 @@ delimiter = "####"
 delimiter2 = "'''"
 delimiter3 = '---'
 delimiter4 = '////'
-# feast_repo_path = "/home/tebblespc/Auto-GPT/autogpt/auto_gpt_workspace/my_feature_repo/feature_repo/"
-# store = FeatureStore(repo_path = feast_repo_path)
 
 STORAGE = os.environ["STORAGE"]
 if STORAGE=="CLOUD":
@@ -555,13 +553,13 @@ def research_skills(content: str,  content_type: str, ):
     return create_comma_separated_list_parser(input_variables=["content_type", "content"], base_template=query, query_dict={"content_type":content_type, "content":content})
 
 
-def research_ats_keywords(content:str):
+def research_ats_keywords(content:str, type:str):
     """ Finds ATS friendly words from job postings"""
 
-    query = """Act as a Application Tracking System. Research ATS keywords from the job posting and output the top 10 ATS keywords.
+    query = """Act as a Application Tracking System. Research ATS keywords and phrases from the job posting and output the 10 {type} keywords and phrases. 
     job posting content: {content}
     """
-    return create_comma_separated_list_parser(input_variables=["content"], base_template=query, query_dict={"content":content})
+    return create_comma_separated_list_parser(input_variables=["content", "type"], base_template=query, query_dict={"content":content, "type":type})
 
 def calculate_work_experience_years(start_date, end_date) -> int:
      
@@ -890,10 +888,10 @@ def create_resume_info(resume_path, q, ):
 
 def create_job_posting_info(posting_path, about_job, q, ):
 
-    # job_posting = posting_path if posting_path else about_job[:50]
+
     job_posting_info_dict = {"content":"", "skills":[], 
                              "job":"", "about_job":"", "company":"", "company_description":"",
-                               "qualifications":[], "responsibilities":[], "salary":"", "location":"", "keywords":[]}
+                               "qualifications":[], "responsibilities":[], "salary":"", "location":"", "skills_keywords":[], "experience_keywords":[]}
     #NOTE: prioritizes content of job posting link over job description in case both are uploaded
     if posting_path:
         posting = read_file(posting_path)
@@ -915,11 +913,6 @@ def create_job_posting_info(posting_path, about_job, q, ):
         basic_info_dict = create_pydantic_parser(posting, Keywords)
         if basic_info_dict:
             job_posting_info_dict.update(basic_info_dict)
-        # else:
-        #     basic_info_dict = {"job":"", "about_job":"", "company":"", "company_description":"", "qualifications":[], "responsibilities":[], "salary":"", "on_site":None}
-            # job_posting_info_dict.update(basic_info_dict)
-        # Research soft and hard skills required
-        # job_posting_skills = asyncio_run(lambda: research_skills(posting, "job posting"), timeout=10, max_try=1)
         job_posting_skills = research_skills(posting, "job posting")
         job_posting_info_dict.update({"skills":job_posting_skills} if job_posting_skills else {"skills":[]})
         # Research company
@@ -932,8 +925,10 @@ def create_job_posting_info(posting_path, about_job, q, ):
             company_description = get_web_resources(company_query, engine="agent")
             if company_description:
                 job_posting_info_dict.update({"company_description": company_description})
-        keywords = research_ats_keywords(posting)
-        job_posting_info_dict.update({"keywords":keywords} if keywords else {"keywords":[]})
+        skills_keywords = research_ats_keywords(posting, "skills")
+        job_posting_info_dict.update({"skills_keywords":skills_keywords} if skills_keywords else {"skills_keywords":[]})
+        experience_keywords = research_ats_keywords(posting, "experience")
+        job_posting_info_dict.update({"experience_keywords":experience_keywords} if experience_keywords else {"experience_keywords":[]})
         # print(job_posting_info_dict)
     # Write dictionary to JSON (TEMPORARY SOLUTION)
     # if STORAGE=="LOCAL":
@@ -1046,31 +1041,7 @@ def process_links(links, save_path,  to_tmp=True):
     return None
   
 
-    
-    
-# class FeastPromptTemplate(StringPromptTemplate):
-#     def format(self, **kwargs) -> str:
-#         userid = kwargs.pop("userid")
-#         feature_vector = store.get_online_features(
-#             features=[
-#                 "resume_info:name",
-#                 "resume_info:email",
-#                 "resume_info:phone",
-#                 "resume_info:address",
-#                 "resume_info:job_title", 
-#                 "resume_info:highest_education_level",
-#                 "resume_info:work_experience_level",
-#             ],
-#             entity_rows=[{"userid": userid}],
-#         ).to_dict()
-#         kwargs["name"] = feature_vector["name"][0]
-#         kwargs["email"] = feature_vector["email"][0]
-#         kwargs["phone"] = feature_vector["phone"][0]
-#         kwargs["address"] = feature_vector["address"][0]
-#         kwargs["job_title"] = feature_vector["job_title"][0]
-#         kwargs["highest_education_level"] = feature_vector["highest_education_level"][0]
-#         kwargs["work_experience_level"] = feature_vector["work_experience_level"][0]
-#         return prompt.format(**kwargs)
+
 
 
 def shorten_content(file_path: str, file_type: str) -> str:

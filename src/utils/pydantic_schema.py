@@ -5,22 +5,22 @@ from typing import Any, List, Union, Dict, Optional, Set
 
  #NOTE: ALL NESTED PYDANTIC FIELDS ARE IN ALPHABETIC ORDER FOR THE SCHEMA VALIDATION
 class Job(BaseModel):
-    company: Optional[str] = Field(
+    company: str = Field(
         default="", description = "the company of the job position where the person worked"
     )
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
       default=[], description = """description of the responsibilities and roles of the job experience, please list them verbatim"""
       )
-    end_date: Optional[str] = Field(
+    end_date: str = Field(
       default="", description = "the end date of this job experience if available"
       )
-    location: Optional[str] = Field(
+    location: str = Field(
         default="", description="the location where the candidate worked for this job position"
     )
-    start_date: Optional[str] = Field(
+    start_date: str = Field(
       default="", description = "the start date of this job experinece if available"
       )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description="the job position, this needs to be a work experience"
         )
 class Jobs(BaseModel):
@@ -33,68 +33,68 @@ class Jobs(BaseModel):
 
 
 class Contact(BaseModel):
-    city: Optional[str]= Field(
+    city: str= Field(
         default="", description="city of the candidate on the resume"
         )
-    email: Optional[str]=Field(
+    email: str=Field(
         default="", description="email of the candidate on the resume"
     )
-    linkedin: Optional[str] = Field(
+    linkedin: str = Field(
         default="", description="linkedin address on the resume"
         )
-    name: Optional[str] = Field(
+    name: str = Field(
         default="", description="name of the candidate on the resume"
     )
-    phone: Optional[str]=Field(
+    phone: str=Field(
         default="", description="phone number of the candidate on the resume"
         )
-    state: Optional[str] = Field(
+    state: str = Field(
         default="", description="state of the candidate on the resume"
         )
-    websites: Optional[str]=Field(
+    websites: str=Field(
         default="", description="other website addresses besides linkedin on the resume"
         )
         
 class Education(BaseModel):
-    coursework: Optional[List[str]] = Field(
+    coursework: List[str] = Field(
         default=[], description = "the courseworks studied while attending the highest degree of education. "
     )
-    degree: Optional[str] = Field(
+    degree: str = Field(
         default="", description="the highest degree of education. THIS SHOULD NOT BE A CERTIFICATION. "
     )
-    gpa:Optional[str] = Field(
+    gpa: str = Field(
         default="", description="the gpa of the highest degree of graduation. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
-    graduation_year:Optional[str] = Field(
+    graduation_year: str = Field(
         default="", description="the year of graduation from the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
-    institution: Optional[str] = Field(
+    institution: str = Field(
         default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
-    study: Optional[str] = Field(
+    study: str = Field(
         default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
 
 class Project(BaseModel):
-    company: Optional[str] = Field(
+    company: str = Field(
         default="", description = "the company under which the project took place in"
     )
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
         default=[], description = "details about the project, including the roles, accomplishments, metrics, etc. Include all details."
     )
-    end_date: Optional[str] = Field(
+    end_date: str = Field(
       default="", description = "the end date of the project, if available"
       )
-    link: Optional[str] = Field(
+    link:str = Field(
         default="", description = "an external link to the project"
     )
-    location: Optional[str] = Field(
+    location: str = Field(
         default="", description="the location where the took place in"
     )
-    start_date: Optional[str] = Field(
+    start_date: str = Field(
       default="", description = "the start date of the project, if available"
       )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description="the name of the project, can be a personal or work-related project, examples include coding project, art project, construction project, etc."
     )
 
@@ -105,10 +105,10 @@ class Projects(BaseModel):
     )
 
 class Award(BaseModel):
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
         default=[], description = "any description of the award or honor"
     )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description = """the title of the award or honor
         """    
     )
@@ -116,32 +116,32 @@ class Awards(BaseModel):
     awards: List[Award]
 
 class Certification(BaseModel):
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
         default=[], descripton = "description of the certification,  excluding issue date and issue organization, usually listed after title, issue date, and/or issue organization"
     )
-    issue_date: Optional[str] = Field(
+    issue_date: str = Field(
         default="", description="the issuing date of the certification"
     )
-    issue_organization: Optional[str] = Field(
+    issue_organization: str = Field(
         default="", description ="the industry-specific organization or professional body that issued the certification"
     )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description="""title of the certification """
     )
 class Certifications(BaseModel):
     certifications: List[Certification]
 
 class License(BaseModel):
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
         default=[], description = "description of the license, excluding issue date and issue organization, usually listed after title, issue date, and/or issue organization"
     )
-    issue_date: Optional[str] = Field(
+    issue_date: str = Field(
         default="", description="the issuing date of the license"
     )
-    issue_organization: Optional[str] = Field(
+    issue_organization: str = Field(
         default="", description ="the government organization or professional body that issued the occupational license"
     )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description="""the title of the occupational license"""
     )
 class Licenses(BaseModel):
@@ -162,11 +162,11 @@ class SpecialFieldGroup1(BaseModel):
     )
 
 class Qualification(BaseModel):
-    description: Optional[List[str]] = Field(
+    description: List[str] = Field(
         default=[], description = """description of the qualification, such as details of accomplishments, skills that may include responsibilities, metrics, etc.
         Include all details. """
     )
-    title: Optional[str] = Field(
+    title: str = Field(
         default="", description = "The name of the skill or qualification"
     )
 class Qualifications(BaseModel):
@@ -176,13 +176,13 @@ class Qualifications(BaseModel):
     )
 
 class Skill(BaseModel):
-    example:Optional[str] = Field(
+    example:str = Field(
         default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
     )
-    skill:Optional[str] = Field(
+    skill:str = Field(
         default="", description="a skill"
     )
-    type: Optional[str] = Field(
+    type:str = Field(
         default="", description="categorize the skill into 'hard skill' or 'soft skill' "
     )
 
@@ -256,71 +256,71 @@ class Keywords(BaseModel):
     # 2. Each field has a `description` -- this description is used by the LLM.
     # Having a good description can help improve extraction results.
 
-    job: Optional[str] = Field(
+    job: str = Field(
         default="", description="job position listed in the job posintg"
     )
-    about_job: Optional[str] = Field(
+    about_job: str = Field(
         default="", description = "information about the job, usually listed at the top of the job posting"
     )
-    company: Optional[str] = Field(
+    company: str = Field(
         default="", description = "name of the company or institution that's hiring"
     )
-    company_description: Optional[str] = Field(
+    company_description: str = Field(
         default = "", description="information about the company that's hiring"
     )
-    qualifications: Optional[List[str]] = Field(
+    qualifications: List[str] = Field(
         default=[], description="Traits or qualifications sought in a candidate"
     )
-    responsibilities: Optional[List[str]] = Field(
+    responsibilities: List[str] = Field(
         default=[], description="Duties and responsibilities for the job position"
     )
-    salary: Optional[str] = Field(
+    salary: str = Field(
         default="", description = "salary or salary range offered for the job, can be annually or hourly"    
     )
-    location: Optional[str] = Field(
+    location: str = Field(
         default="", description = "job location, can be remote, hybrid, or somewhere specific"
     )
 
 
 class Comparison(BaseModel):
-    closeness: Optional[str] = Field(
+    closeness: str = Field(
         default="", description = """closeness classified in the text, 
         should be one of the following metrics only: ["no similarity", "some similarity", "very similar"]"""
     )
-    reason: Optional[str] = Field(
+    reason: str = Field(
         default="", description = "the reason provided for the classification in the text"
     )
 
 class Language(BaseModel):
-    rating: Optional[str] = Field(
+    rating: str = Field(
         default="", description="""rating identified in the text, should be one of the following metrics: ["poor", "good", "excellent"]"""
     )
-    reason: Optional[str] = Field(
+    reason: str = Field(
         default="", description = "the reason provided for the rating in the text"
     )
 
 class ResumeType(BaseModel):
-    type: Optional[str] = Field(
+    type: str = Field(
         default="", description="type of resume, should be functional, chronological, or mixed "
     )
 
 class SkillsRelevancy(BaseModel):
-    irrelevant_skills:Optional[List[str]] = Field(
+    irrelevant_skills:List[str] = Field(
         default=[], description="irrelevant skills, found in content labeled in Step 1, these are skills that can be excluded from the resume"
     )
-    relevant_skills: Optional[List[str]] = Field(
+    relevant_skills: List[str] = Field(
         default=[], description="relevant skills, found in content labeled in Step 2, these are skills in the resume that are also in the job description "
     )
-    transferable_skills: Optional[List[str]] = Field(
+    transferable_skills: List[str] = Field(
         default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
     )
  
 
 class Replacement(BaseModel):
-    replaced_words: Optional[str] = Field(
+    replaced_words: str = Field(
         default="", description="word or phrases to be replaced or subsituted"
     )
-    substitution: Optional[str] = Field(
+    substitution: str = Field(
         default="", description = "the substitution"
     )
 class Replacements(BaseModel):
@@ -329,10 +329,10 @@ class Replacements(BaseModel):
     )
 
 class MatchResumeJob(BaseModel):
-    evaluation: Optional[str] = Field(
+    evaluation: str = Field(
         default="", description= "found in Step 1, this is an evaluation of how a resume field compares to a job description"
     )
-    percentage: Optional[int] = Field(
+    percentage: int = Field(
         default=0, description = "found in Step 2, this is a percentage comparison, output the number without percentage sign, for example, if it's 80%, output 80"
     )
     
@@ -360,22 +360,22 @@ class ResumeUsers(BaseModel):
     # resume_content: str = func.SourceField() 
     # vector: Vector(func.ndims()) = func.VectorField(default=None)
     awards: Optional[List[Award]]
-    certifications: Optional[List[Certification]] = Field(..., description="List of certifications")
+    certifications: Optional[List[Certification]]
     contact: Contact
     education: Education
     hobbies: Optional[List[str]]
     included_skills: Optional[List[str]]
     industry: Optional[str]
     licenses: Optional[List[License]]
-    projects: Optional[List[Project]] = Field(..., description="List of projects")
+    projects: Optional[List[Project]]
     pursuit_jobs: Optional[str]
     qualifications: Optional[List[Qualification]]
     resume_content: str
-    resume_path: str = Field(..., description="path to the resume")
-    suggested_skills: Optional[List[str]] = Field(..., description="List of skills not in resume but suggested by AI to include")
+    resume_path: str 
+    suggested_skills: Optional[List[str]]
     summary_objective: Optional[str]
-    user_id: str = Field(..., description="ID of user")
-    work_experience: Optional[List[Job]] = Field(..., description="List of jobs")
+    user_id: str 
+    work_experience: Optional[List[Job]] 
     # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
     
 
@@ -393,7 +393,8 @@ class JobTrackingUsers(BaseModel):
     company_description: Optional[str]
     qualifications: Optional[List[str]]
     responsibilities: Optional[List[str]] 
-    keywords: Optional[List[str]]
+    skills_keywords: Optional[List[str]]
+    experience_keywords: Optional[List[str]]
     salary: Optional[str] 
     location: Optional[str] 
     cover_letter_path: Optional[str]

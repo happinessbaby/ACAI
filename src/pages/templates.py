@@ -2,7 +2,7 @@ from backend.upgrade_resume import reformat_resume
 # import uuid
 import os
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
-from css.streamlit_css import new_upload_button
+from css.streamlit_css import new_upload_button, primary_button3
 from streamlit_image_select import image_select
 from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
 from streamlit_float import *
@@ -28,15 +28,13 @@ if STORAGE=="CLOUD":
     template_path = os.environ["S3_RESUME_TEMPLATE_PATH"]
 elif STORAGE=="LOCAL":
     template_path = os.environ["RESUME_TEMPLATE_PATH"]
-lance_users_table_current = os.environ["LANCE_USERS_TABLE_TAILORED"]
+# lance_users_table_current = os.environ["LANCE_USERS_TABLE_TAILORED"]
 # pages = get_pages("")
 # NOTE: GOINT WITH OPTION 2 FOR NOW 
 # option=2
 # menu_placeholder=st.empty()
 # progressbar_placeholder=st.empty()
 # template_placeholder = st.empty()
-
-# st.logo("./resources/logo_acareerai.png")
 
 
 class Reformat():
@@ -59,9 +57,13 @@ class Reformat():
             if not st.session_state["userId"]:
                 st.switch_page("pages/user.py")
         if "profile" not in st.session_state:
-            st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
+            # st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
+            st.switch_page('pages/user.py')
         if "selected_fields" not in st.session_state:
-            st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
+            # if "additional_fields" in st.session_state:
+            st.session_state["selected_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key not in st.session_state["additional_fields"]]
+            st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(st.session_state["selected_fields"])}
+            print(st.session_state.selected_fields)
         # if "user_save_path" not in st.session_state:
         #     if STORAGE=="CLOUD":
         #         st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -121,11 +123,14 @@ class Reformat():
                     with Pool() as pool:
                         st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
                     if st.session_state["formatted_docx_paths"]:
-                        # if option==1:s
-                            with Pool() as pool:
-                                result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-                            st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-                            st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
+                        print(st.session_state["formatted_docx_paths"])
+                    # if option==1:s
+                        with Pool() as pool:
+                            result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                        st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                        st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
+                    else:
+                        return False
                         # if option==2:
                             # with Pool() as pool:
                             #     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
@@ -134,9 +139,7 @@ class Reformat():
         except Exception as e:
             print(e)
             return False
-        # else:
-        #     print("skip reformating")
-        #     return True
+
 
 
     @st.fragment()
@@ -171,10 +174,6 @@ class Reformat():
                 with nxt_col:
                     add_vertical_space(5)
                     nxt = st.button("🞂", key="next_template_button", on_click=self.callback, args=("next", ))
-                    # if nxt:
-                    #     if st.session_state["selected_idx"]!=len(previews)-1:
-                    #         st.session_state["selected_idx"]+=1
-                    #         st.rerun()
                 # st.image(st.session_state["image_paths"][selected_idx])
             # if option==2:
             # with template_col:
@@ -206,7 +205,9 @@ class Reformat():
                         float_container=st.container()
                         with float_container:
                             # add_vertical_space(10)
-                            if st.button(label="Is this template for me?", key="template_learn_more_button", type="primary"):
+                            st.markdown(primary_button3, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                            if st.button(label="Is this template for me?", key="template_learn_more_button", ):
                                 self.learn_more_popup(st.session_state.selected_idx)
                             with stylable_container(
                                 key="custom_button1_template",
@@ -254,25 +255,30 @@ class Reformat():
     @st.fragment()
     def fields_selection(self, ):
 
-        if "resume_fields" not in st.session_state:
-            st.session_state["resume_fields"] = ['Contact', 'Education', 'Summary Objective', 'Work Experience', 'Skills', 'Professional Accomplishment', 'Projects', 'Certifications', 'Awards & Honors']
-        if "selected_fields" in st.session_state:
-            index_selected = [idx for idx, val in enumerate(st.session_state["resume_fields"]) if val in st.session_state["selected_fields"]]
-        else:
-            index_selected = [0, 1, 2, 3]
         with st.container(border=True):
             st.write("Fields to include in the resume")
-            selected_fields = sac.chip(items=[
-                    sac.ChipItem(label='Contact'),
-                    sac.ChipItem(label='Education'),
-                    sac.ChipItem(label='Summary Objective'),
-                    sac.ChipItem(label='Work Experience'),
-                    sac.ChipItem(label='Skills'),
-                    sac.ChipItem(label='Professional Accomplishment'),
-                    sac.ChipItem(label='Projects'),
-                    sac.ChipItem(label='Certifications'),
-                    sac.ChipItem(label='Awards & Honors'),
-                ], label=' ', index=index_selected, align='center', radius='md', multiple=True , variant="light", color= "#47ff5a")
+            items = []
+            index = [idx for field, idx in st.session_state.resume_fields_dict.items() if field in st.session_state["selected_fields"]]
+            for field, idx in st.session_state.resume_fields_dict.items():
+                items.append(sac.ChipItem(label=field))
+            selected_fields = sac.chip(
+                # items=[
+                #     sac.ChipItem(label='Contact'),
+                #     sac.ChipItem(label='Education'),
+                #     sac.ChipItem(label='Summary Objective'),
+                #     sac.ChipItem(label='Work Experience'),
+                #     sac.ChipItem(label='Skills'),
+                #     sac.ChipItem(label='Professional Accomplishment'),
+                #     sac.ChipItem(label='Projects'),
+                #     sac.ChipItem(label='Certifications'),
+                #     sac.ChipItem(label='Awards & Honors'),
+                #     sac.ChipItem(label="Licenses"),
+                #     sac.ChipItem(label="Hobbies"),
+                # ],
+                items=items,
+                  label=' ',
+                    index=index,
+                      align='center', radius='md', multiple=True , variant="outline", color= "#47ff5a")
             _, c1 = st.columns([2, 1])
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
