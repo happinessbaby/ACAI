@@ -780,6 +780,7 @@ def reformat_resume(template_path, ):
     if "Professional Accomplishment" in selected_fields and info_dict["qualifications"] is not None:
         context.update({"show_pa":True, "PA": func("qualifications", ""),})
     if "Certifications" in selected_fields and info_dict["certifications"] is not None:
+        print(info_dict["certifications"])
         context.update({"show_certifications":True,"CERTIFICATIONS": func("certifications", ""),})
     if "Projects" in selected_fields and info_dict["projects"] is not None:
         # context.update({"show_projects":True,"PROJECTS":func("projects", "")})

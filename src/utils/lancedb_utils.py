@@ -354,10 +354,10 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False, de
     
     """
 
-    if convert_content:
-        data = convert_profile_to_resume(data)
-        # print(data)
     try:
+        if convert_content:
+            data = convert_profile_to_resume(data)
+        # print(data)
     #   NOTE: currently does not support nested colunmn update, so need to delete the row and append it again
         if delete_user:
             delete_user_from_table(userId, tablename)
@@ -368,7 +368,8 @@ def save_user_changes(userId, data, schema, tablename, convert_content=False, de
         add_to_lancedb_table(tablename, [data], schema=schema)
         print(f"Successsfully saved {tablename} to lancedb")
     except Exception as e:
-        raise e
+        print(e)
+        pass
     
 def convert_profile_to_resume(profile):
 

@@ -35,8 +35,6 @@ elif STORAGE=="LOCAL":
 # menu_placeholder=st.empty()
 # progressbar_placeholder=st.empty()
 # template_placeholder = st.empty()
-# all_fields=["contact", "education", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
-# display_fields = ['Contact', 'Education', "Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
 
 
 class Reformat():
@@ -64,7 +62,7 @@ class Reformat():
         if "selected_fields" not in st.session_state:
             # if "additional_fields" in st.session_state:
             st.session_state["selected_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key not in st.session_state["additional_fields"]]
-            st.session_state["resume_fields"] = st.session_state["selected_fields"]
+            st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(st.session_state["selected_fields"])}
             print(st.session_state.selected_fields)
         # if "user_save_path" not in st.session_state:
         #     if STORAGE=="CLOUD":
@@ -260,8 +258,8 @@ class Reformat():
         with st.container(border=True):
             st.write("Fields to include in the resume")
             items = []
-            index = [idx for idx, value in enumerate(st.session_state.selected_fields)]
-            for field in st.session_state.resume_fields:
+            index = [idx for field, idx in st.session_state.resume_fields_dict.items() if field in st.session_state["selected_fields"]]
+            for field, idx in st.session_state.resume_fields_dict.items():
                 items.append(sac.ChipItem(label=field))
             selected_fields = sac.chip(
                 # items=[
