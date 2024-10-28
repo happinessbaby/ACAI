@@ -179,12 +179,20 @@ class Hobbies(BaseModel):
     description: List[str] = Field(
         default=[], description = "a list of hobbies"
     )
-
+    
     # @model_validator(mode="before")
     # def replace_none_with_empty_list(cls, values):
     #     if values.get("description") is None:
     #         values["description"] = []
     #     return values
+
+class CustomField(BaseModel):
+    description: Optional[List[str]]
+    title: Optional[str]
+    date: Optional[str]
+
+# class CustomFields(BaseModel):
+#     fields: List[CustomField]
 
 
 
@@ -402,7 +410,7 @@ class ResumeUsers(BaseModel):
     user_id: str # primary key
     work_experience: Optional[List[Job]] 
     # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
-    
+    # custom_fields: Optional[List[CustomField]]
 
 
 class JobTrackingUsers(BaseModel):

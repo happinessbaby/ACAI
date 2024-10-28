@@ -652,8 +652,8 @@ class User():
         st.session_state["update_template"]=True
         st.session_state["profile_changed"]=True
         st.session_state["show"]=False
-        for field in st.session_state["additional_fields"]:
-            self.delete_session_states([f"{field}_add_button"])
+        # for field in st.session_state["additional_fields"]:
+        #     self.delete_session_states([f"{field}_add_button"])
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -675,8 +675,8 @@ class User():
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
         st.session_state["show"]=False
-        for field in st.session_state["additional_fields"]:
-            self.delete_session_states([f"{field}_add_button"])
+        # for field in st.session_state["additional_fields"]:
+        #     self.delete_session_states([f"{field}_add_button"])
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
         st.session_state["profile_changed"]=True
@@ -1575,9 +1575,7 @@ class User():
                 st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]            
         def show_hide():
             st.session_state.show = not st.session_state.show
-            for field in st.session_state["additional_fields"]:
-                self.delete_session_states([f"{field}_add_button"])
-
+          
         eval_col, profile_col, tailor_col = st.columns([1, 4, 2])   
         # self.save_session_profile()
         with tailor_col:
@@ -1860,9 +1858,10 @@ class User():
                         fields_grid = grid([1, 1, 1], vertical_align="center" )
                         for field in st.session_state["additional_fields"]:
                             label, icon = st.session_state.fields_dict[field]
-                            if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
-                                st.session_state["additional_fields"].remove(field)
-                                st.rerun()
+                            if f"{field}_add_button" not in st.session_state:
+                                if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
+                                    st.session_state["additional_fields"].remove(field)
+                                    st.rerun()
             st.divider()
         # the menu container
             _, menu_col, _ = st.columns([1, 1, 1])   
