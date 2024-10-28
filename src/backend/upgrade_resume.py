@@ -2,7 +2,7 @@ import os
 import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from utils.basic_utils import count_length
-from utils.common_utils import search_related_samples,  extract_similar_jobs, suggest_transferable_skills
+from utils.common_utils import search_related_samples,  extract_similar_jobs
 from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
@@ -469,22 +469,22 @@ def tailor_skills( my_skills, job_requirement, timeout=10):
 
     Step 1: Make a list of irrelevant skills that can be excluded from the resume based on the skills in the job requirements.
     
-    These are skills that are in the resume that do not align with the requirement of the job description. 
+    These are skills that are in the resume that do not align with the requirement of the job description. Keep in mind some skills are transferable skills and they should still be relevant.
     
     Step 2: Make a list of skills in the resume that are most relevant to the skills wanted in the job description. 
 
     These are usally skills that exist in both the resume and job posting. 
 
-    Step 3: Make a list of transferable skills based on the resume and job description. 
-
-    These are the skills that can be transferred from one job to another, and they should not already exist in the reusme. 
 
     Output using the following format:
-        Step 1: <step 1 result>
-        Step 2: <step 2 result>
-        Step 3: <step 3 result>
+        Step 1: <step 1 reasoning and answer>
+        Step 2: <step 2 reasoning and answer>
 
     """ 
+    # Step 3: Make a list of transferable skills based on the resume and job description. 
+
+    # These are the skills that can be transferred from one job to another, and they should not already exist in the reusme. 
+        # Step 3: <step 3 result>
 
     prompt_template = ChatPromptTemplate.from_template(skills_prompt)
     prompt = ChatPromptTemplate.from_messages(
@@ -780,7 +780,6 @@ def reformat_resume(template_path, ):
     if "Professional Accomplishment" in selected_fields and info_dict["qualifications"] is not None:
         context.update({"show_pa":True, "PA": func("qualifications", ""),})
     if "Certifications" in selected_fields and info_dict["certifications"] is not None:
-        print(info_dict["certifications"])
         context.update({"show_certifications":True,"CERTIFICATIONS": func("certifications", ""),})
     if "Projects" in selected_fields and info_dict["projects"] is not None:
         # context.update({"show_projects":True,"PROJECTS":func("projects", "")})

@@ -6,10 +6,9 @@ from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, a
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, delete_job_from_table, save_job_posting_changes
-from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
+from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker, suggest_skills, research_skills
 from utils.basic_utils import mk_dirs, send_recovery_email, change_hex_color
 from typing import Any, List
-from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -138,8 +137,6 @@ class User():
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-            # if "count" not in st.session_state:
-            #     st.session_state["count"]=0
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
             if "evaluation" not in st.session_state:
@@ -149,13 +146,15 @@ class User():
             if "tracker" not in st.session_state:
                 st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
                 if st.session_state["tracker"]:
-                    st.session_state["current_idx"]= len(st.session_state["tracker"])-1
+                    last_edit = sorted(st.session_state["tracker"],  key=lambda x: x["last_edit_time"], reverse=True)[0]["last_edit_time"]
+                    print(last_edit)
+                    st.session_state["current_idx"]=next((i for i, item in enumerate(st.session_state["tracker"]) if item.get("last_edit_time") == last_edit), -1)
+                    print(st.session_state["current_idx"])
+                    # NOTE: job_posting_dict is a session copy of the job posting on display
                     st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
                     st.session_state["tailor_color"] = st.session_state["job_posting_dict"]["color"]
             if "tracker_schema" not in st.session_state:
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
-            # if "selected_fields" not in st.session_state:
-            #     st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
             # if "init_templates" not in st.session_state:
             #     scheduler = BackgroundScheduler()
             #     scheduler.start()
@@ -653,8 +652,8 @@ class User():
         st.session_state["update_template"]=True
         st.session_state["profile_changed"]=True
         st.session_state["show"]=False
-        # for field in st.session_state["additional_fields"]:
-        #     self.delete_session_states([f"{field}_add_button"])
+        for field in st.session_state["additional_fields"]:
+            self.delete_session_states([f"{field}_add_button"])
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -676,8 +675,8 @@ class User():
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
         st.session_state["show"]=False
-        # for field in st.session_state["additional_fields"]:
-        #     self.delete_session_states([f"{field}_add_button"])
+        for field in st.session_state["additional_fields"]:
+            self.delete_session_states([f"{field}_add_button"])
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
         st.session_state["profile_changed"]=True
@@ -748,6 +747,10 @@ class User():
 
         @st.fragment
         def get_display():
+
+            if st.session_state["profile"]["included_skills"] is None:
+                st.session_state["profile"]["included_skills"]=[]
+                st.session_state["profile_changed"]=True
             c1, c2=st.columns([1, 1])
             with c1:
                 with st.container(border=True):
@@ -773,21 +776,47 @@ class User():
                                 if st.button("Rearrange", key="rearrange_skills_button", ):
                                     self.rearrange_skills_popup()
 
-                    with stylable_container(key="custom_skills_button",
-                            css_styles=included_skills_button,
-                    ):
-                        included_grid=grid([1, 1, 1])
-                        for idx, skill in enumerate(self.skills_set):
-                            x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),)
+                    # with stylable_container(key="custom_skills_button",
+                    #         css_styles=included_skills_button,
+                    # ):
+                    included_grid=grid([1, 1, 1])
+                    for idx, skill in enumerate(self.skills_set):
+                        x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ), type="primary")
             with c2:
-                st.write("**Suggested skills to include:**")
-                with stylable_container(key="custom_skills_button2",
-                            css_styles=suggested_skills_button,
-                    ):
-                    suggested_grid = grid([1, 1, 1])
-                    for idx, skill in enumerate(self.generated_skills_set):
-                        y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-                st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ))
+                c3, c4 = st.columns([3, 1])
+                with c3:
+                    st.write("**Suggested skills**")
+                with c4:
+                    with stylable_container(
+                            key="custom_rearrange_skills_button",
+                            css_styles="""
+                                button {
+                                    background: none;
+                                    border: none;
+                                    color: #ff8247;
+                                    padding: 0;
+                                    cursor: pointer;
+                                    font-size: 12px; 
+                                    text-decoration: none;
+                                }
+                            """,
+                        ):
+                        if st.button("Refresh", key="refresh_suggested_skills_button", ):
+                            if st.session_state["selection"]=="default" or st.session_state["tracker"] is None:
+                                suggested_skills =list(set(research_skills(st.session_state["profile"]["resume_content"], "resume")))
+                            else:
+                                suggested_skills = list(set(suggest_skills(st.session_state["profile"]["resume_content"], st.session_state["tracker"][st.session_state.current_idx]["content"])))
+                            st.session_state["profile"]["suggested_skills"]=suggested_skills
+                            st.session_state["profile_changed"]=True
+                            self.generated_skills_set = suggested_skills
+                            # st.rerun()
+                # with stylable_container(key="custom_skills_button2",
+                #             css_styles=suggested_skills_button,
+                #     ):
+                suggested_grid = grid([1, 1, 1])
+                for idx, skill in enumerate(self.generated_skills_set):
+                    y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),  type="primary")
+                st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ),)
             
         def skills_callback(idx, skill):
             try:
@@ -971,6 +1000,7 @@ class User():
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","link":"","location":"","start_date":"", "title":""})
+        
         
         
         def delete_container(placeholder, idx):
@@ -1244,11 +1274,11 @@ class User():
                                 try:
                                     irrelevant_skills = ", ".join(tailoring.get("irrelevant_skills", ""))
                                     relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
-                                    transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
+                                    # transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
                                     st.write("Here are some tailoring suggestions")
                                     st.write(f"**Skills that can be ranked higher**: {relevant_skills}")
                                     st.write(f"**Skills that can be removed**: {irrelevant_skills}")
-                                    st.write(f"**Skills that can be added**: {transferable_skills}")
+                                    # st.write(f"**Skills that can be added**: {transferable_skills}")
                                     st.write("Rearrange and edit your skills for maximum resume-job alignment")
                                 except Exception as e:
                                     pass        
@@ -1394,13 +1424,15 @@ class User():
                 st.session_state["job_posting_dict"].update({"match":match["percentage"]})
             else:
                 st.session_state["job_posting_dict"].update({"match":-1})
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else "", 
                                                          "user_id": st.session_state.userId, 
-                                                         "color": "#ffffff", 
+                                                         "color": "#ff9747", 
                                                          "cover_letter_path": "",
                                                            "applied": False, 
-                                                           "time":datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                                                           "profile":st.session_state["profile"]})
+                                                           "time":now, 
+                                                           "profile":st.session_state["profile"], 
+                                                           "last_edit_time":now})
             save_job_posting_changes(st.session_state.userId, st.session_state["job_posting_dict"], st.session_state["tracker_schema"], lance_tracker_table,)
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             st.session_state["current_idx"]= len(st.session_state["tracker"])-1
@@ -1505,15 +1537,22 @@ class User():
                     if st.session_state["profile"][field]:
                         self.display_field_analysis(field_name=field, details=st.session_state["profile"][field])
                 elif field=="hobbies":
-                    if st.session_state["profile"]["hobbies"] is not None:
-                        hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
-                    else:
-                        hobbies = ""
-                        st.session_state["profile"]["hobbies"] = []
-                        st.session_state["profile_changed"] = True
-                    if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
-                        st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile-hobbies else []
-                        st.session_state["profile_changed"] = True
+                    hobbies = st.session_state["profile"]["hobbies"]
+                    if hobbies is None:
+                        st.session_state["profile"]["hobbies"]={}
+                        st.session_state["profile"]["hobbies"].update({"description":[]})
+                        st.session_state["profile_changed"]=True
+                    get_display=self.display_field_details(field, -1, "description", "bullet_points")
+                    get_display()
+                    # if st.session_state["profile"]["hobbies"] is not None:
+                    #     hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
+                    # else:
+                    #     hobbies = ""
+                    #     st.session_state["profile"]["hobbies"] = []
+                    #     st.session_state["profile_changed"] = True
+                    # if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
+                    #     st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile_hobbies else []
+                    #     st.session_state["profile_changed"] = True
         def job_applied_callback():
             applied = st.session_state["job_applied_toggle"]
             value = {"applied": applied}
@@ -1524,13 +1563,13 @@ class User():
             if applied:
                 print("APPLIED")
                 #TODO: balloons not working properly
-                st.balloons()   
+                # st.balloons()   
         def delete_job_callback():
             timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
             delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
-                self.delete_session_states(["job_posting_dict"])
+                self.delete_session_states(["job_posting_dict", "color_picker", "job_applied_toggle"])
             else:
                 st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
                 st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]            
@@ -1686,7 +1725,7 @@ class User():
                                     # color = change_hex_color(color, mode="darken")
                                     # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
                                     # st.markdown(keywords_display, unsafe_allow_html=True)
-                                    st.write(f"**ATS skills keywords**: :rainbow[{keywords}]")
+                                    st.write(f"**ATS skills keywords**: {keywords}")
                                 if experience_keywords:
                                     # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS experience keywords:</p>'
                                     # st.markdown(text, unsafe_allow_html=True)
@@ -1695,7 +1734,7 @@ class User():
                                     # color = change_hex_color(color, mode="darken", percentage=0.5)
                                     # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
                                     # st.markdown(keywords_display, unsafe_allow_html=True)
-                                    st.write(f"**ATS experience keywords**: :rainbow[{keywords}]")
+                                    st.write(f"**ATS experience keywords**: {keywords}")
                                 if match:
                                     # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
                                     # st.markdown(text, unsafe_allow_html=True)
@@ -1759,6 +1798,10 @@ class User():
                         st.session_state["profile_changed"] = True
             with c2:
                 with st.expander(label="Education", icon=":material/school:"):
+                    institution = st.session_state["profile"]["education"]["institution"]
+                    if st.text_input("Institution", value=institution, key="profile_institution", placeholder="Institution", label_visibility="collapsed")!=institution:
+                        st.session_state["profile"]["education"]["institution"]=st.session_state.profile_institution
+                        st.session_state["profile_changed"] = True
                     degree = st.session_state["profile"]["education"]["degree"]
                     if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
                         st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
@@ -2009,7 +2052,8 @@ class User():
             elif st.session_state["selection"]=="tailor" and st.session_state["tracker"] is not None and len(st.session_state["tracker"])>0:
                 print("Saving tailoring profile")
                 time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-                st.session_state["tracker"][st.session_state.current_idx].update({"profile": st.session_state["profile"]})
+                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                st.session_state["tracker"][st.session_state.current_idx].update({"profile": st.session_state["profile"], "last_edit_time":now})
                 save_job_posting_changes(st.session_state.userId, st.session_state["tracker"][st.session_state.current_idx], st.session_state["tracker_schema"], lance_tracker_table, mode="upsert", time=time)
             st.session_state["profile_changed"]=False
             st.session_state["update_template"]=True

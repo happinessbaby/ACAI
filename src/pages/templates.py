@@ -123,7 +123,7 @@ class Reformat():
                     with Pool() as pool:
                         st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
                     if st.session_state["formatted_docx_paths"]:
-                        print(st.session_state["formatted_docx_paths"])
+                        # print(st.session_state["formatted_docx_paths"])
                     # if option==1:s
                         with Pool() as pool:
                             result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
@@ -193,7 +193,7 @@ class Reformat():
                     #         }
                     #         """,
                     # ):
-                    st.image(st.session_state.image_paths[st.session_state.selected_idx])
+                    st.image(st.session_state.image_paths[st.session_state.selected_idx], caption=[str(idx) for idx, val in enumerate(st.session_state.image_paths[st.session_state.selected_idx])])
                     # pdf_viewer(previews[st.session_state.selected_idx])
                     # self.display_pdf(previews[st.session_state.selected_idx])
                     st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]

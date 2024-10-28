@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, model_validator
 from typing import Any, List, Union, Dict, Optional, Set
 
 
@@ -175,6 +175,20 @@ class Qualifications(BaseModel):
         should have detailed description of each accomplishment, qualification, and/or skill. Include everything verbatim. """
     )
 
+class Hobbies(BaseModel):
+    description: List[str] = Field(
+        default=[], description = "a list of hobbies"
+    )
+
+    # @model_validator(mode="before")
+    # def replace_none_with_empty_list(cls, values):
+    #     if values.get("description") is None:
+    #         values["description"] = []
+    #     return values
+
+
+
+
 class Skill(BaseModel):
     example:str = Field(
         default="", description="how the skill is demonstrated, an elaboration of the skill, or examples"
@@ -239,13 +253,10 @@ class SpecialResumeFields(BaseModel):
     #     default="", description = """the projects sections of the resume.
     #     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    
     # )
-    hobbies: Optional[List[str]] = Field(
-        default=[], description = "a list of hobbies in the resume"
-    )
+    # hobbies: Optional[List[str]] = Field(
+    #     default=[], description = "a list of hobbies in the resume"
+    # )
 
-
-class Keywords(BaseModel):
-    """Information about a job posting."""
 
     # ^ Doc-string for the entity Person.
     # This doc-string is sent to the LLM as the description of the schema Keywords,
@@ -255,6 +266,9 @@ class Keywords(BaseModel):
     # 1. Each field is an `optional` -- this allows the model to decline to extract it!
     # 2. Each field has a `description` -- this description is used by the LLM.
     # Having a good description can help improve extraction results.
+
+class Keywords(BaseModel):
+    """Information about a job posting."""
 
     job: str = Field(
         default="", description="job position listed in the job posintg"
@@ -280,6 +294,17 @@ class Keywords(BaseModel):
     location: str = Field(
         default="", description = "job location, can be remote, hybrid, or somewhere specific"
     )
+
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
 
 
 class Comparison(BaseModel):
@@ -311,9 +336,9 @@ class SkillsRelevancy(BaseModel):
     relevant_skills: List[str] = Field(
         default=[], description="relevant skills, found in content labeled in Step 2, these are skills in the resume that are also in the job description "
     )
-    transferable_skills: List[str] = Field(
-        default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
-    )
+    # transferable_skills: List[str] = Field(
+    #     default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
+    # )
  
 
 class Replacement(BaseModel):
@@ -355,7 +380,6 @@ class GeneralEvaluation(BaseModel):
 
 
 
-
 class ResumeUsers(BaseModel):
     # resume_content: str = func.SourceField() 
     # vector: Vector(func.ndims()) = func.VectorField(default=None)
@@ -363,7 +387,8 @@ class ResumeUsers(BaseModel):
     certifications: Optional[List[Certification]]
     contact: Contact
     education: Education
-    hobbies: Optional[List[str]]
+    # hobbies: Optional[List[str]]
+    hobbies: Optional[Hobbies]
     included_skills: Optional[List[str]]
     industry: Optional[str]
     licenses: Optional[List[License]]
@@ -374,7 +399,7 @@ class ResumeUsers(BaseModel):
     resume_path: str 
     suggested_skills: Optional[List[str]]
     summary_objective: Optional[str]
-    user_id: str 
+    user_id: str # primary key
     work_experience: Optional[List[Job]] 
     # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
     
@@ -382,7 +407,7 @@ class ResumeUsers(BaseModel):
 
 class JobTrackingUsers(BaseModel):
 
-    user_id: str
+    user_id: str # primary keys
     # posting_path: Optional[str]
     link: Optional[str]
     content: Optional[str]
@@ -399,7 +424,8 @@ class JobTrackingUsers(BaseModel):
     location: Optional[str] 
     cover_letter_path: Optional[str]
     applied: Optional[bool]
-    time: str
-    match: Optional[int]
-    color: Optional[str]
-    profile: Optional[ResumeUsers]
+    time: str # time, secondary key
+    last_edit_time: str # time of the last edit
+    match: Optional[int] # percent match between job posting and user profile
+    color: Optional[str] # color for the job posting, used to distinguish when tailoring
+    profile: Optional[ResumeUsers] # tailored version of the profile
