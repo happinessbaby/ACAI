@@ -663,7 +663,7 @@ class User():
         """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
 
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
+                   "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"" }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
                    "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
@@ -870,14 +870,18 @@ class User():
             if field_list:
                 for idx, value in enumerate(field_list):
                     add_detail(value, idx,)
-            if type=="bullet_points":
+            if type=="description":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
+            elif type=="links":
+                y, _, _ = st.columns([1, 20, 1])
+                with y: 
+                    st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a link", use_container_width=True)
 
 
         def delete_entry(placeholder, idx):
-            if type=="bullet_points":
+            if type=="description":
                 try:
                     if x!=-1:
                         del st.session_state["profile"][field_name][x][field_detail][idx]
@@ -923,20 +927,23 @@ class User():
                     except Exception:
                         pass
         
-
-
         def add_new_entry():
             # print("added new entry")
-            if type=="bullet_points":
+            if type=="description":
                 if x!=-1:
                     st.session_state["profile"][field_name][x][field_detail].append("")
                 else:
                     st.session_state["profile"][field_name][field_detail].append("")
+            elif type=="links":
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail].append({"display":"","url":""})
+                else:
+                    st.session_state["profile"][field_name][field_detail].append({"display":"","url":""})
 
         def add_detail(value, idx,):
             
             placeholder = st.empty()
-            if type=="bullet_points":
+            if type=="description":
                 with placeholder.container():
                     try:
                         c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
@@ -952,6 +959,13 @@ class User():
                             st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
                     except Exception:
                         pass
+            elif type=="links":
+                with placeholder.container(border=True):
+                    url = value["url"] if value["url"] else ""
+                    display_name = value["display"] if value["display"] else ""
+                    st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
+                    st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+
                    
 
         def callback(idx, ):
@@ -962,7 +976,22 @@ class User():
                     st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
                 else:
                     st.session_state["profile"][field_name][field_detail][idx] = new_entry
-                st.session_state["profile_changed"]=True
+            except Exception as e:
+                pass
+            try:
+                url = st.session_state[f"{field_name}_{x}_url_{idx}"]
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail][idx]["url"] = url
+                else:
+                    st.session_state["profile"][field_name][field_detail][idx]["url"] = url
+            except Exception as e:
+                pass
+            try:
+                display = st.session_state[f"{field_name}_{x}_display_{idx}"]
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail][idx]["display"] = display
+                else:
+                    st.session_state["profile"][field_name][field_detail][idx]["display"] = display
             except Exception as e:
                 pass
             st.session_state["profile_changed"]=True
@@ -999,7 +1028,7 @@ class User():
             elif name=="awards" or name=="qualifications":
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
-                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","link":"","location":"","start_date":"", "title":""})
+                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","links":[],"location":"","start_date":"", "title":""})
         
         
         
@@ -1051,7 +1080,7 @@ class User():
                     # description = value["description"]
                     st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
                     # st.write("Description")
-                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
                 elif name=="certifications" or name=="licenses":
                     title = value["title"]
@@ -1065,7 +1094,7 @@ class User():
                     with c2:
                         st.text_input("Issue date", value=date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
                     # st.write("Description")
-                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
                 elif name=="work_experience":
                     job_title = value["title"]
@@ -1083,7 +1112,7 @@ class User():
                     with c3:
                         st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
                     # st.write("Description")
-                    get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
+                    get_display= self.display_field_details("work_experience", idx, "description", "description")
                     get_display()
                 elif name=="projects":
                     project_title = value["title"]
@@ -1092,7 +1121,7 @@ class User():
                     end_date = value["end_date"]
                     # descriptions = st.session_state["profile"][name][idx]["description"]
                     location = value["location"]
-                    link =value["link"]
+                    # links =value["links"]
                     location=value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
@@ -1103,9 +1132,31 @@ class User():
                         st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
                     with c3:
                         st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
-                        st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                        # st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                        with stylable_container(
+                            key= f"custom_project_popover",
+                            css_styles=
+                            f"""
+                                button {{
+                                    background: none;
+                                    border: none;
+                                    color: blue;
+                                    padding: 0;
+                                    cursor: pointer;
+                                    font-size: 12px; 
+                                    text-decoration: none;
+                                }}
+                                """,
+                        ):
+                            with st.popover("Project links",):
+                                # url = link["url"] if link["url"] else ""
+                                # display_name = link["name"] if link["name"] else ""
+                                # st.text_input("url", value=url, key=f"profile_project_url_{idx}", placeholder="url", label_visibility="collapsed")
+                                # st.text_input("display name", value=display_name, key=f"profile_project_name_{idx}", placeholder="display name", label_visibility="collapsed")
+                                display_details = self.display_field_details("projects", idx, "links", "links") 
+                                display_details()
                     # st.write("Description")
-                    get_display= self.display_field_details("projects", idx, "description", "bullet_points")
+                    get_display= self.display_field_details("projects", idx, "description", "description")
                     get_display()
 
         def callback(idx):
@@ -1173,7 +1224,7 @@ class User():
                 st.session_state["old_summary"]=st.session_state["profile"]["summary_objective"]
                 st.session_state["profile"]["summary_objective"]="".join(st.session_state["new_summary"])
                 st.session_state["profile_changed"]=True
-            # elif type=="bullet_points":
+            # elif type=="description":
             #     st.session_state[f"old_{field_name}_{idx}"] = st.session_state["profile"][field_name][idx]["description"]
             #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"new_{field_name}_{idx}"]
             #     st.session_state["profile_changed"]=True
@@ -1184,7 +1235,7 @@ class User():
             if field_name=="summary_objective":
                 st.session_state["profile"]["summary_objective"]=st.session_state["old_summary"]
                 st.session_state["profile_changed"]=True
-            # elif type=="bullet_points":
+            # elif type=="description":
             #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
             #     st.session_state["profile_changed"]=True
 
@@ -1312,7 +1363,7 @@ class User():
                             # Remove special characters but keep punctuation and dashes
                             tailoring = re.sub(r'[^a-zA-Z0-9\s.,!?-]', '', tailoring)
                             st.write(tailoring)
-                        # elif type=="bullet_points":
+                        # elif type=="description":
                         #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
                         #         st.write(tailoring)
                         #         # st.write(tailoring["ranked"])
@@ -1542,7 +1593,7 @@ class User():
                         st.session_state["profile"]["hobbies"]={}
                         st.session_state["profile"]["hobbies"].update({"description":[]})
                         st.session_state["profile_changed"]=True
-                    get_display=self.display_field_details(field, -1, "description", "bullet_points")
+                    get_display=self.display_field_details(field, -1, "description", "description")
                     get_display()
                     # if st.session_state["profile"]["hobbies"] is not None:
                     #     hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
@@ -1786,14 +1837,46 @@ class User():
                     if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
                         st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
                         st.session_state["profile_changed"] = True
-                    linkedin = st.session_state["profile"]["contact"]["linkedin"]
-                    if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
-                        st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
-                        st.session_state["profile_changed"] = True
-                    websites = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=websites, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=websites:
-                        st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
-                        st.session_state["profile_changed"] = True
+                    # linkedin = st.session_state["profile"]["contact"]["linkedin"]
+                    # if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
+                    #     st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
+                    #     st.session_state["profile_changed"] = True
+                    # linkedin = st.session_state["profile"]["contact"]["linkedin"]
+                    # color = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29"
+                    with stylable_container(
+                        key= f"custom_websites_popover",
+                        css_styles=
+                        f"""
+                            button {{
+                                background: none;
+                                border: none;
+                                color: blue;
+                                padding: 0;
+                                cursor: pointer;
+                                font-size: 12px; 
+                                text-decoration: none;
+                            }}
+                            """,
+                    ):
+                        with st.popover("Personal links",):
+                            display_detail=self.display_field_details("contact", -1, "links", "links")
+                            display_detail()
+                            # if linkedin:
+                            #     with st.container(border=True):
+                            #         url = linkedin["url"] if linkedin["url"] else ""
+                            #         if st.text_input("url", value=url, key="profile_linkedin_url", placeholder="url", label_visibility="collapsed")!=url:
+                            #             st.session_state["profile"]["contact"]["linkedin"]["url"]=st.session_state.profile_linkedin_url
+                            #             st.session_state["profile_changed"] = True
+                            #         name = linkedin["name"] if linkedin["name"] else ""
+                            #         if st.text_input("display name", value=name, key="profile_linkedin_name", placeholder="display name", label_visibility="collapsed")!=name:
+                            #             st.session_state["profile"]["contact"]["linkedin"]["name"]=st.session_state.profile_linkedin_name
+                            #             st.session_state["profile_changed"] = True
+                            
+
+                    # websites = st.session_state["profile"]["contact"]["websites"]
+                    # if st.text_input("Other websites", value=websites, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=websites:
+                    #     st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
+                    #     st.session_state["profile_changed"] = True
             with c2:
                 with st.expander(label="Education", icon=":material/school:"):
                     institution = st.session_state["profile"]["education"]["institution"]
@@ -1817,7 +1900,7 @@ class User():
                         st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
                         st.session_state["profile_changed"] = True
                     st.markdown("Course works")
-                    display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
+                    display_detail=self.display_field_details("education", -1, "coursework", "description")
                     display_detail()
                     # if st.session_state["profile"]["education"]:
                     #     self.display_field_analysis(field_name="education", details=st.session_state["profile"]["education"])

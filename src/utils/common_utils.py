@@ -852,7 +852,7 @@ def search_related_samples(job_titles: str, directory: str) -> List[str]:
 def create_resume_info(resume_path, q, ):
 
     resume_info_dict={ "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
+                   "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"", }, 
                    "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
                    "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
@@ -861,7 +861,7 @@ def create_resume_info(resume_path, q, ):
     if resume_content:
         resume_info_dict.update({"resume_content":resume_content})
 
-        schemas=[SpecialResumeFields, SpecialFieldGroup1, Contact, Education,Jobs, Projects, Qualifications, Hobbies]
+        schemas=[SpecialResumeFields, Awards, Licenses, Certifications, Contact, Education,Jobs, Projects, Qualifications, Hobbies]
         # Combine contents and schemas into argument tuples
         args = [(resume_content, schema) for schema in schemas]
 

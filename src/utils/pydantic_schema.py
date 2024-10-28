@@ -23,14 +23,39 @@ class Job(BaseModel):
     title: str = Field(
         default="", description="the job position, this needs to be a work experience"
         )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
-    work_experience: List[Job] = Field(
+    work_experience: Optional[List[Job]] = Field(
         default=[], description=""" the content of the work experience section of the resume, most likely there's a whole section dedicated to work experience. Include everything in the section verbatim.
         Exclude anything that's not in the work experience section"""
     )
-
+class HyperLink(BaseModel):
+    display: str = Field(
+        default="", description="display name of the url"
+    )
+    url: str = Field(
+        default="", description="url"
+    )
+    @model_validator(mode="before")
+    def replace_none_with_empty_list(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+        return values
 
 class Contact(BaseModel):
     city: str= Field(
@@ -39,8 +64,14 @@ class Contact(BaseModel):
     email: str=Field(
         default="", description="email of the candidate on the resume"
     )
-    linkedin: str = Field(
-        default="", description="linkedin address on the resume"
+    # linkedin: str = Field(
+    #     default="", description="linkedin address on the resume"
+    #     )
+    # linkedin: HyperLink = Field(
+    #     default={}, description="linkedin address on the resume"
+    #     )
+    links: List[HyperLink] = Field(
+        default=[], description="links in the resume's contact section, can be linkedin, github, etc."
         )
     name: str = Field(
         default="", description="name of the candidate on the resume"
@@ -51,9 +82,21 @@ class Contact(BaseModel):
     state: str = Field(
         default="", description="state of the candidate on the resume"
         )
-    websites: str=Field(
-        default="", description="other website addresses besides linkedin on the resume"
-        )
+    # websites: str=Field(
+    #     default="", description="other website addresses besides linkedin on the resume"
+    #     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+                # elif field_type==dict:
+                #     values[field] = {}
+        return values
         
 class Education(BaseModel):
     coursework: List[str] = Field(
@@ -74,6 +117,16 @@ class Education(BaseModel):
     study: str = Field(
         default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
 
 class Project(BaseModel):
     company: str = Field(
@@ -85,8 +138,11 @@ class Project(BaseModel):
     end_date: str = Field(
       default="", description = "the end date of the project, if available"
       )
-    link:str = Field(
-        default="", description = "an external link to the project"
+    # link:str = Field(
+    #     default="", description = "an external link to the project"
+    # )
+    links: List[HyperLink] = Field(
+        default=[], description = "link to the project"
     )
     location: str = Field(
         default="", description="the location where the took place in"
@@ -97,9 +153,21 @@ class Project(BaseModel):
     title: str = Field(
         default="", description="the name of the project, can be a personal or work-related project, examples include coding project, art project, construction project, etc."
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+                # elif field_type==dict:
+                #     values[field] = {}
+        return values
 
 class Projects(BaseModel):
-    projects: List[Project] = Field(
+    projects: Optional[List[Project]] = Field(
         default=[], description="""content from the projects section of the resume.
     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    ""                                  
     )
@@ -112,8 +180,23 @@ class Award(BaseModel):
         default="", description = """the title of the award or honor
         """    
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Awards(BaseModel):
-    awards: List[Award]
+    awards: Optional[List[Award]] = Field(
+        default=[], description = """the content of the award or honor, such as received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
+        """    
+    )
 
 class Certification(BaseModel):
     description: List[str] = Field(
@@ -128,8 +211,23 @@ class Certification(BaseModel):
     title: str = Field(
         default="", description="""title of the certification """
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Certifications(BaseModel):
-    certifications: List[Certification]
+    certifications: Optional[List[Certification]] = Field(
+        default=[], description = """the content of the award or honor, such as received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
+        """    
+    )
 
 class License(BaseModel):
     description: List[str] = Field(
@@ -144,8 +242,21 @@ class License(BaseModel):
     title: str = Field(
         default="", description="""the title of the occupational license"""
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Licenses(BaseModel):
-    licenses: List[License]
+    licenses: Optional[List[License]]=Field(
+        default=[], description="""the content of occupational licenses, examples include those of teachers, nurses, doctors, lawyers, contractors. etc"""
+    )
 
 class SpecialFieldGroup1(BaseModel):
     licenses: Optional[List[License]]  = Field(
@@ -169,6 +280,17 @@ class Qualification(BaseModel):
     title: str = Field(
         default="", description = "The name of the skill or qualification"
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Qualifications(BaseModel):
     qualifications: List[Qualification] = Field(
         default=[], description="""the accomplishment/qualification section of the resume that is not work experience or projects, 
