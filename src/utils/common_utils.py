@@ -33,7 +33,7 @@ from time import sleep
 from selenium import webdriver 
 # from unstructured.partition.html import partition_html
 from dateutil import parser
-from utils.pydantic_schema import SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1, Hobbies
+from utils.pydantic_schema import SpecialResumeFields, Keywords, Jobs, Projects, Skills, Contact, Education, Qualifications, Certifications, Awards, Licenses, SpecialFieldGroup1, Hobbies, Educations
 # import textstat as ts
 import language_tool_python
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain, LLMChain
@@ -530,13 +530,18 @@ def suggest_skills(resume, job_posting, ):
 
     """Suggests skills based on job posting"""
 
-    query = """Suggest skills for resume based on job posting.
-    They should be skills that are in job posting but not in the resume. 
-    resume content: {resume} \n
-    job posting content: {job_posting}
-    """
-    return create_comma_separated_list_parser(input_variables=["resume", "job_posting"], base_template=query, query_dict={"resume":resume, "job_posting":job_posting})
-
+    if job_posting is not None:
+        query = """Suggest skills for resume based on job posting.
+        They should be skills that are in job posting but not in the resume. 
+        resume content: {resume} \n
+        job posting content: {job_posting}
+        """
+        return create_comma_separated_list_parser(input_variables=["resume", "job_posting"], base_template=query, query_dict={"resume":resume, "job_posting":job_posting})
+    else:
+        query = """Suggest skills for the resume. They should be skills not already listed in the resume but could either be inferred or transferable. 
+            resume content: {resume} \n
+            """
+        return create_comma_separated_list_parser(input_variables=["resume"], base_template=query, query_dict={"resume":resume})
 
 
 
@@ -853,7 +858,7 @@ def create_resume_info(resume_path, q, ):
 
     resume_info_dict={ "resume_content":"",
                    "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"", }, 
-                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "educations": None, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
                    "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
     resume_content = read_file(resume_path,)
@@ -861,7 +866,7 @@ def create_resume_info(resume_path, q, ):
     if resume_content:
         resume_info_dict.update({"resume_content":resume_content})
 
-        schemas=[SpecialResumeFields, Awards, Licenses, Certifications, Contact, Education,Jobs, Projects, Qualifications, Hobbies]
+        schemas=[SpecialResumeFields, Awards, Licenses, Certifications, Contact, Educations,Jobs, Projects, Qualifications, Hobbies]
         # Combine contents and schemas into argument tuples
         args = [(resume_content, schema) for schema in schemas]
 
@@ -877,8 +882,8 @@ def create_resume_info(resume_path, q, ):
             if isinstance(result, dict):
                 if "city" in result:
                     resume_info_dict.update({"contact":result})
-                elif "coursework" in result:
-                    resume_info_dict.update({"education":result})
+                # elif "coursework" in result:
+                #     resume_info_dict.update({"education":result})
                 else:
                     resume_info_dict.update(result)
             elif isinstance(result, str):

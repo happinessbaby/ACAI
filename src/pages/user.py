@@ -27,6 +27,7 @@ from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
 import streamlit_antd_components as sac
+from streamlit_tags import st_tags
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
 # from threading import Thread
@@ -105,7 +106,7 @@ if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
 
 
-all_fields=["contact", "education", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
+all_fields=["contact", "educations", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
 all_fields_icons = [":material/contacts:", ":material/school:", ":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
 all_fields_labels=["Contact", "Education", "Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
 
@@ -664,7 +665,7 @@ class User():
 
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
                    "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"" }, 
-                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "educations": None, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
                    "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
         for field in all_fields:
@@ -751,7 +752,7 @@ class User():
             if st.session_state["profile"]["included_skills"] is None:
                 st.session_state["profile"]["included_skills"]=[]
                 st.session_state["profile_changed"]=True
-            c1, c2=st.columns([1, 1])
+            c1, c2=st.columns([2, 1])
             with c1:
                 with st.container(border=True):
                     c3, c4 = st.columns([3, 1])
@@ -779,9 +780,20 @@ class User():
                     # with stylable_container(key="custom_skills_button",
                     #         css_styles=included_skills_button,
                     # ):
-                    included_grid=grid([1, 1, 1])
-                    for idx, skill in enumerate(self.skills_set):
-                        x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ), type="primary")
+                    # included_grid=grid([1, 1, 1])
+                    # for idx, skill in enumerate(self.skills_set):
+                        # x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ), type="primary")
+                    included_skills = st_tags(
+                        label=' ',
+                        text='Press enter to add more',
+                        value=self.skills_set,
+                        suggestions=self.generated_skills_set,
+                        key='included_skills_tags')
+                    # print(included_skills)
+                    if included_skills!=self.skills_set:
+                        st.session_state["profile"]["included_skills"]=included_skills
+                        self.skills_set=included_skills
+                        st.session_state["profile_changed"]=True
             with c2:
                 c3, c4 = st.columns([3, 1])
                 with c3:
@@ -803,54 +815,60 @@ class User():
                         ):
                         if st.button("Refresh", key="refresh_suggested_skills_button", ):
                             if st.session_state["selection"]=="default" or st.session_state["tracker"] is None:
-                                suggested_skills =list(set(research_skills(st.session_state["profile"]["resume_content"], "resume")))
+                                print("AAAAAA", st.session_state["profile"]["resume_content"])
+                                suggested_skills =list(set(suggest_skills(st.session_state["profile"]["resume_content"], job_posting=None)))
                             else:
                                 suggested_skills = list(set(suggest_skills(st.session_state["profile"]["resume_content"], st.session_state["tracker"][st.session_state.current_idx]["content"])))
                             st.session_state["profile"]["suggested_skills"]=suggested_skills
                             st.session_state["profile_changed"]=True
-                            self.generated_skills_set = suggested_skills
+                            self.generated_skills_set = [
+                                    skill for skill in suggested_skills 
+                                    if skill.casefold() not in {s.casefold() for s in self.skills_set}
+                                ]
                             # st.rerun()
+                # suggested_grid = grid([1, 1, 1])
+                for skill in self.generated_skills_set:
+                    st.write(skill)
                 # with stylable_container(key="custom_skills_button2",
                 #             css_styles=suggested_skills_button,
                 #     ):
-                suggested_grid = grid([1, 1, 1])
-                for idx, skill in enumerate(self.generated_skills_set):
-                    y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),  type="primary")
-                st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ),)
-            
-        def skills_callback(idx, skill):
-            try:
-                new_skill = st.session_state.add_skill_custom
-                if new_skill:
-                    # Add only unique items that are not already in the ordered set
-                    if new_skill not in self.skills_set:
-                        self.skills_set.append(new_skill)
-                        st.session_state["profile"]["included_skills"]=self.skills_set
-                        st.session_state["profile_changed"]=True
-                        st.session_state.add_skill_custom=''
-            except Exception:
-                    pass
-            try:
-                add_skill = st.session_state[f"add_skill_{idx}"]
-                if add_skill:
-                    if skill not in self.skills_set:
-                        self.skills_set.append(skill)
-                        st.session_state["profile"]["included_skills"]=self.skills_set
-                        st.session_state["profile_changed"]=True
-                    self.generated_skills_set.remove(skill)
-                    st.session_state["profile"]["suggested_skills"]=self.generated_skills_set
-                    # st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
-            except Exception:
-                pass
-            try:
-                remove_skill = st.session_state[f"remove_skill_{idx}"]
-                if remove_skill:
-                    # print('remove skill', skill)
-                    self.skills_set.remove(skill)
-                    st.session_state["profile"]["included_skills"]=self.skills_set
-                    st.session_state["profile_changed"]=True
-            except Exception:
-                pass
+                    # for idx, skill in enumerate(self.generated_skills_set):
+                        # y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),  type="primary")
+                    # st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ),)
+                # sst.multiselect(" ", self.generated_skills_set, placeholder="Suggested skills...", on_change=skills_callback,)
+        # def skills_callback():
+        #     try:
+        #         new_skill = st.session_state.add_skill_custom
+        #         if new_skill:
+        #             # Add only unique items that are not already in the ordered set
+        #             if new_skill not in self.skills_set:
+        #                 self.skills_set.append(new_skill)
+        #                 st.session_state["profile"]["included_skills"]=self.skills_set
+        #                 st.session_state["profile_changed"]=True
+        #                 st.session_state.add_skill_custom=''
+        #     except Exception:
+        #             pass
+        #     try:
+        #         add_skill = st.session_state[f"add_skill_{skill}"]
+        #         if add_skill:
+        #             if skill not in self.skills_set:
+        #                 self.skills_set.append(skill)
+        #                 st.session_state["profile"]["included_skills"]=self.skills_set
+        #                 st.session_state["profile_changed"]=True
+        #             self.generated_skills_set.remove(skill)
+        #             st.session_state["profile"]["suggested_skills"]=self.generated_skills_set
+        #             # st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
+        #     except Exception:
+        #         pass
+        #     try:
+        #         remove_skill = st.session_state[f"remove_skill_{skill}"]
+        #         if remove_skill:
+        #             # print('remove skill', skill)
+        #             self.skills_set.remove(skill)
+        #             st.session_state["profile"]["included_skills"]=self.skills_set
+        #             st.session_state["profile_changed"]=True
+        #     except Exception:
+        #         pass
 
         return get_display
 
@@ -881,14 +899,14 @@ class User():
 
 
         def delete_entry(placeholder, idx):
-            if type=="description":
-                try:
-                    if x!=-1:
-                        del st.session_state["profile"][field_name][x][field_detail][idx]
-                    else:
-                        del st.session_state["profile"][field_name][field_detail][idx]
-                except Exception:
-                    pass
+
+            try:
+                if x!=-1:
+                    del st.session_state["profile"][field_name][x][field_detail][idx]
+                else:
+                    del st.session_state["profile"][field_name][field_detail][idx]
+            except Exception:
+                pass
             placeholder.empty()
 
         def move_entry(idx, movement, ):
@@ -961,10 +979,16 @@ class User():
                         pass
             elif type=="links":
                 with placeholder.container(border=True):
-                    url = value["url"] if value["url"] else ""
-                    display_name = value["display"] if value["display"] else ""
-                    st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
-                    st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                    try:
+                        c1, c2 = st.columns([10, 1])
+                        with c2:
+                            st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                        url = value["url"] if value["url"] else ""
+                        display_name = value["display"] if value["display"] else ""
+                        st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
+                        st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                    except Exception:
+                        pass
 
                    
 
@@ -1029,6 +1053,8 @@ class User():
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
                 st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","links":[],"location":"","start_date":"", "title":""})
+            elif name=="educations":
+                st.session_state["profile"][name].append({"coursework":[], "degree":"",  "end_date":"", "gpa":"", "institution":"",  "start_date":"","study":""})
         
         
         
@@ -1074,11 +1100,11 @@ class User():
                 with down: 
                     st.button(":grey[⌄]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
                 with x:
-                    st.button("**:red[-]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                    st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
                 if name=="awards" or name=="qualifications":
                     title = value["title"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, "title", ), placeholder="Title", label_visibility="collapsed")
                     # st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
@@ -1087,12 +1113,12 @@ class User():
                     organization = value["issue_organization"]
                     date = value["issue_date"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, "title", ), placeholder="Title", label_visibility="collapsed")
                     c1, c2=st.columns([1, 1])
                     with c1:
-                        st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ), placeholder="Issue organization", label_visibility="collapsed")
+                        st.text_input("Issue organization", value=organization, key=f"{name}_issue_organization_{idx}", on_change=callback, args=(idx, "issue_organization",), placeholder="Issue organization", label_visibility="collapsed")
                     with c2:
-                        st.text_input("Issue date", value=date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
+                        st.text_input("Issue date", value=date, key=f"{name}_issue_date_{idx}", on_change=callback, args=(idx, "issue_date, "), placeholder="Issue date", label_visibility="collapsed")
                     # st.write("Description")
                     get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
@@ -1104,13 +1130,13 @@ class User():
                     location = value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Job title", value = job_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"{name}_org_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Job title", value = job_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx, "title", ),  placeholder="Job title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx, "company", ), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx, "start_date", ), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx, "location", ), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, "end_date", ), placeholder="End date", label_visibility="collapsed" )
                     # st.write("Description")
                     get_display= self.display_field_details("work_experience", idx, "description", "description")
                     get_display()
@@ -1125,13 +1151,13 @@ class User():
                     location=value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx, "title", ),  placeholder="Project title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx, "company",), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx, "start_date", ), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx, "location", ), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, "end_date", ), placeholder="End date", label_visibility="collapsed" )
                         # st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
                         with stylable_container(
                             key= f"custom_project_popover",
@@ -1148,7 +1174,7 @@ class User():
                                 }}
                                 """,
                         ):
-                            with st.popover("Project links",):
+                            with st.popover("Project link",):
                                 # url = link["url"] if link["url"] else ""
                                 # display_name = link["name"] if link["name"] else ""
                                 # st.text_input("url", value=url, key=f"profile_project_url_{idx}", placeholder="url", label_visibility="collapsed")
@@ -1158,42 +1184,29 @@ class User():
                     # st.write("Description")
                     get_display= self.display_field_details("projects", idx, "description", "description")
                     get_display()
+                elif name=="educations":
+                    institution = value["institution"]
+                    st.text_input("Institution", value=institution, key=f"{name}_institution_{idx}",on_change=callback,  args=(idx, "institution", ), placeholder="Institution", label_visibility="collapsed")
+                    degree = value["degree"]
+                    st.text_input("Degree", value=degree, key=f"{name}_degree_{idx}", placeholder=f"Degree",on_change=callback,  args=(idx, "degree", ), label_visibility="collapsed")
+                    study = value["study"]
+                    st.text_input("Area of study", value=study, key=f"{name}_study_{idx}", placeholder="Area of Study", on_change=callback,  args=(idx, "study", ),  label_visibility="collapsed")
+                    start_date = value["start_date"]
+                    st.text_input("Start date", value=start_date, key=f"{name}_start_date_{idx}", placeholder="Start date", label_visibility="collapsed", on_change=callback,  args=(idx, "start_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    end_date = value["end_date"]
+                    st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", placeholder="End date", label_visibility="collapsed", on_change=callback,  args=(idx, "end_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    gpa = value["gpa"]
+                    st.text_input("GPA", value=gpa, key=f"{name}_gpa_{idx}", placeholder="GPA", label_visibility="collapsed", on_change=callback, args=(idx, "gpa"),  help="Only include your GPA if it's above 3.5")
+                    st.markdown("Course works")
+                    display_detail=self.display_field_details("educations", idx, "coursework", "description")
+                    display_detail()
 
-        def callback(idx):
+
+        def callback(idx, value):
 
             try:
-                link = st.session_state[f"{name}_link_{idx}"]
-                st.session_state["profile"][name][idx]["link"]= link
-            except Exception:
-                pass
-            try:
-                title = st.session_state[f"{name}_title_{idx}"]
-                st.session_state["profile"][name][idx]["title"]=title
-            except Exception:
-                pass
-            try:
-                org = st.session_state[f"{name}_company_{idx}"]
-                st.session_state["profile"][name][idx]["company"]=org
-            except Exception:
-                pass
-            try:
-                org = st.session_state[f"{name}_org_{idx}"]
-                st.session_state["profile"][name][idx]["issue_organization"]=org
-            except Exception:
-                pass
-            try:
-                start_date = st.session_state[f"{name}_start_date_{idx}"]
-                st.session_state["profile"][name][idx]["start_date"] =start_date
-            except Exception:
-                pass
-            try:
-                end_date = st.session_state[f"{name}_end_date_{idx}"]
-                st.session_state["profile"][name][idx]["end_date"] = end_date
-            except Exception:
-                pass
-            try:
-                location = st.session_state[f"{name}_location_{idx}"]
-                st.session_state["profile"][name][idx]["location"] = location
+                x = st.session_state[f"{name}_{value}_{idx}"]
+                st.session_state["profile"][name][idx][value]= x
             except Exception:
                 pass
             st.session_state["profile_changed"]=True
@@ -1559,7 +1572,57 @@ class User():
                 _, del_col=st.columns([8, 1])
                 with del_col:
                     st.button(":grey[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
-                if field=="summary_objective":  
+                if field=="contact":
+                    if st.session_state["profile"]["contact"] is None:
+                        st.session_state["profile"]["contact"]={}
+                        st.session_state["profile"]["contact"].update({"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"", })
+                        st.session_state["profile_changed"]=True
+                    c1, c2, c3=st.columns([1, 1, 1])
+                    with c1:
+                        name = st.session_state["profile"]["contact"]["name"]
+                        if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
+                            st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+                            st.session_state["profile_changed"] = True
+                        city = st.session_state["profile"]["contact"]["city"]
+                        if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
+                            st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
+                            st.session_state["profile_changed"] = True
+                    with c2:
+                        email = st.session_state["profile"]["contact"]["email"]
+                        if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
+                            st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+                            st.session_state["profile_changed"] = True
+                        state = st.session_state["profile"]["contact"]["state"]
+                        if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
+                            st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
+                            st.session_state["profile_changed"] = True
+                    with c3:
+                        phone = st.session_state["profile"]["contact"]["phone"]
+                        if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
+                            st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
+                            st.session_state["profile_changed"] = True
+                    with stylable_container(
+                        key= f"custom_websites_popover",
+                        css_styles=
+                        f"""
+                            button {{
+                                background: none;
+                                border: none;
+                                color: blue;
+                                padding: 0;
+                                cursor: pointer;
+                                font-size: 12px; 
+                                text-decoration: none;
+                            }}
+                            """,
+                    ):
+                        with st.popover("Personal links",):
+                            display_detail=self.display_field_details("contact", -1, "links", "links")
+                            display_detail()
+                if field=="educations":
+                    get_display=self.display_field_content(field)
+                    get_display()
+                elif field=="summary_objective":  
                     pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                     if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                         st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1577,7 +1640,10 @@ class User():
                 elif field=="included_skills":
                     suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
                     self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
-                    self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
+                    self.generated_skills_set=  self.generated_skills_set = [
+                                    skill for skill in suggested_skills 
+                                    if skill.casefold() not in {s.casefold() for s in self.skills_set}
+                                ]
                     get_display=self.display_skills()
                     get_display()
                     if st.session_state["profile"]["included_skills"]:
@@ -1814,53 +1880,53 @@ class User():
         #         self.evaluation_callback()
         # the main profile column
         with profile_col:
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                with st.expander(label="Contact", icon=":material/contacts:"):
-                    name = st.session_state["profile"]["contact"]["name"]
-                    if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
-                        st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
-                        st.session_state["profile_changed"] = True
-                    email = st.session_state["profile"]["contact"]["email"]
-                    if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
-                        st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
-                        st.session_state["profile_changed"] = True
-                    phone = st.session_state["profile"]["contact"]["phone"]
-                    if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
-                        st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
-                        st.session_state["profile_changed"] = True
-                    city = st.session_state["profile"]["contact"]["city"]
-                    if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
-                        st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
-                        st.session_state["profile_changed"] = True
-                    state = st.session_state["profile"]["contact"]["state"]
-                    if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
-                        st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
-                        st.session_state["profile_changed"] = True
-                    # linkedin = st.session_state["profile"]["contact"]["linkedin"]
-                    # if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
-                    #     st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
-                    #     st.session_state["profile_changed"] = True
-                    # linkedin = st.session_state["profile"]["contact"]["linkedin"]
-                    # color = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29"
-                    with stylable_container(
-                        key= f"custom_websites_popover",
-                        css_styles=
-                        f"""
-                            button {{
-                                background: none;
-                                border: none;
-                                color: blue;
-                                padding: 0;
-                                cursor: pointer;
-                                font-size: 12px; 
-                                text-decoration: none;
-                            }}
-                            """,
-                    ):
-                        with st.popover("Personal links",):
-                            display_detail=self.display_field_details("contact", -1, "links", "links")
-                            display_detail()
+            # c1, c2 = st.columns([1, 1])
+            # with c1:
+            #     with st.expander(label="Contact", icon=":material/contacts:"):
+            #         name = st.session_state["profile"]["contact"]["name"]
+            #         if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
+            #             st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+            #             st.session_state["profile_changed"] = True
+            #         email = st.session_state["profile"]["contact"]["email"]
+            #         if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
+            #             st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+            #             st.session_state["profile_changed"] = True
+            #         phone = st.session_state["profile"]["contact"]["phone"]
+            #         if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
+            #             st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
+            #             st.session_state["profile_changed"] = True
+            #         city = st.session_state["profile"]["contact"]["city"]
+            #         if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
+            #             st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
+            #             st.session_state["profile_changed"] = True
+            #         state = st.session_state["profile"]["contact"]["state"]
+            #         if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
+            #             st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
+            #             st.session_state["profile_changed"] = True
+            #         # linkedin = st.session_state["profile"]["contact"]["linkedin"]
+            #         # if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
+            #         #     st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
+            #         #     st.session_state["profile_changed"] = True
+            #         # linkedin = st.session_state["profile"]["contact"]["linkedin"]
+            #         # color = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29"
+            #         with stylable_container(
+            #             key= f"custom_websites_popover",
+            #             css_styles=
+            #             f"""
+            #                 button {{
+            #                     background: none;
+            #                     border: none;
+            #                     color: blue;
+            #                     padding: 0;
+            #                     cursor: pointer;
+            #                     font-size: 12px; 
+            #                     text-decoration: none;
+            #                 }}
+            #                 """,
+            #         ):
+            #             with st.popover("Personal links",):
+            #                 display_detail=self.display_field_details("contact", -1, "links", "links")
+            #                 display_detail()
                             # if linkedin:
                             #     with st.container(border=True):
                             #         url = linkedin["url"] if linkedin["url"] else ""
@@ -1877,60 +1943,37 @@ class User():
                     # if st.text_input("Other websites", value=websites, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=websites:
                     #     st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
                     #     st.session_state["profile_changed"] = True
-            with c2:
-                with st.expander(label="Education", icon=":material/school:"):
-                    institution = st.session_state["profile"]["education"]["institution"]
-                    if st.text_input("Institution", value=institution, key="profile_institution", placeholder="Institution", label_visibility="collapsed")!=institution:
-                        st.session_state["profile"]["education"]["institution"]=st.session_state.profile_institution
-                        st.session_state["profile_changed"] = True
-                    degree = st.session_state["profile"]["education"]["degree"]
-                    if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
-                        st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
-                        st.session_state["profile_changed"] = True
-                    study = st.session_state["profile"]["education"]["study"]
-                    if st.text_input("Area of study", value=study, key="profile_study", placeholder="Area of Study", label_visibility="collapsed")!=study:
-                        st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
-                        st.session_state["profile_changed"] = True
-                    grad_year = st.session_state["profile"]["education"]["graduation_year"]
-                    if st.text_input("Graduation date", value=grad_year, key="profile_grad_year", placeholder="Graduation year", label_visibility="collapsed", help="Do not include a date of graduation if it has been more than 10 years ago")!=grad_year:
-                        st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
-                        st.session_state["profile_changed"] = True
-                    gpa = st.session_state["profile"]["education"]["gpa"]
-                    if st.text_input("GPA", value=gpa, key="profile_gpa", placeholder="GPA", label_visibility="collapsed", help="Only include your GPA if it's above 3.5")!=gpa:
-                        st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
-                        st.session_state["profile_changed"] = True
-                    st.markdown("Course works")
-                    display_detail=self.display_field_details("education", -1, "coursework", "description")
-                    display_detail()
-                    # if st.session_state["profile"]["education"]:
-                    #     self.display_field_analysis(field_name="education", details=st.session_state["profile"]["education"])
-            if "summary_objective" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("summary_objective", placeholder)
-            if "work_experience" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("work_experience", placeholder)
-            if "included_skills" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("included_skills", placeholder)
-            if "qualifications" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("qualifications", placeholder)
-            if "projects" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("projects", placeholder)
-            if "certifications" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("certifications", placeholder)
-            if "awards" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("awards", placeholder)
-            if "licenses" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("licenses", placeholder)
-            if "hobbies" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("hobbies", placeholder)
+            for field in st.session_state.fields_dict:
+                if field not in st.session_state.additional_fields:
+                    placeholder=st.empty()
+                    add_field(field, placeholder)
+            # if "summary_objective" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("summary_objective", placeholder)
+            # if "work_experience" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("work_experience", placeholder)
+            # if "included_skills" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("included_skills", placeholder)
+            # if "qualifications" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("qualifications", placeholder)
+            # if "projects" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("projects", placeholder)
+            # if "certifications" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("certifications", placeholder)
+            # if "awards" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("awards", placeholder)
+            # if "licenses" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("licenses", placeholder)
+            # if "hobbies" not in st.session_state["additional_fields"]:
+            #     placeholder=st.empty()
+            #     add_field("hobbies", placeholder)
             #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
             # placeholder=st.empty()
             if st.session_state["additional_fields"]:
@@ -1941,10 +1984,10 @@ class User():
                         fields_grid = grid([1, 1, 1], vertical_align="center" )
                         for field in st.session_state["additional_fields"]:
                             label, icon = st.session_state.fields_dict[field]
-                            if f"{field}_add_button" not in st.session_state:
-                                if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
-                                    st.session_state["additional_fields"].remove(field)
-                                    st.rerun()
+                            # if f"{field}_add_button" not in st.session_state:
+                            if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
+                                st.session_state["additional_fields"].remove(field)
+                                st.rerun()
             st.divider()
         # the menu container
             _, menu_col, _ = st.columns([1, 1, 1])   

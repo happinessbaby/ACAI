@@ -100,22 +100,25 @@ class Contact(BaseModel):
         
 class Education(BaseModel):
     coursework: List[str] = Field(
-        default=[], description = "the courseworks studied while attending the highest degree of education. "
+        default=[], description = "the courseworks studied while attending the education. "
     )
     degree: str = Field(
-        default="", description="the highest degree of education. THIS SHOULD NOT BE A CERTIFICATION. "
+        default="", description="the degree achieved, such as bachelors of science, masters, etc. "
+    )
+    end_date: str=Field(
+        default="", description="the end date of education"
     )
     gpa: str = Field(
-        default="", description="the gpa of the highest degree of graduation. THIS SHOULD NOT BE OF A CERTIFICATION."
-    )
-    graduation_year: str = Field(
-        default="", description="the year of graduation from the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the gpa achieved"
     )
     institution: str = Field(
-        default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the institution at where the education is attended"
+    )
+    start_date: str = Field(
+        default="", description="the start date of education"
     )
     study: str = Field(
-        default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the area of study including any majors and minors for the education"
     )
     @model_validator(mode="before")
     def replace_none_with_empty_values(cls, values):
@@ -127,6 +130,11 @@ class Education(BaseModel):
                 elif field_type == list:
                     values[field] = []
         return values
+    
+class Educations(BaseModel):
+    educations: Optional[List[Education]] = Field(
+        default=[], description="""Education section of the resume, excluding certifications and licenses"""                                     
+    )
 
 class Project(BaseModel):
     company: str = Field(
@@ -516,7 +524,7 @@ class ResumeUsers(BaseModel):
     awards: Optional[List[Award]]
     certifications: Optional[List[Certification]]
     contact: Contact
-    education: Education
+    educations: Optional[List[Education]]
     # hobbies: Optional[List[str]]
     hobbies: Optional[Hobbies]
     included_skills: Optional[List[str]]
