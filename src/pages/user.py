@@ -815,7 +815,6 @@ class User():
                         ):
                         if st.button("Refresh", key="refresh_suggested_skills_button", ):
                             if st.session_state["selection"]=="default" or st.session_state["tracker"] is None:
-                                print("AAAAAA", st.session_state["profile"]["resume_content"])
                                 suggested_skills =list(set(suggest_skills(st.session_state["profile"]["resume_content"], job_posting=None)))
                             else:
                                 suggested_skills = list(set(suggest_skills(st.session_state["profile"]["resume_content"], st.session_state["tracker"][st.session_state.current_idx]["content"])))
@@ -875,7 +874,7 @@ class User():
 
 
     @st.fragment
-    def display_field_details(self, field_name, x, field_detail, type):
+    def display_field_details(self, field_name, x, field_detail, type, selected=None):
 
         """ Interactive display of specific details such as bullet points in each field"""
         @st.fragment
@@ -954,9 +953,9 @@ class User():
                     st.session_state["profile"][field_name][field_detail].append("")
             elif type=="links":
                 if x!=-1:
-                    st.session_state["profile"][field_name][x][field_detail].append({"display":"","url":""})
+                    st.session_state["profile"][field_name][x][field_detail].append({"category":selected if selected is not None else "other", "display":"","url":"", })
                 else:
-                    st.session_state["profile"][field_name][field_detail].append({"display":"","url":""})
+                    st.session_state["profile"][field_name][field_detail].append({"category":selected if selected is not None else "other", "display":"","url":"", } )
 
         def add_detail(value, idx,):
             
@@ -978,17 +977,37 @@ class User():
                     except Exception:
                         pass
             elif type=="links":
-                with placeholder.container(border=True):
-                    try:
-                        c1, c2 = st.columns([10, 1])
-                        with c2:
-                            st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
-                        url = value["url"] if value["url"] else ""
-                        display_name = value["display"] if value["display"] else ""
-                        st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
-                        st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
-                    except Exception:
-                        pass
+                if field_name=="projects":
+                    with placeholder.container(border=True):
+                        try:
+                            c1, c2 = st.columns([10, 1])
+                            with c2:
+                                st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                            url = value["url"] if value["url"] else ""
+                            display_name = value["display"] if value["display"] else ""
+                            st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
+                            st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                        except Exception:
+                            pass
+                elif field_name=="contact":
+                    if value["category"]==selected:
+                        with placeholder.container(border=True):
+                            url = value["url"] if value["url"] else ""
+                            display_name = value["display"] if value["display"] else ""
+                            try:
+                                c1, c2, c3 = st.columns([10, 10, 1])
+                                with c3:
+                                    st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                                with c1:
+                                    add_vertical_space(2)
+                                    st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ))
+                                with c2:
+                                    add_vertical_space(2)
+                                    st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                            except Exception:
+                                pass
+
+
 
                    
 
@@ -1175,28 +1194,28 @@ class User():
                                 """,
                         ):
                             with st.popover("Project link",):
-                                # url = link["url"] if link["url"] else ""
-                                # display_name = link["name"] if link["name"] else ""
-                                # st.text_input("url", value=url, key=f"profile_project_url_{idx}", placeholder="url", label_visibility="collapsed")
-                                # st.text_input("display name", value=display_name, key=f"profile_project_name_{idx}", placeholder="display name", label_visibility="collapsed")
                                 display_details = self.display_field_details("projects", idx, "links", "links") 
                                 display_details()
                     # st.write("Description")
                     get_display= self.display_field_details("projects", idx, "description", "description")
                     get_display()
                 elif name=="educations":
-                    institution = value["institution"]
-                    st.text_input("Institution", value=institution, key=f"{name}_institution_{idx}",on_change=callback,  args=(idx, "institution", ), placeholder="Institution", label_visibility="collapsed")
-                    degree = value["degree"]
-                    st.text_input("Degree", value=degree, key=f"{name}_degree_{idx}", placeholder=f"Degree",on_change=callback,  args=(idx, "degree", ), label_visibility="collapsed")
-                    study = value["study"]
-                    st.text_input("Area of study", value=study, key=f"{name}_study_{idx}", placeholder="Area of Study", on_change=callback,  args=(idx, "study", ),  label_visibility="collapsed")
-                    start_date = value["start_date"]
-                    st.text_input("Start date", value=start_date, key=f"{name}_start_date_{idx}", placeholder="Start date", label_visibility="collapsed", on_change=callback,  args=(idx, "start_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
-                    end_date = value["end_date"]
-                    st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", placeholder="End date", label_visibility="collapsed", on_change=callback,  args=(idx, "end_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
-                    gpa = value["gpa"]
-                    st.text_input("GPA", value=gpa, key=f"{name}_gpa_{idx}", placeholder="GPA", label_visibility="collapsed", on_change=callback, args=(idx, "gpa"),  help="Only include your GPA if it's above 3.5")
+                    c1, c2, c3=st.columns([1, 1, 1])
+                    with c1:
+                        institution = value["institution"]
+                        st.text_input("Institution", value=institution, key=f"{name}_institution_{idx}",on_change=callback,  args=(idx, "institution", ), placeholder="Institution", label_visibility="collapsed")
+                        start_date = value["start_date"]
+                        st.text_input("Start date", value=start_date, key=f"{name}_start_date_{idx}", placeholder="Start date", label_visibility="collapsed", on_change=callback,  args=(idx, "start_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    with c2:
+                        degree = value["degree"]
+                        st.text_input("Degree", value=degree, key=f"{name}_degree_{idx}", placeholder=f"Degree",on_change=callback,  args=(idx, "degree", ), label_visibility="collapsed")
+                        end_date = value["end_date"]
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", placeholder="End date", label_visibility="collapsed", on_change=callback,  args=(idx, "end_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    with c3:
+                        study = value["study"]
+                        st.text_input("Area of study", value=study, key=f"{name}_study_{idx}", placeholder="Area of Study", on_change=callback,  args=(idx, "study", ),  label_visibility="collapsed")
+                        gpa = value["gpa"]
+                        st.text_input("GPA", value=gpa, key=f"{name}_gpa_{idx}", placeholder="GPA", label_visibility="collapsed", on_change=callback, args=(idx, "gpa"),  help="Only include your GPA if it's above 3.5")
                     st.markdown("Course works")
                     display_detail=self.display_field_details("educations", idx, "coursework", "description")
                     display_detail()
@@ -1601,24 +1620,44 @@ class User():
                         if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
                             st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
                             st.session_state["profile_changed"] = True
-                    with stylable_container(
-                        key= f"custom_websites_popover",
-                        css_styles=
-                        f"""
-                            button {{
-                                background: none;
-                                border: none;
-                                color: blue;
-                                padding: 0;
-                                cursor: pointer;
-                                font-size: 12px; 
-                                text-decoration: none;
-                            }}
-                            """,
-                    ):
-                        with st.popover("Personal links",):
-                            display_detail=self.display_field_details("contact", -1, "links", "links")
-                            display_detail()
+                    selected = sac.tabs([
+                        sac.TabsItem(label='linkedin', icon='linkedin'),
+                        sac.TabsItem(label='facebook', icon='facebook'),
+                        sac.TabsItem(label='twitter', icon='twitter'),
+                        sac.TabsItem(label='github', icon='github'),
+                        sac.TabsItem(label='other'),
+                    ], align='center')
+                    if selected:
+                        display_detail=self.display_field_details("contact", -1, "links", "links", selected.casefold().strip())
+                        display_detail()
+                    # else:
+                    #     value = st.session_state["profile"]["contact"]["links"]
+                    #     category = value["category"]
+                    #     if category.casefold()==selected:
+                    #         url = value["url"] if value["url"] else ""
+                    #         display_name = value["display"] if value["display"] else ""
+                    #         if st.text_input("URL", value=url, key=f"contact_url_{category}", )!=url:
+                    #             st.session_state["profile"]["contact"]["links"]["url"]
+
+                    #         st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                    # with stylable_container(
+                    #     key= f"custom_websites_popover",
+                    #     css_styles=
+                    #     f"""
+                    #         button {{
+                    #             background: none;
+                    #             border: none;
+                    #             color: blue;
+                    #             padding: 0;
+                    #             cursor: pointer;
+                    #             font-size: 12px; 
+                    #             text-decoration: none;
+                    #         }}
+                    #         """,
+                    # ):
+                    #     with st.popover("Personal links",):
+                    #         display_detail=self.display_field_details("contact", -1, "links", "links")
+                    #         display_detail()
                 if field=="educations":
                     get_display=self.display_field_content(field)
                     get_display()

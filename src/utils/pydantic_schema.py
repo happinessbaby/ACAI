@@ -42,6 +42,9 @@ class Jobs(BaseModel):
         Exclude anything that's not in the work experience section"""
     )
 class HyperLink(BaseModel):
+    category: str=Field(
+        default="", description="category of the url, should be one of the following: github, twitter, linkedin, facebook, other"
+    )
     display: str = Field(
         default="", description="display name of the url"
     )
