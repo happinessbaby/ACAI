@@ -23,6 +23,7 @@ from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
 from utils.async_utils import asyncio_run, future_run_with_timeout, tenacity_run_with_timeout
 # import concurrent.futures
 import time as time
+import jinja2
 import streamlit as st
 
 
@@ -413,7 +414,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
         response_dict=response.dict() if response else {}
         p.increment(20)  # Update progress 
         loading_func(p.progress)
-    elif field_name=="education":
+    elif field_name=="educations":
         response_dict={}
     else:
         # print("bullet point details", details)
@@ -743,36 +744,34 @@ def reformat_resume(template_path, ):
         # Download the file content from S3 into memory
         s3_object = s3.get_object(Bucket=bucket_name, Key=template_path)
         template_path = BytesIO(s3_object['Body'].read())
+    jinja_env = jinja2.Environment()
+    jinja_env.trim_blocks = True
+    jinja_env.lstrip_blocks = True
     doc_template = DocxTemplate(template_path)
     context={}
     if "Contact" in selected_fields and info_dict["contact"] is not None:      
         func = lambda key, default: default if info_dict["contact"][key]==None or info_dict["contact"][key]=="" else info_dict["contact"][key]
+        rich_text = RichText()
         personal_context = {
             "NAME": func("name", ""),
             "CITY": func("city", ""),
             "STATE": func("state", ""),
             "PHONE": func("phone", ""),
             "EMAIL": func("email", ""),
-            "LINKEDIN": func("linkedin", ""),
-            "WEBSITES": func("websites", ""),
+            # "WEBSITES": func("links", ""),
         }
         context.update(personal_context)
-    if "Education" in selected_fields and info_dict["education"] is not None:
-        func = lambda key, default: default if info_dict["education"][key]=="" or info_dict["education"][key]==[] or info_dict["education"][key]==None else info_dict["education"][key]
-        education_context = {
-            "show_education":True,
-            "INSTITUTION": func("institution", ""),
-            "DEGREE": func("degree", ""),
-            "STUDY": func("study", ""),
-            "GRAD_YEAR": func("graduation_year", ""),
-            "GPA": func("gpa", ""), 
-            "COURSEWORKS": func("coursework", ""),
-        }
-        context.update(education_context)
+        WEBSITES = info_dict["contact"].get("links", [])
+        for website in WEBSITES:
+            display_text = website["display"] if website["display"] else website["url"]
+            rich_text.add(display_text, url_id=doc_template.build_url_id(website["url"]))
+        context.update({"WEBSITES": rich_text})
     func = lambda key, default: default if info_dict[key]=="" or info_dict[key]==[] or info_dict[key]==None else info_dict[key]
     if "Summary Objective" in selected_fields and info_dict["summary_objective"] is not None:
         context.update({"show_summary":True, "SUMMARY": func("summary_objective", ""), 
                          "PURSUIT_JOB": func("pursuit_jobs", ""),})      
+    if "Education" in selected_fields and info_dict["educations"] is not None:
+        context.update({"show_education":True, "EDUCATIONS": func("educations", "")})
     if "Work Experience" in selected_fields and info_dict["work_experience"] is not None:
          context.update({"show_work_experience":True,"WORK_EXPERIENCE": func("work_experience", "")})
     if "Skills" in selected_fields and info_dict["included_skills"] is not None:
@@ -784,16 +783,17 @@ def reformat_resume(template_path, ):
     if "Projects" in selected_fields and info_dict["projects"] is not None:
         # context.update({"show_projects":True,"PROJECTS":func("projects", "")})
         # Create RichText objects for each project link
-        PROJECTS = info_dict.get("projects", "")
+        PROJECTS = info_dict["projects"]
         if PROJECTS:
             for project in PROJECTS:
-                if project["link"]:
-                    rt = RichText()
-                    rt.add(project['link'], url_id=doc_template.build_url_id(project['link']))
-                    project['rich_link'] = rt  # Add this to the context as 'rich_link'
-            context.update({"show_projects":True,
-                'PROJECTS': PROJECTS,
-            })
+                LINKS = project["links"]
+                rich_text = RichText()
+                for link in LINKS:
+                    display_text = link["display"] if link["display"] else link["url"]
+                    rich_text.add(display_text, url_id=doc_template.build_url_id(link["url"]))
+                project["rich_link"] = rich_text
+            print(PROJECTS)
+            context.update({"show_projects":True, "PROJECTS": PROJECTS})
     if "Awards & Honors" in selected_fields and info_dict["awards"] is not None:
         context.update({"show_awards":True,"AWARDS": func("awards", "")})
     # text_box_contents = read_text_boxes(template_path)

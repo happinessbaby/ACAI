@@ -2060,6 +2060,7 @@ class User():
                 st.session_state["additional_fields"].append(field)
                 st.session_state["profile"][field]=None
                 st.session_state["profile_changed"]=True
+                st.session_state["update_template"]=True
                 placeholder.empty()
                 st.rerun()
 

@@ -109,7 +109,7 @@ class Reformat():
             st.session_state["update_template"]=False
             st.rerun()
 
-   
+
 
     def reformat_templates(self, ):
 
@@ -262,19 +262,6 @@ class Reformat():
             for field, idx in st.session_state.resume_fields_dict.items():
                 items.append(sac.ChipItem(label=field))
             selected_fields = sac.chip(
-                # items=[
-                #     sac.ChipItem(label='Contact'),
-                #     sac.ChipItem(label='Education'),
-                #     sac.ChipItem(label='Summary Objective'),
-                #     sac.ChipItem(label='Work Experience'),
-                #     sac.ChipItem(label='Skills'),
-                #     sac.ChipItem(label='Professional Accomplishment'),
-                #     sac.ChipItem(label='Projects'),
-                #     sac.ChipItem(label='Certifications'),
-                #     sac.ChipItem(label='Awards & Honors'),
-                #     sac.ChipItem(label="Licenses"),
-                #     sac.ChipItem(label="Hobbies"),
-                # ],
                 items=items,
                   label=' ',
                     index=index,
@@ -283,11 +270,9 @@ class Reformat():
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
                     if selected_fields!=st.session_state["selected_fields"]:
-                        # st.session_state["fields_changed"]=True
+                        st.session_state["update_template"]=True
                         st.session_state["selected_fields"]=selected_fields
-                        if self.reformat_templates():
-                             st.rerun()
-                        # st.rerun()
+                        st.rerun()
                              
     def delete_session_states(self, names:List[str])->None:
 
