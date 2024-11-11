@@ -59,11 +59,11 @@ class Reformat():
         if "profile" not in st.session_state:
             # st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
             st.switch_page('pages/user.py')
+        filtered_fields =[value[0] for key, value in st.session_state.fields_dict.items() if key in st.session_state["profile"]["fields"]]
+        st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(filtered_fields)}
         if "selected_fields" not in st.session_state:
-            # if "additional_fields" in st.session_state:
-            st.session_state["selected_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key not in st.session_state["additional_fields"]]
-            st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(st.session_state["selected_fields"])}
-            print(st.session_state.selected_fields)
+            st.session_state["selected_fields"]=[field for field in st.session_state["resume_fields_dict"]]
+            # print(st.session_state.selected_fields)
         # if "user_save_path" not in st.session_state:
         #     if STORAGE=="CLOUD":
         #         st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")

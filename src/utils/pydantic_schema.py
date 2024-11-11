@@ -528,8 +528,9 @@ class ResumeUsers(BaseModel):
     certifications: Optional[List[Certification]]
     contact: Contact
     educations: Optional[List[Education]]
+    fields: Optional[List[str]]
     # hobbies: Optional[List[str]]
-    hobbies: Optional[Hobbies]
+    # hobbies: Optional[Hobbies]
     included_skills: Optional[List[str]]
     industry: Optional[str]
     licenses: Optional[List[License]]

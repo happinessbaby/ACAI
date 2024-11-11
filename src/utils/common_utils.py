@@ -860,7 +860,7 @@ def create_resume_info(resume_path, q, ):
                    "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"", }, 
                    "educations": None, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
-                   "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
+                   "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None}
     resume_content = read_file(resume_path,)
     # Extract resume fields
     if resume_content:
