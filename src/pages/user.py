@@ -1550,6 +1550,9 @@ class User():
             st.session_state["current_idx"]= len(st.session_state["tracker"])-1
             st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
             st.session_state["tailor_color"] = "#2d2e29"
+            #retrieve default profile as tailor template
+            st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+            st.session_state["update_template"]=True
             self.delete_session_states(["job_posting_path", "job_description"])
             return True
         except Exception as e:
