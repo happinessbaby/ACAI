@@ -6,10 +6,9 @@ from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, a
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, delete_job_from_table, save_job_posting_changes
-from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker
+from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker, suggest_skills, research_skills
 from utils.basic_utils import mk_dirs, send_recovery_email, change_hex_color
 from typing import Any, List
-from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -17,6 +16,7 @@ from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUse
 from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
 from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button, included_skills_button, suggested_skills_button, new_upload_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
+from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
 import threading
@@ -27,7 +27,8 @@ from authlib.integrations.requests_client import OAuth2Session
 from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
-import streamlit_antd_components as sac
+# import streamlit_antd_components as sac
+from streamlit_tags import st_tags
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
 # from threading import Thread
@@ -106,9 +107,9 @@ if "eval_rerun_timer" not in st.session_state:
     st.session_state["eval_rerun_timer"]=3
 
 
-all_fields=["contact", "education", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "hobbies", "licenses"]
-all_fields_icons = [":material/contacts:", ":material/school:", ":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/heart_plus:", ":material/license:"]
-all_fields_labels=["Contact", "Education", "Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Hobbies", "Licenses"]
+all_fields=["contact", "educations", "summary_objective", "included_skills", "projects", "qualifications", "certifications", "awards", "work_experience", "licenses"]
+all_fields_icons = [":material/contacts:", ":material/school:", ":material/summarize:", ":material/widgets:", ":material/perm_media:", ":material/commit:", ":material/license:", ":material/workspace_premium:", ":material/work_history:", ":material/license:"]
+all_fields_labels=["Contact", "Education", "Summary Objective", "Skills", "Projects", "Professional Accomplishment", "Certifications", "Awards & Honors", "Work Experience", "Licenses"]
 
 class User():
 
@@ -119,7 +120,7 @@ class User():
         init_cookies()
         self._init_session_states()
         self._init_display()
-        # self.reformat_templates()
+
 
 
     # @st.cache_data()
@@ -138,8 +139,6 @@ class User():
                 st.session_state["user_mode"]="signedin"
             if "profile" not in st.session_state:
                 st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-            # if "count" not in st.session_state:
-            #     st.session_state["count"]=0
             if "profile_schema" not in st.session_state:
                 st.session_state["profile_schema"] = convert_pydantic_schema_to_arrow(ResumeUsers)
             if "evaluation" not in st.session_state:
@@ -149,13 +148,15 @@ class User():
             if "tracker" not in st.session_state:
                 st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
                 if st.session_state["tracker"]:
-                    st.session_state["current_idx"]= len(st.session_state["tracker"])-1
+                    last_edit = sorted(st.session_state["tracker"],  key=lambda x: x["last_edit_time"], reverse=True)[0]["last_edit_time"]
+                    print(last_edit)
+                    st.session_state["current_idx"]=next((i for i, item in enumerate(st.session_state["tracker"]) if item.get("last_edit_time") == last_edit), -1)
+                    print(st.session_state["current_idx"])
+                    # NOTE: job_posting_dict is a session copy of the job posting on display
                     st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
                     st.session_state["tailor_color"] = st.session_state["job_posting_dict"]["color"]
             if "tracker_schema" not in st.session_state:
                 st.session_state["tracker_schema"]=convert_pydantic_schema_to_arrow(JobTrackingUsers)
-            # if "selected_fields" not in st.session_state:
-            #     st.session_state["selected_fields"]=["Contact", "Education", "Summary Objective", "Work Experience", "Skills"]
             # if "init_templates" not in st.session_state:
             #     scheduler = BackgroundScheduler()
             #     scheduler.start()
@@ -181,14 +182,11 @@ class User():
             if "fields_dict" not in st.session_state:
                 zipped = zip(all_fields, all_fields_labels, all_fields_icons)
                 st.session_state["fields_dict"] = {key: (val1, val2) for key, val1, val2 in zipped}
-            if "additional_fields" not in st.session_state:
-                st.session_state["additional_fields"]=[]
-                if st.session_state["profile"]:
-                    for field in all_fields:
-                        if st.session_state["profile"][field] is None:
-                            st.session_state.additional_fields.append(field)
             if "show" not in st.session_state:
                 st.session_state["show"]=False
+            # if "init_formatting" not in st.session_state:
+            #     st.session_state["init_formatting"]=False
+            #     _self.reformat_templates()
         else:
             if "user_mode" not in st.session_state:  
                 st.session_state["user_mode"]="signedout"
@@ -231,7 +229,7 @@ class User():
                         with profile_placeholder.container():
                             #display the progress bar
                             progress_bar(0)
-                            add_vertical_space(8)
+                            # add_vertical_space(8)
                             # display the main profile
                             self.display_profile()
                 except KeyError as e:
@@ -643,18 +641,17 @@ class User():
         resume_dict = q.get()
         resume_dict.update({"resume_path":st.session_state.user_resume_path})
         resume_dict.update({"user_id": st.session_state.userId}) 
-        # save resume dict into session's profile
-        st.session_state["profile"] = resume_dict
+        fields=[]
         for field in all_fields:
-            if st.session_state["profile"][field] is None:
-                st.session_state.additional_fields.append(field)
+            if resume_dict[field] is not None:
+                fields.append(field)
+        resume_dict.update({"fields": fields})
+        st.session_state["profile"] = resume_dict
         # save resume/profile into lancedb table
         save_user_changes(st.session_state.userId, resume_dict, st.session_state["profile_schema"], lance_users_table_default)
         st.session_state["update_template"]=True
         st.session_state["profile_changed"]=True
         st.session_state["show"]=False
-        # for field in st.session_state["additional_fields"]:
-        #     self.delete_session_states([f"{field}_add_button"])
         self.delete_session_states(["user_resume_path"])
         print("Successfully added user to lancedb table")
 
@@ -664,20 +661,19 @@ class User():
         """ In case user did not upload a resume, this creates an empty profile and saves it as a lancedb table entry"""
 
         st.session_state["profile"] = {"user_id": st.session_state.userId, "resume_path": "", "resume_content":"",
-                   "contact": {"city":"", "email": "", "linkedin":"", "name":"", "phone":"", "state":"", "websites":"", }, 
-                   "education": {"coursework":[], "degree":"", "gpa":"", "graduation_year":"", "institution":"", "study":""}, 
+                   "contact": {"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"" }, 
+                   "educations": None, 
                    "pursuit_jobs":"", "industry":"", "summary_objective":"", "included_skills":None, "work_experience":None, "projects":None, 
-                   "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, "hobbies":None}
+                   "certifications":None, "suggested_skills":None, "qualifications":None, "awards":None, "licenses":None, }
+        fields=[]
         for field in all_fields:
-            if st.session_state["profile"][field] is None:
-                st.session_state.additional_fields.append(field)
-        # save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_tailored)
+            if st.session_state["profile"][field] is not None:
+                fields.append(field)
+        st.session_state["profile"].update({"fields": fields})
         save_user_changes(st.session_state.userId, st.session_state.profile, st.session_state["profile_schema"], lance_users_table_default)
          # delete any old resume saved in session state
         self.delete_session_states(["user_resume_path"])
         st.session_state["show"]=False
-        # for field in st.session_state["additional_fields"]:
-        #     self.delete_session_states([f"{field}_add_button"])
         # prevent evaluation when profile is empty 
         st.session_state["init_eval"]=False
         st.session_state["profile_changed"]=True
@@ -734,7 +730,7 @@ class User():
         slist = DraggableList(data, key="skills_rearrange_draggable")
         _, c = st.columns([3, 1])
         with c:
-            if st.button("confirm", key="confirm_rearrange_skills_button"):
+            if st.button("Confirm", key="confirm_rearrange_skills_button"):
                 st.session_state["profile"]["included_skills"]=[skill["name"] for skill in slist]
                 st.session_state["profile_changed"]=True
                 st.rerun()
@@ -748,7 +744,11 @@ class User():
 
         @st.fragment
         def get_display():
-            c1, c2=st.columns([1, 1])
+
+            if st.session_state["profile"]["included_skills"] is None:
+                st.session_state["profile"]["included_skills"]=[]
+                st.session_state["profile_changed"]=True
+            c1, c2=st.columns([2, 1])
             with c1:
                 with st.container(border=True):
                     c3, c4 = st.columns([3, 1])
@@ -773,62 +773,104 @@ class User():
                                 if st.button("Rearrange", key="rearrange_skills_button", ):
                                     self.rearrange_skills_popup()
 
-                    with stylable_container(key="custom_skills_button",
-                            css_styles=included_skills_button,
-                    ):
-                        included_grid=grid([1, 1, 1])
-                        for idx, skill in enumerate(self.skills_set):
-                            x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),)
+                    # with stylable_container(key="custom_skills_button",
+                    #         css_styles=included_skills_button,
+                    # ):
+                    # included_grid=grid([1, 1, 1])
+                    # for idx, skill in enumerate(self.skills_set):
+                        # x = included_grid.button(skill+" :red[x]", key=f"remove_skill_{idx}", on_click=skills_callback, args=(idx, skill, ), type="primary")
+                    included_skills = st_tags(
+                        label=' ',
+                        text='Press enter to add more',
+                        value=self.skills_set,
+                        suggestions=self.generated_skills_set,
+                        key='included_skills_tags')
+                    # print(included_skills)
+                    if included_skills!=self.skills_set:
+                        st.session_state["profile"]["included_skills"]=included_skills
+                        self.skills_set=included_skills
+                        st.session_state["profile_changed"]=True
             with c2:
-                st.write("**Suggested skills to include:**")
-                with stylable_container(key="custom_skills_button2",
-                            css_styles=suggested_skills_button,
-                    ):
-                    suggested_grid = grid([1, 1, 1])
-                    for idx, skill in enumerate(self.generated_skills_set):
-                        y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ))
-                st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ))
-            
-        def skills_callback(idx, skill):
-            try:
-                new_skill = st.session_state.add_skill_custom
-                if new_skill:
-                    # Add only unique items that are not already in the ordered set
-                    if new_skill not in self.skills_set:
-                        self.skills_set.append(new_skill)
-                        st.session_state["profile"]["included_skills"]=self.skills_set
-                        st.session_state["profile_changed"]=True
-                        st.session_state.add_skill_custom=''
-            except Exception:
-                    pass
-            try:
-                add_skill = st.session_state[f"add_skill_{idx}"]
-                if add_skill:
-                    if skill not in self.skills_set:
-                        self.skills_set.append(skill)
-                        st.session_state["profile"]["included_skills"]=self.skills_set
-                        st.session_state["profile_changed"]=True
-                    self.generated_skills_set.remove(skill)
-                    st.session_state["profile"]["suggested_skills"]=self.generated_skills_set
-                    # st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
-            except Exception:
-                pass
-            try:
-                remove_skill = st.session_state[f"remove_skill_{idx}"]
-                if remove_skill:
-                    # print('remove skill', skill)
-                    self.skills_set.remove(skill)
-                    st.session_state["profile"]["included_skills"]=self.skills_set
-                    st.session_state["profile_changed"]=True
-            except Exception:
-                pass
+                c3, c4 = st.columns([3, 1])
+                with c3:
+                    st.write("**Suggested skills**")
+                with c4:
+                    with stylable_container(
+                            key="custom_rearrange_skills_button",
+                            css_styles="""
+                                button {
+                                    background: none;
+                                    border: none;
+                                    color: #ff8247;
+                                    padding: 0;
+                                    cursor: pointer;
+                                    font-size: 12px; 
+                                    text-decoration: none;
+                                }
+                            """,
+                        ):
+                        if st.button("Refresh", key="refresh_suggested_skills_button", ):
+                            if st.session_state["selection"]=="default" or st.session_state["tracker"] is None:
+                                suggested_skills =list(set(suggest_skills(st.session_state["profile"]["resume_content"], job_posting=None)))
+                            else:
+                                suggested_skills = list(set(suggest_skills(st.session_state["profile"]["resume_content"], st.session_state["tracker"][st.session_state.current_idx]["content"])))
+                            st.session_state["profile"]["suggested_skills"]=suggested_skills
+                            st.session_state["profile_changed"]=True
+                            self.generated_skills_set = [
+                                    skill for skill in suggested_skills 
+                                    if skill.casefold() not in {s.casefold() for s in self.skills_set}
+                                ]
+                            # st.rerun()
+                # suggested_grid = grid([1, 1, 1])
+                for skill in self.generated_skills_set:
+                    st.write(skill)
+                # with stylable_container(key="custom_skills_button2",
+                #             css_styles=suggested_skills_button,
+                #     ):
+                    # for idx, skill in enumerate(self.generated_skills_set):
+                        # y = suggested_grid.button(skill +" :green[+]", key=f"add_skill_{idx}", on_click=skills_callback, args=(idx, skill, ),  type="primary")
+                    # st.text_input("Add a skill", key="add_skill_custom", placeholder="Add a skill", label_visibility="collapsed" ,on_change=skills_callback, args=("", "", ),)
+                # sst.multiselect(" ", self.generated_skills_set, placeholder="Suggested skills...", on_change=skills_callback,)
+        # def skills_callback():
+        #     try:
+        #         new_skill = st.session_state.add_skill_custom
+        #         if new_skill:
+        #             # Add only unique items that are not already in the ordered set
+        #             if new_skill not in self.skills_set:
+        #                 self.skills_set.append(new_skill)
+        #                 st.session_state["profile"]["included_skills"]=self.skills_set
+        #                 st.session_state["profile_changed"]=True
+        #                 st.session_state.add_skill_custom=''
+        #     except Exception:
+        #             pass
+        #     try:
+        #         add_skill = st.session_state[f"add_skill_{skill}"]
+        #         if add_skill:
+        #             if skill not in self.skills_set:
+        #                 self.skills_set.append(skill)
+        #                 st.session_state["profile"]["included_skills"]=self.skills_set
+        #                 st.session_state["profile_changed"]=True
+        #             self.generated_skills_set.remove(skill)
+        #             st.session_state["profile"]["suggested_skills"]=self.generated_skills_set
+        #             # st.session_state["profile"]["suggested_skills"]=[i for i in st.session_state["profile"]["suggested_skills"] if not (i["skill"] == skill)]
+        #     except Exception:
+        #         pass
+        #     try:
+        #         remove_skill = st.session_state[f"remove_skill_{skill}"]
+        #         if remove_skill:
+        #             # print('remove skill', skill)
+        #             self.skills_set.remove(skill)
+        #             st.session_state["profile"]["included_skills"]=self.skills_set
+        #             st.session_state["profile_changed"]=True
+        #     except Exception:
+        #         pass
 
         return get_display
 
 
 
     @st.fragment
-    def display_field_details(self, field_name, x, field_detail, type):
+    def display_field_details(self, field_name, x, field_detail, type, selected=None):
 
         """ Interactive display of specific details such as bullet points in each field"""
         @st.fragment
@@ -841,21 +883,25 @@ class User():
             if field_list:
                 for idx, value in enumerate(field_list):
                     add_detail(value, idx,)
-            if type=="bullet_points":
+            if type=="description":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
                     st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
+            elif type=="links":
+                y, _, _ = st.columns([1, 20, 1])
+                with y: 
+                    st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a link", use_container_width=True)
 
 
         def delete_entry(placeholder, idx):
-            if type=="bullet_points":
-                try:
-                    if x!=-1:
-                        del st.session_state["profile"][field_name][x][field_detail][idx]
-                    else:
-                        del st.session_state["profile"][field_name][field_detail][idx]
-                except Exception:
-                    pass
+
+            try:
+                if x!=-1:
+                    del st.session_state["profile"][field_name][x][field_detail][idx]
+                else:
+                    del st.session_state["profile"][field_name][field_detail][idx]
+            except Exception:
+                pass
             placeholder.empty()
 
         def move_entry(idx, movement, ):
@@ -894,20 +940,23 @@ class User():
                     except Exception:
                         pass
         
-
-
         def add_new_entry():
             # print("added new entry")
-            if type=="bullet_points":
+            if type=="description":
                 if x!=-1:
                     st.session_state["profile"][field_name][x][field_detail].append("")
                 else:
                     st.session_state["profile"][field_name][field_detail].append("")
+            elif type=="links":
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail].append({"category":selected if selected is not None else "other", "display":"","url":"", })
+                else:
+                    st.session_state["profile"][field_name][field_detail].append({"category":selected if selected is not None else "other", "display":"","url":"", } )
 
         def add_detail(value, idx,):
             
             placeholder = st.empty()
-            if type=="bullet_points":
+            if type=="description":
                 with placeholder.container():
                     try:
                         c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
@@ -923,6 +972,39 @@ class User():
                             st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
                     except Exception:
                         pass
+            elif type=="links":
+                if field_name=="projects":
+                    with placeholder.container(border=True):
+                        try:
+                            c1, c2 = st.columns([10, 1])
+                            with c2:
+                                st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                            url = value["url"] if value["url"] else ""
+                            display_name = value["display"] if value["display"] else ""
+                            st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ), placeholder="URL", label_visibility="collapsed")
+                            st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ), placeholder="Display text", label_visibility="collapsed")
+                        except Exception:
+                            pass
+                elif field_name=="contact":
+                    if value["category"]==selected:
+                        with placeholder.container(border=True):
+                            url = value["url"] if value["url"] else ""
+                            display_name = value["display"] if value["display"] else ""
+                            try:
+                                c1, c2, c3 = st.columns([10, 10, 1])
+                                with c3:
+                                    st.button("**:red[x]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                                with c1:
+                                    add_vertical_space(2)
+                                    st.text_input("URL", value=url, key=f"{field_name}_{x}_url_{idx}", on_change=callback, args=(idx, ), placeholder="URL", label_visibility="collapsed")
+                                with c2:
+                                    add_vertical_space(2)
+                                    st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ), placeholder="Display text", label_visibility="collapsed")
+                            except Exception:
+                                pass
+
+
+
                    
 
         def callback(idx, ):
@@ -933,7 +1015,22 @@ class User():
                     st.session_state["profile"][field_name][x][field_detail][idx] = new_entry
                 else:
                     st.session_state["profile"][field_name][field_detail][idx] = new_entry
-                st.session_state["profile_changed"]=True
+            except Exception as e:
+                pass
+            try:
+                url = st.session_state[f"{field_name}_{x}_url_{idx}"]
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail][idx]["url"] = url
+                else:
+                    st.session_state["profile"][field_name][field_detail][idx]["url"] = url
+            except Exception as e:
+                pass
+            try:
+                display = st.session_state[f"{field_name}_{x}_display_{idx}"]
+                if x!=-1:
+                    st.session_state["profile"][field_name][x][field_detail][idx]["display"] = display
+                else:
+                    st.session_state["profile"][field_name][field_detail][idx]["display"] = display
             except Exception as e:
                 pass
             st.session_state["profile_changed"]=True
@@ -970,7 +1067,10 @@ class User():
             elif name=="awards" or name=="qualifications":
                 st.session_state["profile"][name].append({"description":[],"title":""})
             elif name=="projects":
-                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","link":"","location":"","start_date":"", "title":""})
+                st.session_state["profile"][name].append({"company":"","description":[],"end_date":"","links":[],"location":"","start_date":"", "title":""})
+            elif name=="educations":
+                st.session_state["profile"][name].append({"coursework":[], "degree":"",  "end_date":"", "gpa":"", "institution":"",  "start_date":"","study":""})
+        
         
         
         def delete_container(placeholder, idx):
@@ -1015,27 +1115,34 @@ class User():
                 with down: 
                     st.button(":grey[⌄]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
                 with x:
-                    st.button("**:red[-]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                if name=="awards" or name=="qualifications":
+                    st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                if name=="awards":
                     title = value["title"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, "title", ), placeholder="Title of award", label_visibility="collapsed")
                     # st.write("Description")
-                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display= self.display_field_details(name, idx, "description", "description")
+                    get_display()
+                elif name=="qualifications":
+                    title = value["title"]
+                    # description = value["description"]
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, "title", ), placeholder="Name of skill, qualification, or accomplishment", label_visibility="collapsed")
+                    # st.write("Description")
+                    get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
                 elif name=="certifications" or name=="licenses":
                     title = value["title"]
                     organization = value["issue_organization"]
                     date = value["issue_date"]
                     # description = value["description"]
-                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, ), placeholder="Title", label_visibility="collapsed")
+                    st.text_input("Title", value=title, key=f"{name}_title_{idx}", on_change=callback, args=(idx, "title", ), placeholder="Title", label_visibility="collapsed")
                     c1, c2=st.columns([1, 1])
                     with c1:
-                        st.text_input("Issue organization", value=organization, key=f"{name}_org_{idx}", on_change=callback, args=(idx, ), placeholder="Issue organization", label_visibility="collapsed")
+                        st.text_input("Issue organization", value=organization, key=f"{name}_issue_organization_{idx}", on_change=callback, args=(idx, "issue_organization",), placeholder="Issue organization", label_visibility="collapsed")
                     with c2:
-                        st.text_input("Issue date", value=date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, ), placeholder="Issue date", label_visibility="collapsed")
+                        st.text_input("Issue date", value=date, key=f"{name}_issue_date_{idx}", on_change=callback, args=(idx, "issue_date, "), placeholder="Issue date", label_visibility="collapsed")
                     # st.write("Description")
-                    get_display= self.display_field_details(name, idx, "description", "bullet_points")
+                    get_display= self.display_field_details(name, idx, "description", "description")
                     get_display()
                 elif name=="work_experience":
                     job_title = value["title"]
@@ -1045,15 +1152,15 @@ class User():
                     location = value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Job title", value = job_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Job title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"{name}_org_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Job title", value = job_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx, "title", ),  placeholder="Job title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx, "company", ), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx, "start_date", ), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx, "location", ), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, "end_date", ), placeholder="End date", label_visibility="collapsed" )
                     # st.write("Description")
-                    get_display= self.display_field_details("work_experience", idx, "description", "bullet_points")
+                    get_display= self.display_field_details("work_experience", idx, "description", "description")
                     get_display()
                 elif name=="projects":
                     project_title = value["title"]
@@ -1062,57 +1169,66 @@ class User():
                     end_date = value["end_date"]
                     # descriptions = st.session_state["profile"][name][idx]["description"]
                     location = value["location"]
-                    link =value["link"]
+                    # links =value["links"]
                     location=value["location"]
                     c1, c2, c3= st.columns([2, 1, 1])
                     with c1:
-                        st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx,),  placeholder="Project title", label_visibility="collapsed")
-                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx,), placeholder="Company", label_visibility="collapsed"  )
+                        st.text_input("Project title", value = project_title, key=f"{name}_title_{idx}", on_change=callback,args=(idx, "title", ),  placeholder="Project title", label_visibility="collapsed")
+                        st.text_input("Company", value=company, key=f"{name}_company_{idx}", on_change=callback,args=(idx, "company",), placeholder="Company", label_visibility="collapsed"  )
                     with c2:
-                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx,), placeholder="Start date", label_visibility="collapsed" )
-                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx,), placeholder="Location", label_visibility="collapsed" )
+                        st.text_input("start date", value=start_date, key=f"{name}_start_date_{idx}", on_change=callback,args=(idx, "start_date", ), placeholder="Start date", label_visibility="collapsed" )
+                        st.text_input("Location", value=location, key=f"{name}_location_{idx}", on_change=callback,  args=(idx, "location", ), placeholder="Location", label_visibility="collapsed" )
                     with c3:
-                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx,), placeholder="End date", label_visibility="collapsed" )
-                        st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", on_change=callback, args=(idx, "end_date", ), placeholder="End date", label_visibility="collapsed" )
+                        # st.text_input("Link", value=link, key=f"{name}_link_{idx}", on_change=callback, args=(idx,), placeholder="Project link", label_visibility="collapsed" )
+                        with stylable_container(
+                            key= f"custom_project_popover",
+                            css_styles=
+                            f"""
+                                button {{
+                                    background: none;
+                                    border: none;
+                                    color: blue;
+                                    padding: 0;
+                                    cursor: pointer;
+                                    font-size: 12px; 
+                                    text-decoration: none;
+                                }}
+                                """,
+                        ):
+                            with st.popover("Project link",):
+                                display_details = self.display_field_details("projects", idx, "links", "links") 
+                                display_details()
                     # st.write("Description")
-                    get_display= self.display_field_details("projects", idx, "description", "bullet_points")
+                    get_display= self.display_field_details("projects", idx, "description", "description")
                     get_display()
+                elif name=="educations":
+                    c1, c2, c3=st.columns([1, 1, 1])
+                    with c1:
+                        institution = value["institution"]
+                        st.text_input("Institution", value=institution, key=f"{name}_institution_{idx}",on_change=callback,  args=(idx, "institution", ), placeholder="Institution", label_visibility="collapsed")
+                        start_date = value["start_date"]
+                        st.text_input("Start date", value=start_date, key=f"{name}_start_date_{idx}", placeholder="Start date", label_visibility="collapsed", on_change=callback,  args=(idx, "start_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    with c2:
+                        degree = value["degree"]
+                        st.text_input("Degree", value=degree, key=f"{name}_degree_{idx}", placeholder=f"Degree",on_change=callback,  args=(idx, "degree", ), label_visibility="collapsed")
+                        end_date = value["end_date"]
+                        st.text_input("End date", value=end_date, key=f"{name}_end_date_{idx}", placeholder="End date", label_visibility="collapsed", on_change=callback,  args=(idx, "end_date",), help="Do not include a date of graduation if it has been more than 10 years ago")
+                    with c3:
+                        study = value["study"]
+                        st.text_input("Area of study", value=study, key=f"{name}_study_{idx}", placeholder="Area of Study", on_change=callback,  args=(idx, "study", ),  label_visibility="collapsed")
+                        gpa = value["gpa"]
+                        st.text_input("GPA", value=gpa, key=f"{name}_gpa_{idx}", placeholder="GPA", label_visibility="collapsed", on_change=callback, args=(idx, "gpa"),  help="Only include your GPA if it's above 3.5")
+                    st.markdown("Course works")
+                    display_detail=self.display_field_details("educations", idx, "coursework", "description")
+                    display_detail()
 
-        def callback(idx):
+
+        def callback(idx, value):
 
             try:
-                link = st.session_state[f"{name}_link_{idx}"]
-                st.session_state["profile"][name][idx]["link"]= link
-            except Exception:
-                pass
-            try:
-                title = st.session_state[f"{name}_title_{idx}"]
-                st.session_state["profile"][name][idx]["title"]=title
-            except Exception:
-                pass
-            try:
-                org = st.session_state[f"{name}_company_{idx}"]
-                st.session_state["profile"][name][idx]["company"]=org
-            except Exception:
-                pass
-            try:
-                org = st.session_state[f"{name}_org_{idx}"]
-                st.session_state["profile"][name][idx]["issue_organization"]=org
-            except Exception:
-                pass
-            try:
-                start_date = st.session_state[f"{name}_start_date_{idx}"]
-                st.session_state["profile"][name][idx]["start_date"] =start_date
-            except Exception:
-                pass
-            try:
-                end_date = st.session_state[f"{name}_end_date_{idx}"]
-                st.session_state["profile"][name][idx]["end_date"] = end_date
-            except Exception:
-                pass
-            try:
-                location = st.session_state[f"{name}_location_{idx}"]
-                st.session_state["profile"][name][idx]["location"] = location
+                x = st.session_state[f"{name}_{value}_{idx}"]
+                st.session_state["profile"][name][idx][value]= x
             except Exception:
                 pass
             st.session_state["profile_changed"]=True
@@ -1126,24 +1242,25 @@ class User():
 
 
         def join_with_punctuation(sublist):
-            # Function to join words while avoiding extra spaces before punctuation
+            # Function to join words with a space after punctuation
             result = ""
             for idx, word in enumerate(sublist):
-                if not re.match(r'[^\w\s]', word):  # Check if word is not punctuation
-                    # result += " "  # Add space only if the next word is not punctuation
-                    result += f"{word} "
+                if re.match(r'[^\w\s]', word):  # Check if the word is punctuation
+                    result += f"{word} "  # Add punctuation followed by a space
                 else:
-                    result = result.rstrip()  # Remove the trailing space before punctuation
-                    result += f"{word} " # Append the punctuation without space
+                    result += word
+                    # Add a space unless it's the last word or the next item is punctuation
+                    if idx < len(sublist) - 1 and not re.match(r'[^\w\s]', sublist[idx + 1]):
+                        result += " "
             return result.strip()
-
+        
         def apply_changes():
 
             if field_name=="summary_objective":
                 st.session_state["old_summary"]=st.session_state["profile"]["summary_objective"]
                 st.session_state["profile"]["summary_objective"]="".join(st.session_state["new_summary"])
                 st.session_state["profile_changed"]=True
-            # elif type=="bullet_points":
+            # elif type=="description":
             #     st.session_state[f"old_{field_name}_{idx}"] = st.session_state["profile"][field_name][idx]["description"]
             #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"new_{field_name}_{idx}"]
             #     st.session_state["profile_changed"]=True
@@ -1154,7 +1271,7 @@ class User():
             if field_name=="summary_objective":
                 st.session_state["profile"]["summary_objective"]=st.session_state["old_summary"]
                 st.session_state["profile_changed"]=True
-            # elif type=="bullet_points":
+            # elif type=="description":
             #     st.session_state["profile"][field_name][idx]["description"]=st.session_state[f"old_{field_name}_{idx}"]
             #     st.session_state["profile_changed"]=True
 
@@ -1174,8 +1291,8 @@ class User():
             return text_list
 
 
-        _, c0, c1, c2 = st.columns([5, 1, 1, 1])
-        with c1:
+        c0, c1, c2 = st.columns([1, 5, 1])
+        with c0:
             # st.markdown(primary_button2, unsafe_allow_html=True)
             # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
             # NOTE: Skills section doesn't have evaluate option
@@ -1244,11 +1361,11 @@ class User():
                                 try:
                                     irrelevant_skills = ", ".join(tailoring.get("irrelevant_skills", ""))
                                     relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
-                                    transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
+                                    # transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
                                     st.write("Here are some tailoring suggestions")
                                     st.write(f"**Skills that can be ranked higher**: {relevant_skills}")
                                     st.write(f"**Skills that can be removed**: {irrelevant_skills}")
-                                    st.write(f"**Skills that can be added**: {transferable_skills}")
+                                    # st.write(f"**Skills that can be added**: {transferable_skills}")
                                     st.write("Rearrange and edit your skills for maximum resume-job alignment")
                                 except Exception as e:
                                     pass        
@@ -1282,7 +1399,7 @@ class User():
                             # Remove special characters but keep punctuation and dashes
                             tailoring = re.sub(r'[^a-zA-Z0-9\s.,!?-]', '', tailoring)
                             st.write(tailoring)
-                        # elif type=="bullet_points":
+                        # elif type=="description":
                         #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
                         #         st.write(tailoring)
                         #         # st.write(tailoring["ranked"])
@@ -1394,18 +1511,23 @@ class User():
                 st.session_state["job_posting_dict"].update({"match":match["percentage"]})
             else:
                 st.session_state["job_posting_dict"].update({"match":-1})
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             st.session_state["job_posting_dict"].update({"link": st.session_state["posting_link"] if "posting_link" in st.session_state else "", 
                                                          "user_id": st.session_state.userId, 
-                                                         "color": "#ffffff", 
+                                                         "color": "#2d2e29", 
                                                          "cover_letter_path": "",
                                                            "applied": False, 
-                                                           "time":datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                                                           "profile":st.session_state["profile"]})
+                                                           "time":now, 
+                                                           "profile":st.session_state["profile"], 
+                                                           "last_edit_time":now})
             save_job_posting_changes(st.session_state.userId, st.session_state["job_posting_dict"], st.session_state["tracker_schema"], lance_tracker_table,)
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             st.session_state["current_idx"]= len(st.session_state["tracker"])-1
             st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
-            st.session_state["tailor_color"] = "#ff9747"
+            st.session_state["tailor_color"] = "#2d2e29"
+            #retrieve default profile as tailor template
+            st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+            st.session_state["update_template"]=True
             self.delete_session_states(["job_posting_path", "job_description"])
             return True
         except Exception as e:
@@ -1476,7 +1598,92 @@ class User():
                 _, del_col=st.columns([8, 1])
                 with del_col:
                     st.button(":grey[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
-                if field=="summary_objective":  
+                if field=="contact":
+                    if st.session_state["profile"]["contact"] is None:
+                        st.session_state["profile"]["contact"]={}
+                        st.session_state["profile"]["contact"].update({"city":"", "email": "", "links":[], "name":"", "phone":"", "state":"", })
+                        st.session_state["profile_changed"]=True
+                    c1, c2, c3=st.columns([1, 1, 1])
+                    with c1:
+                        name = st.session_state["profile"]["contact"]["name"]
+                        if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
+                            st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
+                            st.session_state["profile_changed"] = True
+                        city = st.session_state["profile"]["contact"]["city"]
+                        if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
+                            st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
+                            st.session_state["profile_changed"] = True
+                    with c2:
+                        email = st.session_state["profile"]["contact"]["email"]
+                        if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
+                            st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
+                            st.session_state["profile_changed"] = True
+                        state = st.session_state["profile"]["contact"]["state"]
+                        if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
+                            st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
+                            st.session_state["profile_changed"] = True
+                    with c3:
+                        phone = st.session_state["profile"]["contact"]["phone"]
+                        if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
+                            st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
+                            st.session_state["profile_changed"] = True
+                    # selected = sac.tabs([
+                    #     sac.TabsItem(label='linkedin', icon='linkedin'),
+                    #     sac.TabsItem(label='facebook', icon='facebook'),
+                    #     sac.TabsItem(label='twitter', icon='twitter'),
+                    #     sac.TabsItem(label='github', icon='github'),
+                    #     sac.TabsItem(label='other'),
+                    # ], align='center')
+                    # option_map = {
+                    #     0: ":material/add:",
+                    #     1: ":material/zoom_in:",
+                    #     2: ":material/zoom_out:",
+                    #     3: ":material/zoom_out_map:",
+                    # }
+                    c1, c2=st.columns([1, 2])
+                    with c2:
+                        selected = st.segmented_control(
+                            "Social Media",
+                            options=['Linkedin', 'Facebook', 'Twitter', 'Github', 'Other'],
+                            # format_func=lambda option: option_map[option],
+                            selection_mode="single",
+                            label_visibility="collapsed"
+                        )
+                    if selected:
+                        display_detail=self.display_field_details("contact", -1, "links", "links", selected.casefold().strip())
+                        display_detail()
+                    # else:
+                    #     value = st.session_state["profile"]["contact"]["links"]
+                    #     category = value["category"]
+                    #     if category.casefold()==selected:
+                    #         url = value["url"] if value["url"] else ""
+                    #         display_name = value["display"] if value["display"] else ""
+                    #         if st.text_input("URL", value=url, key=f"contact_url_{category}", )!=url:
+                    #             st.session_state["profile"]["contact"]["links"]["url"]
+
+                    #         st.text_input("Display", help = "Display text of URL", value=display_name, key=f"{field_name}_{x}_display_{idx}",on_change=callback, args=(idx, ))
+                    # with stylable_container(
+                    #     key= f"custom_websites_popover",
+                    #     css_styles=
+                    #     f"""
+                    #         button {{
+                    #             background: none;
+                    #             border: none;
+                    #             color: blue;
+                    #             padding: 0;
+                    #             cursor: pointer;
+                    #             font-size: 12px; 
+                    #             text-decoration: none;
+                    #         }}
+                    #         """,
+                    # ):
+                    #     with st.popover("Personal links",):
+                    #         display_detail=self.display_field_details("contact", -1, "links", "links")
+                    #         display_detail()
+                if field=="educations":
+                    get_display=self.display_field_content(field)
+                    get_display()
+                elif field=="summary_objective":  
                     pursuit_jobs = st.session_state["profile"]["pursuit_jobs"]
                     if st.text_input("Pursuing titles", value=pursuit_jobs, key="profile_pursuit_jobs", placeholder="Job titles", label_visibility="collapsed", )!=pursuit_jobs:
                         st.session_state["profile"]["pursuit_jobs"] = st.session_state.profile_pursuit_jobs
@@ -1494,7 +1701,10 @@ class User():
                 elif field=="included_skills":
                     suggested_skills = st.session_state["profile"]["suggested_skills"] if st.session_state["profile"]["suggested_skills"] else []
                     self.skills_set= st.session_state["profile"]["included_skills"] if st.session_state["profile"]["included_skills"] else []
-                    self.generated_skills_set=[skill for skill in suggested_skills if skill not in self.skills_set]
+                    self.generated_skills_set=  self.generated_skills_set = [
+                                    skill for skill in suggested_skills 
+                                    if skill.casefold() not in {s.casefold() for s in self.skills_set}
+                                ]
                     get_display=self.display_skills()
                     get_display()
                     if st.session_state["profile"]["included_skills"]:
@@ -1505,17 +1715,15 @@ class User():
                     if st.session_state["profile"][field]:
                         self.display_field_analysis(field_name=field, details=st.session_state["profile"][field])
                 elif field=="hobbies":
-                    if st.session_state["profile"]["hobbies"] is not None:
-                        hobbies = ", ".join(st.session_state["profile"]["hobbies"]) 
-                    else:
-                        hobbies = ""
-                        st.session_state["profile"]["hobbies"] = []
-                        st.session_state["profile_changed"] = True
-                    if st.text_area("Hobbies", value=hobbies, key="profile_hobbies", placeholder="Your hobbies, separated by commas", label_visibility="collapsed")!=hobbies:
-                        st.session_state["profile"]["hobbies"] = st.session_state.profile_hobbies.split(",") if st.session_state.profile-hobbies else []
-                        st.session_state["profile_changed"] = True
+                    hobbies = st.session_state["profile"]["hobbies"]
+                    if hobbies is None:
+                        st.session_state["profile"]["hobbies"]={}
+                        st.session_state["profile"]["hobbies"].update({"description":[]})
+                        st.session_state["profile_changed"]=True
+                    get_display=self.display_field_details(field, -1, "description", "description")
+                    get_display()
         def job_applied_callback():
-            applied = st.session_state["job_applied_toggle"]
+            applied = st.session_state[f"job_applied_toggle_{st.session_state.current_idx}"]
             value = {"applied": applied}
             time = st.session_state["job_posting_dict"]["time"]
             st.session_state["job_posting_dict"].update(value)
@@ -1524,57 +1732,52 @@ class User():
             if applied:
                 print("APPLIED")
                 #TODO: balloons not working properly
-                st.balloons()   
-        def delete_job_callback():
-            timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
-            delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
-            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
-            if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
-                self.delete_session_states(["job_posting_dict"])
-            else:
-                st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
-                st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]            
+                # st.balloons()          
         def show_hide():
             st.session_state.show = not st.session_state.show
-            for field in st.session_state["additional_fields"]:
-                self.delete_session_states([f"{field}_add_button"])
 
+
+
+          
+        st.divider()
         eval_col, profile_col, tailor_col = st.columns([1, 4, 2])   
-        # self.save_session_profile()
+        with profile_col:
+            c1, c2=st.columns([1, 1])
+            with c2:
+                selection = st.segmented_control(
+                    " ", ["Edit default", "Tailor mode"], selection_mode="single", default="Edit default" if st.session_state["selection"]=="default" else "Tailor mode"
+                )         
+                if selection=="Edit default" and st.session_state["selection"]!="default":
+                    # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
+                    # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
+                    st.session_state["selection"]="default"
+                    # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
+                    st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+                    st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+                    st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
+                    st.session_state["update_template"]=True
+                    st.rerun()
+                elif selection == "Tailor mode" and st.session_state["selection"]!="tailor":  
+                    #st._config.set_option(f'theme.backgroundColor' ,"white" )
+                    # st._config.set_option(f'theme.base' ,"dark" )
+                    # st._config.set_option(f'theme.primaryColor' ,"#47ff5a" ) 
+                    # st._config.set_option(f'theme.secondaryBackgroundColor', color ) 
+                    st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
+                    st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
+                    st.session_state["selection"]="tailor"
+                    if st.session_state["tracker"] is not None and len(st.session_state["tracker"]):
+                        st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                    st.session_state["update_template"]=True
+                    st.rerun()
         with tailor_col:
-            selection=sac.segmented(
-                   items=[
-                        sac.SegmentedItem(label='Edit default'),
-                        sac.SegmentedItem(label='Tailor mode'),
-                    ], label=' ', align='center', index=1 if st.session_state["selection"]=="tailor" else 0, 
-                    color = "#47ff5a",
-                )
-                      
-            if selection=="Edit default" and st.session_state["selection"]!="default":
-                # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
-                # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
-                st.session_state["selection"]="default"
-                # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
-                st._config.set_option(f'theme.textColor' ,"#2d2e29" )
-                st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
-                st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
-                st.rerun()
-            elif selection == "Tailor mode" and st.session_state["selection"]!="tailor":  
-                 #st._config.set_option(f'theme.backgroundColor' ,"white" )
-                # st._config.set_option(f'theme.base' ,"dark" )
-                # st._config.set_option(f'theme.primaryColor' ,"#47ff5a" ) 
-                if "tailor_color" in st.session_state:
-                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                    color = st.session_state["tailor_color"]
-                else:
-                    color="#ff9747"
-                # st._config.set_option(f'theme.secondaryBackgroundColor', color ) 
-                st._config.set_option(f'theme.textColor', color )
-                st._config.set_option(f'theme.primaryColor' ,color)
-                st.session_state["selection"]="tailor"
-                if st.session_state["tracker"] is not None and len(st.session_state["tracker"]):
-                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                st.rerun()
+            # selection=sac.segmented(
+            #        items=[
+            #             sac.SegmentedItem(label='Edit default'),
+            #             sac.SegmentedItem(label='Tailor mode'),
+            #         ], label=' ', align='center', index=1 if st.session_state["selection"]=="tailor" else 0, 
+            #         color = "#47ff5a",
+            #     ) 
+            add_vertical_space(5)
             prev_col, job_col, nxt_col = st.columns([1, 10, 1])
             job_placeholder=st.empty()
             if st.session_state["selection"]=="tailor":
@@ -1594,6 +1797,7 @@ class User():
                                     st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
                                     st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                     st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    job_placeholder.empty()
                                     st.rerun()
                         with nxt_col:
                             add_vertical_space(15)
@@ -1608,6 +1812,7 @@ class User():
                                     st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
                                     st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                     st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    job_placeholder.empty()
                                     st.rerun()
                         with job_col:
                             # job_posting_container=st.empty()
@@ -1635,6 +1840,7 @@ class User():
                                 experience_keywords = st.session_state["job_posting_dict"].get("experience_keywords", "")
                                 salary = st.session_state["job_posting_dict"].get("salary", "")
                                 location = st.session_state["job_posting_dict"].get("location", "")
+                                applied_status = st.session_state["job_posting_dict"]["applied"]
                                 c1, c2, c3, c4=st.columns([4, 1, 1, 1])
                                 with c1:
                                     st.write("📌 ")
@@ -1644,12 +1850,12 @@ class User():
                                     if link:
                                         st.link_button("🔗", url=link)
                                 with c2:
-                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#ff9747", key="color_picker", label_visibility="collapsed")
+                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
                                     #NOTE: resetting config does not work in callback
                                     if change_color!=st.session_state["tailor_color"]:
-                                        st.session_state["tailor_color"]= st.session_state.color_picker
+                                        st.session_state["tailor_color"]= change_color
                                         time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-                                        save_job_posting_changes(st.session_state.userId, {"color":st.session_state["tailor_color"]}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+                                        save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
                                         st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
                                         # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
                                         # st._config.set_option(f'theme.secondaryBackgroundColor' , color )
@@ -1657,65 +1863,85 @@ class User():
                                         st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                         st.rerun()
                                 with c4:
-                                    st.button("X", key="delete_job_button", on_click=delete_job_callback)
-                                if job_title:
-                                    st.write(f"**Job**: {job_title}")
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Job: {job_title}</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                if company:
-                                    st.write(f"**Company**: {company}")
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Company: {company}</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                if about:
-                                    st.write(f"**Summary**: {about}")
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Summary: {about}</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                if salary:
-                                    st.write(f"**Salary**: {salary}")
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Salary: {salary}</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                if location:
-                                    st.write(f"**Location**: {location}")
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Location: {location}</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                if skills_keywords:
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS skills keywords:</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                    keywords = ", ".join(skills_keywords)
-                                    # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
-                                    # color = change_hex_color(color, mode="darken")
-                                    # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
-                                    # st.markdown(keywords_display, unsafe_allow_html=True)
-                                    st.write(f"**ATS skills keywords**: :rainbow[{keywords}]")
-                                if experience_keywords:
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS experience keywords:</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                    keywords = ", ".join(experience_keywords)
-                                    # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
-                                    # color = change_hex_color(color, mode="darken", percentage=0.5)
-                                    # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
-                                    # st.markdown(keywords_display, unsafe_allow_html=True)
-                                    st.write(f"**ATS experience keywords**: :rainbow[{keywords}]")
-                                if match:
-                                    # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
-                                    # st.markdown(text, unsafe_allow_html=True)
-                                    if match<=50:
-                                        st.write(f"**Match score**: :red[{match}%]")
-                                    elif 50<match<70:
-                                        st.write(f"**Match score**: :orange[{match}%]")
-                                    else:
-                                        st.write(f"**Match score**: : :green[{match}%]")
-                                applied = st.toggle("**Applied**", key="job_applied_toggle", 
-                                                    value=st.session_state["job_posting_dict"]["applied"], 
-                                                    on_change=job_applied_callback)
+                                    delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}",)
+                                    if delete_job:
+                                        timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
+                                        delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
+                                        st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+                                        if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
+                                            self.delete_session_states(["job_posting_dict"])
+                                        else:
+                                            st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
+                                            st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx] 
+                                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
+                                        st.rerun()  
+                                _, center, _ = st.columns([1, 10, 1])
+                                with center: 
+                                    add_vertical_space(3)
+                                    if job_title:
+                                        st.write(f"**Job**: {job_title}")
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Job: {job_title}</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                    if company:
+                                        st.write(f"**Company**: {company}")
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Company: {company}</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                    if about:
+                                        st.write(f"**Summary**: {about}")
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Summary: {about}</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                    if salary:
+                                        st.write(f"**Salary**: {salary}")
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Salary: {salary}</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                    if location:
+                                        st.write(f"**Location**: {location}")
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Location: {location}</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                    if skills_keywords:
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS skills keywords:</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                        keywords = ", ".join(skills_keywords)
+                                        # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
+                                        # color = change_hex_color(color, mode="darken")
+                                        # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
+                                        # st.markdown(keywords_display, unsafe_allow_html=True)
+                                        st.write(f"**ATS skills keywords**: {keywords}")
+                                    if experience_keywords:
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">ATS experience keywords:</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                        keywords = ", ".join(experience_keywords)
+                                        # color = st.session_state["tailor_color"] if st.session_state["tailor_color"]!="#ffffff" else "#2d2e29"
+                                        # color = change_hex_color(color, mode="darken", percentage=0.5)
+                                        # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
+                                        # st.markdown(keywords_display, unsafe_allow_html=True)
+                                        st.write(f"**ATS experience keywords**: {keywords}")
+                                    if match:
+                                        # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
+                                        # st.markdown(text, unsafe_allow_html=True)
+                                        if match<=50:
+                                            st.write(f"**Match score**: :red[{match}%]")
+                                        elif 50<match<70:
+                                            st.write(f"**Match score**: :orange[{match}%]")
+                                        else:
+                                            st.write(f"**Match score**: : :green[{match}%]")
+                                    applied = st.toggle("**Applied**", key=f"job_applied_toggle_{st.session_state.current_idx}", 
+                                                        value=applied_status, 
+                                                        on_change=job_applied_callback)
                     _, job_upload_col, _=st.columns([1, 3, 1])
                     with job_upload_col:
                         with stylable_container(key="custom_button1_profile1",
                                         css_styles=new_upload_button
                                 ):
                             if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                                # st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+                                # st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
                                 self.job_posting_popup(mode="resume")
             else:
+                print("AAAAAAAAAAAAAAAA")
                 job_placeholder.empty()
 
     
@@ -1726,100 +1952,29 @@ class User():
         #         self.evaluation_callback()
         # the main profile column
         with profile_col:
-            c1, c2 = st.columns([1, 1])
-            with c1:
-                with st.expander(label="Contact", icon=":material/contacts:"):
-                    name = st.session_state["profile"]["contact"]["name"]
-                    if st.text_input("Name", value=name, key="profile_name", placeholder="Name", label_visibility="collapsed")!=name:
-                        st.session_state["profile"]["contact"]["name"]=st.session_state.profile_name
-                        st.session_state["profile_changed"] = True
-                    email = st.session_state["profile"]["contact"]["email"]
-                    if st.text_input("Email", value=email, key="profile_email", placeholder="Email", label_visibility="collapsed")!=email:
-                        st.session_state["profile"]["contact"]["email"] = st.session_state.profile_email
-                        st.session_state["profile_changed"] = True
-                    phone = st.session_state["profile"]["contact"]["phone"]
-                    if st.text_input("Phone", value=phone, key="profile_phone", placeholder="Phone", label_visibility="collapsed")!=phone:
-                        st.session_state["profile"]["contact"]["phone"]=st.session_state.profile_phone
-                        st.session_state["profile_changed"] = True
-                    city = st.session_state["profile"]["contact"]["city"]
-                    if st.text_input("City", value=city, key="profile_city", placeholder="City", label_visibility="collapsed")!=city:
-                        st.session_state["profile"]["contact"]["city"]=st.session_state.profile_city
-                        st.session_state["profile_changed"] = True
-                    state = st.session_state["profile"]["contact"]["state"]
-                    if st.text_input("State", value=state, key="profile_state", placeholder="State", label_visibility="collapsed")!=state:
-                        st.session_state["profile"]["contact"]["state"]=st.session_state.profile_state
-                        st.session_state["profile_changed"] = True
-                    linkedin = st.session_state["profile"]["contact"]["linkedin"]
-                    if st.text_input("Linkedin", value=linkedin, key="profile_linkedin", placeholder="Linkedin", label_visibility="collapsed")!=linkedin:
-                        st.session_state["profile"]["contact"]["linkedin"]=st.session_state.profile_linkedin
-                        st.session_state["profile_changed"] = True
-                    websites = st.session_state["profile"]["contact"]["websites"]
-                    if st.text_input("Other websites", value=websites, key="profile_websites", placeholder="Other websites, separate each by a comma", label_visibility="collapsed")!=websites:
-                        st.session_state["profile"]["contact"]["websites"]=st.session_state.profile_websites
-                        st.session_state["profile_changed"] = True
-            with c2:
-                with st.expander(label="Education", icon=":material/school:"):
-                    degree = st.session_state["profile"]["education"]["degree"]
-                    if st.text_input("Degree", value=degree, key="profile_degree", placeholder="Degree", label_visibility="collapsed")!=degree:
-                        st.session_state["profile"]["education"]["degree"]=st.session_state.profile_degree
-                        st.session_state["profile_changed"] = True
-                    study = st.session_state["profile"]["education"]["study"]
-                    if st.text_input("Area of study", value=study, key="profile_study", placeholder="Area of Study", label_visibility="collapsed")!=study:
-                        st.session_state["profile"]["education"]["study"]=st.session_state.profile_study
-                        st.session_state["profile_changed"] = True
-                    grad_year = st.session_state["profile"]["education"]["graduation_year"]
-                    if st.text_input("Graduation date", value=grad_year, key="profile_grad_year", placeholder="Graduation year", label_visibility="collapsed", help="Do not include a date of graduation if it has been more than 10 years ago")!=grad_year:
-                        st.session_state["profile"]["education"]["graduation_year"]=st.session_state.profile_grad_year
-                        st.session_state["profile_changed"] = True
-                    gpa = st.session_state["profile"]["education"]["gpa"]
-                    if st.text_input("GPA", value=gpa, key="profile_gpa", placeholder="GPA", label_visibility="collapsed", help="Only include your GPA if it's above 3.5")!=gpa:
-                        st.session_state["profile"]["education"]["gpa"]=st.session_state.profile_gpa
-                        st.session_state["profile_changed"] = True
-                    st.markdown("Course works")
-                    display_detail=self.display_field_details("education", -1, "coursework", "bullet_points")
-                    display_detail()
-                    # if st.session_state["profile"]["education"]:
-                    #     self.display_field_analysis(field_name="education", details=st.session_state["profile"]["education"])
-            if "summary_objective" not in st.session_state["additional_fields"]:
+            # for field in st.session_state.fields_dict:
+            #     if field not in st.session_state.additional_fields:
+            #         placeholder=st.empty()
+            #         add_field(field, placeholder)
+            for field in st.session_state["profile"]["fields"]:
                 placeholder=st.empty()
-                add_field("summary_objective", placeholder)
-            if "work_experience" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("work_experience", placeholder)
-            if "included_skills" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("included_skills", placeholder)
-            if "qualifications" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("qualifications", placeholder)
-            if "projects" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("projects", placeholder)
-            if "certifications" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("certifications", placeholder)
-            if "awards" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("awards", placeholder)
-            if "licenses" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("licenses", placeholder)
-            if "hobbies" not in st.session_state["additional_fields"]:
-                placeholder=st.empty()
-                add_field("hobbies", placeholder)
-            #TODO, allow custom fields with custom field details such as bullet points, dates, links, etc. 
-            # placeholder=st.empty()
-            if st.session_state["additional_fields"]:
-                st.button("Add a field", key="add_field_button", use_container_width=True, on_click=show_hide, )
-                #NOTE: below cannot be added to callback probably becauese it's adding buttons
-                if st.session_state.show:
-                    with st.container(border=True):
-                        fields_grid = grid([1, 1, 1], vertical_align="center" )
-                        for field in st.session_state["additional_fields"]:
-                            label, icon = st.session_state.fields_dict[field]
-                            if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
-                                st.session_state["additional_fields"].remove(field)
-                                st.rerun()
+                add_field(field, placeholder)
+            # if st.session_state["additional_fields"]:
+            st.button("Add a field", key="add_field_button", use_container_width=True, on_click=show_hide, )
+            #NOTE: below cannot be added to callback probably becauese it's adding buttons
+            if st.session_state.show:
+                with st.container(border=True):
+                    fields_grid = grid([1, 1, 1], vertical_align="center" )
+                    additional_fields = [field for field in st.session_state.fields_dict if field not in st.session_state["profile"]["fields"]]
+                    # for field in st.session_state["additional_fields"]:
+                    for field in additional_fields:
+                        label, icon = st.session_state.fields_dict[field]
+                        # if f"{field}_add_button" not in st.session_state:
+                        if fields_grid.button(label=label, key=f"{field}_add_button", icon=icon):
+                            st.session_state["profile"]["fields"].append(field)
+                            st.session_state["profile_changed"]=True
+                            st.session_state["update_template"]=True
+                            st.rerun()
             st.divider()
         # the menu container
             _, menu_col, _ = st.columns([1, 1, 1])   
@@ -1850,9 +2005,10 @@ class User():
         _, c = st.columns([5, 1])
         with c:
             if st.button("Confirm", type="primary"):
-                st.session_state["additional_fields"].append(field)
+                st.session_state["profile"]["fields"].remove(field)
                 st.session_state["profile"][field]=None
                 st.session_state["profile_changed"]=True
+                st.session_state["update_template"]=True
                 placeholder.empty()
                 st.rerun()
 
@@ -2009,7 +2165,8 @@ class User():
             elif st.session_state["selection"]=="tailor" and st.session_state["tracker"] is not None and len(st.session_state["tracker"])>0:
                 print("Saving tailoring profile")
                 time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-                st.session_state["tracker"][st.session_state.current_idx].update({"profile": st.session_state["profile"]})
+                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                st.session_state["tracker"][st.session_state.current_idx].update({"profile": st.session_state["profile"], "last_edit_time":now})
                 save_job_posting_changes(st.session_state.userId, st.session_state["tracker"][st.session_state.current_idx], st.session_state["tracker_schema"], lance_tracker_table, mode="upsert", time=time)
             st.session_state["profile_changed"]=False
             st.session_state["update_template"]=True
@@ -2054,42 +2211,42 @@ class User():
     #     return current_page
 
     #NOTE: this has to be here instead of templates.py because switching from templates makes run every seceonds stop
-    # @st.fragment(run_every=30)
-    # def reformat_templates(self, ):
+    @st.fragment(run_every=5)
+    def reformat_templates(self, ):
 
-    #     """ Runs the resume templates update every x seconds in the background. """
+        """ Runs the resume templates update every x seconds in the background. """
 
-    #     if ("init_formatting" not in st.session_state) and (("formatted_docx_paths" not in st.session_state or "formatted_pdf_paths" not in st.session_state) or ("update_template" in st.session_state and st.session_state["update_template"])):
-    #         print("REFORMATING")
-    #         try:
-    #             # prevents going through this loop while already formatting
-    #             st.session_state["init_formatting"]=True
-    #             template_paths = list_files(template_path, ext=".docx")
-    #             with Pool() as pool:
-    #                 st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
-    #                 # if st.session_state["current_page"] == "template":  # Define your stopping condition
-    #                 #     pool.terminate()  # Stop all processes immediately
-    #                 #     st.stop()  # Optionally stop Streamlit execution
-    #             if st.session_state["formatted_docx_paths"]:
-    #                     with Pool() as pool:
-    #                         result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
-    #                         st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
-    #                         st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
-    #                 # with Pool() as pool:
-    #                 #     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
-    #                     # if st.session_state["current_page"] == "template":  # Define your stopping condition
-    #                     #     pool.terminate()  # Stop all processes immediately
-    #                     #     st.stop()  # Optionally stop Streamlit execution
-    #             try:
-    #                 st.session_state["update_template"]=False
-    #                 self.delete_session_states(["init_formatting"])
-    #             except Exception:
-    #                 pass
-    #         except Exception as e:
-    #             st.session_state["update_template"]=False
-    #             print(e)
-    #     else:
-    #         print("Skip reformatting templates")
+        if st.session_state["init_formatting"] is False and ("update_template" in st.session_state and st.session_state["update_template"]):
+            print("REFORMATING")
+            try:
+                # prevents going through this loop while already formatting
+                st.session_state["init_formatting"]=True
+                template_paths = list_files(template_path, ext=".docx")
+                with Pool() as pool:
+                    st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
+                    # if st.session_state["current_page"] == "template":  # Define your stopping condition
+                    #     pool.terminate()  # Stop all processes immediately
+                    #     st.stop()  # Optionally stop Streamlit execution
+                if st.session_state["formatted_docx_paths"]:
+                        with Pool() as pool:
+                            result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
+                            st.session_state["image_paths"], st.session_state["formatted_pdf_paths"] = zip(*result)
+                            st.session_state["image_paths"] = [sorted(paths) for paths in st.session_state["image_paths"] if paths]
+                    # with Pool() as pool:
+                    #     st.session_state["formatted_pdf_paths"] = pool.map(convert_doc_to_pdf, st.session_state["formatted_docx_paths"])
+                        # if st.session_state["current_page"] == "template":  # Define your stopping condition
+                        #     pool.terminate()  # Stop all processes immediately
+                        #     st.stop()  # Optionally stop Streamlit execution
+                try:
+                    st.session_state["update_template"]=False
+                    st.session_state["init_formatting"]=False
+                except Exception:
+                    pass
+            except Exception as e:
+                st.session_state["update_template"]=False
+                print(e)
+        else:
+            print("Skip reformatting templates")
 
 
 

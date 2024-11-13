@@ -13,7 +13,7 @@ from utils.cookie_manager import retrieve_cookie, init_cookies
 from multiprocessing import Pool
 # from datetime import datetime
 from pathlib import Path
-import streamlit_antd_components as sac
+# import streamlit_antd_components as sac
 from utils.lancedb_utils import retrieve_dict_from_table
 # from streamlit_pdf_viewer import pdf_viewer
 from streamlit_extras.stylable_container import stylable_container
@@ -59,11 +59,16 @@ class Reformat():
         if "profile" not in st.session_state:
             # st.session_state["profile"]= retrieve_dict_from_table(st.session_state.userId, lance_users_table_current)
             st.switch_page('pages/user.py')
+        st.session_state["resume_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key in st.session_state["profile"]["fields"]]
         if "selected_fields" not in st.session_state:
-            # if "additional_fields" in st.session_state:
-            st.session_state["selected_fields"]=[value[0] for key, value in st.session_state.fields_dict.items() if key not in st.session_state["additional_fields"]]
-            st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(st.session_state["selected_fields"])}
-            print(st.session_state.selected_fields)
+            st.session_state["selected_fields"]=st.session_state["resume_fields"]
+        else:
+            st.session_state["selected_fields"] = [field for field in st.session_state["selected_fields"] if field in st.session_state["resume_fields"]]
+        # filtered_fields =[value[0] for key, value in st.session_state.fields_dict.items() if key in st.session_state["profile"]["fields"]]
+        # st.session_state["resume_fields_dict"] = {field:idx for idx, field in enumerate(filtered_fields)}
+        # if "selected_fields" not in st.session_state:
+        #     st.session_state["selected_fields"]=[field for field in st.session_state["resume_fields_dict"]]
+            # print(st.session_state.selected_fields)
         # if "user_save_path" not in st.session_state:
         #     if STORAGE=="CLOUD":
         #         st.session_state["user_save_path"] = os.path.join(os.environ["S3_USER_PATH"], st.session_state.userId, "profile")
@@ -91,7 +96,7 @@ class Reformat():
         if "spinner_container" not in st.session_state:
             _, c, _= st.columns([3, 1, 3])
             with c:
-                add_vertical_space(10)
+                # add_vertical_space(10)
                 st.session_state["spinner_placeholder"]=st.empty()        
         if "template_container" not in st.session_state:
             st.session_state["template_placeholder"]=st.empty()
@@ -109,7 +114,7 @@ class Reformat():
             st.session_state["update_template"]=False
             st.rerun()
 
-   
+
 
     def reformat_templates(self, ):
 
@@ -119,11 +124,12 @@ class Reformat():
             template_paths = list_files(template_path, ext=".docx")
             # print(template_paths)
             with st.session_state.spinner_placeholder.container():
+                add_vertical_space(15)
                 with st.spinner("Updating templates..."):
                     with Pool() as pool:
                         st.session_state["formatted_docx_paths"] = pool.map(reformat_resume, template_paths)
                     if st.session_state["formatted_docx_paths"]:
-                        print(st.session_state["formatted_docx_paths"])
+                        # print(st.session_state["formatted_docx_paths"])
                     # if option==1:s
                         with Pool() as pool:
                             result  = pool.map(convert_docx_to_img, st.session_state["formatted_docx_paths"])
@@ -145,7 +151,8 @@ class Reformat():
     @st.fragment()
     def display_resume_templates(self, ):
         
-            add_vertical_space(2)
+            # add_vertical_space(2)
+            st.divider()
             fields_col, template_col, select_col = st.columns([1, 3, 1])
             with fields_col:
                 self.fields_selection()  
@@ -193,7 +200,7 @@ class Reformat():
                     #         }
                     #         """,
                     # ):
-                    st.image(st.session_state.image_paths[st.session_state.selected_idx])
+                    st.image(st.session_state.image_paths[st.session_state.selected_idx], caption=[str(idx) for idx, val in enumerate(st.session_state.image_paths[st.session_state.selected_idx])])
                     # pdf_viewer(previews[st.session_state.selected_idx])
                     # self.display_pdf(previews[st.session_state.selected_idx])
                     st.session_state["selected_docx_resume"] = st.session_state["formatted_docx_paths"][st.session_state.selected_idx]
@@ -257,37 +264,25 @@ class Reformat():
 
         with st.container(border=True):
             st.write("Fields to include in the resume")
-            items = []
-            index = [idx for field, idx in st.session_state.resume_fields_dict.items() if field in st.session_state["selected_fields"]]
-            for field, idx in st.session_state.resume_fields_dict.items():
-                items.append(sac.ChipItem(label=field))
-            selected_fields = sac.chip(
-                # items=[
-                #     sac.ChipItem(label='Contact'),
-                #     sac.ChipItem(label='Education'),
-                #     sac.ChipItem(label='Summary Objective'),
-                #     sac.ChipItem(label='Work Experience'),
-                #     sac.ChipItem(label='Skills'),
-                #     sac.ChipItem(label='Professional Accomplishment'),
-                #     sac.ChipItem(label='Projects'),
-                #     sac.ChipItem(label='Certifications'),
-                #     sac.ChipItem(label='Awards & Honors'),
-                #     sac.ChipItem(label="Licenses"),
-                #     sac.ChipItem(label="Hobbies"),
-                # ],
-                items=items,
-                  label=' ',
-                    index=index,
-                      align='center', radius='md', multiple=True , variant="outline", color= "#47ff5a")
+            selected_fields = st.pills(" ", st.session_state["resume_fields"], selection_mode="multi", default=st.session_state["selected_fields"])
+            # items = []
+            # for field, idx in st.session_state.resume_fields_dict.items():
+            # index = [idx for field, idx in st.session_state.resume_fields_dict.items() if field in st.session_state["selected_fields"]]
+            # for field, idx in st.session_state.resume_fields_dict.items():
+            #     items.append(field)
+            #     items.append(sac.ChipItem(label=field))
+            # selected_fields = sac.chip(
+            #     items=items,
+            #       label=' ',
+            #         index=index,
+            #           align='center', radius='md', multiple=True , variant="outline", color= "#47ff5a")
             _, c1 = st.columns([2, 1])
             with c1:
                 if st.button("Confirm", key="fields_selection_button"):
                     if selected_fields!=st.session_state["selected_fields"]:
-                        # st.session_state["fields_changed"]=True
+                        st.session_state["update_template"]=True
                         st.session_state["selected_fields"]=selected_fields
-                        if self.reformat_templates():
-                             st.rerun()
-                        # st.rerun()
+                        st.rerun()
                              
     def delete_session_states(self, names:List[str])->None:
 

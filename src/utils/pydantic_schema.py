@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, model_validator
 from typing import Any, List, Union, Dict, Optional, Set
 
 
@@ -23,14 +23,42 @@ class Job(BaseModel):
     title: str = Field(
         default="", description="the job position, this needs to be a work experience"
         )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Jobs(BaseModel):
     """Extracted data about people."""
     # Creates a model so that we can extract multiple entities.
-    work_experience: List[Job] = Field(
+    work_experience: Optional[List[Job]] = Field(
         default=[], description=""" the content of the work experience section of the resume, most likely there's a whole section dedicated to work experience. Include everything in the section verbatim.
         Exclude anything that's not in the work experience section"""
     )
-
+class HyperLink(BaseModel):
+    category: str=Field(
+        default="", description="category of the url, should be one of the following: github, twitter, linkedin, facebook, other"
+    )
+    display: str = Field(
+        default="", description="display name of the url"
+    )
+    url: str = Field(
+        default="", description="url"
+    )
+    @model_validator(mode="before")
+    def replace_none_with_empty_list(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+        return values
 
 class Contact(BaseModel):
     city: str= Field(
@@ -39,8 +67,14 @@ class Contact(BaseModel):
     email: str=Field(
         default="", description="email of the candidate on the resume"
     )
-    linkedin: str = Field(
-        default="", description="linkedin address on the resume"
+    # linkedin: str = Field(
+    #     default="", description="linkedin address on the resume"
+    #     )
+    # linkedin: HyperLink = Field(
+    #     default={}, description="linkedin address on the resume"
+    #     )
+    links: List[HyperLink] = Field(
+        default=[], description="links in the resume's contact section, can be linkedin, github, etc."
         )
     name: str = Field(
         default="", description="name of the candidate on the resume"
@@ -51,28 +85,58 @@ class Contact(BaseModel):
     state: str = Field(
         default="", description="state of the candidate on the resume"
         )
-    websites: str=Field(
-        default="", description="other website addresses besides linkedin on the resume"
-        )
+    # websites: str=Field(
+    #     default="", description="other website addresses besides linkedin on the resume"
+    #     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+                # elif field_type==dict:
+                #     values[field] = {}
+        return values
         
 class Education(BaseModel):
     coursework: List[str] = Field(
-        default=[], description = "the courseworks studied while attending the highest degree of education. "
+        default=[], description = "the courseworks studied while attending the education. "
     )
     degree: str = Field(
-        default="", description="the highest degree of education. THIS SHOULD NOT BE A CERTIFICATION. "
+        default="", description="the degree achieved, such as bachelors of science, masters, etc. "
+    )
+    end_date: str=Field(
+        default="", description="the end date of education"
     )
     gpa: str = Field(
-        default="", description="the gpa of the highest degree of graduation. THIS SHOULD NOT BE OF A CERTIFICATION."
-    )
-    graduation_year: str = Field(
-        default="", description="the year of graduation from the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the gpa achieved"
     )
     institution: str = Field(
-        default="", description="the institution at where the highest degree of education is attained. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the institution at where the education is attended"
+    )
+    start_date: str = Field(
+        default="", description="the start date of education"
     )
     study: str = Field(
-        default="", description="the area of study including any majors and minors for the highest degree of education. THIS SHOULD NOT BE OF A CERTIFICATION."
+        default="", description="the area of study including any majors and minors for the education"
+    )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
+class Educations(BaseModel):
+    educations: Optional[List[Education]] = Field(
+        default=[], description="""Education section of the resume, excluding certifications and licenses"""                                     
     )
 
 class Project(BaseModel):
@@ -85,8 +149,11 @@ class Project(BaseModel):
     end_date: str = Field(
       default="", description = "the end date of the project, if available"
       )
-    link:str = Field(
-        default="", description = "an external link to the project"
+    # link:str = Field(
+    #     default="", description = "an external link to the project"
+    # )
+    links: List[HyperLink] = Field(
+        default=[], description = "link to the project"
     )
     location: str = Field(
         default="", description="the location where the took place in"
@@ -97,9 +164,21 @@ class Project(BaseModel):
     title: str = Field(
         default="", description="the name of the project, can be a personal or work-related project, examples include coding project, art project, construction project, etc."
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+                # elif field_type==dict:
+                #     values[field] = {}
+        return values
 
 class Projects(BaseModel):
-    projects: List[Project] = Field(
+    projects: Optional[List[Project]] = Field(
         default=[], description="""content from the projects section of the resume.
     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    ""                                  
     )
@@ -112,8 +191,23 @@ class Award(BaseModel):
         default="", description = """the title of the award or honor
         """    
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Awards(BaseModel):
-    awards: List[Award]
+    awards: Optional[List[Award]] = Field(
+        default=[], description = """the content of the award or honor, such as received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
+        """    
+    )
 
 class Certification(BaseModel):
     description: List[str] = Field(
@@ -128,8 +222,23 @@ class Certification(BaseModel):
     title: str = Field(
         default="", description="""title of the certification """
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Certifications(BaseModel):
-    certifications: List[Certification]
+    certifications: Optional[List[Certification]] = Field(
+        default=[], description = """the content of the award or honor, such as received at workplace or school. 
+        Examples include employee of the month, certificate of achievement, etc. Content should not be about certifications or education
+        """    
+    )
 
 class License(BaseModel):
     description: List[str] = Field(
@@ -144,8 +253,21 @@ class License(BaseModel):
     title: str = Field(
         default="", description="""the title of the occupational license"""
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Licenses(BaseModel):
-    licenses: List[License]
+    licenses: Optional[List[License]]=Field(
+        default=[], description="""the content of occupational licenses, examples include those of teachers, nurses, doctors, lawyers, contractors. etc"""
+    )
 
 class SpecialFieldGroup1(BaseModel):
     licenses: Optional[List[License]]  = Field(
@@ -169,11 +291,44 @@ class Qualification(BaseModel):
     title: str = Field(
         default="", description = "The name of the skill or qualification"
     )
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
+    
 class Qualifications(BaseModel):
     qualifications: List[Qualification] = Field(
         default=[], description="""the accomplishment/qualification section of the resume that is not work experience or projects, 
         should have detailed description of each accomplishment, qualification, and/or skill. Include everything verbatim. """
     )
+
+class Hobbies(BaseModel):
+    description: List[str] = Field(
+        default=[], description = "a list of hobbies"
+    )
+    
+    # @model_validator(mode="before")
+    # def replace_none_with_empty_list(cls, values):
+    #     if values.get("description") is None:
+    #         values["description"] = []
+    #     return values
+
+class CustomField(BaseModel):
+    description: Optional[List[str]]
+    title: Optional[str]
+    date: Optional[str]
+
+# class CustomFields(BaseModel):
+#     fields: List[CustomField]
+
+
+
 
 class Skill(BaseModel):
     example:str = Field(
@@ -239,13 +394,10 @@ class SpecialResumeFields(BaseModel):
     #     default="", description = """the projects sections of the resume.
     #     Projects include personal projects or work-related projects. This should not be a section about qualifications or skills. Include everything verbatim """    
     # )
-    hobbies: Optional[List[str]] = Field(
-        default=[], description = "a list of hobbies in the resume"
-    )
+    # hobbies: Optional[List[str]] = Field(
+    #     default=[], description = "a list of hobbies in the resume"
+    # )
 
-
-class Keywords(BaseModel):
-    """Information about a job posting."""
 
     # ^ Doc-string for the entity Person.
     # This doc-string is sent to the LLM as the description of the schema Keywords,
@@ -255,6 +407,9 @@ class Keywords(BaseModel):
     # 1. Each field is an `optional` -- this allows the model to decline to extract it!
     # 2. Each field has a `description` -- this description is used by the LLM.
     # Having a good description can help improve extraction results.
+
+class Keywords(BaseModel):
+    """Information about a job posting."""
 
     job: str = Field(
         default="", description="job position listed in the job posintg"
@@ -280,6 +435,17 @@ class Keywords(BaseModel):
     location: str = Field(
         default="", description = "job location, can be remote, hybrid, or somewhere specific"
     )
+
+    @model_validator(mode="before")
+    def replace_none_with_empty_values(cls, values):
+        for field, value in values.items():
+            if value is None:
+                field_type = cls.model_fields[field].annotation
+                if field_type == str:
+                    values[field] = ""
+                elif field_type == list:
+                    values[field] = []
+        return values
 
 
 class Comparison(BaseModel):
@@ -311,9 +477,9 @@ class SkillsRelevancy(BaseModel):
     relevant_skills: List[str] = Field(
         default=[], description="relevant skills, found in content labeled in Step 2, these are skills in the resume that are also in the job description "
     )
-    transferable_skills: List[str] = Field(
-        default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
-    )
+    # transferable_skills: List[str] = Field(
+    #     default=[], description="additiaonl skills, found in content labeled in Step 3, these are skills that can be added to the resume "
+    # )
  
 
 class Replacement(BaseModel):
@@ -355,15 +521,16 @@ class GeneralEvaluation(BaseModel):
 
 
 
-
 class ResumeUsers(BaseModel):
     # resume_content: str = func.SourceField() 
     # vector: Vector(func.ndims()) = func.VectorField(default=None)
     awards: Optional[List[Award]]
     certifications: Optional[List[Certification]]
     contact: Contact
-    education: Education
-    hobbies: Optional[List[str]]
+    educations: Optional[List[Education]]
+    fields: Optional[List[str]]
+    # hobbies: Optional[List[str]]
+    # hobbies: Optional[Hobbies]
     included_skills: Optional[List[str]]
     industry: Optional[str]
     licenses: Optional[List[License]]
@@ -374,15 +541,15 @@ class ResumeUsers(BaseModel):
     resume_path: str 
     suggested_skills: Optional[List[str]]
     summary_objective: Optional[str]
-    user_id: str 
+    user_id: str # primary key
     work_experience: Optional[List[Job]] 
     # included_skills: Optional[List[Skill]] = Field(..., description="List of skills included in the resume")
-    
+    # custom_fields: Optional[List[CustomField]]
 
 
 class JobTrackingUsers(BaseModel):
 
-    user_id: str
+    user_id: str # primary keys
     # posting_path: Optional[str]
     link: Optional[str]
     content: Optional[str]
@@ -399,7 +566,8 @@ class JobTrackingUsers(BaseModel):
     location: Optional[str] 
     cover_letter_path: Optional[str]
     applied: Optional[bool]
-    time: str
-    match: Optional[int]
-    color: Optional[str]
-    profile: Optional[ResumeUsers]
+    time: str # time, secondary key
+    last_edit_time: str # time of the last edit
+    match: Optional[int] # percent match between job posting and user profile
+    color: Optional[str] # color for the job posting, used to distinguish when tailoring
+    profile: Optional[ResumeUsers] # tailored version of the profile
