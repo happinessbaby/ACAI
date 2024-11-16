@@ -1869,8 +1869,9 @@ class User():
                                         delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
                                         st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
                                         if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
-                                            self.delete_session_states(["job_posting_dict"])
+                                            self.delete_session_states(["job_posting_dict", f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
                                         else:
+                                            self.delete_session_states([f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
                                             st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
                                             st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx] 
                                             st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
