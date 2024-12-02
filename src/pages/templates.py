@@ -4,7 +4,7 @@ import os
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
 from css.streamlit_css import new_upload_button, primary_button3
 from streamlit_image_select import image_select
-from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu
+from streamlit_utils import progress_bar, set_streamlit_page_config_once, user_menu, bottom_info
 from streamlit_float import *
 # from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 # from st_pages import get_script_run_ctx 
@@ -113,6 +113,8 @@ class Reformat():
             self.reformat_templates()
             st.session_state["update_template"]=False
             st.rerun()
+        st.divider()
+        bottom_info()
 
 
 

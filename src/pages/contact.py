@@ -1,6 +1,6 @@
 import json
 from utils.cookie_manager import retrieve_cookie, init_cookies
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once
+from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, bottom_info
 # from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.buy_me_a_coffee import button
@@ -68,10 +68,11 @@ class Download():
                 st.write("contact@acareerai.com")
                 st.write("**Support**")
                 button(username="Tebbles", floating=False, width=220)
-        with c2:
-            if st.session_state.userId:     
-                self.leave_feedback()
-       
+        with c2:     
+            self.leave_feedback()
+        st.divider()
+        bottom_info()
+
 
     # def display_downloads(self, ):
 
@@ -147,7 +148,7 @@ class Download():
         # _, c, _ = st.columns([2, 1, 2])
         # with c:
         with st.container(border=True):
-            st.write("**Would you like to provide a feedback?**")
+            st.write("**Feedback**")
             st.write("Helpfulness")
             helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
             st.write('Ease of use')
@@ -160,7 +161,7 @@ class Download():
             # use= sac.rate(label='ease of use', color="yellow",)
             # speed = sac.rate(label='speed', color="yellow",)
             suggestions = st.text_area("Suggestions", )
-            st.button("submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, likeliness))
+            st.button("Submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, likeliness))
 
     def save_feedback(self, helpfulness, use, speed, suggestions, likeliness):
         # st.session_state["feedback"]=True

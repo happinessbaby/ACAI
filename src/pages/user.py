@@ -13,7 +13,7 @@ from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison
+from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison, bottom_info
 from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button, included_skills_button, suggested_skills_button, new_upload_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
@@ -182,6 +182,15 @@ class User():
                 # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
                 st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
                 st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            else:
+                if st.session_state["selection"]=="default":
+                    st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+                    st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+                else:
+                    #NOTE: this is not doing anything here
+                    st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
+                    st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
+
             if "fields_dict" not in st.session_state:
                 zipped = zip(all_fields, all_fields_labels, all_fields_icons)
                 st.session_state["fields_dict"] = {key: (val1, val2) for key, val1, val2 in zipped}
@@ -253,6 +262,8 @@ class User():
                 self.sign_in()
         elif st.session_state.user_mode=="signout":
             self.sign_out()
+        st.divider()
+        bottom_info()
         # elif st.session_state.user_mode=="reset_password":
         #     self.reset_password()
 
@@ -290,10 +301,10 @@ class User():
         with img_col:
             st.image(st.session_state.logo_path)
         add_vertical_space(2)
-        _, g_col= st.columns([1, 3])
-        with g_col:
-            self.google_signin()
-            self.linkedin_signin()
+        # _, g_col= st.columns([1, 3])
+        # with g_col:
+        self.google_signin()
+            # self.linkedin_signin()
         # add_vertical_space(1)
         # sac.divider(label='or',  align='center', color='gray')
         st.divider()
@@ -1432,14 +1443,14 @@ class User():
     
           
 
-    @st.dialog("Job posting")   
+    @st.dialog("Job posting upload")   
     def job_posting_popup(self, mode="resume", field_name="", field_details="", tailor_container=None):
 
         """ Opens a popup for adding a job posting """
 
         if mode=="cover_letter":
             st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
-        st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the box below")
+        st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the description box below")
         job_posting_link = st.text_input("Link (required)", key="job_linkx", placeholder="Paste a posting link here", value=None,)
         job_posting_description = st.text_area("Description", 
                                         key="job_descriptionx", 
@@ -1448,10 +1459,12 @@ class User():
                                         value = None, 
                                         # label_visibility="collapsed",
                                      )
-        st.session_state["job_link_disabled"]=False if st.session_state.job_linkx else True
+        # st.session_state["job_link_disabled"]=False if st.session_state.job_linkx else True
         _, next_col=st.columns([5, 1])
         with next_col:
-            submit= st.button("Next", key="job_posting_button", disabled=st.session_state.job_link_disabled)
+            submit= st.button("Next", key="job_posting_button", 
+                            #   disabled=st.session_state.job_link_disabled
+                              )
         if submit:
             if mode=="resume":
                 if job_posting_link or job_posting_description:
@@ -1804,6 +1817,8 @@ class User():
                     st.session_state["selection"]="tailor"
                     if st.session_state["tracker"] is not None and len(st.session_state["tracker"]):
                         st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                    else:
+                        self.job_posting_popup()
                     st.session_state["update_template"]=True
                     st.rerun()
         # with tailor_col:
@@ -1817,7 +1832,6 @@ class User():
             # add_vertical_space(5)
             # prev_col, job_col, nxt_col = st.columns([1, 10, 1])
             # job_placeholder=st.empty()
-        st.divider()
         if st.session_state["selection"]=="tailor":
             if "job_posting_dict" in st.session_state:
                 with prev_placeholder:

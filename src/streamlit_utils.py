@@ -102,11 +102,13 @@ def nav_to(url):
 # @st.fragment()         
 def user_menu(userId, page, ):
     _, c1, c2 = st.columns([10, 1, 1])
-    with c1:
-        st.markdown(primary_button3, unsafe_allow_html=True)
-        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-        if st.button("contact", key="contact_button"):
-            st.switch_page('pages/contact.py')
+    # with c1:
+    #     st.markdown(primary_button3, unsafe_allow_html=True)
+    #     st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+    #     if st.button("contact", key="contact_button"):
+    #         st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
+    #         st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+    #         st.switch_page('pages/contact.py')
     with c2:
         add_vertical_space(2)
         if not userId:
@@ -147,6 +149,18 @@ def user_menu(userId, page, ):
                 #     if st.button("Delete my profile", type="primary"):
                 #         st.session_state["user_mode"] = "delete_profile"
                 #         st.switch_page("pages/user.py")
+
+
+def bottom_info():
+    c0, c1, c2 = st.columns([10, 1, 1])
+    with c0:
+        st.write("**Support**")
+        st.markdown(primary_button3, unsafe_allow_html=True)
+        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+        if st.button("contact", key="contact_button"):
+            st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
+            st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            st.switch_page('pages/contact.py')
 
 # @st.fragment()
 def progress_bar(page):
