@@ -609,7 +609,7 @@ class User():
         _, c2 = st.columns([3, 1])
         with c2:
             add_vertical_space(2)
-            skip= st.button(label="I'll do it later", type="primary", key="skip_resume_button" )
+            skip= st.button(label="I'll fill out my profile", type="primary", key="skip_resume_button" )
         if skip:
             menu_placeholder.empty()
             resume_placeholder.empty()

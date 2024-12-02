@@ -15,6 +15,7 @@ streamlit-draggable-list
 streamlit-cookies-manager
 streamlit-antd-components
 streamlit-image-select
+streamlit-tags
 # streamlit-cookies-controller
 # PyMuPDF==1.22.3
 docarray==0.32.1
