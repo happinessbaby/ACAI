@@ -516,7 +516,7 @@ def create_input_tagger(schema, user_input, llm = ChatOpenAI(temperature=0, mode
     chain = create_tagging_chain(schema, llm)
     def run_parser():
         try:
-            response = chain.run(user_input)
+            response = chain.invoke(user_input)
             return response
         # except AttributeError as e:
         #     return response

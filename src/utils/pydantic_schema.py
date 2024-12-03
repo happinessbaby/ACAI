@@ -491,7 +491,7 @@ class Replacement(BaseModel):
     )
 class Replacements(BaseModel):
     replacements: List[Replacement] = Field(
-        default=[], description="the content will be a list made up of words that are to be replaced and their subtitutions"
+        default=[], description="the content will be in Step 3, which is made up of words that are to be replaced and their subtitutions"
     )
 
 class MatchResumeJob(BaseModel):

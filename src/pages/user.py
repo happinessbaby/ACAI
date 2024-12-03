@@ -1298,7 +1298,7 @@ class User():
                     substring = join_with_punctuation(text_list[i:i+j])
                     if substring in replaced_words:
                         idx = replaced_words.index(substring)
-                        text_list[i] = (substitutions[idx]+" ", substring)
+                        text_list[i] = (substitutions[idx]+"", substring)
                         for x in range(i+1, i+j):
                             text_list[x]=""
                         break                 
@@ -1392,18 +1392,28 @@ class User():
                                     text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
                                     replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
                                     substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
-                                    text_list = create_annotations(text_list, replaced_words, substitutions)   
-                                    #TODO: for every word followed by a punctuation, there should be a space after the word  
-                                    text_list =  [text + " " if not isinstance(text, tuple) and not re.match(r'[^\w\s]', text) else text for text in text_list if text != ""]
-                                    st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in text_list if text !=""]
-                                    # print(text_list)
-                                    annotated_text(text_list)
+                                    annot_list = create_annotations(text_list, replaced_words, substitutions) 
+                                    # Step 1: add space after words and strip of empty strings  
+                                    annot_list =  [text + " " if not isinstance(text, tuple) else text for text in annot_list if text != ""]
+                                   # Step 2: Strip the space after a word followed by punctuation
+                                    if len(annot_list) > 1:  # Ensure the list has at least two elements
+                                        updated_list = []
+                                        for i in range(len(annot_list) - 1):
+                                            if not isinstance(annot_list[i], tuple) and re.match(r'[^\w\s]', annot_list[i + 1]):
+                                                updated_list.append(annot_list[i].strip())
+                                            else:
+                                                updated_list.append(annot_list[i])
+                                        annot_list = updated_list
+                                    st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in annot_list]
+                                    # annot_list = [annot_list[i].strip() if re.match(r'[^\w\s]', annot_list[i+1]) else annot_list[i] for i in range(len(annot_list)-1)]
+                                    # st.session_state["new_summary"] = [summary[i].strip() if re.match(r'[^\w\s]', summary[i+1]) else summary[i] for i in range(len(summary)-1)]
+                                    annotated_text(annot_list)
                                     _, c = st.columns([3,1])
                                     with c:
                                         #NOTE: in the future can apply and revert one by one
-                                        st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button"+"_apply")  
+                                        st.button("Apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button"+"_apply")  
                                         if "old_summary" in st.session_state: 
-                                            st.button("     revert", on_click=revert_changes, key=f"tailor_{field_name}_button"+"_revert", type="primary")     
+                                            st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button"+"_revert", type="primary")     
                                 except Exception as e:
                                     pass
                                     # st.rerun()
