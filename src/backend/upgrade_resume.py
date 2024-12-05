@@ -56,7 +56,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general",  p=None, loading_func=None) -> Dict[str, str]:
 
 
     def insert_break_character(text, char='<br>', interval=5):
@@ -124,7 +124,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
     # Evaluates specific field  content
     else:
         readability_dict, evaluation ={},  None
-        if details:
+        if resume_dict[type]:
             for _ in range(5):
                 # Perform some processing (e.g., tailoring a resume)
                 time.sleep(0.1)  # Simulate time-consuming task
@@ -135,6 +135,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
             readability_dict = readability_checker(resume_content)
             p.increment(20) 
             loading_func(p.progress)
+            details = resume_dict[type]
             evaluation= analyze_field_content(details, type, resume_content)
             p.increment(30)  
             loading_func(p.progress)
@@ -379,7 +380,7 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  details=None, p=None, loading_func=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
     for _ in range(5):
@@ -387,8 +388,8 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
         p.increment(10)  # Update progress in steps of 10%
         loading_func(p.progress)
 
+    details = resume_dict[field_name]
     about_job = job_posting_dict["about_job"]
-    job_skills = job_posting_dict["skills"] 
     job_posting = job_posting_dict["content"]
     resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
@@ -408,7 +409,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
         # p.increment(10)  # Update progress 
         # loading_func(p.progress)
     elif field_name=="summary_objective":
-        job_title = job_posting_dict["job"]
+        job_title = job_posting_dict["job"] 
         # response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=30, max_try=1)
         response = tailor_objective(about_job, details, resume_content, job_title,)
         response_dict=response.dict() if response else {}

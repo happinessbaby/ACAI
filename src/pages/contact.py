@@ -64,9 +64,9 @@ class Contact():
         _, c1, _ = st.columns([1, 1, 1])
         with c1: 
             with st.container(border=True):
-                st.write("**Contact**")
+                st.write("**Contact us**")
                 st.write("contact@acareerai.com")
-                st.write("**Support**")
+                st.write("**Support us**")
                 button(username="Tebbles", floating=False, width=220)
         st.divider()
         bottom_info()

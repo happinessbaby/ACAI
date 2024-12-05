@@ -64,19 +64,19 @@ class Feedback():
         _, c1, _ = st.columns([1, 1, 1])
         with c1: 
             with st.container(border=True):
-                st.write("**Your feedback is important to us**")
+                st.write("**Your feedback will help us improve**")
                 st.write("Helpfulness")
                 helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
                 st.write('Ease of use')
                 use = st.feedback(options="faces", key="use_rating")
                 st.write('Speed')
                 speed = st.feedback(options="faces", key="speed_rating")
-                st.write("How likely are you to continue using the resume builder?")
+                st.write("How likely are you to use the resume builder?")
                 likeliness=st.feedback(options="faces", key="continue_rating")
                 # helpfulness = sac.rate(label='helpfulness', color="yellow", )
                 # use= sac.rate(label='ease of use', color="yellow",)
                 # speed = sac.rate(label='speed', color="yellow",)
-                suggestions = st.text_area("Suggestions", )
+                suggestions = st.text_area("Anything else you'd like to let us know?", )
                 st.button("Submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, likeliness))
 
     def save_feedback(self, helpfulness, use, speed, suggestions, likeliness):
