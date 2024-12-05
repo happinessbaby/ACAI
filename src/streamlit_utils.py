@@ -161,6 +161,12 @@ def bottom_info():
             st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
             st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
             st.switch_page('pages/contact.py')
+        st.markdown(primary_button3, unsafe_allow_html=True)
+        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+        if st.button("feedback", key="feedback_button"):
+            st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
+            st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            st.switch_page('pages/feedback.py')
 
 # @st.fragment()
 def progress_bar(page):

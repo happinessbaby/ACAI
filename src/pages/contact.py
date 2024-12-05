@@ -23,7 +23,7 @@ set_streamlit_page_config_once()
 #     s3=None
 # st.logo("./resources/logo_acareerai.png")
 
-class Download():
+class Contact():
 
 
     def __init__(self):
@@ -61,15 +61,13 @@ class Download():
         # self.display_downloads()
         # add_vertical_space(5)
         # if "feedback" not in st.session_state: 
-        _, c1, c2, _ = st.columns([1, 1, 1, 1])
+        _, c1, _ = st.columns([1, 1, 1])
         with c1: 
             with st.container(border=True):
-                st.write("**Contact**")
+                st.write("**Contact us**")
                 st.write("contact@acareerai.com")
-                st.write("**Support**")
+                st.write("**Support us**")
                 button(username="Tebbles", floating=False, width=220)
-        with c2:     
-            self.leave_feedback()
         st.divider()
         bottom_info()
 
@@ -144,31 +142,31 @@ class Download():
     #             st.warning('Please go back and select a template',  icon="⚠️")
 
 
-    def leave_feedback(self, ):
-        # _, c, _ = st.columns([2, 1, 2])
-        # with c:
-        with st.container(border=True):
-            st.write("**Feedback**")
-            st.write("Helpfulness")
-            helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
-            st.write('Ease of use')
-            use = st.feedback(options="faces", key="use_rating")
-            st.write('Speed')
-            speed = st.feedback(options="faces", key="speed_rating")
-            st.write("How likely are you to continue using the resume builder?")
-            likeliness=st.feedback(options="faces", key="continue_rating")
-            # helpfulness = sac.rate(label='helpfulness', color="yellow", )
-            # use= sac.rate(label='ease of use', color="yellow",)
-            # speed = sac.rate(label='speed', color="yellow",)
-            suggestions = st.text_area("Suggestions", )
-            st.button("Submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, likeliness))
+    # def leave_feedback(self, ):
+    #     # _, c, _ = st.columns([2, 1, 2])
+    #     # with c:
+    #     with st.container(border=True):
+    #         st.write("**Feedback**")
+    #         st.write("Helpfulness")
+    #         helpfulness = st.feedback(options="faces", key="helpfulness_rating",)
+    #         st.write('Ease of use')
+    #         use = st.feedback(options="faces", key="use_rating")
+    #         st.write('Speed')
+    #         speed = st.feedback(options="faces", key="speed_rating")
+    #         st.write("How likely are you to continue using the resume builder?")
+    #         likeliness=st.feedback(options="faces", key="continue_rating")
+    #         # helpfulness = sac.rate(label='helpfulness', color="yellow", )
+    #         # use= sac.rate(label='ease of use', color="yellow",)
+    #         # speed = sac.rate(label='speed', color="yellow",)
+    #         suggestions = st.text_area("Suggestions", )
+    #         st.button("Submit", on_click=self.save_feedback, args = (helpfulness, use, speed, suggestions, likeliness))
 
-    def save_feedback(self, helpfulness, use, speed, suggestions, likeliness):
-        # st.session_state["feedback"]=True
-        feedback = {st.session_state.userId:{"helpfulness":helpfulness, "ease of use":use, "speed":speed, "suggestions":suggestions, "continue":likeliness}}
-        with open("user_feedback.json", "w") as f:
-            json.dump(feedback, f)
-        st.success("Thank you for your feedback! We will use your feedback to continue improving our products.")
+    # def save_feedback(self, helpfulness, use, speed, suggestions, likeliness):
+    #     # st.session_state["feedback"]=True
+    #     feedback = {st.session_state.userId:{"helpfulness":helpfulness, "ease of use":use, "speed":speed, "suggestions":suggestions, "continue":likeliness}}
+    #     with open("user_feedback.json", "w") as f:
+    #         json.dump(feedback, f)
+    #     st.success("Thank you for your feedback! We will use your feedback to continue improving our products.")
 
         
 
@@ -180,5 +178,5 @@ class Download():
 
 if __name__ == '__main__':
 
-    download=Download()
+    contact=Contact()
     

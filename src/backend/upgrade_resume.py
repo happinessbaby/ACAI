@@ -56,7 +56,7 @@ else:
     resume_samples_path=os.environ["S3_RESUME_SAMPLES_PATH"]
 
 
-def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loading_func=None) -> Dict[str, str]:
+def evaluate_resume(resume_dict={},  type="general",  p=None, loading_func=None) -> Dict[str, str]:
 
 
     def insert_break_character(text, char='<br>', interval=5):
@@ -124,7 +124,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
     # Evaluates specific field  content
     else:
         readability_dict, evaluation ={},  None
-        if details:
+        if resume_dict[type]:
             for _ in range(5):
                 # Perform some processing (e.g., tailoring a resume)
                 time.sleep(0.1)  # Simulate time-consuming task
@@ -135,6 +135,7 @@ def evaluate_resume(resume_dict={},  type="general", details=None, p=None, loadi
             readability_dict = readability_checker(resume_content)
             p.increment(20) 
             loading_func(p.progress)
+            details = resume_dict[type]
             evaluation= analyze_field_content(details, type, resume_content)
             p.increment(30)  
             loading_func(p.progress)
@@ -379,7 +380,7 @@ def analyze_resume_type(resume_content, ):
     else:
         return ""
 
-def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  details=None, p=None, loading_func=None):
+def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  p=None, loading_func=None):
 
     print(f'start tailoring....{field_name}')
     for _ in range(5):
@@ -387,8 +388,8 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
         p.increment(10)  # Update progress in steps of 10%
         loading_func(p.progress)
 
+    details = resume_dict[field_name]
     about_job = job_posting_dict["about_job"]
-    job_skills = job_posting_dict["skills"] 
     job_posting = job_posting_dict["content"]
     resume_content= resume_dict["resume_content"]
     job_requirements = ", ".join(job_posting_dict["qualifications"]) if job_posting_dict["qualifications"] is not None else "" + ", ".join(job_posting_dict["responsibilities"]) if job_posting_dict["responsibilities"] is not None else ""
@@ -408,7 +409,7 @@ def tailor_resume(resume_dict={}, job_posting_dict={}, field_name="general",  de
         # p.increment(10)  # Update progress 
         # loading_func(p.progress)
     elif field_name=="summary_objective":
-        job_title = job_posting_dict["job"]
+        job_title = job_posting_dict["job"] 
         # response = asyncio_run(lambda:tailor_objective(about_job, details, resume_content, job_title,), timeout=30, max_try=1)
         response = tailor_objective(about_job, details, resume_content, job_title,)
         response_dict=response.dict() if response else {}
@@ -527,30 +528,28 @@ def tailor_skills( my_skills, job_requirement, timeout=10):
     # return response
 
 
-def tailor_objective(job_requirements, my_objective, resume_content, job_title, timeout=10):
+def tailor_objective(job_requirements, my_objective, resume_content, job_title, timeout=20):
 
     """ Generates replacements for words and phrases in the summary objective section according to the job description"""
 
 
-    template_string = """ 
+    # template_string = """ 
     
-    Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
+    # Your task is to research words and phrases from the objective/summary section of the resume that can be substitued so it aligns better to an open job position.
 
-    Please follow the below steps:
+    # Please follow the below steps:
 
-    Step 1: find relevant information in the resume content that can be matched to the job requirements in a job posting. 
+    # Step 1: find relevant information in the resume content that can be matched to the job requirements in a job posting. 
 
-    The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
+    # The most direct type of relevant information are words/phrases that the resume content and job requirements share. 
 
-    Other type of relevant information can be induced based on skills and work experience for example.
+    # Other type of relevant information can be induced based on skills and work experience for example.
     
-    resume content: {resume_content} \n
+    # resume content: {resume_content} \n
 
-    job requirements: {job_requirements} \n
+    # job requirements: {job_requirements} \n
 
-
-
-    """
+    # """
     # Step 2:  you are provided withs a resume objective and the job title, if available.
 
     #     job title: {job_title} \n
@@ -563,21 +562,6 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title, 
 
     #     1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
 
-    template_string2= """ You are provided withs a resume objective and the job title, if available.
-
-        job title: {job_title} \n
-
-        resume objective: {my_objective} 
-
-        relevant information from a job posting: {relevant_information}
-
-        Please follow the following format and the relevant information from a job posting with to make appropriate changes to the resume objective. When you generate your response, make sure all replacements are unique and DO NOT make changes based on arbitrary choice of wording.
-        
-        Always follow relevant information you're provided to make relevant changes and make sure the replaced words are verbatim from the resume objective.
-
-        1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
-
-    """
     model_parser1 = llm | StrOutputParser()
     prompt = ChatPromptTemplate.from_messages(
     [
@@ -585,8 +569,6 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title, 
             "system",
             "You are an expert extraction algorithm. "
             "Only extract relevant information from the text. "
-            "If you do not know the value of an attribute asked to extract, "
-            "return null for the attribute's value.",
         ),
         # Please see the how-to about improving performance with
         # reference examples.
@@ -594,41 +576,57 @@ def tailor_objective(job_requirements, my_objective, resume_content, job_title, 
         ("human", "{content}"),
             ]
         )
+    template_string2= """ 
+        Your goal is to change the resume objective section of the resume to match the job requirements in a job posting.
+
+        Step 1: Find relevant information in the resume content that can be matched to the job requirements. 
+
+        For example, they can be words/phrases that the resume and job requirements share, or experiences and skills in the resume that are relevant to the job requirements.
+        
+        Step 2: Revise the summary objective, make it relevant to the job posting but also in context of the resume.
+        
+        Step 3: Propose replacements and substitions following the format below:
+    
+        1. Replaced_words: <the phrase/words in the resume objective to be replaced> ; Substitution: <the substitution for the phrase/words>
+
+        Make sure the replaced words are verbatim from the resume objective and substitutions are appropriate and relevant to the job posting.
+
+        Your final output should be:
+
+        Step 1: <reasoning and answer>
+        Step 2: <reasoning and answer>
+        Step 3: <answer in the given format> 
+
+        resume content: {resume_content} \n
+
+        job requirements: {job_requirements} \n
+        
+    """
+        # resume's summary objective: {my_objective}
     # print(resume_content)
     model_parser = prompt |  llm.with_structured_output(schema=Replacements)
-    prompt_template = ChatPromptTemplate.from_template(template_string)
+    # prompt_template = ChatPromptTemplate.from_template(template_string)
     prompt_template2 = ChatPromptTemplate.from_template(template_string2)
     # generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough(), "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()} 
     #                  | prompt_template
     #                  | model_parser)
-    generator =     ({"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough()} 
-                     | prompt_template
-                     | {"relevant_information":model_parser1, "job_title":RunnablePassthrough(), "my_objective":RunnablePassthrough()}
+    generator =     (
+        # {"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough()} 
+        #              | prompt_template
+                      {"resume_content":RunnablePassthrough(), "job_requirements":RunnablePassthrough(), }
                      | prompt_template2
                      | model_parser)
     
     def run_parser():
         try: 
-            response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
+            response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements,})
+            print(response)
             return response
         except Exception as e:
             print(e)
             return None
-    return future_run_with_timeout(run_parser)
-    # try:
-    #     response = generator.invoke({"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective})
-    # except openai.BadRequestError as e:
-    #     if "string too long" in str(e):
-    #         #TODO:shorten content!
-    #         response = ""
-    # print(response)
-    # # response = asyncio_run(lambda:create_pydantic_parser(content={"resume_content":resume_content, "job_requirements":job_requirements, "job_title":job_title, "my_objective":my_objective}, schema=Replacements, previous_chain=generator), timeout=20)
-    # # print(response)
-    # # print(prompt_template.messages[0].prompt.input_variables)
-    # # message = prompt_template.format_messages(resume_content=resume_content, job_requirements=job_requirements, job_title=job_title, my_objective=my_objective)
-    # # response = await llm.ainvoke(message)
-    # # print(response)
-    # return response
+    return future_run_with_timeout(run_parser, timeout=timeout)
+
 
 
 
