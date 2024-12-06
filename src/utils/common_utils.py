@@ -1007,8 +1007,8 @@ def process_inputs(user_input, ):
     }
     response = create_input_tagger(tag_schema, user_input)
     if response:
-        topic = response.get("topic", None)
-        safety=response.get("safety", None)
+        topic = response.get("text").get("topic", None)
+        safety=response.get("text").get("safety", None)
         print(topic, safety)
         return (topic, safety)
     return None
