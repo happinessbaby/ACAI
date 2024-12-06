@@ -718,12 +718,14 @@ class User():
             st.session_state["posting_link"]=input_value.get("job_posting_link", "")
             description = input_value.get("job_posting_description", "")
             if st.session_state.posting_link:
+                # print("JOB POSTING LINK", st.session_state["posting_link"])
                 result = process_links(st.session_state.posting_link, st.session_state.users_upload_path, )
                 if result is not None:
                     content_safe, content_type, content_topics, end_path = result
                     if content_safe and content_type=="job posting":
                         st.session_state["job_posting_path"]=end_path
-            if description:
+            if description: 
+                # print("JOB DESCRIPTION", description)
                 result = process_inputs(description, )
                 if result is not None:
                     topic, safe = result
@@ -1456,46 +1458,46 @@ class User():
     @st.dialog("Job posting upload")   
     def job_posting_popup(self, field_name="",  tailor_container=None):
 
-        """ Opens a popup for adding a job posting """
-
         # if mode=="cover_letter":
         #     st.warning("Please be aware that some organizations may not accept AI generated cover letters. Always research before you apply.")
-        st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the description box below")
-        job_posting_link = st.text_input("Link (required)", key="job_linkx", placeholder="Paste a posting link here", value=None,)
-        job_posting_description = st.text_area("Description", 
-                                        key="job_descriptionx", 
-                                        placeholder="Paste a job description here (optional)",
-                                        # on_change=self.form_callback, 
-                                        value = None, 
-                                        # label_visibility="collapsed",
-                                     )
-        # st.session_state["job_link_disabled"]=False if st.session_state.job_linkx else True
-        _, next_col=st.columns([5, 1])
-        with next_col:
-            submit= st.button("Next", key="job_posting_button", 
-                            #   disabled=st.session_state.job_link_disabled
-                              )
-        if submit:
-            # if mode=="resume":
-                if job_posting_link or job_posting_description:
-                    with st.spinner("Processing..."):
-                        job_posting = {"job_posting_link": job_posting_link, "job_posting_description":job_posting_description}
-                        self.process(job_posting, "job_posting")
-                        if "job_description" in st.session_state or "job_posting_path" in st.session_state:
-                            if self.initialize_job_posting_callback():
-                                # st.session_state["tailoring_field"]=field_name
-                                # st.session_state["tailoring_field_idx"]=field_idx
-                                st.success("Successfully processed job posting")
-                                for field_name in all_fields:
-                                    self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
-                                # st.session_state["init_match"]=match
-                                if field_name and tailor_container:
-                                    self.tailor_callback(field_name, tailor_container)
-                                st.rerun()
+        with st.form(key="job_posting_form", clear_on_submit=False):
+            st.info("In case a job posting link does not work, please copy and paste the complete job posting content into the description box below")
+            job_posting_link = st.text_input("Link (required)", key="job_linkx", placeholder="Paste a posting link here", value=None,)
+            job_posting_description = st.text_area("Description", 
+                                            key="job_descriptionx", 
+                                            placeholder="Paste a job description here (optional)",
+                                            # on_change=self.form_callback, 
+                                            value = None, 
+                                            # label_visibility="collapsed",
+                                        )
+            # st.session_state["job_link_disabled"]=False if st.session_state.job_linkx else True
+            _, next_col=st.columns([5, 1])
+            with next_col:
+            #     submit= st.button("Next", key="job_posting_button", 
+            #                     #   disabled=st.session_state.job_link_disabled
+            #                     )
+                submit= st.form_submit_button("Next", )
+            if submit:
+                # if mode=="resume":
+                    if job_posting_link or job_posting_description:
+                        with st.spinner("Processing..."):
+                            job_posting = {"job_posting_link": job_posting_link, "job_posting_description":job_posting_description}
+                            self.process(job_posting, "job_posting")
+                            if "job_description" in st.session_state or "job_posting_path" in st.session_state:
+                                if self.initialize_job_posting_callback():
+                                    # st.session_state["tailoring_field"]=field_name
+                                    # st.session_state["tailoring_field_idx"]=field_idx
+                                    st.success("Successfully processed job posting")
+                                    for field_name in all_fields:
+                                        self.delete_session_states([f"tailored_{field_name}", f"evaluated_{field_name}", f"readability_{field_name}"])
+                                    # st.session_state["init_match"]=match
+                                    if field_name and tailor_container:
+                                        self.tailor_callback(field_name, tailor_container)
+                                    st.rerun()
+                                else:
+                                    st.warning("That didin't work.")
                             else:
-                                st.warning("That didin't work.")
-                        else:
-                            st.warning("That didn't work")
+                                st.warning("That didn't work")
         # st.session_state["info_container"]=st.empty()
         # if st.button("Next", key="job_posting_button", disabled=st.session_state.job_posting_disabled,):
         #     # if "preselection" not in st.session_state:
@@ -1520,6 +1522,9 @@ class User():
         #         # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"], st.session_state["tailoring_field"])
         #         # tailor_resume(st.session_state["profile"], st.session_state["job_posting_dict"],st.session_state["tailoring_field"], st.session_state["tailoring_details"] if "tailoring_details" in st.session_state else None)
         #     st.rerun()
+                                
+
+
 
     def initialize_job_posting_callback(self, ):
 
@@ -1803,7 +1808,10 @@ class User():
             with menu_col:
                 add_vertical_space(3)   
                 upload_resume_placeholder=st.empty()
-
+        
+        # prompt user to upload job posting when none exists in tailor mode
+        if st.session_state["selection"]=="tailor" and  (st.session_state["tracker"] is None or len(st.session_state["tracker"])==0):
+            self.job_posting_popup()
         with switch_placeholder.container():
                 selection = st.segmented_control(
                     " ", ["Edit default", "Tailor mode"], selection_mode="single", default="Edit default" if st.session_state["selection"]=="default" else "Tailor mode"
@@ -1826,10 +1834,8 @@ class User():
                     st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
                     st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
                     st.session_state["selection"]="tailor"
-                    if st.session_state["tracker"] is not None and len(st.session_state["tracker"]):
+                    if st.session_state["tracker"] is not None and len(st.session_state["tracker"])>0:
                         st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                    else:
-                        self.job_posting_popup()
                     st.session_state["update_template"]=True
                     st.rerun()
         # with tailor_col:
