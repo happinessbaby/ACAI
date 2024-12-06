@@ -1755,12 +1755,15 @@ class User():
                     get_display=self.display_field_details(field, -1, "description", "description")
                     get_display()
         def job_applied_callback():
-            applied = st.session_state[f"job_applied_toggle_{st.session_state.current_idx}"]
-            value = {"applied": applied}
-            time = st.session_state["job_posting_dict"]["time"]
-            st.session_state["job_posting_dict"].update(value)
-            save_job_posting_changes(st.session_state.userId, value, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
-            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+            try:
+                applied = st.session_state[f"job_applied_toggle_{st.session_state.current_idx}"]
+                value = {"applied": applied}
+                time = st.session_state["job_posting_dict"]["time"]
+                st.session_state["job_posting_dict"].update(value)
+                save_job_posting_changes(st.session_state.userId, value, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+                st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+            except Exception:
+                pass
             # if applied:
             #     print("APPLIED")
             #     #TODO: balloons not working properly
@@ -1794,9 +1797,9 @@ class User():
                 add_vertical_space(15)
                 nxt_placeholder=st.empty()
             _, job_upload_col, _=st.columns([1, 3, 1])
-            with job_upload_col:
-                add_vertical_space(3)
-                job_upload_placeholder=st.empty()
+            # with job_upload_col:
+            #     add_vertical_space(3)
+            #     job_upload_placeholder=st.empty()
         with profile_fields_col:
             _, switch_col = st.columns([1, 1])
             with switch_col:
@@ -1807,16 +1810,18 @@ class User():
             _, menu_col, _ = st.columns([1, 1, 1])
             with menu_col:
                 add_vertical_space(3)   
+                job_upload_placeholder=st.empty()
+                add_vertical_space(1)
                 upload_resume_placeholder=st.empty()
         
         # prompt user to upload job posting when none exists in tailor mode
-        if st.session_state["selection"]=="tailor" and  (st.session_state["tracker"] is None or len(st.session_state["tracker"])==0):
-            self.job_posting_popup()
+        # if st.session_state["selection"]=="tailor" and  (st.session_state["tracker"] is None or len(st.session_state["tracker"])==0):
+        #     self.job_posting_popup()
         with switch_placeholder.container():
                 selection = st.segmented_control(
-                    " ", ["Edit default", "Tailor mode"], selection_mode="single", default="Edit default" if st.session_state["selection"]=="default" else "Tailor mode"
+                    " ", ["Default mode", "Tailor mode"], selection_mode="single", default="Default mode" if st.session_state["selection"]=="default" else "Tailor mode"
                 )         
-                if selection=="Edit default" and st.session_state["selection"]!="default":
+                if selection=="Default mode" and st.session_state["selection"]!="default":
                     # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
                     # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
                     st.session_state["selection"]="default"
@@ -1999,14 +2004,14 @@ class User():
                                                 value=applied_status, 
                                                 on_change=job_applied_callback
                                                     )    
-            with job_upload_placeholder:
-                with stylable_container(key="custom_button1_profile1",
-                                css_styles=new_upload_button
-                        ):
-                    if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
-                        # st._config.set_option(f'theme.textColor' ,"#2d2e29" )
-                        # st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
-                        self.job_posting_popup()
+            # with job_upload_placeholder:
+            #     with stylable_container(key="custom_button1_profile1",
+            #                     css_styles=new_upload_button
+            #             ):
+            #         if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+            #             # st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+            #             # st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            #             self.job_posting_popup()
 
 
     
@@ -2049,9 +2054,14 @@ class User():
                 with stylable_container(key="custom_button1_profile1",
                                 css_styles=new_upload_button
                         ):
-                    st.button("Revert to default", key="new_resume_button", use_container_width=True, on_click=revert_profile_default)
-                            
-
+                    st.button("Revert to default profile", key="new_resume_button", use_container_width=True, on_click=revert_profile_default)
+        if st.session_state["selection"]=="tailor":                 
+            with job_upload_placeholder:
+                with stylable_container(key="custom_button1_profile1",
+                                css_styles=new_upload_button
+                        ):
+                    if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                        self.job_posting_popup()
 
 
 
