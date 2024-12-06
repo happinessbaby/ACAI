@@ -13,7 +13,7 @@ from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison, bottom_info
+from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison, bottom_info, detect_ux_context
 from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button, included_skills_button, suggested_skills_button, new_upload_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
@@ -120,6 +120,14 @@ class User():
     def __init__(self, ):
         # if "init_cookies" not in st.session_state:
         init_cookies()
+        detect_ux_context()
+        try:
+            if st.session_state["is_pc"]:
+                st.header("PC MODE")
+            else:
+                st.header("MOBILE MODE")
+        except Exception:
+            pass
         self._init_session_states()
         self._init_display()
 
@@ -1620,7 +1628,6 @@ class User():
     def display_profile(self,):
 
         """Displays interactive user profile UI"""
-
 
         def add_field(field, placeholder,):
 
