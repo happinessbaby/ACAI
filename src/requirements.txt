@@ -16,6 +16,7 @@ streamlit-cookies-manager
 streamlit-antd-components
 streamlit-image-select
 streamlit-tags
+streamlit-javascript
 # streamlit-cookies-controller
 # PyMuPDF==1.22.3
 docarray==0.32.1
@@ -111,3 +112,5 @@ selenium
 pyjwt
 s3fs
 authlib
+ua-parser
+user-agents
