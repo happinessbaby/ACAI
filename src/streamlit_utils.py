@@ -13,6 +13,8 @@ import streamlit.components.v1 as components
 import base64
 from streamlit_extras.add_vertical_space import add_vertical_space
 from css.streamlit_css import primary_button2, primary_button3
+from user_agents import parse
+from streamlit_javascript import st_javascript
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
 import streamlit as st
@@ -21,6 +23,14 @@ import streamlit as st
 # pages = get_pages("")
 # ctx = get_script_run_ctx()
 logo_path= os.environ["LOGO_PATH"]
+
+def detect_ux_context():
+    try:
+        ua_string=st_javascript("""window.navigator.userAgent;""")
+        user_agent=parse(ua_string)
+        st.session_state["is_pc"]=user_agent.is_pc
+    except Exception as e:
+        print(e)
 
 
 def hide_streamlit_icons():
@@ -74,6 +84,7 @@ def set_streamlit_page_config_once():
             return
 
 set_streamlit_page_config_once()
+
 
 
 @dataclass
