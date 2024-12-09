@@ -689,7 +689,7 @@ def research_resume_type(resume_dict={}, job_posting_dict={}, )-> str:
         desired_jobs=resume_dict["pursuit_jobs"]
     jobs_list=[]
     for job in jobs:
-        jobs_list.append(job["job_title"])
+        jobs_list.append(job["title"])
     # similar_jobs = asyncio_run(lambda: extract_similar_jobs(jobs_list, desired_jobs))
     similar_jobs = extract_similar_jobs(jobs_list, desired_jobs)
     if similar_jobs:

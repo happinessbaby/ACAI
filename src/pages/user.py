@@ -73,6 +73,7 @@ user_cookie_key=os.environ["USER_COOKIE_KEY"]
 logo_path= os.environ["LOGO_PATH"]
 menu_placeholder=st.empty()
 profile_placeholder=st.empty()
+balloons_container=st.empty()
 _, c, _= st.columns([3, 1, 3])
 with c:
     add_vertical_space(20)
@@ -1769,17 +1770,14 @@ class User():
                 st.session_state["job_posting_dict"].update(value)
                 save_job_posting_changes(st.session_state.userId, value, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
                 st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+            #     if applied:
+            #         print("APPLIED")
+            #         balloons_container.balloons()
+            #         balloons_container.empty()
+            #     else:
+            #         balloons_container.empty()
             except Exception:
                 pass
-            # if applied:
-            #     print("APPLIED")
-            #     #TODO: balloons not working properly
-            #     rain(
-            #         emoji="🎈",
-            #         font_size=54,
-            #         falling_speed=5,
-            #         animation_length=5,
-            #     )
       
         def show_hide():
             st.session_state.show = not st.session_state.show
@@ -1788,27 +1786,34 @@ class User():
             st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
             st.session_state["profile_changed"]=True
             st.session_state["update_template"]=True
-          
-        eval_col, profile_fields_col, tailor_col = st.columns([1, 4, 2])   
-        with eval_col:
-            eval_placeholder=st.empty()
-        with tailor_col:
-            add_vertical_space(5)
-            prev_col, job_col, nxt_col = st.columns([1, 10, 1])
-            with job_col:
-                job_placeholder=st.empty()
-            with prev_col:
-                add_vertical_space(15)
-                prev_placeholder=st.empty()
-            with nxt_col:
-                add_vertical_space(15)
-                nxt_placeholder=st.empty()
-            _, job_upload_col, _=st.columns([1, 3, 1])
-            # with job_upload_col:
-            #     add_vertical_space(3)
-            #     job_upload_placeholder=st.empty()
+        if st.session_state["selection"]=="tailor":
+            tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
+            with tailor_col:
+                add_vertical_space(5)
+                prev_col, job_col, nxt_col = st.columns([1, 10, 1])
+                with job_col:
+                    # job_upload_placeholder=st.empty()
+                    add_vertical_space(1)
+                    job_placeholder=st.empty()
+                with prev_col:
+                    add_vertical_space(15)
+                    prev_placeholder=st.empty()
+                with nxt_col:
+                    add_vertical_space(15)
+                    nxt_placeholder=st.empty()
+                _, job_upload_col, _=st.columns([1, 3, 1])
+                with job_upload_col:
+                    add_vertical_space(3)
+                    job_upload_placeholder=st.empty()
+        else:
+            eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
+            with eval_col:
+                add_vertical_space(5)
+                _, eval_col, _ = st.columns([1, 10, 1])
+                with eval_col:
+                    eval_placeholder=st.empty()
         with profile_fields_col:
-            _, switch_col = st.columns([1, 1])
+            _, switch_col = st.columns([1, 2])
             with switch_col:
                 add_vertical_space(3)
                 switch_placeholder=st.empty()
@@ -1817,8 +1822,8 @@ class User():
             _, menu_col, _ = st.columns([1, 1, 1])
             with menu_col:
                 add_vertical_space(3)   
-                job_upload_placeholder=st.empty()
-                add_vertical_space(1)
+                # job_upload_placeholder=st.empty()
+                # add_vertical_space(1)
                 upload_resume_placeholder=st.empty()
         
         # prompt user to upload job posting when none exists in tailor mode
@@ -1861,7 +1866,14 @@ class User():
             # add_vertical_space(5)
             # prev_col, job_col, nxt_col = st.columns([1, 10, 1])
             # job_placeholder=st.empty()
-        if st.session_state["selection"]=="tailor":
+        if st.session_state["selection"]=="tailor":               
+            with job_upload_placeholder:
+                with stylable_container(key="custom_button1_profile1",
+                                css_styles=new_upload_button
+                        ):
+                    if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
+                        self.job_posting_popup()
+
             if "job_posting_dict" in st.session_state:
                 with prev_placeholder:
                     #NOTE: scrolling cannot be callback because need to set config
@@ -2009,7 +2021,7 @@ class User():
                                     st.write(f"**Match score**: : :green[{match}%]")
                             applied = st.toggle("**Applied**", key=f"job_applied_toggle_{st.session_state.current_idx}", 
                                                 value=applied_status, 
-                                                on_change=job_applied_callback
+                                                on_change=job_applied_callback, 
                                                     )    
             # with job_upload_placeholder:
             #     with stylable_container(key="custom_button1_profile1",
@@ -2023,10 +2035,11 @@ class User():
 
     
         # general evaluation column
-        # with eval_placeholder:
-        #     if st.session_state["profile"]["resume_content"]!="":
-        #         self.display_general_evaluation()
-        #         self.evaluation_callback()
+        if st.session_state["selection"]=="default":
+            with eval_placeholder:
+                if st.session_state["profile"]["resume_content"]!="":
+                    self.display_general_evaluation()
+                    self.evaluation_callback()
         # the main profile column
         with profile_fields_placeholder.container():
             for field in st.session_state["profile"]["fields"]:
@@ -2062,14 +2075,7 @@ class User():
                                 css_styles=new_upload_button
                         ):
                     st.button("Revert to default profile", key="new_resume_button", use_container_width=True, on_click=revert_profile_default)
-        if st.session_state["selection"]=="tailor":                 
-            with job_upload_placeholder:
-                with stylable_container(key="custom_button1_profile1",
-                                css_styles=new_upload_button
-                        ):
-                    if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
-                        self.job_posting_popup()
-
+     
 
 
  
@@ -2224,7 +2230,7 @@ class User():
                         #         st.rerun()
 
 
-    @st.dialog(" ")
+    @st.dialog(" ", width="large")
     def resume_type_popup(self, ):
         add_vertical_space(4)
         st.image("./resources/functional_chronological_resume.png")
