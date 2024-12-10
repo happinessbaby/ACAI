@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from streamlit_extras.stylable_container import stylable_container
 import plotly.express as px
 import plotly.graph_objects as go
-
+import streamlit_antd_components as sac
 import pandas as pd
 import uuid
 import streamlit.components.v1 as components
@@ -16,6 +16,7 @@ from css.streamlit_css import primary_button2, primary_button3
 from user_agents import parse
 from streamlit_javascript import st_javascript
 from dotenv import load_dotenv, find_dotenv
+# from streamlit_navigation_bar import st_navbar
 _ = load_dotenv(find_dotenv()) # read local .env file
 import streamlit as st
 
@@ -188,67 +189,84 @@ def progress_bar(page):
     with c:
 
         if st.session_state.is_pc:
-            c1, c2, c3 = st.columns([1, 3, 1])
-            value = "Complete your profile" if page==0 else "Pick a template"
-            with c1:
-                # add_vertical_space(1)
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                if st.button("Step 1: Complete your profile", key="progress_profile_button"):
-                    if "current_page" in st.session_state and st.session_state.current_page!="profile":
-                    # st.session_state["current_page"]="profile"
-                        st.switch_page("pages/user.py")                
-            with c3:
-                st.markdown(primary_button2, unsafe_allow_html=True)
-                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                if st.button("Step 2: Pick a template", key='progress_template_button'):
-                    if "current_page" in st.session_state and st.session_state.current_page!="template":
-                        # st.session_state["current_page"] = "template"
-                        st.switch_page("pages/templates.py")
-            with c2:
-                add_vertical_space(1)
-                step = st.select_slider(label=" ", options=["Complete your profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
-            if step=="Complete your profile":
+            #NOTE: OPTION 1
+            step = sac.steps(
+                items=[
+                    sac.StepsItem(title=" ", subtitle="Tailor your profile"),
+                    sac.StepsItem(title=" ", subtitle="Pick a template"), 
+                    # sac.StepsItem(title=" ", subtitle="Download your resume")
+                ], index = page,  
+                color="#47ff5a",
+                # color = st.session_state.tailor_color if "tailor_color" in st.session_state and st.session_state["selection"]=="tailor" else "#ff9747",
+                key="progress_steps", 
+                return_index=True,
+            )
+            if step==0:
                 if "current_page" in st.session_state and st.session_state.current_page!="profile":
                     # st.session_state["current_page"]="profile"
                     st.switch_page("pages/user.py")
-            elif step=="Pick a template":
+            elif step==1:
                 if "current_page" in st.session_state and st.session_state.current_page!="template":
                     # st.session_state["current_page"] = "template"
                     st.switch_page("pages/templates.py")
+            #NOTE: OPTION 2
+            # c1, c2, c3 = st.columns([1, 3, 1])
+            # value = "Complete your profile" if page==0 else "Pick a template"
+            # with c1:
+            #     # add_vertical_space(1)
+            #     st.markdown(primary_button2, unsafe_allow_html=True)
+            #     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            #     if st.button("Step 1: Complete your profile", key="progress_profile_button"):
+            #         if "current_page" in st.session_state and st.session_state.current_page!="profile":
+            #         # st.session_state["current_page"]="profile"
+            #             st.switch_page("pages/user.py")                
+            # with c3:
+            #     st.markdown(primary_button2, unsafe_allow_html=True)
+            #     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+            #     if st.button("Step 2: Pick a template", key='progress_template_button'):
+            #         if "current_page" in st.session_state and st.session_state.current_page!="template":
+            #             # st.session_state["current_page"] = "template"
+            #             st.switch_page("pages/templates.py")
+            # with c2:
+            #     add_vertical_space(1)
+            #     step = st.select_slider(label=" ", options=["Complete your profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
+            # if step=="Complete your profile":
+            #     if "current_page" in st.session_state and st.session_state.current_page!="profile":
+            #         # st.session_state["current_page"]="profile"
+            #         st.switch_page("pages/user.py")
+            # elif step=="Pick a template":
+            #     if "current_page" in st.session_state and st.session_state.current_page!="template":
+            #         # st.session_state["current_page"] = "template"
+            #         st.switch_page("pages/templates.py")
         else:
-            step1, step2 = st.tabs(["Step 1: Complete your profile", "Step 2: Pick a template"])
-            if "current_page" in st.session_state and st.session_state.current_page!="profile":
-                with step1:
+
+            #NOTE: OPTION 1
+            page = sac.tabs([
+                sac.TabsItem(label='Step 1: Complete your profile'),
+                sac.TabsItem(label='Step 2: Pick a template'),
+                ], align='center', 
+                index=0 if st.session_state.current_page=="profile" else 1, 
+               color="#47ff5a",)
+            if page=="Step 1: Complete your profile":
+                if "current_page" in st.session_state and st.session_state.current_page!="profile":
                     # st.session_state["current_page"]="profile"
                     st.switch_page("pages/user.py")
-            if "current_page" in st.session_state and st.session_state.current_page!="template":
-                with step2:
+            elif page=="Step 2: Pick a template":
+                if "current_page" in st.session_state and st.session_state.current_page!="template":
                     # st.session_state["current_page"] = "template"
                     st.switch_page("pages/templates.py")
+            #NOTE: OPTION 2 (does not work yet)
+            # page = st_navbar(["Step 1: Complete your profile", "Step 2: Pick a template"])
+            # if page=="Step 1: Complete your profile":
+            #     if "current_page" in st.session_state and st.session_state.current_page!="profile":
+            #         # st.session_state["current_page"]="profile"
+            #         st.switch_page("pages/user.py")
+            # elif page=="Step 2: Pick a template":
+            #     if "current_page" in st.session_state and st.session_state.current_page!="template":
+            #         # st.session_state["current_page"] = "template"
+            #         st.switch_page("pages/templates.py")
         
-        # step = sac.steps(
-        #     items=[
-        #         sac.StepsItem(title=" ", subtitle="Tailor your profile"),
-        #         sac.StepsItem(title=" ", subtitle="Pick a template"), 
-        #         # sac.StepsItem(title=" ", subtitle="Download your resume")
-        #     ], index = page,  
-        #     color="#47ff5a",
-        #     # color = st.session_state.tailor_color if "tailor_color" in st.session_state and st.session_state["selection"]=="tailor" else "#ff9747",
-        #       key="progress_steps", 
-        #       return_index=True,
-        # )
-        # if step==0:
-        #     if "current_page" in st.session_state and st.session_state.current_page!="profile":
-        #         # st.session_state["current_page"]="profile"
-        #         st.switch_page("pages/user.py")
-        # elif step==1:
-        #     if "current_page" in st.session_state and st.session_state.current_page!="template":
-        #         # st.session_state["current_page"] = "template"
-        #         st.switch_page("pages/templates.py")
-        # elif step==2:
-        #     if "current_page" in st.session_state and st.session_state.current_page!="download":
-        #         st.switch_page("pages/downloads.py")
+
 
 
 def job_tracker():
