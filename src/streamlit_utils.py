@@ -218,12 +218,12 @@ def progress_bar(page):
                     st.switch_page("pages/templates.py")
         else:
             step1, step2 = st.tabs(["Step 1: Complete your profile", "Step 2: Pick a template"])
-            with step1:
-                if "current_page" in st.session_state and st.session_state.current_page!="profile":
+            if "current_page" in st.session_state and st.session_state.current_page!="profile":
+                with step1:
                     # st.session_state["current_page"]="profile"
                     st.switch_page("pages/user.py")
-            with step2:
-                if "current_page" in st.session_state and st.session_state.current_page!="template":
+            if "current_page" in st.session_state and st.session_state.current_page!="template":
+                with step2:
                     # st.session_state["current_page"] = "template"
                     st.switch_page("pages/templates.py")
         
