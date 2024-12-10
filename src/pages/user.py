@@ -45,6 +45,7 @@ import streamlit as st
 
 set_streamlit_page_config_once()
 hide_streamlit_icons()
+detect_ux_context()
 
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv()) # read local .env file
@@ -121,14 +122,13 @@ class User():
     def __init__(self, ):
         # if "init_cookies" not in st.session_state:
         init_cookies()
-        detect_ux_context()
-        try:
-            if st.session_state["is_pc"]:
-                st.header("PC MODE")
-            else:
-                st.header("MOBILE MODE")
-        except Exception:
-            pass
+        # try:
+        #     if st.session_state["is_pc"]:
+        #         st.header("PC MODE")
+        #     else:
+        #         st.header("MOBILE MODE")
+        # except Exception:
+        #     pass
         self._init_session_states()
         self._init_display()
 
