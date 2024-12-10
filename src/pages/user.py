@@ -1789,7 +1789,7 @@ class User():
         if st.session_state["selection"]=="tailor":
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
-                add_vertical_space(5)
+                add_vertical_space(10)
                 prev_col, job_col, nxt_col = st.columns([1, 10, 1])
                 with job_col:
                     # job_upload_placeholder=st.empty()
@@ -1808,7 +1808,7 @@ class User():
         else:
             eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
             with eval_col:
-                add_vertical_space(5)
+                add_vertical_space(10)
                 _, eval_col, _ = st.columns([1, 10, 1])
                 with eval_col:
                     eval_placeholder=st.empty()
@@ -1874,38 +1874,37 @@ class User():
                     if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                         self.job_posting_popup()
 
-            if "job_posting_dict" in st.session_state:
-                with prev_placeholder:
-                    #NOTE: scrolling cannot be callback because need to set config
-                    if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                        prev = st.button("🞀", key="prev_job_button", )
-                        if prev:
-                            st.session_state["current_idx"]=st.session_state["current_idx"]-1
-                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                            # job_placeholder.empty()
-                            st.rerun()
-                with nxt_placeholder:
-                    if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                        nxt = st.button("🞂", key="next_job_button",)     
-                        if nxt:
-                            st.session_state["current_idx"]=st.session_state["current_idx"]+1
-                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                            # job_placeholder.empty()
-                            st.rerun()
-                    # job_posting_container=st.empty()
-                    # with job_posting_container.container(border=True): 
+            # if "job_posting_dict" in st.session_state:
+            #     with prev_placeholder:
+            #         #NOTE: scrolling cannot be callback because need to set config
+            #         if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+            #             prev = st.button("🞀", key="prev_job_button", )
+            #             if prev:
+            #                 st.session_state["current_idx"]=st.session_state["current_idx"]-1
+            #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+            #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+            #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+            #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+            #                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+            #                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+            #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+            #                 # job_placeholder.empty()
+            #                 st.rerun()
+            #     with nxt_placeholder:
+            #         if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+            #             nxt = st.button("🞂", key="next_job_button",)     
+            #             if nxt:
+            #                 st.session_state["current_idx"]=st.session_state["current_idx"]+1
+            #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+            #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+            #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+            #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+            #                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+            #                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+            #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+            #                 # job_placeholder.empty()
+            #                 st.rerun()
+
                 with job_placeholder:
                     with stylable_container(
                         key="job_clip_note_container",
@@ -1931,15 +1930,32 @@ class User():
                         salary = st.session_state["job_posting_dict"].get("salary", "")
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
-                        c1, c2, c3, _, c4=st.columns([4, 1, 1, 1, 1])
-                        with c1:
+                        pin, delete=st.columns([10, 1])
+                        prev, center, nxt = st.columns([1, 10, 1])
+                        _, color, url = st.columns([5, 1, 1])
+                        with pin:
                             st.write("📌 ")
+                        with prev:
+                            if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                                add_vertical_space(15)
+                                prev = st.button("🞀", key="prev_job_button", type="primary")
+                                if prev:
+                                    st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    # job_placeholder.empty()
+                                    st.rerun()
                             # title = f'<p style="font-family:Comic Sans MS, cursive; color:#2d2e29; font-size: 20px;"><b><i>Clipped Jobs</i></b></p>'
                             # st.markdown(title, unsafe_allow_html=True)
-                        with c3:
+                        with url:
                             if link:
                                 st.link_button("🔗", url=link)
-                        with c2:
+                        with color:
                             change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
                             #NOTE: resetting config does not work in callback
                             if change_color!=st.session_state["tailor_color"]:
@@ -1952,7 +1968,7 @@ class User():
                                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
                                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                 st.rerun()
-                        with c4:
+                        with delete:
                             delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
                             if delete_job:
                                 timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
@@ -1969,7 +1985,21 @@ class User():
                                     st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                     st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
                                 st.rerun()  
-                        _, center, _ = st.columns([1, 10, 1])
+                        with nxt:
+                            if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                                add_vertical_space(15)
+                                nxt = st.button("🞂", key="next_job_button", type="primary")     
+                                if nxt:
+                                    st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    # job_placeholder.empty()
+                                    st.rerun()
                         with center: 
                             add_vertical_space(3)
                             if job_title:
@@ -2023,15 +2053,6 @@ class User():
                                                 value=applied_status, 
                                                 on_change=job_applied_callback, 
                                                     )    
-            # with job_upload_placeholder:
-            #     with stylable_container(key="custom_button1_profile1",
-            #                     css_styles=new_upload_button
-            #             ):
-            #         if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
-            #             # st._config.set_option(f'theme.textColor' ,"#2d2e29" )
-            #             # st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
-            #             self.job_posting_popup()
-
 
     
         # general evaluation column
@@ -2117,7 +2138,7 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-                with st.expander("Show my profile report", expanded=True):
+                with st.expander("Show my profile report", ):
                     # c1, c2=st.columns([1, 1])
                     # with c1:
                     st.divider()
@@ -2126,15 +2147,15 @@ class User():
                         length=int(st.session_state["evaluation"]["word_count"])
                         # st.write("Your resume length is: ")
                         if length<300:
-                            st.subheader(":red[too short]")
+                            st.subheader(":red[Too short]")
                         elif length>=300 and length<450:
-                            st.subheader(":green[good]")
+                            st.subheader(":green[Good]")
                         elif length>=450 and length<=600:
-                            st.subheader(":green[great]")
+                            st.subheader(":green[Great]")
                         elif length>600 and length<800:
-                            st.subheader(":blue[good]")
+                            st.subheader(":blue[Good]")
                         else:
-                            st.subheader(":red[too long]")
+                            st.subheader(":red[Too long]")
                         st.caption(f"A good resume length is between 475 and 600 words, yours is around {str(length)} words.")
                         # pages=st.session_state["evaluation"]["page_count"]
                         # fig = length_chart(int(length))
@@ -2146,15 +2167,15 @@ class User():
                             st.write("Evaluating...")
                 # with c2: 
                     st.divider()
-                    st.write("**Formatting**")
+                    st.write("**Type**")
                     try:
                         # add_vertical_space(1)
                         ideal_type = st.session_state["evaluation"]["ideal_type"]
-                        st.write("The ideal type for your resume is:")
+                        # st.write("The ideal type for your resume is:")
                         if ideal_type=="chronological":
-                            st.subheader(":green[chronological]")
+                            st.subheader(":green[Chronological]")
                         elif ideal_type=="functional":
-                            st.subheader(":blue[functional]")
+                            st.subheader(":blue[Functional]")
                         # resume_type=st.session_state["evaluation"]["resume_type"]
                         # if ideal_type==resume_type:
                         #     st.subheader(":green[Good]")
@@ -2163,8 +2184,9 @@ class User():
                         #     st.subheader(":red[Mismatch]")
                         #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
-                            add_vertical_space(1)
-                            if st.button("What are the different formats?", type="primary", key="resume_type_button"):
+                            st.markdown(primary_button3, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                            if st.button("What does this mean?",  key="resume_type_button"):
                                 self.resume_type_popup()
                             # add_vertical_space(1)
                             # if st.button("Explore template options", key="resume_template_explore_button"):
@@ -2179,6 +2201,7 @@ class User():
                         language_data=[]
                         for category in categories:
                             language_data.append({category:st.session_state["evaluation"][category]})
+                        # print("DDDDDDDDDDDDDDDDDD", language_data)
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True, key="language_radar_plot")

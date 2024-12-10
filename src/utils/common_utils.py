@@ -43,6 +43,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from utils.async_utils import asyncio_run, future_run_with_timeout
 from multiprocessing import Pool
+import textstat as ts
 # import concurrent.futures
 # from langchain_core.tools import Tool
 
@@ -1340,6 +1341,28 @@ def grammar_checker(text):
         result.append('--------------------------------------')
     return result
 
+
+def readability_checker(content):
+
+    """ Checks the content readability"""
+
+    stats = dict(
+            # flesch_reading_ease=ts.flesch_reading_ease(w),
+            # smog_index = ts.smog_index(w),
+            flesch_kincaid_grade=ts.flesch_kincaid_grade(content),
+            # automated_readability_index=ts.automated_readability_index(w),
+            # coleman_liau_index=ts.coleman_liau_index(w),
+            # dale_chall_readability_score=ts.dale_chall_readability_score(w),
+            # linsear_write_formula=ts.linsear_write_formula(w),
+            # gunning_fog=ts.gunning_fog(w),
+            # word_count=ts.lexicon_count(w),
+            # difficult_words=ts.difficult_words(w),
+            # text_standard=ts.text_standard(w),
+            # sentence_count=ts.sentence_count(w),
+            # syllable_count=ts.syllable_count(w),
+            # reading_time=ts.reading_time(w)
+    )
+    return stats
 
 
 

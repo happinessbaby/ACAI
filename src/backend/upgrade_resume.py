@@ -2,7 +2,7 @@ import os
 import openai
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from utils.basic_utils import count_length
-from utils.common_utils import search_related_samples,  extract_similar_jobs
+from utils.common_utils import search_related_samples,  extract_similar_jobs, readability_checker
 from utils.langchain_utils import  generate_multifunction_response, create_smartllm_chain, create_pydantic_parser, create_comma_separated_list_parser
 from utils.agent_tools import create_search_tools, create_sample_tools
 from typing import Dict, List, Optional, Union
@@ -16,7 +16,7 @@ from dotenv import load_dotenv, find_dotenv
 from io import BytesIO
 from utils.aws_manager import get_client
 import tempfile
-import textstat as ts
+# import textstat as ts
 from langchain_core.prompts import ChatPromptTemplate,  PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
@@ -243,7 +243,7 @@ s
             comparison_dict = resp.dict()
     return comparison_dict
 
-def analyze_language(resume_content, category, industry, timeout=10):
+def analyze_language(resume_content, category, industry, timeout=20):
 
     """ Analyzes the resume for its language aspects including tone, diction, syntax, etc. """
 
@@ -256,7 +256,7 @@ def analyze_language(resume_content, category, industry, timeout=10):
 
         If you're asked to assess the tone, generally there should be a formal and respectful tone, but not too stiff or distant. Slang, jargon, humor, and negativity are not good signs.
         
-        Output the following metrics: ["bad", "good", "great"] and provide your reasoning. Your reasoning should be about a sentence long.
+        Output the following metrics: ["poor", "good", "excellent"] and provide your reasoning. Your reasoning should be about a sentence long.
 
         resume: {resume_content}
          """
@@ -288,7 +288,7 @@ def analyze_language(resume_content, category, industry, timeout=10):
             except Exception as e:
                 print(e)
                 return None
-        return future_run_with_timeout(run_parser)
+        return future_run_with_timeout(run_parser, timeout=timeout)
         # try:
         #     language_dict = generator.invoke({"resume_content":resume_content, "category":category})
         # except openai.BadRequestError as e:
@@ -301,22 +301,22 @@ def analyze_language(resume_content, category, industry, timeout=10):
     elif category=="readability":
         score= readability_checker(resume_content).get("flesch_kincaid_grade", None)
         readability_dict = {"advocate":20, "fitness":19.5, "public-relations":18.8, "healthcare":18.8, "arts":18.1, "digital-media":18.1, "banking":18, "information-technology":17.9, "finance":17.5, "hr":17.4, "accountant":17.3, "business-development":17.2, "bpo":17.2, "apparel":17.2, "teacher":17, "agriculture":16.5, "engineering":16.4, "consultant":16, "designer":16.3, "aviation":16.3, "automobile":15, "sales":14.8, "chef":14.7}
-        avg_score = readability_dict.get(industry, 17)
+        avg_score = readability_dict.get(industry, 15)
         if score:
             if score<=avg_score:
                 if avg_score-score<5:
-                    language_dict={"rating":"great", "reason":""}
+                    language_dict={"rating":"excellent", "reason":""}
                 elif 5<=avg_score-score<10:
                     language_dict={"rating":"good", "reason":""}
                 else:
-                    language_dict={"rating":"bad", "reason":"Consider lengthening your phrases <br> and adding more multi-syllable words"}
+                    language_dict={"rating":"poor", "reason":"Consider lengthening your phrases <br> and adding more multi-syllable words"}
             else:
                 if score-avg_score<5:
-                    language_dict={"rating":"great", "reason":""}
+                    language_dict={"rating":"excellent", "reason":""}
                 elif 5<=score-avg_score<10:
                     language_dict={"rating":"good", "reason":""}
                 else:
-                    language_dict={"rating":"bad", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
+                    language_dict={"rating":"poor", "reason":"Consider shortening your phrases <br> and simplify your word choices <br> to make your resume more readable"}
         else:
             language_dict={"rating":"", "reason":""}
         return language_dict 
@@ -822,27 +822,27 @@ def reformat_resume(template_path, ):
     return end_path
     
 
-def readability_checker(content):
+# def readability_checker(content):
 
-    """ Checks the content readability"""
+#     """ Checks the content readability"""
 
-    stats = dict(
-            # flesch_reading_ease=ts.flesch_reading_ease(w),
-            # smog_index = ts.smog_index(w),
-            flesch_kincaid_grade=ts.flesch_kincaid_grade(content),
-            # automated_readability_index=ts.automated_readability_index(w),
-            # coleman_liau_index=ts.coleman_liau_index(w),
-            # dale_chall_readability_score=ts.dale_chall_readability_score(w),
-            # linsear_write_formula=ts.linsear_write_formula(w),
-            # gunning_fog=ts.gunning_fog(w),
-            # word_count=ts.lexicon_count(w),
-            # difficult_words=ts.difficult_words(w),
-            # text_standard=ts.text_standard(w),
-            # sentence_count=ts.sentence_count(w),
-            # syllable_count=ts.syllable_count(w),
-            # reading_time=ts.reading_time(w)
-    )
-    return stats
+#     stats = dict(
+#             # flesch_reading_ease=ts.flesch_reading_ease(w),
+#             # smog_index = ts.smog_index(w),
+#             flesch_kincaid_grade=ts.flesch_kincaid_grade(content),
+#             # automated_readability_index=ts.automated_readability_index(w),
+#             # coleman_liau_index=ts.coleman_liau_index(w),
+#             # dale_chall_readability_score=ts.dale_chall_readability_score(w),
+#             # linsear_write_formula=ts.linsear_write_formula(w),
+#             # gunning_fog=ts.gunning_fog(w),
+#             # word_count=ts.lexicon_count(w),
+#             # difficult_words=ts.difficult_words(w),
+#             # text_standard=ts.text_standard(w),
+#             # sentence_count=ts.sentence_count(w),
+#             # syllable_count=ts.syllable_count(w),
+#             # reading_time=ts.reading_time(w)
+#     )
+#     return stats
     
 def match_resume_job(resume_content:str, job_posting_content:str, field_name:str):
 
