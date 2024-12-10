@@ -245,8 +245,8 @@ def progress_bar(page):
                 sac.TabsItem(label='Step 1: Complete your profile'),
                 sac.TabsItem(label='Step 2: Pick a template'),
                 ], align='center', 
-                variant='outline',
-                size="lg",
+                variant='outline' if st.session_state.is_pc else "default",
+                size="lg" if st.session_state.is_pc else "sm",
                 use_container_width=True,
                 index=0 if st.session_state.current_page=="profile" else 1, 
                color="#47ff5a",)
