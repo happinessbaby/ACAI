@@ -1786,6 +1786,8 @@ class User():
             st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
             st.session_state["profile_changed"]=True
             st.session_state["update_template"]=True
+
+        st.divider()    
         if st.session_state["selection"]=="tailor":
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
@@ -1931,13 +1933,13 @@ class User():
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
                         pin, delete=st.columns([10, 1])
-                        prev, center, nxt = st.columns([1, 10, 1])
-                        _, color, url = st.columns([5, 1, 1])
+                        _, center, _ = st.columns([1, 10, 1])
+                        prev, color, url, nxt = st.columns([5, 1, 1, 1])
                         with pin:
                             st.write("📌 ")
                         with prev:
                             if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                                add_vertical_space(15)
+                                # add_vertical_space(15)
                                 prev = st.button("🞀", key="prev_job_button", type="primary")
                                 if prev:
                                     st.session_state["current_idx"]=st.session_state["current_idx"]-1
@@ -1987,7 +1989,7 @@ class User():
                                 st.rerun()  
                         with nxt:
                             if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                                add_vertical_space(15)
+                                # add_vertical_space(15)
                                 nxt = st.button("🞂", key="next_job_button", type="primary")     
                                 if nxt:
                                     st.session_state["current_idx"]=st.session_state["current_idx"]+1

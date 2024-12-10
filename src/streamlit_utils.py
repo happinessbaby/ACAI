@@ -185,34 +185,46 @@ def progress_bar(page):
     # import streamlit_antd_components as sac
     _, c, _ = st.columns([1, 3, 1])
     with c:
-        c1, c2, c3 = st.columns([1, 3, 1])
-        value = "Complete your profile" if page==0 else "Pick a template"
-        with c1:
-            # add_vertical_space(1)
-            st.markdown(primary_button2, unsafe_allow_html=True)
-            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-            if st.button("Step 1: Tailor your profile", key="progress_profile_button"):
+
+        if st.session_state.is_pc:
+            c1, c2, c3 = st.columns([1, 3, 1])
+            value = "Complete your profile" if page==0 else "Pick a template"
+            with c1:
+                # add_vertical_space(1)
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                if st.button("Step 1: Complete your profile", key="progress_profile_button"):
+                    if "current_page" in st.session_state and st.session_state.current_page!="profile":
+                    # st.session_state["current_page"]="profile"
+                        st.switch_page("pages/user.py")                
+            with c3:
+                st.markdown(primary_button2, unsafe_allow_html=True)
+                st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                if st.button("Step 2: Pick a template", key='progress_template_button'):
+                    if "current_page" in st.session_state and st.session_state.current_page!="template":
+                        # st.session_state["current_page"] = "template"
+                        st.switch_page("pages/templates.py")
+            with c2:
+                add_vertical_space(1)
+                step = st.select_slider(label=" ", options=["Complete your profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
+            if step=="Complete your profile":
                 if "current_page" in st.session_state and st.session_state.current_page!="profile":
-                # st.session_state["current_page"]="profile"
-                    st.switch_page("pages/user.py")                
-        with c3:
-            st.markdown(primary_button2, unsafe_allow_html=True)
-            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-            if st.button("Step 2: Pick a template", key='progress_template_button'):
+                    # st.session_state["current_page"]="profile"
+                    st.switch_page("pages/user.py")
+            elif step=="Pick a template":
                 if "current_page" in st.session_state and st.session_state.current_page!="template":
                     # st.session_state["current_page"] = "template"
                     st.switch_page("pages/templates.py")
-        with c2:
-            add_vertical_space(1)
-            step = st.select_slider(label=" ", options=["Complete your profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
-        if step=="Complete your profile":
-            if "current_page" in st.session_state and st.session_state.current_page!="profile":
-                # st.session_state["current_page"]="profile"
-                st.switch_page("pages/user.py")
-        elif step=="Pick a template":
-            if "current_page" in st.session_state and st.session_state.current_page!="template":
-                # st.session_state["current_page"] = "template"
-                st.switch_page("pages/templates.py")
+        else:
+            step1, step2 = st.tabs(["Step 1: Complete your profile", "Step 2: Pick a template"])
+            if step1:
+                if "current_page" in st.session_state and st.session_state.current_page!="profile":
+                    # st.session_state["current_page"]="profile"
+                    st.switch_page("pages/user.py")
+            elif step2:
+                if "current_page" in st.session_state and st.session_state.current_page!="template":
+                    # st.session_state["current_page"] = "template"
+                    st.switch_page("pages/templates.py")
         
         # step = sac.steps(
         #     items=[
