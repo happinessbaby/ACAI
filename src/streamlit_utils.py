@@ -84,6 +84,7 @@ def set_streamlit_page_config_once():
             return
 
 set_streamlit_page_config_once()
+detect_ux_context()
 
 
 
