@@ -1788,6 +1788,10 @@ class User():
             st.session_state["update_template"]=True
 
         st.divider()    
+        _, switch_col, _ = st.columns([2, 1, 1])
+        with switch_col:
+            add_vertical_space(3)
+            switch_placeholder=st.empty()
         if st.session_state["selection"]=="tailor":
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
@@ -1818,10 +1822,10 @@ class User():
                 with eval_col:
                     eval_placeholder=st.empty()
         with profile_fields_col:
-            _, switch_col = st.columns([1, 2])
-            with switch_col:
-                add_vertical_space(3)
-                switch_placeholder=st.empty()
+            # _, switch_col = st.columns([1, 2])
+            # with switch_col:
+            #     add_vertical_space(3)
+            #     switch_placeholder=st.empty()
             if st.session_state.is_pc:
                 add_vertical_space(3)
             profile_fields_placeholder=st.empty()

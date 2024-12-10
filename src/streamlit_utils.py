@@ -143,7 +143,7 @@ def user_menu(userId, page, ):
                     }
                     """,
             ):
-                with st.popover(label=f"{userId}", use_container_width=True):
+                with st.popover(label=":material/account_circle:", use_container_width=True):
                     # if page!="main":
                     #     if st.button("Home", type="primary"):
                     #         st.switch_page("home.py")
