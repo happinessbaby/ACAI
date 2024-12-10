@@ -1789,7 +1789,7 @@ class User():
         if st.session_state["selection"]=="tailor":
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
-                add_vertical_space(5)
+                add_vertical_space(10)
                 prev_col, job_col, nxt_col = st.columns([1, 10, 1])
                 with job_col:
                     # job_upload_placeholder=st.empty()
@@ -1808,7 +1808,7 @@ class User():
         else:
             eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
             with eval_col:
-                add_vertical_space(5)
+                add_vertical_space(10)
                 _, eval_col, _ = st.columns([1, 10, 1])
                 with eval_col:
                     eval_placeholder=st.empty()
@@ -2117,7 +2117,7 @@ class User():
             finished=False
 
         if st.session_state["evaluation"]:
-                with st.expander("Show my profile report", expanded=True):
+                with st.expander("Show my profile report", ):
                     # c1, c2=st.columns([1, 1])
                     # with c1:
                     st.divider()
@@ -2126,15 +2126,15 @@ class User():
                         length=int(st.session_state["evaluation"]["word_count"])
                         # st.write("Your resume length is: ")
                         if length<300:
-                            st.subheader(":red[too short]")
+                            st.subheader(":red[Too short]")
                         elif length>=300 and length<450:
-                            st.subheader(":green[good]")
+                            st.subheader(":green[Good]")
                         elif length>=450 and length<=600:
-                            st.subheader(":green[great]")
+                            st.subheader(":green[Great]")
                         elif length>600 and length<800:
-                            st.subheader(":blue[good]")
+                            st.subheader(":blue[Good]")
                         else:
-                            st.subheader(":red[too long]")
+                            st.subheader(":red[Too long]")
                         st.caption(f"A good resume length is between 475 and 600 words, yours is around {str(length)} words.")
                         # pages=st.session_state["evaluation"]["page_count"]
                         # fig = length_chart(int(length))
@@ -2146,15 +2146,15 @@ class User():
                             st.write("Evaluating...")
                 # with c2: 
                     st.divider()
-                    st.write("**Formatting**")
+                    st.write("**Type**")
                     try:
                         # add_vertical_space(1)
                         ideal_type = st.session_state["evaluation"]["ideal_type"]
-                        st.write("The ideal type for your resume is:")
+                        # st.write("The ideal type for your resume is:")
                         if ideal_type=="chronological":
-                            st.subheader(":green[chronological]")
+                            st.subheader(":green[Chronological]")
                         elif ideal_type=="functional":
-                            st.subheader(":blue[functional]")
+                            st.subheader(":blue[Functional]")
                         # resume_type=st.session_state["evaluation"]["resume_type"]
                         # if ideal_type==resume_type:
                         #     st.subheader(":green[Good]")
@@ -2163,8 +2163,9 @@ class User():
                         #     st.subheader(":red[Mismatch]")
                         #     st.write(f"The best type of resume for you is **{ideal_type}** but your resume seems to be **{resume_type}**")
                         if not st.session_state["eval_rerun_timer"]:
-                            add_vertical_space(1)
-                            if st.button("What are the different formats?", type="primary", key="resume_type_button"):
+                            st.markdown(primary_button3, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                            if st.button("What does this mean?",  key="resume_type_button"):
                                 self.resume_type_popup()
                             # add_vertical_space(1)
                             # if st.button("Explore template options", key="resume_template_explore_button"):
@@ -2179,6 +2180,7 @@ class User():
                         language_data=[]
                         for category in categories:
                             language_data.append({category:st.session_state["evaluation"][category]})
+                        # print("DDDDDDDDDDDDDDDDDD", language_data)
                         with st.container():
                             fig = language_radar(language_data)
                             st.plotly_chart(fig, use_container_width=True, key="language_radar_plot")
