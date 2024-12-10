@@ -188,7 +188,7 @@ def progress_bar(page):
     _, c, _ = st.columns([1, 3, 1])
     with c:
 
-        if st.session_state.is_pc:
+        # if st.session_state.is_pc:
             #NOTE: OPTION 1
         #     step = sac.steps(
         #         items=[
@@ -245,7 +245,7 @@ def progress_bar(page):
                 sac.TabsItem(label='Step 1: Complete your profile'),
                 sac.TabsItem(label='Step 2: Pick a template'),
                 ], align='center', 
-                variant='outline' if st.session_state.is_pc else "default",
+                variant='outline',
                 size="lg" if st.session_state.is_pc else "sm",
                 use_container_width=True,
                 index=0 if st.session_state.current_page=="profile" else 1, 
