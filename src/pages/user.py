@@ -1791,26 +1791,29 @@ class User():
         if st.session_state["selection"]=="tailor":
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
-                add_vertical_space(10)
+                if st.session_state.is_pc:
+                    add_vertical_space(10)
                 prev_col, job_col, nxt_col = st.columns([1, 10, 1])
                 with job_col:
                     # job_upload_placeholder=st.empty()
                     add_vertical_space(1)
                     job_placeholder=st.empty()
-                with prev_col:
-                    add_vertical_space(15)
-                    prev_placeholder=st.empty()
-                with nxt_col:
-                    add_vertical_space(15)
-                    nxt_placeholder=st.empty()
+                # with prev_col:
+                #     add_vertical_space(15)
+                #     prev_placeholder=st.empty()
+                # with nxt_col:
+                #     add_vertical_space(15)
+                #     nxt_placeholder=st.empty()
                 _, job_upload_col, _=st.columns([1, 3, 1])
                 with job_upload_col:
-                    add_vertical_space(3)
+                    if st.session_state.is_pc:
+                        add_vertical_space(3)
                     job_upload_placeholder=st.empty()
         else:
             eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
             with eval_col:
-                add_vertical_space(10)
+                if st.session_state.is_pc:
+                    add_vertical_space(10)
                 _, eval_col, _ = st.columns([1, 10, 1])
                 with eval_col:
                     eval_placeholder=st.empty()
@@ -1819,7 +1822,8 @@ class User():
             with switch_col:
                 add_vertical_space(3)
                 switch_placeholder=st.empty()
-            add_vertical_space(3)
+            if st.session_state.is_pc:
+                add_vertical_space(3)
             profile_fields_placeholder=st.empty()
             _, menu_col, _ = st.columns([1, 1, 1])
             with menu_col:
