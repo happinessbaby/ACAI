@@ -984,7 +984,8 @@ class User():
             if type=="description":
                 with placeholder.container():
                     try:
-                        c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
+                        # c1, c2, c3, c4, x_col = st.columns([1, 20, 1, 1, 1])
+                        menu_col, c1, c2 = st.columns([2, 1, 20])
                         with c1:
                             st.write("•")
                         with c2: 
@@ -996,13 +997,27 @@ class User():
                         # with x_col:
                         #     st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
     
-                        with c3:
-                            with st.popover(label=" ", icon=":material/menu:", ):
-                                st.markdown(primary_button3, unsafe_allow_html=True)
-                                st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                                st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
-                                st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                                st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                        with menu_col:
+                            with stylable_container(
+                                key="menu_popover1",
+                                css_styles="""
+                                    button {
+                                        background: none;
+                                        border: none;
+                                        color: #2d2e29;
+                                        padding: 0;
+                                        cursor: pointer;
+                                        font-size: 12px; /* Adjust as needed */
+                                        text-decoration: none;
+                                    }
+                                    """,
+                            ):
+                                with st.popover(label=" ", icon=":material/menu:", ):
+                                    st.markdown(primary_button3, unsafe_allow_html=True)
+                                    st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                                    st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                                    st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                                    st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
                     except Exception:
                         pass
             elif type=="links":
@@ -1151,14 +1166,28 @@ class User():
                 # with x:
                 #     st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
 
-                    _, menu_col = st.columns([10, 1])
+                    menu_col, _ = st.columns([10, 1])
                     with menu_col:
-                        with st.popover(label=" ", icon=":material/menu:", ):
-                            st.markdown(primary_button3, unsafe_allow_html=True)
-                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                            st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                            st.button("move up", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                            st.button("move down", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                        with stylable_container(
+                                    key="menu_popover2",
+                                    css_styles="""
+                                        button {
+                                            background: none;
+                                            border: none;
+                                            color: #2d2e29;
+                                            padding: 0;
+                                            cursor: pointer;
+                                            font-size: 12px; /* Adjust as needed */
+                                            text-decoration: none;
+                                        }
+                                        """,
+                                ):
+                            with st.popover(label=" ", icon=":material/menu:", ):
+                                st.markdown(primary_button3, unsafe_allow_html=True)
+                                st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                                st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                                st.button("move up", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                                st.button("move down", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
 
                 if name=="awards":
                     title = value["title"]
