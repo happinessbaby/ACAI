@@ -154,7 +154,7 @@ class Reformat():
     def display_resume_templates(self, ):
         
             # add_vertical_space(2)
-            st.divider()
+            # st.divider()
             fields_col, template_col, select_col = st.columns([1, 3, 1])
             with fields_col:
                 self.fields_selection()  

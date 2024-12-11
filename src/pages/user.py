@@ -6,17 +6,17 @@ from utils.cookie_manager import retrieve_cookie, authenticate, delete_cookie, a
 import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, delete_job_from_table, save_job_posting_changes
-from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info, grammar_checker, suggest_skills, research_skills
-from utils.basic_utils import mk_dirs, send_recovery_email, change_hex_color
+from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info,  suggest_skills
+from utils.basic_utils import mk_dirs, send_recovery_email
 from typing import Any, List
 from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
-from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, automatic_download, Progress, percentage_comparison, bottom_info, detect_ux_context
-from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button, included_skills_button, suggested_skills_button, new_upload_button
+from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, Progress, percentage_comparison, bottom_info, detect_ux_context
+from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button,  new_upload_button
 from backend.upgrade_resume import tailor_resume, evaluate_resume
-from utils.basic_utils import list_files, convert_doc_to_pdf, convert_docx_to_img
+from utils.basic_utils import list_files, convert_docx_to_img
 # from backend.generate_cover_letter import generate_basic_cover_letter
 # from streamlit_float import *
 import threading
@@ -989,12 +989,20 @@ class User():
                             st.write("•")
                         with c2: 
                             text = st.text_input(" " , value=value, key=f"descr_{field_name}_{x}_{field_detail}_{idx}", label_visibility="collapsed", on_change=callback, args=(idx, ), )
+                        # with c3:
+                        #     st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                        # with c4:
+                        #     st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                        # with x_col:
+                        #     st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+    
                         with c3:
-                            st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                        with c4:
-                            st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
-                        with x_col:
-                            st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                            with st.popover(label=" ", icon=":material/menu:", ):
+                                st.markdown(primary_button3, unsafe_allow_html=True)
+                                st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                                st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                                st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                                st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
                     except Exception:
                         pass
             elif type=="links":
@@ -1132,15 +1140,26 @@ class User():
             # adds field container
             placeholder=st.empty()
             with placeholder.container(border=True):
-                c1, up, down, x = st.columns([18, 1, 1, 1])
-                # with c1:
-                #     st.write(f"**{name} {idx}**")
-                with up:
-                    st.button("**:blue[^]**", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                with down: 
-                    st.button(":grey[⌄]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
-                with x:
-                    st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                if st.session_state.is_pc:
+                # c1, up, down, x = st.columns([18, 1, 1, 1])
+                # # with c1:
+                # #     st.write(f"**{name} {idx}**")
+                # with up:
+                #     st.button("**:blue[^]**", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                # with down: 
+                #     st.button(":grey[⌄]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                # with x:
+                #     st.button("**:red[x]**", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+
+                    _, menu_col = st.columns([10, 1])
+                    with menu_col:
+                        with st.popover(label=" ", icon=":material/menu:", ):
+                            st.markdown(primary_button3, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                            st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                            st.button("move up", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                            st.button("move down", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
+
                 if name=="awards":
                     title = value["title"]
                     # description = value["description"]
@@ -1787,7 +1806,7 @@ class User():
             st.session_state["profile_changed"]=True
             st.session_state["update_template"]=True
 
-        st.divider()    
+        # st.divider()    
         _, switch_col, _ = st.columns([2, 1, 1])
         with switch_col:
             add_vertical_space(3)
@@ -1796,18 +1815,18 @@ class User():
             tailor_col, profile_fields_col, eval_col = st.columns([2, 4, 1])   
             with tailor_col:
                 if st.session_state.is_pc:
-                    add_vertical_space(10)
+                    add_vertical_space(3)
                 prev_col, job_col, nxt_col = st.columns([1, 10, 1])
                 with job_col:
                     # job_upload_placeholder=st.empty()
                     add_vertical_space(1)
                     job_placeholder=st.empty()
-                # with prev_col:
-                #     add_vertical_space(15)
-                #     prev_placeholder=st.empty()
-                # with nxt_col:
-                #     add_vertical_space(15)
-                #     nxt_placeholder=st.empty()
+                with prev_col:
+                    add_vertical_space(15)
+                    prev_placeholder=st.empty()
+                with nxt_col:
+                    add_vertical_space(15)
+                    nxt_placeholder=st.empty()
                 _, job_upload_col, _=st.columns([1, 3, 1])
                 with job_upload_col:
                     if st.session_state.is_pc:
@@ -1817,15 +1836,11 @@ class User():
             eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
             with eval_col:
                 if st.session_state.is_pc:
-                    add_vertical_space(10)
+                    add_vertical_space(3)
                 _, eval_col, _ = st.columns([1, 10, 1])
                 with eval_col:
                     eval_placeholder=st.empty()
         with profile_fields_col:
-            # _, switch_col = st.columns([1, 2])
-            # with switch_col:
-            #     add_vertical_space(3)
-            #     switch_placeholder=st.empty()
             if st.session_state.is_pc:
                 add_vertical_space(3)
             profile_fields_placeholder=st.empty()
@@ -1884,36 +1899,36 @@ class User():
                     if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                         self.job_posting_popup()
 
-            # if "job_posting_dict" in st.session_state:
-            #     with prev_placeholder:
-            #         #NOTE: scrolling cannot be callback because need to set config
-            #         if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-            #             prev = st.button("🞀", key="prev_job_button", )
-            #             if prev:
-            #                 st.session_state["current_idx"]=st.session_state["current_idx"]-1
-            #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-            #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-            #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-            #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-            #                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-            #                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-            #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-            #                 # job_placeholder.empty()
-            #                 st.rerun()
-            #     with nxt_placeholder:
-            #         if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-            #             nxt = st.button("🞂", key="next_job_button",)     
-            #             if nxt:
-            #                 st.session_state["current_idx"]=st.session_state["current_idx"]+1
-            #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-            #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-            #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-            #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-            #                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-            #                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-            #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-            #                 # job_placeholder.empty()
-            #                 st.rerun()
+            if "job_posting_dict" in st.session_state and st.session_state.is_pc:
+                with prev_placeholder:
+                    #NOTE: scrolling cannot be callback because need to set config
+                    if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                        prev = st.button("🞀", key="prev_job_button", )
+                        if prev:
+                            st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                            # job_placeholder.empty()
+                            st.rerun()
+                with nxt_placeholder:
+                    if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                        nxt = st.button("🞂", key="next_job_button",)     
+                        if nxt:
+                            st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                            # job_placeholder.empty()
+                            st.rerun()
 
                 with job_placeholder:
                     with stylable_container(
@@ -1945,21 +1960,22 @@ class User():
                         prev, color, url, nxt = st.columns([5, 1, 1, 1])
                         with pin:
                             st.write("📌 ")
-                        with prev:
-                            if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                                # add_vertical_space(15)
-                                prev = st.button("🞀", key="prev_job_button", type="primary")
-                                if prev:
-                                    st.session_state["current_idx"]=st.session_state["current_idx"]-1
-                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                    # job_placeholder.empty()
-                                    st.rerun()
+                        if not st.session_state.is_pc:
+                            with prev:
+                                if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                                    # add_vertical_space(15)
+                                    prev = st.button("🞀", key="prev_job_button", type="primary")
+                                    if prev:
+                                        st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                                        st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                        st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                                        # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                                        # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                                        st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                        st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                        st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                        # job_placeholder.empty()
+                                        st.rerun()
                             # title = f'<p style="font-family:Comic Sans MS, cursive; color:#2d2e29; font-size: 20px;"><b><i>Clipped Jobs</i></b></p>'
                             # st.markdown(title, unsafe_allow_html=True)
                         with url:
@@ -1995,21 +2011,22 @@ class User():
                                     st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                     st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
                                 st.rerun()  
-                        with nxt:
-                            if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                                # add_vertical_space(15)
-                                nxt = st.button("🞂", key="next_job_button", type="primary")     
-                                if nxt:
-                                    st.session_state["current_idx"]=st.session_state["current_idx"]+1
-                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                    # job_placeholder.empty()
-                                    st.rerun()
+                        if not st.session_state.is_pc:
+                            with nxt:
+                                if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                                    # add_vertical_space(15)
+                                    nxt = st.button("🞂", key="next_job_button", type="primary")     
+                                    if nxt:
+                                        st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                                        st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                        st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                                        # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                                        # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                                        st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                        st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                        st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                        # job_placeholder.empty()
+                                        st.rerun()
                         with center: 
                             add_vertical_space(3)
                             if job_title:
