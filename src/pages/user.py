@@ -1999,29 +1999,29 @@ class User():
                         salary = st.session_state["job_posting_dict"].get("salary", "")
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
-                        if st.session_state.is_pc:
-                            pin, delete=st.columns([10, 1])
-                            _, center, _ = st.columns([1, 10, 1])
-                            prev, color, url, nxt = st.columns([5, 1, 1, 1])
-                            with pin:
-                                st.write("📌 ")
-                            with url:
-                                st.link_button("🔗", url=link)
-                            with color:
-                                change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
-                                #NOTE: resetting config does not work in callback
-                            with delete:
-                                delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
-                        else:
-                            pin, menu = st.columns([2, 1])
-                            _, center, _ = st.columns([1, 10, 1])
-                            with pin:
-                                st.write("📌 ")
-                            with menu:
-                                with st.popover(label=" ", icon=":material/menu:", ):
-                                    delete_job = st.button(":red[delete job posting]", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
-                                    # st.link_button("go to link", url=link)
-                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", )
+                        # if st.session_state.is_pc:
+                        pin, delete=st.columns([10, 1])
+                        _, center, _ = st.columns([1, 10, 1])
+                        prev, color, url, nxt = st.columns([5, 1, 1, 1])
+                        with pin:
+                            st.write("📌 ")
+                        with url:
+                            st.link_button("🔗", url=link)
+                        with color:
+                            change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
+                            #NOTE: resetting config does not work in callback
+                        with delete:
+                            delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                        # else:
+                        #     pin, menu = st.columns([2, 1])
+                        #     _, center, _ = st.columns([1, 10, 1])
+                        #     with pin:
+                        #         st.write("📌 ")
+                        #     with menu:
+                        #         with st.popover(label=" ", icon=":material/menu:", ):
+                        #             delete_job = st.button(":red[delete job posting]", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                        #             # st.link_button("go to link", url=link)
+                        #             change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", )
 
                         if change_color!=st.session_state["tailor_color"]:
                             st.session_state["tailor_color"]= change_color
@@ -2050,7 +2050,7 @@ class User():
                             st.rerun() 
         
                         with center: 
-                            add_vertical_space(3)
+                            # add_vertical_space(3)
                             if match:
                                 # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
                                 # st.markdown(text, unsafe_allow_html=True)
