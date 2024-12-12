@@ -1,9 +1,8 @@
 import json
 from utils.cookie_manager import retrieve_cookie, init_cookies
-from streamlit_utils import nav_to, user_menu, progress_bar, set_streamlit_page_config_once, bottom_info
+from streamlit_utils import user_menu, set_streamlit_page_config_once, bottom_info
 # from streamlit_extras.stylable_container import stylable_container
 from streamlit_extras.add_vertical_space import add_vertical_space
-from streamlit_extras.buy_me_a_coffee import button
 import streamlit as st
 
 set_streamlit_page_config_once()

@@ -14,7 +14,7 @@ from multiprocessing import Pool
 # from datetime import datetime
 from pathlib import Path
 # import streamlit_antd_components as sac
-from utils.lancedb_utils import retrieve_dict_from_table
+# from utils.lancedb_utils import retrieve_dict_from_table
 # from streamlit_pdf_viewer import pdf_viewer
 from streamlit_extras.stylable_container import stylable_container
 from typing import List

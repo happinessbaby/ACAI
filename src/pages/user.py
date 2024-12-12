@@ -911,7 +911,10 @@ class User():
             if type=="description":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
-                    st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
+                    if st.session_state.is_pc:
+                        st.button("**:green[+]**", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, help="add a description", use_container_width=True)
+                    else:
+                        st.button(":green[add description]", key=f"add_{field_name}_{field_detail}_{x}", on_click=add_new_entry, use_container_width=True)
             elif type=="links":
                 y, _, _ = st.columns([1, 20, 1])
                 with y: 
@@ -1112,7 +1115,7 @@ class User():
             if st.session_state.is_pc:
                 st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
             else:
-                st.button(":green[add description]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
+                st.button(":green[add section]", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
             # adds new empty entry to profile dict
@@ -1176,26 +1179,12 @@ class User():
                 else:
                     # menu_col, _ = st.columns([10, 1])
                     # with menu_col:
-                        with stylable_container(
-                                    key="menu_popover2",
-                                    css_styles="""
-                                        button {
-                                            background: none;
-                                            border: none;
-                                            color: #2d2e29;
-                                            padding: 0;
-                                            cursor: pointer;
-                                            font-size: 12px; /* Adjust as needed */
-                                            text-decoration: none;
-                                        }
-                                        """,
-                                ):
-                            with st.expander(label=" ", icon=":material/menu:", ):
-                                st.markdown(primary_button3, unsafe_allow_html=True)
-                                st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                                st.button(":red[delete section]", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                                st.button(":blue[move section up]", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                                st.button(":grey[move section down]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                    with st.expander(label=" ", icon=":material/menu:", ):
+                        st.markdown(primary_button3, unsafe_allow_html=True)
+                        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                        st.button(":red[delete section]", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                        st.button(":blue[move section up]", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                        st.button(":grey[move section down]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
 
                 if name=="awards":
                     title = value["title"]
@@ -1409,115 +1398,116 @@ class User():
                 else:
                     evaluate = eval_container.button("Evaluate",  key=f"eval_{field_name}_button", on_click=self.evaluation_callback, args=(field_name, eval_container,), )
         with c2:
-            # st.markdown(primary_button2, unsafe_allow_html=True)
-            # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-            tailor_container=st.empty()
-            if f"tailored_{field_name}" in st.session_state:
-                with stylable_container(
-                    key=f"tailor_{field_name}_popover",
-                    css_styles="""
-                        button {
-                            background: none;
-                            border: none;
-                            color: #ff8247;
-                            padding: 0;
-                            cursor: pointer;
-                            font-size: 12px; 
-                            text-decoration: none;
-                        }
-                        """,
-                ):
-                    with tailor_container.popover("Tailor"):
-                        tailoring = st.session_state[f"tailored_{field_name}"]
-                        try:
-                            match_eval = tailoring["evaluation"]
-                            match_perc = tailoring["percentage"]
-                            fig = percentage_comparison(match_perc)
-                            st.plotly_chart(fig, use_container_width=True, key="percentage_comparison_plot")
-                            st.caption(match_eval)
-                        except Exception as e:
-                            pass
-                        if field_name=="included_skills":
-                            if tailoring!="please try again":
-                                try:
-                                    irrelevant_skills = ", ".join(tailoring.get("irrelevant_skills", ""))
-                                    relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
-                                    # transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
-                                    st.write("Here are some tailoring suggestions")
-                                    st.write(f"**Skills that can be ranked higher**: {relevant_skills}")
-                                    st.write(f"**Skills that can be removed**: {irrelevant_skills}")
-                                    # st.write(f"**Skills that can be added**: {transferable_skills}")
-                                    st.write("Rearrange and edit your skills for maximum resume-job alignment")
-                                except Exception as e:
-                                    pass        
+            if st.session_state["selection"]=="tailor":
+                # st.markdown(primary_button2, unsafe_allow_html=True)
+                # st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                tailor_container=st.empty()
+                if f"tailored_{field_name}" in st.session_state:
+                    with stylable_container(
+                        key=f"tailor_{field_name}_popover",
+                        css_styles="""
+                            button {
+                                background: none;
+                                border: none;
+                                color: #ff8247;
+                                padding: 0;
+                                cursor: pointer;
+                                font-size: 12px; 
+                                text-decoration: none;
+                            }
+                            """,
+                    ):
+                        with tailor_container.popover("Tailor"):
+                            tailoring = st.session_state[f"tailored_{field_name}"]
+                            try:
+                                match_eval = tailoring["evaluation"]
+                                match_perc = tailoring["percentage"]
+                                fig = percentage_comparison(match_perc)
+                                st.plotly_chart(fig, use_container_width=True, key="percentage_comparison_plot")
+                                st.caption(match_eval)
+                            except Exception as e:
+                                pass
+                            if field_name=="included_skills":
+                                if tailoring!="please try again":
+                                    try:
+                                        irrelevant_skills = ", ".join(tailoring.get("irrelevant_skills", ""))
+                                        relevant_skills = ", ".join(tailoring.get("relevant_skills", ""))
+                                        # transferable_skills= ", ".join(tailoring.get("transferable_skills", ""))
+                                        st.write("Here are some tailoring suggestions")
+                                        st.write(f"**Skills that can be ranked higher**: {relevant_skills}")
+                                        st.write(f"**Skills that can be removed**: {irrelevant_skills}")
+                                        # st.write(f"**Skills that can be added**: {transferable_skills}")
+                                        st.write("Rearrange and edit your skills for maximum resume-job alignment")
+                                    except Exception as e:
+                                        pass        
+                                else:
+                                    st.write(tailoring)
+                            elif field_name=="summary_objective":
+                                if tailoring!="please try again":
+                                    try:
+                                    # split sentence into words and punctuations
+                                        text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
+                                        replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
+                                        substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
+                                        annot_list = create_annotations(text_list, replaced_words, substitutions) 
+                                        # Step 1: add space after words and strip of empty strings  
+                                        annot_list =  [text + " " if not isinstance(text, tuple) else text for text in annot_list if text != ""]
+                                    # Step 2: Strip the space after a word followed by punctuation
+                                        if len(annot_list) > 1:  # Ensure the list has at least two elements
+                                            updated_list = []
+                                            for i in range(len(annot_list) - 1):
+                                                if not isinstance(annot_list[i], tuple) and re.match(r'[^\w\s]', annot_list[i + 1]):
+                                                    updated_list.append(annot_list[i].strip())
+                                                else:
+                                                    updated_list.append(annot_list[i])
+                                            annot_list = updated_list
+                                        st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in annot_list]
+                                        # annot_list = [annot_list[i].strip() if re.match(r'[^\w\s]', annot_list[i+1]) else annot_list[i] for i in range(len(annot_list)-1)]
+                                        # st.session_state["new_summary"] = [summary[i].strip() if re.match(r'[^\w\s]', summary[i+1]) else summary[i] for i in range(len(summary)-1)]
+                                        annotated_text(annot_list)
+                                        _, c = st.columns([3,1])
+                                        with c:
+                                            #NOTE: in the future can apply and revert one by one
+                                            st.button("Apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button"+"_apply")  
+                                            if "old_summary" in st.session_state: 
+                                                st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button"+"_revert", type="primary")     
+                                    except Exception as e:
+                                        pass
+                                        # st.rerun()
+                                else:
+                                    st.write(tailoring)
                             else:
+                                # Remove special characters but keep punctuation and dashes
+                                tailoring = re.sub(r'[^a-zA-Z0-9\s.,!?-]', '', tailoring)
                                 st.write(tailoring)
-                        elif field_name=="summary_objective":
-                            if tailoring!="please try again":
-                                try:
-                                # split sentence into words and punctuations
-                                    text_list = re.findall(r"[\w']+|[.,!?;]", st.session_state["profile"]["summary_objective"])
-                                    replaced_words = [replacement["replaced_words"] for replacement in tailoring["replacements"]]
-                                    substitutions = [substitution["substitution"] for substitution in tailoring["replacements"]]
-                                    annot_list = create_annotations(text_list, replaced_words, substitutions) 
-                                    # Step 1: add space after words and strip of empty strings  
-                                    annot_list =  [text + " " if not isinstance(text, tuple) else text for text in annot_list if text != ""]
-                                   # Step 2: Strip the space after a word followed by punctuation
-                                    if len(annot_list) > 1:  # Ensure the list has at least two elements
-                                        updated_list = []
-                                        for i in range(len(annot_list) - 1):
-                                            if not isinstance(annot_list[i], tuple) and re.match(r'[^\w\s]', annot_list[i + 1]):
-                                                updated_list.append(annot_list[i].strip())
-                                            else:
-                                                updated_list.append(annot_list[i])
-                                        annot_list = updated_list
-                                    st.session_state["new_summary"] = [text[0] if isinstance(text, tuple) else text for text in annot_list]
-                                    # annot_list = [annot_list[i].strip() if re.match(r'[^\w\s]', annot_list[i+1]) else annot_list[i] for i in range(len(annot_list)-1)]
-                                    # st.session_state["new_summary"] = [summary[i].strip() if re.match(r'[^\w\s]', summary[i+1]) else summary[i] for i in range(len(summary)-1)]
-                                    annotated_text(annot_list)
-                                    _, c = st.columns([3,1])
-                                    with c:
-                                        #NOTE: in the future can apply and revert one by one
-                                        st.button("Apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button"+"_apply")  
-                                        if "old_summary" in st.session_state: 
-                                            st.button("revert changes", on_click=revert_changes, key=f"tailor_{field_name}_button"+"_revert", type="primary")     
-                                except Exception as e:
-                                    pass
-                                    # st.rerun()
-                            else:
-                                st.write(tailoring)
+                            # elif type=="description":
+                            #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
+                            #         st.write(tailoring)
+                            #         # st.write(tailoring["ranked"])
+                            #         # if tailoring.get("ranked_list", ""):
+                            #         #     st.write(tailoring["ranked_list"])
+                            #         #     st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
+                            #         #     _, c = st.columns([3,1])
+                            #         #     with c:
+                            #         #         st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
+                            #         #         if f"old_{field_name}_{idx}" in st.session_state: 
+                            #         #             st.button("revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
+                            #     else:
+                            #         st.write(tailoring)   
+            
+                            st.markdown(primary_button2, unsafe_allow_html=True)
+                            st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
+                            st.button("Tailor again", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, tailor_container,))
+                else:
+                    if tailor_container.button("Tailor", key=f"tailor_{field_name}_button", disabled=True if st.session_state["selection"]=="default" else False):
+                        if "job_posting_dict" not in st.session_state:
+                            self.job_posting_popup(field_name=field_name, tailor_container=tailor_container)
                         else:
-                            # Remove special characters but keep punctuation and dashes
-                            tailoring = re.sub(r'[^a-zA-Z0-9\s.,!?-]', '', tailoring)
-                            st.write(tailoring)
-                        # elif type=="description":
-                        #     if tailoring!="please try again" and tailoring!="please add more bullet points first":
-                        #         st.write(tailoring)
-                        #         # st.write(tailoring["ranked"])
-                        #         # if tailoring.get("ranked_list", ""):
-                        #         #     st.write(tailoring["ranked_list"])
-                        #         #     st.session_state[f"new_{field_name}_{idx}"]=tailoring["ranked_list"]
-                        #         #     _, c = st.columns([3,1])
-                        #         #     with c:
-                        #         #         st.button("apply changes", on_click=apply_changes, key=f"tailor_{field_name}_button_{idx}"+"_apply")  
-                        #         #         if f"old_{field_name}_{idx}" in st.session_state: 
-                        #         #             st.button("revert", on_click=revert_changes, key=f"tailor_{field_name}_button_{idx}"+"_revert", type="primary")  
-                        #     else:
-                        #         st.write(tailoring)   
+                            # if field_name==st.session_state["tailoring_field"] and idx==st.session_state[f"tailoring_field_idx"]:
+                            self.tailor_callback(field_name,  tailor_container)
+                            st.rerun()
+                    
         
-                        st.markdown(primary_button2, unsafe_allow_html=True)
-                        st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-                        st.button("Tailor again", key=f"tailor_again_{field_name}_button", on_click=self.tailor_callback, args=(field_name, tailor_container,))
-            else:
-                if tailor_container.button("Tailor", key=f"tailor_{field_name}_button", disabled=True if st.session_state["selection"]=="default" else False):
-                    if "job_posting_dict" not in st.session_state:
-                        self.job_posting_popup(field_name=field_name, tailor_container=tailor_container)
-                    else:
-                        # if field_name==st.session_state["tailoring_field"] and idx==st.session_state[f"tailoring_field_idx"]:
-                        self.tailor_callback(field_name,  tailor_container)
-                        st.rerun()
-                
-    
           
 
     @st.dialog("Job posting upload")   
@@ -1992,78 +1982,55 @@ class User():
                         salary = st.session_state["job_posting_dict"].get("salary", "")
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
-                        pin, delete=st.columns([10, 1])
                         _, center, _ = st.columns([1, 10, 1])
-                        prev, color, url, nxt = st.columns([5, 1, 1, 1])
-                        with pin:
-                            st.write("📌 ")
-                        if not st.session_state.is_pc:
-                            with prev:
-                                if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                                    # add_vertical_space(15)
-                                    prev = st.button("🞀", key="prev_job_button", type="primary")
-                                    if prev:
-                                        st.session_state["current_idx"]=st.session_state["current_idx"]-1
-                                        st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                        st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                                        # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-                                        # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-                                        st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                        st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                        st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                        # job_placeholder.empty()
-                                        st.rerun()
-                            # title = f'<p style="font-family:Comic Sans MS, cursive; color:#2d2e29; font-size: 20px;"><b><i>Clipped Jobs</i></b></p>'
-                            # st.markdown(title, unsafe_allow_html=True)
-                        with url:
-                            if link:
+                        if st.session_state.is_pc:
+                            pin, delete=st.columns([10, 1])
+                            prev, color, url, nxt = st.columns([5, 1, 1, 1])
+                            with pin:
+                                st.write("📌 ")
+                            with url:
                                 st.link_button("🔗", url=link)
-                        with color:
-                            change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
-                            #NOTE: resetting config does not work in callback
-                            if change_color!=st.session_state["tailor_color"]:
-                                st.session_state["tailor_color"]= change_color
-                                time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-                                save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
-                                st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
-                                # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                                # st._config.set_option(f'theme.secondaryBackgroundColor' , color )
+                            with color:
+                                change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
+                                #NOTE: resetting config does not work in callback
+                            with delete:
+                                delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                        else:
+                            pin, menu = st.columns([2, 1])
+                            with pin:
+                                st.write("📌 ")
+                            with menu:
+                                with st.popover(label=" ", icon=":material/menu:", ):
+                                    delete_job = st.button(":red[delete job posting]", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                                    st.link_button("go to link", url=link)
+                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
+
+                        if change_color!=st.session_state["tailor_color"]:
+                            st.session_state["tailor_color"]= change_color
+                            time=st.session_state["tracker"][st.session_state.current_idx]["time"]
+                            save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+                            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color )
+                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                            st.rerun()
+                        if delete_job:
+                            timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
+                            delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
+                            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+                            if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
+                                self.delete_session_states(["job_posting_dict", f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
+                            else:
+                                self.delete_session_states([f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
+                                st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
+                                st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx] 
+                                st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
                                 st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
                                 st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                st.rerun()
-                        with delete:
-                            delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
-                            if delete_job:
-                                timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
-                                delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
-                                st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
-                                if st.session_state["tracker"] is None or len(st.session_state["tracker"])==0:
-                                    self.delete_session_states(["job_posting_dict", f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
-                                else:
-                                    self.delete_session_states([f"job_applied_toggle_{st.session_state.current_idx}", f"delete_job_button_{st.session_state.current_idx}",f"color_picker_{st.session_state.current_idx}"])
-                                    st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
-                                    st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx] 
-                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
-                                st.rerun()  
-                        if not st.session_state.is_pc:
-                            with nxt:
-                                if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                                    # add_vertical_space(15)
-                                    nxt = st.button("🞂", key="next_job_button", type="primary")     
-                                    if nxt:
-                                        st.session_state["current_idx"]=st.session_state["current_idx"]+1
-                                        st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                        st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-                                        # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                                        # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-                                        st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                        st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                        st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                        # job_placeholder.empty()
-                                        st.rerun()
+                                st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
+                            st.rerun() 
+        
                         with center: 
                             add_vertical_space(3)
                             if job_title:
