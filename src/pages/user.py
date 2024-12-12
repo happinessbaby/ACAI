@@ -1862,13 +1862,13 @@ class User():
                     # job_upload_placeholder=st.empty()
                     add_vertical_space(1)
                     job_placeholder=st.empty()
-                if st.session_state.is_pc:
-                    with prev_col:
-                        add_vertical_space(15)
-                        prev_placeholder=st.empty()
-                    with nxt_col:
-                        add_vertical_space(15)
-                        nxt_placeholder=st.empty()
+                # if st.session_state.is_pc:
+                #     with prev_col:
+                #         add_vertical_space(15)
+                #         prev_placeholder=st.empty()
+                #     with nxt_col:
+                #         add_vertical_space(15)
+                #         nxt_placeholder=st.empty()
                 # _, job_upload_col, _=st.columns([1, 3, 1])
                 # with job_upload_col:
                 #     if st.session_state.is_pc:
@@ -1943,36 +1943,36 @@ class User():
                     if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                         self.job_posting_popup()
 
-            if "job_posting_dict" in st.session_state and st.session_state.is_pc:
-                with prev_placeholder:
-                    #NOTE: scrolling cannot be callback because need to set config
-                    if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                        prev = st.button("🞀", key="prev_job_button", )
-                        if prev:
-                            st.session_state["current_idx"]=st.session_state["current_idx"]-1
-                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                            # job_placeholder.empty()
-                            st.rerun()
-                with nxt_placeholder:
-                    if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                        nxt = st.button("🞂", key="next_job_button",)     
-                        if nxt:
-                            st.session_state["current_idx"]=st.session_state["current_idx"]+1
-                            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                            # job_placeholder.empty()
-                            st.rerun()
+            if "job_posting_dict" in st.session_state:
+                # with prev_placeholder:
+                #     #NOTE: scrolling cannot be callback because need to set config
+                #     if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                #         prev = st.button("🞀", key="prev_job_button", )
+                #         if prev:
+                #             st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                #             st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                #             st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                #             # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                #             # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                #             st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                #             st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                #             st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                #             # job_placeholder.empty()
+                #             st.rerun()
+                # with nxt_placeholder:
+                #     if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                #         nxt = st.button("🞂", key="next_job_button",)     
+                #         if nxt:
+                #             st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                #             st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                #             st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                #             # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                #             # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                #             st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                #             st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                #             st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                #             # job_placeholder.empty()
+                #             st.rerun()
 
                 with job_placeholder:
                     with stylable_container(
@@ -2002,7 +2002,36 @@ class User():
                         # if st.session_state.is_pc:
                         pin, delete=st.columns([10, 1])
                         _, center, _ = st.columns([1, 10, 1])
-                        prev, color, url, nxt = st.columns([5, 1, 1, 1])
+                        prev_col, color, url, nxt_col = st.columns([1, 1, 1, 1])
+                        with prev_col:
+                    #NOTE: scrolling cannot be callback because need to set config
+                            if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                                prev = st.button(":material/arrow_back:", key="prev_job_button", type="primary" )
+                                if prev:
+                                    st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    # job_placeholder.empty()
+                                    st.rerun()
+                        with nxt_col:
+                            if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                                nxt = st.button(":material/arrow_forward:", key="next_job_button", type="primary")     
+                                if nxt:
+                                    st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                                    # job_placeholder.empty()
+                                    st.rerun()
                         with pin:
                             st.write("📌 ")
                         with url:
