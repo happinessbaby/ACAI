@@ -1862,12 +1862,13 @@ class User():
                     # job_upload_placeholder=st.empty()
                     add_vertical_space(1)
                     job_placeholder=st.empty()
-                with prev_col:
-                    add_vertical_space(15)
-                    prev_placeholder=st.empty()
-                with nxt_col:
-                    add_vertical_space(15)
-                    nxt_placeholder=st.empty()
+                if st.session_state.is_pc:
+                    with prev_col:
+                        add_vertical_space(15)
+                        prev_placeholder=st.empty()
+                    with nxt_col:
+                        add_vertical_space(15)
+                        nxt_placeholder=st.empty()
                 # _, job_upload_col, _=st.columns([1, 3, 1])
                 # with job_upload_col:
                 #     if st.session_state.is_pc:
@@ -2019,8 +2020,8 @@ class User():
                             with menu:
                                 with st.popover(label=" ", icon=":material/menu:", ):
                                     delete_job = st.button(":red[delete job posting]", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
-                                    st.link_button("go to link", url=link)
-                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
+                                    # st.link_button("go to link", url=link)
+                                    change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", )
 
                         if change_color!=st.session_state["tailor_color"]:
                             st.session_state["tailor_color"]= change_color
@@ -2050,6 +2051,16 @@ class User():
         
                         with center: 
                             add_vertical_space(3)
+                            if match:
+                                # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
+                                # st.markdown(text, unsafe_allow_html=True)
+                                if match<=50:
+                                    st.subheader(f"**Match score** :red[{match}%]")
+                                elif 50<match<70:
+                                    st.subheader(f"**Match score** :orange[{match}%]")
+                                else:
+                                    st.subheader(f"**Match score** :green[{match}%]")
+                    
                             if job_title:
                                 st.write(f"**Job**: {job_title}")
                                 # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Job: {job_title}</p>'
@@ -2088,15 +2099,15 @@ class User():
                                 # keywords_display = f'<p style="font-family:Segoe UI, sans-serif; color:{color}; font-size: 16spx;">{keywords}</p>'
                                 # st.markdown(keywords_display, unsafe_allow_html=True)
                                 st.write(f"**ATS experience keywords**: {keywords}")
-                            if match:
-                                # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
-                                # st.markdown(text, unsafe_allow_html=True)
-                                if match<=50:
-                                    st.write(f"**Match score**: :red[{match}%]")
-                                elif 50<match<70:
-                                    st.write(f"**Match score**: :orange[{match}%]")
-                                else:
-                                    st.write(f"**Match score**: : :green[{match}%]")
+                            # if match:
+                            #     # text = f'<p style="font-family:Segoe UI, sans-serif; color:#2d2e29; font-size: 16spx;">Match:</p>'
+                            #     # st.markdown(text, unsafe_allow_html=True)
+                            #     if match<=50:
+                            #         st.write(f"**Match score**: :red[{match}%]")
+                            #     elif 50<match<70:
+                            #         st.write(f"**Match score**: :orange[{match}%]")
+                            #     else:
+                            #         st.write(f"**Match score**: : :green[{match}%]")
                             applied = st.toggle("**Applied**", key=f"job_applied_toggle_{st.session_state.current_idx}", 
                                                 value=applied_status, 
                                                 on_change=job_applied_callback, 
