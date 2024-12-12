@@ -26,12 +26,13 @@ import streamlit as st
 logo_path= os.environ["LOGO_PATH"]
 
 def detect_ux_context():
-    try:
-        ua_string=st_javascript("""window.navigator.userAgent;""")
-        user_agent=parse(ua_string)
-        st.session_state["is_pc"]=user_agent.is_pc
-    except Exception as e:
-        print(e)
+    if "is_pc" not in st.session_state:
+        try:
+            ua_string=st_javascript("""window.navigator.userAgent;""")
+            user_agent=parse(ua_string)
+            st.session_state["is_pc"]=user_agent.is_pc
+        except Exception as e:
+            print(e)
 
 
 def hide_streamlit_icons():

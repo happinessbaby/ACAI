@@ -27,7 +27,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from annotated_text import annotated_text
 from st_draggable_list import DraggableList
 from streamlit_extras.grid import grid
-# import streamlit_antd_components as sac
+import streamlit_antd_components as sac
 from streamlit_tags import st_tags
 import requests
 # from apscheduler.schedulers.background import BackgroundScheduler
@@ -1526,6 +1526,20 @@ class User():
                                             # label_visibility="collapsed",
                                         )
             # st.session_state["job_link_disabled"]=False if st.session_state.job_linkx else True
+            _, c, _ = st.columns([1, 1, 1])
+            with c:
+                st.write("Search for a job")
+            # c1, c2, c3 = st.columns([1, 1, 1, ])
+            # with c1:
+            #     st.link_button("LinkedIn", "linkedin.com", )
+            # with c2:
+            #     st.link_button("Indeed", "indeed.com")
+            sac.tags([
+                sac.Tag(label='linkedin', icon='send', link="https://linkedin.com"),
+                sac.Tag(label='indeed', icon='send', link='https://indeed.com' ),
+                sac.Tag(label='glassdoor', icon='send', link='https://glassdoor.com'),
+                # sac.Tag(label='link', icon='send', link='https://ant.design/components/tag'),
+            ], align='center')
             _, next_col=st.columns([5, 1])
             with next_col:
             #     submit= st.button("Next", key="job_posting_button", 
@@ -1854,11 +1868,11 @@ class User():
                 with nxt_col:
                     add_vertical_space(15)
                     nxt_placeholder=st.empty()
-                _, job_upload_col, _=st.columns([1, 3, 1])
-                with job_upload_col:
-                    if st.session_state.is_pc:
-                        add_vertical_space(3)
-                    job_upload_placeholder=st.empty()
+                # _, job_upload_col, _=st.columns([1, 3, 1])
+                # with job_upload_col:
+                #     if st.session_state.is_pc:
+                #         add_vertical_space(3)
+                #     job_upload_placeholder=st.empty()
         else:
             eval_col, profile_fields_col, _ = st.columns([2, 4, 1])
             with eval_col:
@@ -1876,7 +1890,9 @@ class User():
                 add_vertical_space(3)   
                 # job_upload_placeholder=st.empty()
                 # add_vertical_space(1)
+                job_upload_placeholder=st.empty()
                 upload_resume_placeholder=st.empty()
+                    
         
         # prompt user to upload job posting when none exists in tailor mode
         # if st.session_state["selection"]=="tailor" and  (st.session_state["tracker"] is None or len(st.session_state["tracker"])==0):
@@ -1982,9 +1998,9 @@ class User():
                         salary = st.session_state["job_posting_dict"].get("salary", "")
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
-                        _, center, _ = st.columns([1, 10, 1])
                         if st.session_state.is_pc:
                             pin, delete=st.columns([10, 1])
+                            _, center, _ = st.columns([1, 10, 1])
                             prev, color, url, nxt = st.columns([5, 1, 1, 1])
                             with pin:
                                 st.write("📌 ")
@@ -1997,6 +2013,7 @@ class User():
                                 delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
                         else:
                             pin, menu = st.columns([2, 1])
+                            _, center, _ = st.columns([1, 10, 1])
                             with pin:
                                 st.write("📌 ")
                             with menu:
