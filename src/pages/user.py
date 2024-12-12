@@ -997,7 +997,7 @@ class User():
                             with x_col:
                                 st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
                         else:
-                            menu_col, c1, c2 = st.columns([2, 1, 20])
+                            menu_col, c1, c2 = st.columns([1, 1, 2])
                             with c1:
                                 st.write("•")
                             with c2: 
@@ -1017,12 +1017,12 @@ class User():
                                         }
                                         """,
                                 ):
-                                    with st.expander(label=" ", icon=":material/menu:", ):
-                                        st.markdown(primary_button3, unsafe_allow_html=True)
-                                        st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                                        st.button("**:red[-]**", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
-                                        st.button("**:blue[^]**", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                                        st.button(":grey[⌄]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                                    with st.popover(label=" ", icon=":material/menu:", ):
+                                        # st.markdown(primary_button3, unsafe_allow_html=True)
+                                        # st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
+                                        st.button(":red[delete description]", type="primary", key=f"delete_{field_name}_{x}_{field_detail}_{idx}", on_click=delete_entry, args=(placeholder, idx, ) )
+                                        st.button(":blue[move description up]", type="primary", key=f"up_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                                        st.button(":grey[move description down]", type="primary", key=f"down_{field_name}_{x}_{field_detail}_{idx}", on_click=move_entry, args=(idx, "down", ))
                     except Exception:
                         pass
             elif type=="links":
@@ -1109,7 +1109,10 @@ class User():
                 add_new_entry()
                 add_container(0, st.session_state["profile"][name][0])
                 st.session_state["profile_changed"]=True
-            st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
+            if st.session_state.is_pc:
+                st.button("**:green[+]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
+            else:
+                st.button(":green[add description]**", key=f"add_{name}_button", on_click=add_new_entry, use_container_width=True)
                   
         def add_new_entry():
             # adds new empty entry to profile dict
@@ -1190,9 +1193,9 @@ class User():
                             with st.expander(label=" ", icon=":material/menu:", ):
                                 st.markdown(primary_button3, unsafe_allow_html=True)
                                 st.markdown('<span class="primary-button3"></span>', unsafe_allow_html=True)
-                                st.button("delete", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
-                                st.button("move up", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
-                                st.button("move down", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
+                                st.button(":red[delete section]", type="primary", key=f"{name}_delete_{idx}", on_click=delete_container, args=(placeholder, idx) )
+                                st.button(":blue[move section up]", type="primary", key=f"up_{name}_{idx}", on_click=move_entry, args=(idx, "up", ))
+                                st.button(":grey[move section down]", type="primary", key=f"down_{name}_{idx}", on_click=move_entry, args=(idx, "down", ))
 
                 if name=="awards":
                     title = value["title"]
