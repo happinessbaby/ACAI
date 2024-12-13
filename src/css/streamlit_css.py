@@ -273,9 +273,15 @@ button:focus {
   color: #FFFFFF;
 }"""
 ]
-
+# orange
 new_upload_button = ["""button {
                                 color: white;
                                 background-color: #ff9747;
+                            }""",
+                            ]
+# green
+new_upload_button2 = ["""button {
+                                color: white;
+                                background-color: "#47ff5a";
                             }""",
                             ]

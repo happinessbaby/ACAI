@@ -7,14 +7,14 @@ import time
 from datetime import datetime
 from utils.lancedb_utils import retrieve_dict_from_table, delete_user_from_table, save_user_changes, convert_pydantic_schema_to_arrow, delete_job_from_table, save_job_posting_changes
 from utils.common_utils import  process_uploads, create_resume_info, process_links, process_inputs, create_job_posting_info,  suggest_skills
-from utils.basic_utils import mk_dirs, send_recovery_email
+from utils.basic_utils import mk_dirs, send_recovery_email, change_hex_color
 from typing import Any, List
 from backend.upgrade_resume import reformat_resume, match_resume_job
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from utils.pydantic_schema import ResumeUsers, GeneralEvaluation, JobTrackingUsers
 from streamlit_utils import user_menu, progress_bar, set_streamlit_page_config_once, hide_streamlit_icons,length_chart, comparison_chart, language_radar, readability_indicator, Progress, percentage_comparison, bottom_info, detect_ux_context
-from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button,  new_upload_button
+from css.streamlit_css import primary_button3, google_button, primary_button2, primary_button, linkedin_button,  new_upload_button, new_upload_button2
 from backend.upgrade_resume import tailor_resume, evaluate_resume
 from utils.basic_utils import list_files, convert_docx_to_img
 # from backend.generate_cover_letter import generate_basic_cover_letter
@@ -188,17 +188,16 @@ class User():
                 mk_dirs(paths,)
             if "selection" not in st.session_state:
                 st.session_state["selection"]="default"
-                # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
-                st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
-                st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
-            else:
-                if st.session_state["selection"]=="default":
-                    st._config.set_option(f'theme.textColor' ,"#2d2e29" )
-                    st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
-                else:
-                    #NOTE: this is not doing anything here
-                    st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
-                    st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
+            #     st._config.set_option(f'theme.textColor' ,"#2d2e29" ) 
+            #     st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            # else:
+            #     if st.session_state["selection"]=="default":
+            #         st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+            #         st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+            #     else:
+            #         #NOTE: this is not doing anything here
+            #         st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
+            #         st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
 
             if "fields_dict" not in st.session_state:
                 zipped = zip(all_fields, all_fields_labels, all_fields_icons)
@@ -744,7 +743,7 @@ class User():
        
             
 
-    @st.dialog("Rearrange")  
+    @st.dialog("Drag to rearrange")  
     def rearrange_skills_popup(self, ):
         add_vertical_space(2)
         data=[]
@@ -1624,7 +1623,8 @@ class User():
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
             st.session_state["current_idx"]= len(st.session_state["tracker"])-1
             st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx]
-            st.session_state["tailor_color"] = "#2d2e29"
+            # st.session_state["tailor_color"] = "#2d2e29"
+            st.session_state["tailor_color"]="#ffffff"
             #retrieve default profile as tailor template
             st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
             st.session_state["update_template"]=True
@@ -1696,7 +1696,7 @@ class User():
             with placeholder.expander(label=label, icon=icon):
                 _, del_col=st.columns([8, 1])
                 with del_col:
-                    st.button(":grey[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
+                    st.button(":red[Delete field]", type="primary", key=f"delete_{field}_button", on_click=self.delete_field_popup, args=(field, placeholder, ))
                 if field=="contact":
                     if st.session_state["profile"]["contact"] is None:
                         st.session_state["profile"]["contact"]={}
@@ -1847,6 +1847,11 @@ class User():
             st.session_state["profile_changed"]=True
             st.session_state["update_template"]=True
 
+        def change_job_color():
+            st.session_state["tailor_color"]= st.session_state[f"color_picker_{st.session_state.current_idx}"]
+            time=st.session_state["tracker"][st.session_state.current_idx]["time"]
+            save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
         # st.divider()    
         _, switch_col, _ = st.columns([2, 1, 1])
         with switch_col:
@@ -1903,22 +1908,17 @@ class User():
                     " ", ["Default mode", "Tailor mode"], selection_mode="single", default="Default mode" if st.session_state["selection"]=="default" else "Tailor mode"
                 )         
                 if selection=="Default mode" and st.session_state["selection"]!="default":
-                    # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#5591f5" )
-                    # st._config.set_option(f'theme.primaryColor' ,"#ff8247" ) 
                     st.session_state["selection"]="default"
-                    # st._config.set_option(f'theme.secondaryBackgroundColor' ,"#ffffff" )
-                    st._config.set_option(f'theme.textColor' ,"#2d2e29" )
-                    st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
+                    # st._config.set_option(f'theme.textColor' ,"#2d2e29" )
+                    # st._config.set_option(f'theme.primaryColor' ,"#ff9747" )
                     st.session_state["profile"] = retrieve_dict_from_table(st.session_state.userId, lance_users_table_default)
                     st.session_state["update_template"]=True
                     st.rerun()
                 elif selection == "Tailor mode" and st.session_state["selection"]!="tailor":  
                     #st._config.set_option(f'theme.backgroundColor' ,"white" )
                     # st._config.set_option(f'theme.base' ,"dark" )
-                    # st._config.set_option(f'theme.primaryColor' ,"#47ff5a" ) 
-                    # st._config.set_option(f'theme.secondaryBackgroundColor', color ) 
-                    st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
-                    st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
+                    # st._config.set_option(f'theme.textColor', st.session_state["tailor_color"] if "tailor_color" in st.session_state else"#2d2e29" )
+                    # st._config.set_option(f'theme.primaryColor' ,st.session_state["tailor_color"] if "tailor_color" in st.session_state else "#ff9747" )
                     st.session_state["selection"]="tailor"
                     if st.session_state["tracker"] is not None and len(st.session_state["tracker"])>0:
                         st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
@@ -1938,7 +1938,7 @@ class User():
         if st.session_state["selection"]=="tailor":               
             with job_upload_placeholder:
                 with stylable_container(key="custom_button1_profile1",
-                                css_styles=new_upload_button
+                                css_styles=new_upload_button2
                         ):
                     if st.button("Upload a new job posting", key="new_job_posting_button", use_container_width=True):
                         self.job_posting_popup()
@@ -1977,16 +1977,16 @@ class User():
                 with job_placeholder:
                     with stylable_container(
                         key="job_clip_note_container",
-                    css_styles = """
-                            {
+                    css_styles = f"""
+                            {{
                                 border: 1px solid rgba(49, 51, 63, 0.2);
                                 border-radius: 0; /* Remove the rounded corners */
                                 padding: calc(1em + 1px);
-                                background: #FFFF88;
+                                background: {st.session_state.tailor_color};
                                 width: 100%; /* Set the width to prevent text sticking out */
                                 overflow-wrap: break-word; /* Ensure long words break correctly */
                                 box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1); /* Add shadow around the outline */
-                            }
+                            }}
                         """,
                     ):
                         job_title = st.session_state["job_posting_dict"].get('job', "")
@@ -2000,47 +2000,61 @@ class User():
                         location = st.session_state["job_posting_dict"].get("location", "")
                         applied_status = st.session_state["job_posting_dict"]["applied"]
                         # if st.session_state.is_pc:
-                        pin, delete=st.columns([10, 1])
+                        pin, color_col, link_col=st.columns([3, 1, 1])
                         _, center, _ = st.columns([1, 10, 1])
-                        prev_col, color, url, nxt_col = st.columns([1, 1, 1, 1])
-                        with prev_col:
-                    #NOTE: scrolling cannot be callback because need to set config
-                            if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
-                                prev = st.button(":material/arrow_back:", key="prev_job_button", type="primary" )
-                                if prev:
-                                    st.session_state["current_idx"]=st.session_state["current_idx"]-1
-                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
-                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
-                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                    # job_placeholder.empty()
-                                    st.rerun()
-                        with nxt_col:
-                            if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
-                                nxt = st.button(":material/arrow_forward:", key="next_job_button", type="primary")     
-                                if nxt:
-                                    st.session_state["current_idx"]=st.session_state["current_idx"]+1
-                                    st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
-                                    st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
-                                    # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                                    # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
-                                    st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                    st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                                    st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
-                                    # job_placeholder.empty()
-                                    st.rerun()
+                    #     prev_col, color, url, nxt_col = st.columns([1, 1, 1, 1])
+                    #     with prev_col:
+                    # #NOTE: scrolling cannot be callback because need to set config
+                    #         if st.session_state["current_idx"]>0 and len(st.session_state["tracker"])>1:
+                    #             prev = st.button(":material/arrow_back:", key="prev_job_button", type="primary" )
+                    #             if prev:
+                    #                 st.session_state["current_idx"]=st.session_state["current_idx"]-1
+                    #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                    #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
+                    #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)                    
+                    #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color)
+                    #                 # st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                    #                 # st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                    #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                    #                 # job_placeholder.empty()
+                    #                 st.rerun()
+                    #     with nxt_col:
+                    #         if st.session_state["current_idx"]<len(st.session_state["tracker"])-1 and len(st.session_state["tracker"])>1:
+                    #             nxt = st.button(":material/arrow_forward:", key="next_job_button", type="primary")     
+                    #             if nxt:
+                    #                 st.session_state["current_idx"]=st.session_state["current_idx"]+1
+                    #                 st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+                    #                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+                    #                 # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                    #                 # st._config.set_option(f'theme.secondaryBackgroundColor' , color) 
+                    #                 # st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                    #                 # st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                    #                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+                    #                 # job_placeholder.empty()
+                    #                 st.rerun()
                         with pin:
-                            st.write("📌 ")
-                        with url:
-                            st.link_button("🔗", url=link)
-                        with color:
-                            change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
-                            #NOTE: resetting config does not work in callback
-                        with delete:
-                            delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                            # st.write("📌 ")
+                            with st.popover(label=" ", icon=":material/menu:", ):
+                                delete_job = st.button(":red[Delete job posting]", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
+                                browse=st.button("Browse my job postings", type="primary")
+                                if browse:
+                                    self.browse_job_posting_popup()
+                        with link_col:
+                            st.link_button("🔗", url=link,)
+                        with color_col:
+                            # color = change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.1)
+                            change_color = st.color_picker("Pick a color", 
+                                                           value = change_hex_color(st.session_state["tailor_color"], mode="lighten", ), 
+                                                           key=f"color_picker_{st.session_state.current_idx}", 
+                                                           label_visibility="collapsed",
+                                                           on_change=change_job_color, )
+                        # with url:
+                        #     st.link_button("🔗", url=link)
+                        # with color:
+                        #     change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", label_visibility="collapsed")
+                        #     #NOTE: resetting config does not work in callback
+                        # with delete:
+                        #     delete_job = st.button("X", key=f"delete_job_button_{st.session_state.current_idx}", type="primary")
                         # else:
                         #     pin, menu = st.columns([2, 1])
                         #     _, center, _ = st.columns([1, 10, 1])
@@ -2052,16 +2066,15 @@ class User():
                         #             # st.link_button("go to link", url=link)
                         #             change_color = st.color_picker("pick a color", value = st.session_state.tailor_color if "tailor_color" in st.session_state else "#2d2e29", key=f"color_picker_{st.session_state.current_idx}", )
 
-                        if change_color!=st.session_state["tailor_color"]:
-                            st.session_state["tailor_color"]= change_color
-                            time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-                            save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
-                            st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
-                            # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
-                            # st._config.set_option(f'theme.secondaryBackgroundColor' , color )
-                            st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                            st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
-                            st.rerun()
+                        # if change_color!=st.session_state["tailor_color"]:
+                        #     st.session_state["tailor_color"]= change_color
+                        #     time=st.session_state["tracker"][st.session_state.current_idx]["time"]
+                        #     save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+                        #     st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
+                        #     # color=change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.5)
+                        #     # st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                        #     # st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                        #     st.rerun()
                         if delete_job:
                             timestamp = st.session_state["tracker"][st.session_state.current_idx]["time"]
                             delete_job_from_table(st.session_state.userId, timestamp, lance_tracker_table)
@@ -2073,8 +2086,8 @@ class User():
                                 st.session_state["current_idx"]-=1 if st.session_state.current_idx-1>=0 else 0
                                 st.session_state["job_posting_dict"]=st.session_state["tracker"][st.session_state.current_idx] 
                                 st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]  
-                                st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
-                                st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
+                                # st._config.set_option(f'theme.textColor' ,st.session_state.tailor_color )
+                                # st._config.set_option(f'theme.primaryColor' ,st.session_state.tailor_color) 
                                 st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"] 
                             st.rerun() 
         
@@ -2185,9 +2198,38 @@ class User():
                         ):
                     st.button("Revert to default profile", key="new_resume_button", use_container_width=True, on_click=revert_profile_default)
      
-
-
- 
+    @st.dialog(" ")
+    def browse_job_posting_popup(self, ):
+        """"""
+        add_vertical_space(1)
+        jobs = st.session_state["tracker"]
+        for i in range(len(jobs)):
+            with stylable_container(
+                key="container_with_border",
+                css_styles=f"""
+                    {{
+                        border: 1px solid rgba(49, 51, 63, 0.2);
+                        border-radius: 0.5rem;
+                        padding: calc(1em - 1px);
+                        background-color: {jobs[i]["color"]}
+                    }}
+                    """,
+            ):
+                st.write(jobs[i]["job"])
+                st.write(jobs[i]["company"])
+                if jobs[i]["applied"]:
+                    st.write(":green[Applied]")
+                else:
+                    st.write(":red[Not applied]")
+            if st.checkbox(" ", key=f"job_checkbox_{i}" ):
+                st.session_state["current_idx"]=i
+        if st.button(label="Confirm"):
+            st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
+            st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
+            st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
+            st.rerun()
+            
+  
 
 
     @st.dialog("Warning")   

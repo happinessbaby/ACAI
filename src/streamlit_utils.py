@@ -212,12 +212,12 @@ def progress_bar(page):
         #             st.switch_page("pages/templates.py")
         #     #NOTE: OPTION 2
         #     # c1, c2, c3 = st.columns([1, 3, 1])
-        #     # value = "Complete your profile" if page==0 else "Pick a template"
+        #     # value = "Complete my profile" if page==0 else "Pick a template"
         #     # with c1:
         #     #     # add_vertical_space(1)
         #     #     st.markdown(primary_button2, unsafe_allow_html=True)
         #     #     st.markdown('<span class="primary-button2"></span>', unsafe_allow_html=True)
-        #     #     if st.button("Step 1: Complete your profile", key="progress_profile_button"):
+        #     #     if st.button("Step 1: Complete my profile", key="progress_profile_button"):
         #     #         if "current_page" in st.session_state and st.session_state.current_page!="profile":
         #     #         # st.session_state["current_page"]="profile"
         #     #             st.switch_page("pages/user.py")                
@@ -230,8 +230,8 @@ def progress_bar(page):
         #     #             st.switch_page("pages/templates.py")
         #     # with c2:
         #     #     add_vertical_space(1)
-        #     #     step = st.select_slider(label=" ", options=["Complete your profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
-        #     # if step=="Complete your profile":
+        #     #     step = st.select_slider(label=" ", options=["Complete my profile", "Pick a template"], value = value, format_func=lambda x: " " if x else None)
+        #     # if step=="Complete my profile":
         #     #     if "current_page" in st.session_state and st.session_state.current_page!="profile":
         #     #         # st.session_state["current_page"]="profile"
         #     #         st.switch_page("pages/user.py")
@@ -243,7 +243,7 @@ def progress_bar(page):
 
             #NOTE: OPTION 1
             page = sac.tabs([
-                sac.TabsItem(label='Step 1: Complete your profile'),
+                sac.TabsItem(label='Step 1: Complete my profile'),
                 sac.TabsItem(label='Step 2: Pick a template'),
                 ], align='center', 
                 variant='outline' if st.session_state.is_pc else "default",
@@ -251,7 +251,7 @@ def progress_bar(page):
                 use_container_width=True,
                 index=0 if st.session_state.current_page=="profile" else 1, 
                color="#47ff5a",)
-            if page=="Step 1: Complete your profile":
+            if page=="Step 1: Complete my profile":
                 if "current_page" in st.session_state and st.session_state.current_page!="profile":
                     # st.session_state["current_page"]="profile"
                     st.switch_page("pages/user.py")
@@ -260,8 +260,8 @@ def progress_bar(page):
                     # st.session_state["current_page"] = "template"
                     st.switch_page("pages/templates.py")
             #NOTE: OPTION 2 (does not work yet)
-            # page = st_navbar(["Step 1: Complete your profile", "Step 2: Pick a template"])
-            # if page=="Step 1: Complete your profile":
+            # page = st_navbar(["Step 1: Complete my profile", "Step 2: Pick a template"])
+            # if page=="Step 1: Complete my profile":
             #     if "current_page" in st.session_state and st.session_state.current_page!="profile":
             #         # st.session_state["current_page"]="profile"
             #         st.switch_page("pages/user.py")
