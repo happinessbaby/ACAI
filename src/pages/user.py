@@ -1850,7 +1850,7 @@ class User():
         def change_job_color():
             st.session_state["tailor_color"]= st.session_state[f"color_picker_{st.session_state.current_idx}"]
             time=st.session_state["tracker"][st.session_state.current_idx]["time"]
-            save_job_posting_changes(st.session_state.userId, {"color":change_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
+            save_job_posting_changes(st.session_state.userId, {"color":st.session_state.tailor_color}, st.session_state["tracker_schema"], lance_tracker_table, mode="update", time=time)
             st.session_state["tracker"] = retrieve_dict_from_table(st.session_state.userId, lance_tracker_table)
         # st.divider()    
         _, switch_col, _ = st.columns([2, 1, 1])
@@ -1982,7 +1982,7 @@ class User():
                                 border: 1px solid rgba(49, 51, 63, 0.2);
                                 border-radius: 0; /* Remove the rounded corners */
                                 padding: calc(1em + 1px);
-                                background: {st.session_state.tailor_color};
+                                background: {change_hex_color(st.session_state.tailor_color, "lighten")};
                                 width: 100%; /* Set the width to prevent text sticking out */
                                 overflow-wrap: break-word; /* Ensure long words break correctly */
                                 box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1); /* Add shadow around the outline */
@@ -2044,7 +2044,7 @@ class User():
                         with color_col:
                             # color = change_hex_color(st.session_state["tailor_color"], mode="lighten", percentage=0.1)
                             change_color = st.color_picker("Pick a color", 
-                                                           value = change_hex_color(st.session_state["tailor_color"], mode="lighten", ), 
+                                                           value = st.session_state["tailor_color"], 
                                                            key=f"color_picker_{st.session_state.current_idx}", 
                                                            label_visibility="collapsed",
                                                            on_change=change_job_color, )
@@ -2203,34 +2203,38 @@ class User():
         """"""
         add_vertical_space(1)
         jobs = st.session_state["tracker"]
+        # st.selectbox(label="status", options=("applied", "not applied"), on_change=self.filter_jobs, args=("status", ))
         for i in range(len(jobs)):
-            with stylable_container(
-                key="container_with_border",
-                css_styles=f"""
-                    {{
-                        border: 1px solid rgba(49, 51, 63, 0.2);
-                        border-radius: 0.5rem;
-                        padding: calc(1em - 1px);
-                        background-color: {jobs[i]["color"]}
-                    }}
-                    """,
-            ):
-                st.write(jobs[i]["job"])
-                st.write(jobs[i]["company"])
+            st.checkbox(" ", key=f"job_checkbox_{i}", on_change=self.update_job_checkbox, args=(i, ))
+            with st.container(border=True):
                 if jobs[i]["applied"]:
                     st.write(":green[Applied]")
                 else:
                     st.write(":red[Not applied]")
-            if st.checkbox(" ", key=f"job_checkbox_{i}" ):
-                st.session_state["current_idx"]=i
+                st.write(jobs[i]["job"])
+                st.write(jobs[i]["company"])
+                st.write(jobs[i]['about_job'])
+                # st.session_state["current_idx"]=i
+        # for i in range(len(st.session_state.tracker)):
+        #     if st.session_state[f"job_checkbox_{i}"] and i!=st.session_state.current_idx:
+        #         st.session_state[f"job_checkbox_{i}"]=False
         if st.button(label="Confirm"):
             st.session_state["job_posting_dict"] = st.session_state["tracker"][st.session_state.current_idx]
             st.session_state["tailor_color"]=st.session_state["job_posting_dict"]["color"]
             st.session_state["profile"] = st.session_state["tracker"][st.session_state.current_idx]["profile"]
             st.rerun()
             
-  
+    # def filter_jobs(self, filter_mode):
+    #     if filter_mode=="status":
+            
 
+
+    def update_job_checkbox(self, idx):
+        st.session_state["current_idx"]=idx
+        for i in range(len(st.session_state.tracker)):
+            if st.session_state[f"job_checkbox_{i}"] and i!=idx:
+                st.session_state[f"job_checkbox_{i}"]=False
+                
 
     @st.dialog("Warning")   
     def delete_field_popup(self, field, placeholder):
